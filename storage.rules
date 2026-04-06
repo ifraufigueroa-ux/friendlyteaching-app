@@ -1,0 +1,68 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isTeacher() {
+      return isAuthenticated() && getUserData().role == 'teacher';
+    }
+
+    function isApprovedStudent() {
+      return isAuthenticated() &&
+        getUserData().role == 'student' &&
+        getUserData().status == 'approved';
+    }
+
+    // ── Audio files (for listening slides) ────────────────────────────────────
+    match /audio/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher()
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
+      allow delete: if isTeacher();
+    }
+
+    // ── Images (for cover, free_text, image_label slides) ────────────────────
+    match /images/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isTeacher();
+    }
+
+    // ── Documents (future use) ────────────────────────────────────────────────
+    match /documents/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('application/.*');
+      allow delete: if isTeacher();
+    }
+
+    // ── Presentations (PPT/PPTX uploaded by teachers) ─────────────────────────
+    // Public read: Office Online Viewer is external and needs unauthenticated access.
+    // Write: only the owner of the folder (uid == teacherId). No cross-service
+    // Firestore call — uid namespacing is sufficient security for this path.
+    match /presentations/{teacherId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated()
+        && request.auth.uid == teacherId
+        && request.resource.size < 50 * 1024 * 1024;
+      allow delete: if isAuthenticated() && request.auth.uid == teacherId;
+    }
+
+    // ── Block everything else ─────────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

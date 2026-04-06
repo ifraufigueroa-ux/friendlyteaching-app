@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* ============================================================
+   FriendlyTeaching.cl — Global Styles
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Brand Colors */
+  --ft-purple: #C8A8DC;
+  --ft-purple-deep: #9B7CB8;
+  --ft-purple-dark: #6B4F8A;
+  --ft-purple-text: #5A3D7A;
+  --ft-pink: #FFB8D9;
+  --ft-yellow: #FFF5C8;
+  --ft-cyan: #B8E8E8;
+  --ft-cream: #FFFEF5;
+  --ft-lavender: #F0E5FF;
+  --ft-peach: #FFE0D5;
+  --ft-dark: #4A4A4A;
+  --ft-light: #FFFCF7;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #FFB8D9 0%, #C8A8DC 100%);
+  --gradient-hero: linear-gradient(135deg, #F0E5FF 0%, #E0D5FF 50%, #FFE8F0 100%);
+  --gradient-soft: linear-gradient(135deg, #F0E5FF 0%, #E0D5F5 100%);
+
+  /* Phase colors */
+  --phase-pre: #7EB8D8;
+  --phase-while: #8DC8A0;
+  --phase-post: #C8A8DC;
+}
+
+@theme inline {
+  --color-background: var(--ft-light);
+  --color-foreground: var(--ft-dark);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--ft-light);
+  color: var(--ft-dark);
+  font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ft-purple); border-radius: 3px; }
+
+/* Animations */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.animate-slide-in { animation: slideInUp 0.4s ease both; }
+.animate-slide-up { animation: slideInUp 0.5s ease both; }
+.animate-fade-in  { animation: fadeIn 0.3s ease both; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1.1); opacity: 0.4; }
+  50%       { transform: scale(1.18); opacity: 0.1; }
+}
+.animate-float      { animation: float 4s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 4s ease-in-out infinite; }

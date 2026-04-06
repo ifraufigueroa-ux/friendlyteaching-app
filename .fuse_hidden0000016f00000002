@@ -1,0 +1,11 @@
+[debug] [2026-03-13T04:10:19.573Z] ----------------------------------------------------------------------
+[debug] [2026-03-13T04:10:19.574Z] Command:       /usr/bin/node /sessions/admiring-trusting-gauss/.npm-global/bin/firebase login --no-localhost
+[debug] [2026-03-13T04:10:19.575Z] CLI Version:   15.10.0
+[debug] [2026-03-13T04:10:19.575Z] Platform:      linux
+[debug] [2026-03-13T04:10:19.575Z] Node Version:  v22.22.0
+[debug] [2026-03-13T04:10:19.575Z] Time:          Fri Mar 13 2026 01:10:19 GMT-0300 (Chile Summer Time)
+[debug] [2026-03-13T04:10:19.575Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-13T04:10:19.577Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[error] 
+[error] Error: Cannot run login in non-interactive mode. See login:ci to generate a token for use in non-interactive environments.

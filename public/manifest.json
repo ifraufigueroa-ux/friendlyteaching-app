@@ -1,0 +1,27 @@
+{
+  "name": "FriendlyTeaching.cl",
+  "short_name": "FriendlyTeaching",
+  "description": "Academia de Inglés Online — Clases personalizadas con currículo CEFR",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFCF7",
+  "theme_color": "#C8A8DC",
+  "lang": "es-CL",
+  "icons": [
+    {
+      "src": "/logo-friendlyteaching.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-friendlyteaching.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education"],
+  "screenshots": []
+}

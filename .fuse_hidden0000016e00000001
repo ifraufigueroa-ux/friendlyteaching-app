@@ -1,0 +1,22 @@
+[debug] [2026-03-13T04:10:15.567Z] ----------------------------------------------------------------------
+[debug] [2026-03-13T04:10:15.569Z] Command:       /usr/bin/node /sessions/admiring-trusting-gauss/.npm-global/bin/firebase deploy --only storage --project friendly-scheduling
+[debug] [2026-03-13T04:10:15.569Z] CLI Version:   15.10.0
+[debug] [2026-03-13T04:10:15.569Z] Platform:      linux
+[debug] [2026-03-13T04:10:15.570Z] Node Version:  v22.22.0
+[debug] [2026-03-13T04:10:15.570Z] Time:          Fri Mar 13 2026 01:10:15 GMT-0300 (Chile Summer Time)
+[debug] [2026-03-13T04:10:15.570Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-13T04:10:15.572Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-03-13T04:10:16.536Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-13T04:10:16.543Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async GoogleAuth._GoogleAuth_determineClient (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/googleauth.js:834:32)
+    at async GoogleAuth.getClient (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/googleauth.js:722:24)
+    at async autoAuth (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/lib/requireAuth.js:28:19)
+    at async requireAuth (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/lib/requireAuth.js:90:20)
+    at async requirePermissions (/sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/lib/requirePermissions.js:17:5)
+    at async /sessions/admiring-trusting-gauss/.npm-global/lib/node_modules/firebase-tools/lib/command.js:264:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?

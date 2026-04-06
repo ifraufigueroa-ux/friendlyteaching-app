@@ -1,0 +1,169 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserRole() {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return isAuthenticated() && exists(userPath)
+        ? get(userPath).data.get('role', null)
+        : null;
+    }
+
+    // Known teacher emails — used as reliable fallback when Firestore document
+    // lookup (getUserRole) fails or the role field is missing/wrong.
+    function isKnownTeacherEmail() {
+      return request.auth != null && (
+        request.auth.token.email == 'ifraufigueroa@gmail.com' ||
+        request.auth.token.email == 'aranxa.brunam@gmail.com'
+      );
+    }
+
+    function isTeacher() {
+      return getUserRole() == 'teacher' || isKnownTeacherEmail();
+    }
+
+    function isApprovedStudent() {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return isAuthenticated()
+        && exists(userPath)
+        && get(userPath).data.get('role', null) == 'student'
+        && get(userPath).data.get('status', null) == 'approved';
+    }
+
+    match /users/{userId} {
+      // QW6: Students can only read their own doc + their approved teacher's doc
+      allow read: if isOwner(userId)
+                    || isTeacher()
+                    || (isApprovedStudent() && resource.data.role == 'teacher');
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isTeacher();
+      allow delete: if false;
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated();
+      allow create: if isTeacher();
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
+    // Booking requests — only authenticated students with an approved account can create.
+    // Students can read their own requests; teachers can read, update, and delete.
+    match /bookingRequests/{reqId} {
+      allow create: if isApprovedStudent() &&
+                      request.resource.data.studentId == request.auth.uid;
+      allow read:   if isTeacher() ||
+                      (isApprovedStudent() && resource.data.studentId == request.auth.uid);
+      allow update, delete: if isTeacher();
+    }
+
+    match /weeklySchedule/{slotId} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() && resource.data.isPublished == true);
+      allow write: if isTeacher();
+    }
+
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher();
+    }
+
+    match /progress/{progressId} {
+      allow read: if isTeacher() ||
+                    (isAuthenticated() && resource.data.studentId == request.auth.uid);
+      allow create: if isApprovedStudent() &&
+                      request.resource.data.studentId == request.auth.uid;
+      allow update: if isApprovedStudent() &&
+                      resource.data.studentId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ── Live Sessions ──────────────────────────────────────────
+    // Key = lessonId (one active session per lesson at a time).
+    // Teacher: full read/write.  Student: read if in assignedStudents list.
+    match /liveSessions/{lessonId} {
+      allow read: if isAuthenticated() && (
+        isTeacher() ||
+        (isApprovedStudent() && request.auth.uid in resource.data.assignedStudents)
+      );
+      allow create: if isTeacher();
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if false;
+
+      // Student canvas subcollection — each student writes only their own doc
+      match /studentCanvases/{studentId} {
+        allow read: if isAuthenticated() && (
+          isTeacher() || request.auth.uid == studentId
+        );
+        allow write: if isApprovedStudent() && request.auth.uid == studentId;
+      }
+    }
+
+    match /classHistory/{entryId} {
+      allow read: if isTeacher();
+      allow create: if isTeacher();
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
+    match /payments/{paymentId} {
+      // QW5: Only the owning teacher can read/write their own payment records
+      allow read: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    match /levelHistory/{entryId} {
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher();
+      allow update: if isTeacher();
+      allow delete: if false;
+    }
+
+    match /skillAssessments/{assessmentId} {
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher();
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
+    match /activities/{activityId} {
+      allow read: if isTeacher();
+      allow create: if isTeacher();
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
+    match /homework/{hwId} {
+      // QW4: Allow students to read class-wide homework (assignedToStudentId == null)
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() &&
+                      (resource.data.assignedToStudentId == request.auth.uid
+                       || resource.data.assignedToStudentId == null));
+      allow create: if isTeacher();
+      allow update: if isTeacher() ||
+                      (isApprovedStudent() &&
+                       resource.data.assignedToStudentId == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['submittedAt', 'submittedAnswers', 'status']));
+      allow delete: if isTeacher();
+    }
+
+  }
+}
