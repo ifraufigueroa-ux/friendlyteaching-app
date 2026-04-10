@@ -476,7 +476,7 @@ export default function SlotActionModal() {
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && closeSlotAction()}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto relative">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-sm p-6 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto relative border border-white/40">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-[#5A3D7A]">{dayName} {hour}:{String(minute).padStart(2,'0')}</h2>

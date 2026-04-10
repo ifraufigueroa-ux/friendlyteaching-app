@@ -76,11 +76,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-100 flex flex-col h-full shadow-sm">
+    <aside className="w-60 flex-shrink-0 glass-strong flex flex-col h-full shadow-glass-md">
       {/* Brand */}
-      <div className="px-4 py-5 border-b border-gray-100">
+      <div className="px-4 py-5 border-b border-white/30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full overflow-hidden shadow-sm flex-shrink-0">
+          <div className="w-9 h-9 rounded-full overflow-hidden shadow-purple-sm flex-shrink-0 ring-2 ring-[#C8A8DC]/20">
             <Image
               src="/logo-friendlyteaching.jpg"
               alt="FT Logo"
@@ -97,9 +97,9 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* User info */}
-      <div className="px-4 py-4 border-b border-gray-100">
+      <div className="px-4 py-4 border-b border-white/30">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#F0E5FF] flex items-center justify-center text-sm font-bold text-[#5A3D7A]">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F0E5FF] to-[#E0D5FF] flex items-center justify-center text-sm font-bold text-[#5A3D7A] shadow-purple-sm">
             {firstName[0]?.toUpperCase() ?? '?'}
           </div>
           <div className="min-w-0">
@@ -122,10 +122,10 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               href={href}
               onClick={onNavigate}
               className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                 ${isActive
-                  ? 'bg-[#F0E5FF] text-[#5A3D7A] font-semibold'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-[#5A3D7A]'}
+                  ? 'bg-gradient-to-r from-[#F0E5FF] to-[#E8DAFF] text-[#5A3D7A] font-semibold shadow-purple-sm nav-active'
+                  : 'text-gray-600 hover:bg-[#F0E5FF]/40 hover:text-[#5A3D7A] hover:shadow-sm'}
               `}
             >
               <span className="text-base">{icon}</span>
@@ -141,7 +141,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       {/* Bottom: profile + logout */}
-      <div className="px-3 py-3 border-t border-gray-100 space-y-1">
+      <div className="px-3 py-3 border-t border-white/30 space-y-1">
         <Link
           href="/dashboard/profile"
           onClick={onNavigate}

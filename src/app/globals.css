@@ -47,25 +47,104 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ft-purple); border-radius: 3px; }
 
-/* Animations */
+/* ── Glassmorphism Utility Classes ── */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.glass-purple {
+  background: rgba(200, 168, 220, 0.12);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(200, 168, 220, 0.2);
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 24px -1px rgba(155, 124, 184, 0.08),
+    0 2px 8px -1px rgba(155, 124, 184, 0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.glass-card:hover {
+  box-shadow:
+    0 8px 32px -2px rgba(155, 124, 184, 0.14),
+    0 4px 12px -2px rgba(155, 124, 184, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ── Enhanced Shadows ── */
+.shadow-glass     { box-shadow: 0 4px 24px -1px rgba(155,124,184,0.08), 0 2px 8px -1px rgba(155,124,184,0.04); }
+.shadow-glass-md  { box-shadow: 0 8px 32px -2px rgba(155,124,184,0.12), 0 4px 12px -2px rgba(155,124,184,0.06); }
+.shadow-glass-lg  { box-shadow: 0 16px 48px -4px rgba(155,124,184,0.16), 0 8px 24px -4px rgba(155,124,184,0.08); }
+.shadow-glass-xl  { box-shadow: 0 24px 64px -6px rgba(155,124,184,0.2), 0 12px 32px -6px rgba(155,124,184,0.1); }
+.shadow-purple-sm { box-shadow: 0 2px 12px -2px rgba(200,168,220,0.25); }
+.shadow-purple-md { box-shadow: 0 4px 20px -2px rgba(200,168,220,0.35); }
+
+/* ── Stat card glow effect ── */
+.stat-glow {
+  position: relative;
+  overflow: hidden;
+}
+.stat-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(200,168,220,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.stat-glow:hover::before {
+  opacity: 1;
+}
+
+/* ── Animations ── */
 @keyframes slideInUp {
   from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.animate-slide-in { animation: slideInUp 0.4s ease both; }
-.animate-slide-up { animation: slideInUp 0.5s ease both; }
-.animate-fade-in  { animation: fadeIn 0.3s ease both; }
+.animate-slide-in  { animation: slideInUp 0.4s ease both; }
+.animate-slide-up  { animation: slideInUp 0.5s ease both; }
+.animate-slide-down { animation: slideInDown 0.3s ease both; }
+.animate-fade-in   { animation: fadeIn 0.3s ease both; }
+.animate-scale-in  { animation: scaleIn 0.3s ease both; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -77,3 +156,28 @@ body {
 }
 .animate-float      { animation: float 4s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 4s ease-in-out infinite; }
+
+/* ── Smooth hover transitions for interactive elements ── */
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px -4px rgba(155,124,184,0.15);
+}
+
+/* ── Active nav indicator ── */
+.nav-active {
+  position: relative;
+}
+.nav-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(180deg, var(--ft-purple-deep), var(--ft-purple));
+  border-radius: 0 3px 3px 0;
+}

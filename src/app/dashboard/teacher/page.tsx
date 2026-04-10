@@ -42,8 +42,8 @@ function StatCard({ icon, label, value, sub, color = '#C8A8DC', href }: {
   color?: string; href?: string;
 }) {
   const inner = (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex items-center gap-4">
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: `${color}22` }}>
+    <div className="glass-card rounded-2xl p-4 stat-glow hover-lift flex items-center gap-4">
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-purple-sm" style={{ background: `${color}22` }}>
         {icon}
       </div>
       <div className="min-w-0">
@@ -351,7 +351,7 @@ export default function TeacherDashboardPage() {
         {/* ── Alert: pending students ─────────────────────────── */}
         {pendingStudents > 0 && (
           <Link href="/dashboard/teacher/students" className="block">
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center gap-3 hover:bg-amber-100 transition-colors">
+            <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl px-4 py-3 flex items-center gap-3 hover:bg-amber-100/80 transition-all shadow-glass hover-lift">
               <span className="text-2xl">⏳</span>
               <div>
                 <p className="font-bold text-amber-800 text-sm">
@@ -375,7 +375,7 @@ export default function TeacherDashboardPage() {
         {/* ── Next class + Today's schedule ───────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* ── Clases de hoy — carousel ─────────────────────── */}
-          <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-5 text-white flex flex-col">
+          <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-5 text-white flex flex-col shadow-glass-lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-white/60 uppercase tracking-wider">📅 Clases de hoy</p>
@@ -485,7 +485,7 @@ export default function TeacherDashboardPage() {
           </div>
 
           {/* Today's classes */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <p className="font-bold text-gray-700 text-sm">Clases de hoy</p>
               <span className="text-xs text-gray-400">{DAY_ES[today.getDay()]} {today.getDate()}</span>
@@ -569,7 +569,7 @@ export default function TeacherDashboardPage() {
 
         {/* ── Homework to review ──────────────────────────────── */}
         {toReview.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <p className="font-bold text-gray-700 text-sm">📝 Tareas entregadas — pendientes de revisión</p>
               <Link href="/dashboard/teacher/homework" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Ver todas →</Link>
@@ -602,7 +602,7 @@ export default function TeacherDashboardPage() {
 
         {/* ── Students overview ───────────────────────────────── */}
         {approvedStudents > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <p className="font-bold text-gray-700 text-sm">👥 Mis estudiantes</p>
               <Link href="/dashboard/teacher/students" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Gestionar →</Link>
@@ -630,7 +630,7 @@ export default function TeacherDashboardPage() {
         {/* ── History button ──────────────────────────────────── */}
         <button
           onClick={() => setHistoryOpen(true)}
-          className="w-full flex items-center justify-between bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#C8A8DC] transition-all group"
+          className="w-full flex items-center justify-between glass-card rounded-2xl px-5 py-4 hover:border-[#C8A8DC]/40 hover-lift group"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#F0E5FF] flex items-center justify-center text-xl flex-shrink-0">
@@ -645,7 +645,7 @@ export default function TeacherDashboardPage() {
         </button>
 
         {/* ── Weekly schedule ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="font-bold text-gray-700 text-sm">📅 Horario Semanal</p>
           </div>

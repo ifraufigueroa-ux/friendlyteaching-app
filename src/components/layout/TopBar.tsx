@@ -19,7 +19,7 @@ export default function TopBar({ title, subtitle, actions, breadcrumbs }: Props)
   const { profile } = useAuthStore();
 
   return (
-    <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <header className="glass-strong border-b border-white/30 px-6 py-4 flex items-center justify-between shadow-glass">
       <div>
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-1 flex-wrap">

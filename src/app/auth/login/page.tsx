@@ -59,10 +59,10 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ background: 'var(--gradient-primary)' }}>
 
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-slide-in">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-8 animate-slide-in border border-white/40">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 rounded-full overflow-hidden shadow-md mb-3">
+          <div className="w-20 h-20 rounded-full overflow-hidden shadow-purple-md mb-3 ring-3 ring-white/30">
             <Image src="/logo-friendlyteaching.jpg" alt="Logo" width={80} height={80}
               className="object-cover w-full h-full"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -92,7 +92,7 @@ export default function LoginPage() {
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 required placeholder="tu@email.com"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm"
+                className="w-full px-4 py-3 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm"
               />
             </div>
             <div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
               <input
                 type="password" value={password} onChange={e => setPassword(e.target.value)}
                 required placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm"
+                className="w-full px-4 py-3 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm"
               />
             </div>
             <Button type="submit" fullWidth loading={loading} size="lg">
@@ -123,7 +123,7 @@ export default function LoginPage() {
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 required placeholder="tu@email.com"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm"
+                className="w-full px-4 py-3 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm"
               />
             </div>
             <Button type="submit" fullWidth loading={loading}>Enviar Link</Button>
@@ -136,7 +136,7 @@ export default function LoginPage() {
           </form>
         )}
 
-        <div className="mt-6 pt-5 border-t border-gray-100 text-center text-sm text-gray-400">
+        <div className="mt-6 pt-5 border-t border-white/30 text-center text-sm text-gray-400">
           ¿No tienes cuenta?{' '}
           <Link href="/auth/register" className="text-[#9B7CB8] font-semibold hover:underline">
             Regístrate aquí

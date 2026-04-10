@@ -121,7 +121,7 @@ export default function StudentDashboardPage() {
   if (isPending) {
     return (
       <div className="min-h-screen bg-[#FFFCF7] flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-sm p-8 text-center max-w-md w-full">
+        <div className="glass-card rounded-2xl p-8 text-center max-w-md w-full shadow-glass-lg">
           <div className="text-5xl mb-4">⏳</div>
           <h2 className="text-xl font-bold text-[#5A3D7A] mb-2">Cuenta pendiente de aprobación</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
@@ -186,15 +186,15 @@ export default function StudentDashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
           <p className="text-2xl font-bold text-[#5A3D7A]">{progressLoading ? '…' : completedLessons}</p>
           <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones completadas</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
           <p className={`text-2xl font-bold ${pendingHomework > 0 ? 'text-amber-500' : 'text-green-500'}`}>{pendingHomework}</p>
           <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Tareas pendientes</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
           <p className="text-2xl font-bold text-blue-600">{myLessons.length}</p>
           <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones disponibles</p>
         </div>
@@ -202,7 +202,7 @@ export default function StudentDashboardPage() {
 
       {/* Next class banner */}
       {nextBooking && (
-        <div className="bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] rounded-2xl p-4 mb-6 shadow-sm">
+        <div className="bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] rounded-2xl p-4 mb-6 shadow-glass-md">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs text-white/80 font-medium uppercase tracking-wider mb-1">Próxima clase</p>
@@ -234,7 +234,7 @@ export default function StudentDashboardPage() {
 
       {/* Pending homework alert */}
       {pendingHomework > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center justify-between gap-3">
+        <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-4 mb-6 flex items-center justify-between gap-3 shadow-glass">
           <div>
             <p className="text-sm font-bold text-amber-700">📝 {pendingHomework} tarea{pendingHomework > 1 ? 's' : ''} pendiente{pendingHomework > 1 ? 's' : ''}</p>
             <p className="text-xs text-amber-600 mt-0.5">Completa tus tareas antes de la fecha límite</p>
@@ -248,7 +248,7 @@ export default function StudentDashboardPage() {
 
       {/* ── My Progress ── */}
       {(skillScores || studentLevel) && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div className="glass-card rounded-2xl overflow-hidden mb-6">
           <div className="px-4 pt-4 pb-2 flex items-center justify-between">
             <p className="font-bold text-gray-700 text-sm">📈 Mi progreso de inglés</p>
             <Link href="/dashboard/student/progress" className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
@@ -294,7 +294,7 @@ export default function StudentDashboardPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar lección..."
-              className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white"
+              className="w-full px-4 py-2 border border-white/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white/70 backdrop-blur-sm shadow-glass"
             />
             {availableLevels.length > 1 && (
               <div className="flex gap-1.5 flex-wrap">
@@ -327,12 +327,12 @@ export default function StudentDashboardPage() {
         {lessonsLoading ? (
           <LessonsGridSkeleton count={4} />
         ) : myLessons.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+          <div className="glass-card rounded-2xl p-10 text-center">
             <p className="text-3xl mb-3">📚</p>
             <p className="text-gray-500 text-sm">El profesor aún no ha publicado lecciones.</p>
           </div>
         ) : filteredLessons.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+          <div className="glass-card rounded-2xl p-8 text-center">
             <p className="text-2xl mb-2">🔍</p>
             <p className="text-gray-500 text-sm">No hay lecciones que coincidan con tu búsqueda.</p>
             <button onClick={() => { setSearch(''); setLevelFilter(''); }}
@@ -349,7 +349,7 @@ export default function StudentDashboardPage() {
               const totalSlides = lesson.slides?.length ?? 0;
               const pct = isStarted && !isCompleted ? slidePercent(lesson.id, totalSlides) : null;
               return (
-                <div key={lesson.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                <div key={lesson.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
                   {/* Top progress bar */}
                   {isStarted && !isCompleted && pct !== null ? (
                     <div className="h-1.5 w-full bg-gray-100 relative">
@@ -401,14 +401,14 @@ export default function StudentDashboardPage() {
 
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-        <Link href="/dashboard/student/homework" className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
+        <Link href="/dashboard/student/homework" className="glass-card rounded-2xl p-4 flex items-center gap-3 hover-lift">
           <span className="text-2xl">📝</span>
           <div>
             <p className="text-sm font-bold text-[#5A3D7A]">Mis Tareas</p>
             <p className="text-xs text-gray-400">{pendingHomework} pendiente{pendingHomework !== 1 ? 's' : ''}</p>
           </div>
         </Link>
-        <Link href="/dashboard/student/schedule" className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow">
+        <Link href="/dashboard/student/schedule" className="glass-card rounded-2xl p-4 flex items-center gap-3 hover-lift">
           <span className="text-2xl">📅</span>
           <div>
             <p className="text-sm font-bold text-[#5A3D7A]">Mi Horario</p>

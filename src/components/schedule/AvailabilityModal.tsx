@@ -85,7 +85,7 @@ export default function AvailabilityModal({ onClose }: Props) {
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-5 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-2xl p-5 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto border border-white/40">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>

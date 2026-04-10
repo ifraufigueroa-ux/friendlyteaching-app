@@ -110,7 +110,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
 
       {/* Drawer */}
       <div
-        className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300"
+        className="fixed top-0 right-0 h-full w-full max-w-2xl glass-strong z-50 flex flex-col shadow-glass-xl transition-transform duration-300 border-l border-white/30"
         style={{ transform: visible ? 'translateX(0)' : 'translateX(100%)' }}
       >
         {/* Header */}

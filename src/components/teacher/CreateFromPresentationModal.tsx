@@ -99,7 +99,7 @@ export default function CreateFromPresentationModal({ teacherId, onClose }: Prop
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-lg max-h-[90vh] flex flex-col border border-white/40">
 
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 flex-shrink-0">

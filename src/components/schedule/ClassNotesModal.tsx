@@ -47,7 +47,7 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="glass-strong rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md shadow-glass-xl max-h-[90vh] overflow-hidden flex flex-col border border-white/40">
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">

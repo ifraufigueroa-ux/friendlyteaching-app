@@ -103,7 +103,7 @@ export default function BookingModal({ onCreated }: Props) {
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) { closeBookingModal(); closeSlotAction(); } }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-6 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto border border-white/40">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-[#5A3D7A]">Registrar Clase</h2>

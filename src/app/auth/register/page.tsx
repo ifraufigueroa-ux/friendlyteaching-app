@@ -73,7 +73,7 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4"
         style={{ background: 'var(--gradient-primary)' }}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-slide-in">
+        <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-8 text-center animate-slide-in border border-white/40">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--ft-purple-text)' }}>
             ¡Cuenta creada!
@@ -94,10 +94,10 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center p-4"
       style={{ background: 'var(--gradient-primary)' }}>
 
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-slide-in">
+      <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-8 animate-slide-in border border-white/40">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-full overflow-hidden shadow-md mb-3">
+          <div className="w-16 h-16 rounded-full overflow-hidden shadow-purple-md mb-3 ring-3 ring-white/30">
             <Image src="/logo-friendlyteaching.jpg" alt="Logo" width={64} height={64}
               className="object-cover w-full h-full"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -114,7 +114,7 @@ export default function RegisterPage() {
         )}
 
         {/* Toggle Student/Teacher */}
-        <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-5">
+        <div className="flex rounded-xl overflow-hidden border border-white/40 mb-5">
           {[
             { label: '👩‍🎓 Estudiante', value: false },
             { label: '👩‍🏫 Profesor', value: true },
@@ -136,31 +136,31 @@ export default function RegisterPage() {
             <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre completo</label>
             <input value={fullName} onChange={e => setFullName(e.target.value)} required
               placeholder="Ana García"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm" />
+              className="w-full px-3 py-2.5 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
               placeholder="tu@email.com"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm" />
+              className="w-full px-3 py-2.5 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono (opcional)</label>
             <input value={phone} onChange={e => setPhone(e.target.value)}
               placeholder="+56 9 1234 5678"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm" />
+              className="w-full px-3 py-2.5 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Contraseña</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
               placeholder="Mínimo 6 caracteres"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm" />
+              className="w-full px-3 py-2.5 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Confirmar contraseña</label>
             <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required
               placeholder="Repite tu contraseña"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm" />
+              className="w-full px-3 py-2.5 border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] text-sm bg-white/60 backdrop-blur-sm" />
           </div>
           {isTeacher && (
             <div>
