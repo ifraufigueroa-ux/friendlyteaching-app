@@ -54,7 +54,7 @@ export function useGamification(studentId: string | undefined) {
   // Core: award XP + update streak + check badges
   const awardXp = useCallback(async (
     xpAmount: number,
-    updates?: Partial<Pick<StudentGamification, 'lessonsCompleted' | 'homeworksSubmitted' | 'homeworksOnTime' | 'perfectScores'>>,
+    updates?: Partial<Pick<StudentGamification, 'lessonsCompleted' | 'homeworksSubmitted' | 'homeworksOnTime' | 'perfectScores' | 'wordSubmissions' | 'wordStreak'>>,
   ) => {
     if (!studentId) return;
     const ref = doc(db, 'gamification', studentId);
@@ -92,6 +92,8 @@ export function useGamification(studentId: string | undefined) {
     if (updates?.homeworksSubmitted) updateData.homeworksSubmitted = increment(updates.homeworksSubmitted);
     if (updates?.homeworksOnTime) updateData.homeworksOnTime = increment(updates.homeworksOnTime);
     if (updates?.perfectScores) updateData.perfectScores = increment(updates.perfectScores);
+    if (updates?.wordSubmissions) updateData.wordSubmissions = increment(updates.wordSubmissions);
+    if (updates?.wordStreak !== undefined) updateData.wordStreak = updates.wordStreak;
 
     await updateDoc(ref, updateData);
 
@@ -151,6 +153,15 @@ export function useGamification(studentId: string | undefined) {
     await awardXp(xp, updates);
   }, [awardXp]);
 
+  // Convenience: record Word of the Day submission
+  const recordWordOfDay = useCallback(async (wordStreak: number) => {
+    let xp = XP_REWARDS.WORD_OF_DAY;
+    // Streak bonuses
+    if (wordStreak === 7) xp += XP_REWARDS.WORD_STREAK_BONUS_7;
+    if (wordStreak === 14) xp += XP_REWARDS.WORD_STREAK_BONUS_14;
+    await awardXp(xp, { wordSubmissions: 1, wordStreak });
+  }, [awardXp]);
+
   // Convenience: daily login XP
   const recordDailyLogin = useCallback(async () => {
     if (!studentId) return;
@@ -176,6 +187,7 @@ export function useGamification(studentId: string | undefined) {
     awardXp,
     recordLessonComplete,
     recordHomeworkSubmit,
+    recordWordOfDay,
     recordDailyLogin,
     dismissBadges,
   };

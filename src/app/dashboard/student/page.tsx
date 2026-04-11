@@ -18,6 +18,7 @@ import XpBar from '@/components/gamification/XpBar';
 import BadgeGrid from '@/components/gamification/BadgeGrid';
 import StreakDisplay from '@/components/gamification/StreakDisplay';
 import BadgeUnlockToast from '@/components/gamification/BadgeUnlockToast';
+import WordOfTheDay from '@/components/gamification/WordOfTheDay';
 import type { Booking } from '@/types/firebase';
 
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -64,7 +65,7 @@ export default function StudentDashboardPage() {
   // Skill gap analysis + level history — uses teacher UID as second param
   const { averageScores: skillScores } = useSkillAssessments(uid, teacherUid);
   const { history: levelHistory } = useLevelHistory(uid, teacherUid);
-  const { gamification: gam, newBadges, dismissBadges, recordDailyLogin } = useGamification(uid);
+  const { gamification: gam, newBadges, dismissBadges, recordDailyLogin, recordWordOfDay } = useGamification(uid);
 
   // Record daily login XP (once)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +140,7 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] p-6">
+    <div className="min-h-screen bg-mesh p-6">
 
       {/* ── Live session banner ── */}
       {activeSessions.map((session) => (
@@ -162,7 +163,7 @@ export default function StudentDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#5A3D7A]">Hola, {firstName} 👋</h1>
+          <h1 className="text-2xl font-bold text-gradient-purple">Hola, {firstName} 👋</h1>
           <p className="text-gray-500 text-sm mt-0.5">Tu portal de aprendizaje de inglés</p>
         </div>
         {studentLevel && (
@@ -202,7 +203,7 @@ export default function StudentDashboardPage() {
 
       {/* Next class banner */}
       {nextBooking && (
-        <div className="bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] rounded-2xl p-4 mb-6 shadow-glass-md">
+        <div className="bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-4 mb-6 shadow-glass-lg">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs text-white/80 font-medium uppercase tracking-wider mb-1">Próxima clase</p>
@@ -232,17 +233,65 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* Pending homework alert */}
-      {pendingHomework > 0 && (
-        <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-4 mb-6 flex items-center justify-between gap-3 shadow-glass">
-          <div>
-            <p className="text-sm font-bold text-amber-700">📝 {pendingHomework} tarea{pendingHomework > 1 ? 's' : ''} pendiente{pendingHomework > 1 ? 's' : ''}</p>
-            <p className="text-xs text-amber-600 mt-0.5">Completa tus tareas antes de la fecha límite</p>
+      {/* Pending homework alert — with urgency */}
+      {pendingHomework > 0 && (() => {
+        const pendingHw = homework.filter(h => h.status === 'assigned' || h.status === 'pending');
+        const now = new Date();
+        // Find nearest deadline
+        const nearest = pendingHw.reduce((best, h) => {
+          const due = h.dueDate && typeof (h.dueDate as unknown as { toDate?: () => Date }).toDate === 'function'
+            ? (h.dueDate as unknown as { toDate: () => Date }).toDate()
+            : h.dueDate ? new Date((h.dueDate as unknown as { seconds: number }).seconds * 1000) : null;
+          if (!due) return best;
+          if (!best.date || due < best.date) return { date: due, title: h.title };
+          return best;
+        }, { date: null as Date | null, title: '' });
+        const hoursLeft = nearest.date ? Math.max(0, Math.floor((nearest.date.getTime() - now.getTime()) / (1000 * 60 * 60))) : null;
+        const isUrgent = hoursLeft !== null && hoursLeft < 24;
+        const isOverdue = hoursLeft !== null && hoursLeft === 0 && nearest.date && nearest.date < now;
+
+        return (
+          <div className={`rounded-2xl p-4 mb-6 shadow-glass border backdrop-blur-sm ${
+            isOverdue
+              ? 'bg-red-50/80 border-red-300/60'
+              : isUrgent
+                ? 'bg-orange-50/80 border-orange-300/60 animate-pulse'
+                : 'bg-amber-50/80 border-amber-200/60'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className={`text-sm font-bold ${isOverdue ? 'text-red-700' : isUrgent ? 'text-orange-700' : 'text-amber-700'}`}>
+                  {isOverdue ? '🚨' : isUrgent ? '⏰' : '📝'} {pendingHomework} tarea{pendingHomework > 1 ? 's' : ''} pendiente{pendingHomework > 1 ? 's' : ''}
+                </p>
+                {nearest.date && (
+                  <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-600 font-bold' : isUrgent ? 'text-orange-600' : 'text-amber-600'}`}>
+                    {isOverdue
+                      ? `¡"${nearest.title}" está vencida!`
+                      : isUrgent
+                        ? `"${nearest.title}" vence en ${hoursLeft}h`
+                        : `Próxima entrega: ${nearest.date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}`
+                    }
+                  </p>
+                )}
+              </div>
+              <Link href="/dashboard/student/homework"
+                className={`flex-shrink-0 px-4 py-2 text-white rounded-xl text-xs font-bold transition-colors ${
+                  isOverdue ? 'bg-red-500 hover:bg-red-600' : isUrgent ? 'bg-orange-500 hover:bg-orange-600' : 'bg-amber-500 hover:bg-amber-600'
+                }`}>
+                {isOverdue ? '¡Entregar!' : 'Ver tareas'}
+              </Link>
+            </div>
           </div>
-          <Link href="/dashboard/student/homework"
-            className="flex-shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-colors">
-            Ver tareas
-          </Link>
+        );
+      })()}
+
+      {/* ── Word of the Day ── */}
+      {uid && (
+        <div className="mb-6">
+          <WordOfTheDay
+            studentId={uid}
+            recordWordOfDay={recordWordOfDay}
+          />
         </div>
       )}
 
@@ -349,7 +398,7 @@ export default function StudentDashboardPage() {
               const totalSlides = lesson.slides?.length ?? 0;
               const pct = isStarted && !isCompleted ? slidePercent(lesson.id, totalSlides) : null;
               return (
-                <div key={lesson.id} className="glass-card rounded-2xl overflow-hidden hover-lift">
+                <div key={lesson.id} className="card-interactive rounded-2xl overflow-hidden">
                   {/* Top progress bar */}
                   {isStarted && !isCompleted && pct !== null ? (
                     <div className="h-1.5 w-full bg-gray-100 relative">

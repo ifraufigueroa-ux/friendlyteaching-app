@@ -19,6 +19,10 @@ export const BADGE_CATALOG: Record<BadgeId, Omit<Badge, 'unlockedAt'>> = {
   grammar_guru:      { id: 'grammar_guru',        name: 'Gurú Gramático',   description: 'Completa 5 slides de gramática',            icon: '✏️', xpReward: 35 },
   level_up:          { id: 'level_up',            name: 'Subida de Nivel',  description: 'Sube de nivel por primera vez',              icon: '🚀', xpReward: 25 },
   all_skills:        { id: 'all_skills',          name: 'Completo',         description: 'Puntaje 4+ en todas las habilidades',       icon: '🌟', xpReward: 100 },
+  word_first:        { id: 'word_first',          name: 'Primer Ejemplo',   description: 'Escribe tu primer ejemplo de Palabra del Día', icon: '📖', xpReward: 15 },
+  word_streak_7:     { id: 'word_streak_7',       name: 'Vocabulario Semanal', description: 'Racha de 7 días de Palabra del Día',      icon: '📝', xpReward: 40 },
+  word_streak_14:    { id: 'word_streak_14',      name: 'Escritor Dedicado', description: 'Racha de 14 días de Palabra del Día',       icon: '✍️', xpReward: 75 },
+  word_streak_30:    { id: 'word_streak_30',      name: 'Maestro de Palabras', description: 'Racha de 30 días de Palabra del Día',     icon: '🏅', xpReward: 150 },
 };
 
 // ── Level Thresholds ──────────────────────────────────────────
@@ -91,6 +95,13 @@ export function checkNewBadges(stats: StudentGamification): BadgeId[] {
   check('streak_30',         stats.currentStreak >= 30 || stats.longestStreak >= 30);
   check('homework_hero',     stats.homeworksOnTime >= 10);
   check('early_bird',        stats.homeworksOnTime >= 5);
+
+  // Word of the Day badges
+  check('word_first',        (stats.wordSubmissions ?? 0) >= 1);
+  check('word_streak_7',     (stats.wordStreak ?? 0) >= 7);
+  check('word_streak_14',    (stats.wordStreak ?? 0) >= 14);
+  check('word_streak_30',    (stats.wordStreak ?? 0) >= 30);
+
   // level_up is checked externally when level changes
 
   return newBadges;
@@ -119,6 +130,8 @@ export function createDefaultGamification(studentId: string): Omit<StudentGamifi
     homeworksSubmitted: 0,
     homeworksOnTime: 0,
     perfectScores: 0,
+    wordSubmissions: 0,
+    wordStreak: 0,
     badges: [],
     weeklyXp: {},
   };

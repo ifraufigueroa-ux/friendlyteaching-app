@@ -116,7 +116,8 @@ export default function TeacherDashboardPage() {
       const d: Date = typeof raw?.toDate === 'function' ? raw.toDate()
         : raw?.seconds ? new Date(raw.seconds * 1000) : new Date(raw);
       if (d.toLocaleDateString('en-CA') === todayStr) {
-        confirmed.add(`${entry.dayOfWeek}-${entry.hour}`);
+        const entryMin = (entry as { minute?: number }).minute ?? 0;
+        confirmed.add(`${entry.dayOfWeek}-${entry.hour}-${entryMin}`);
       }
     }
     setDismissedSlots((prev) => {
@@ -138,11 +139,12 @@ export default function TeacherDashboardPage() {
     const tid = effectiveUid || auth.currentUser?.uid || '';
     if (!tid || recordingKey) return;
 
-    const key = `${booking.dayOfWeek}-${booking.hour}`;
+    const min = booking.minute ?? 0;
+    const key = `${booking.dayOfWeek}-${booking.hour}-${min}`;
     setRecordingKey(key);
     setCarouselExiting(true);
 
-    const slotKey = `${booking.dayOfWeek}-${booking.hour}`;
+    const slotKey = `${booking.dayOfWeek}-${booking.hour}-${min}`;
     try {
       // completeBooking updates the booking doc — may fail if Firestore rules
       // aren't deployed yet. Wrap independently so history always gets recorded.
@@ -161,6 +163,7 @@ export default function TeacherDashboardPage() {
         studentName: booking.studentName,
         dayOfWeek: booking.dayOfWeek,
         hour: booking.hour,
+        minute: booking.minute ?? 0,
         date: getClassDate(booking.dayOfWeek),
         attended,
         isRecurring: booking.isRecurring,
@@ -188,7 +191,7 @@ export default function TeacherDashboardPage() {
   const [reopeningKey, setReopeningKey] = useState<string | null>(null);
   const handleReopen = useCallback(async (booking: Booking) => {
     if (booking.id.startsWith('local-') || reopeningKey) return;
-    const key = `${booking.dayOfWeek}-${booking.hour}`;
+    const key = `${booking.dayOfWeek}-${booking.hour}-${booking.minute ?? 0}`;
     setReopeningKey(key);
     try {
       await updateBooking(booking.id, {
@@ -231,9 +234,12 @@ export default function TeacherDashboardPage() {
     d.setHours(0, 0, 0, 0);
     const thisWeekMs = d.getTime();
 
-    const slotMap = new Map<number, { booking: Booking; diff: number }>();
+    // Key by hour AND minute so 10:00 and 10:30 are distinct slots
+    const slotMap = new Map<string, { booking: Booking; diff: number }>();
     for (const b of bookings) {
       if (b.dayOfWeek !== todayDow || !statusFilter.includes(b.status)) continue;
+      const min = b.minute ?? 0;
+      const slotId = `${b.hour}-${min}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ws = b.weekStart as any;
       const wsMs: number = ws
@@ -244,12 +250,12 @@ export default function TeacherDashboardPage() {
             : (ws.seconds ?? 0) * 1000
         : 0;
       const diff = Math.abs(wsMs - thisWeekMs);
-      const prev = slotMap.get(b.hour);
-      if (!prev || diff < prev.diff) slotMap.set(b.hour, { booking: b, diff });
+      const prev = slotMap.get(slotId);
+      if (!prev || diff < prev.diff) slotMap.set(slotId, { booking: b, diff });
     }
     return [...slotMap.values()]
       .map((e) => e.booking)
-      .sort((a, b) => a.hour - b.hour);
+      .sort((a, b) => (a.hour * 60 + (a.minute ?? 0)) - (b.hour * 60 + (b.minute ?? 0)));
   }, [bookings, todayDow]);
 
   // Single canonical pass: pick ONE booking per slot (closest to current week),
@@ -273,7 +279,7 @@ export default function TeacherDashboardPage() {
     [hasFirestoreBookings, todayDow]
   );
 
-  // Build the set of "dow-hour" slots already recorded TODAY in classHistory.
+  // Build the set of "dow-hour-minute" slots already recorded TODAY in classHistory.
   // This is the permanent filter: even after a page refresh, recorded classes
   // won't reappear in the carousel.
   const todayRecordedSlots = useMemo(() => {
@@ -289,7 +295,9 @@ export default function TeacherDashboardPage() {
           ? new Date(raw.seconds * 1000)
           : new Date(raw);
       if (d.toLocaleDateString('en-CA') === todayStr) {
-        slots.add(`${entry.dayOfWeek}-${entry.hour}`);
+        // Include minute=0 fallback for history entries that don't store minute
+        const entryMin = (entry as { minute?: number }).minute ?? 0;
+        slots.add(`${entry.dayOfWeek}-${entry.hour}-${entryMin}`);
       }
     }
     return slots;
@@ -302,7 +310,7 @@ export default function TeacherDashboardPage() {
   const carouselClasses: Booking[] = useMemo(() =>
     todayBookings.filter((b) => {
       if (b.id.startsWith('local-')) return false;
-      const key = `${b.dayOfWeek}-${b.hour}`;
+      const key = `${b.dayOfWeek}-${b.hour}-${b.minute ?? 0}`;
       return !dismissedSlots.has(key) && !todayRecordedSlots.has(key);
     }),
     [todayBookings, dismissedSlots, todayRecordedSlots]
@@ -346,7 +354,7 @@ export default function TeacherDashboardPage() {
         title="Panel Principal"
         subtitle={`Hola, ${firstName} 👋 — ${today.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}`}
       />
-      <div className="flex-1 p-6 overflow-auto space-y-6">
+      <div className="flex-1 p-6 overflow-auto space-y-6 bg-mesh">
 
         {/* ── Alert: pending students ─────────────────────────── */}
         {pendingStudents > 0 && (
@@ -408,7 +416,7 @@ export default function TeacherDashboardPage() {
                       <div className="min-w-0">
                         <p className="text-xl font-extrabold leading-tight truncate">{carouselCurrent.studentName}</p>
                         <p className="text-sm text-white/80 mt-0.5">
-                          {DAY_ES[carouselCurrent.dayOfWeek] ?? ''} · {carouselCurrent.hour}:00 – {carouselCurrent.hour + 1}:00
+                          {DAY_ES[carouselCurrent.dayOfWeek] ?? ''} · {carouselCurrent.hour}:{String(carouselCurrent.minute ?? 0).padStart(2, '0')} – {carouselCurrent.minute ? carouselCurrent.hour + 1 : carouselCurrent.hour + 1}:{String(carouselCurrent.minute ?? 0).padStart(2, '0')}
                         </p>
                         <p className="text-white/50 text-xs mt-0.5">
                           {carouselCurrent.isRecurring ? '↻ Recurrente' : '• Una vez'}
@@ -494,7 +502,10 @@ export default function TeacherDashboardPage() {
               <div className="space-y-2">
                 {todayAllBookings.map((b) => {
                   const isCompleted = b.status === 'completed';
-                  const isPast = !isCompleted && b.hour < today.getHours();
+                  const bMin = b.minute ?? 0;
+                  const bookingTotalMin = b.hour * 60 + bMin;
+                  const nowTotalMin = today.getHours() * 60 + today.getMinutes();
+                  const isPast = !isCompleted && bookingTotalMin < nowTotalMin;
                   const attended = b.attendance === 'attended';
                   return (
                     <div key={b.id} className={`flex items-center gap-3 px-3 py-2 rounded-xl ${
@@ -504,7 +515,7 @@ export default function TeacherDashboardPage() {
                           ? 'opacity-50'
                           : 'bg-[#F0E5FF]'
                     }`}>
-                      <span className="text-xs font-mono font-bold text-[#5A3D7A] w-12 flex-shrink-0">{b.hour}:00</span>
+                      <span className="text-xs font-mono font-bold text-[#5A3D7A] w-12 flex-shrink-0">{b.hour}:{String(bMin).padStart(2, '0')}</span>
                       <div className="min-w-0 flex-1">
                         <p className={`text-xs font-semibold truncate ${isCompleted ? 'text-gray-500' : 'text-gray-800'}`}>
                           {b.studentName}
@@ -525,7 +536,7 @@ export default function TeacherDashboardPage() {
                           </span>
                           <button
                             onClick={() => handleReopen(b)}
-                            disabled={reopeningKey === `${b.dayOfWeek}-${b.hour}`}
+                            disabled={reopeningKey === `${b.dayOfWeek}-${b.hour}-${b.minute ?? 0}`}
                             title="Reabrir para re-marcar"
                             className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 hover:bg-[#C8A8DC] hover:text-white text-gray-400 text-[10px] transition-colors disabled:opacity-40"
                           >
@@ -546,10 +557,12 @@ export default function TeacherDashboardPage() {
             ) : todayScheduleFallback.length > 0 ? (
               <div className="space-y-2">
                 {todayScheduleFallback.map((s) => {
-                  const isPast = s.hour < today.getHours();
+                  const sFallbackMin = (s as { minute?: number }).minute ?? 0;
+                  const sTotalMin = s.hour * 60 + sFallbackMin;
+                  const isPast = sTotalMin < today.getHours() * 60 + today.getMinutes();
                   return (
-                    <div key={`${s.dow}-${s.hour}`} className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isPast ? 'opacity-40' : 'bg-[#F0E5FF]'}`}>
-                      <span className="text-xs font-mono font-bold text-[#5A3D7A] w-12 flex-shrink-0">{s.hour}:00</span>
+                    <div key={`${s.dow}-${s.hour}-${sFallbackMin}`} className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isPast ? 'opacity-40' : 'bg-[#F0E5FF]'}`}>
+                      <span className="text-xs font-mono font-bold text-[#5A3D7A] w-12 flex-shrink-0">{s.hour}:{String(sFallbackMin).padStart(2, '0')}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold text-gray-800 truncate">{s.name}</p>
                         <p className="text-[10px] text-gray-400">{s.isRecurring ? '↻ Recurrente' : '• Una vez'}</p>

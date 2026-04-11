@@ -366,7 +366,11 @@ export type BadgeId =
   | 'vocabulary_master'  // Complete 5 vocabulary slides
   | 'grammar_guru'       // Complete 5 grammar slides
   | 'level_up'           // Level up for the first time
-  | 'all_skills';        // Score 4+ in all skill areas
+  | 'all_skills'         // Score 4+ in all skill areas
+  | 'word_first'         // Submit first Word of the Day example
+  | 'word_streak_7'      // 7-day Word of the Day streak
+  | 'word_streak_14'     // 14-day Word of the Day streak
+  | 'word_streak_30';    // 30-day Word of the Day streak
 
 export interface Badge {
   id: BadgeId;
@@ -389,6 +393,8 @@ export interface StudentGamification {
   homeworksSubmitted: number;
   homeworksOnTime: number;
   perfectScores: number;
+  wordSubmissions: number;   // total Word of the Day examples submitted
+  wordStreak: number;        // current consecutive days of Word of the Day
   badges: BadgeId[];
   weeklyXp: Record<string, number>; // 'YYYY-Www' → xp earned that week
   createdAt: Timestamp;
@@ -402,6 +408,9 @@ export const XP_REWARDS = {
   HOMEWORK_ON_TIME: 10,     // bonus
   PERFECT_SCORE: 30,        // bonus
   DAILY_LOGIN: 5,
+  WORD_OF_DAY: 15,              // Submit a Word of the Day example
+  WORD_STREAK_BONUS_7: 25,      // 7-day word streak bonus
+  WORD_STREAK_BONUS_14: 50,     // 14-day word streak bonus
   STREAK_BONUS_3: 15,
   STREAK_BONUS_7: 40,
   STREAK_BONUS_30: 150,

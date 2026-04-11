@@ -42,6 +42,7 @@ export async function recordClassSession(data: {
   studentName: string;
   dayOfWeek: number;
   hour: number;
+  minute?: number;
   date: Date;
   attended: boolean;
   isRecurring: boolean;
@@ -53,6 +54,7 @@ export async function recordClassSession(data: {
     studentName: data.studentName,
     dayOfWeek: data.dayOfWeek,
     hour: data.hour,
+    minute: data.minute ?? 0,
     date: Timestamp.fromDate(data.date),
     attended: data.attended,
     isRecurring: data.isRecurring,

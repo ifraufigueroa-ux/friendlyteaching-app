@@ -37,13 +37,13 @@ export default function TopBar({ title, subtitle, actions, breadcrumbs }: Props)
             ))}
           </nav>
         )}
-        <h1 className="text-xl font-bold text-[#4A4A4A]">{title}</h1>
+        <h1 className="text-xl font-bold text-gradient-purple">{title}</h1>
         {subtitle && <p className="text-sm text-gray-400 mt-0.5">{subtitle}</p>}
       </div>
       <div className="flex items-center gap-4">
         {actions}
         <div className="flex items-center gap-2 pl-4 border-l border-gray-100">
-          <div className="w-8 h-8 rounded-full bg-[#F0E5FF] flex items-center justify-center text-sm font-bold text-[#5A3D7A]">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C8A8DC] to-[#9B7CB8] flex items-center justify-center text-sm font-bold text-white shadow-purple-sm">
             {profile?.fullName?.[0]?.toUpperCase() ?? '?'}
           </div>
           <span className="text-sm font-medium text-gray-700 hidden sm:block">
