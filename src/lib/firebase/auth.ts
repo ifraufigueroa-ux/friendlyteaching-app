@@ -5,6 +5,8 @@ import {
   signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import {
@@ -15,6 +17,11 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './config';
 import type { FTUser, UserRole } from '@/types/firebase';
+
+const HARDCODED_TEACHER_EMAILS = [
+  'ifraufigueroa@gmail.com',
+  'aranxa.brunam@gmail.com',
+];
 
 const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
 
@@ -70,4 +77,37 @@ export async function getUserProfile(uid: string): Promise<FTUser | null> {
 
 export function observeAuthState(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
+}
+
+export async function signInWithGoogle(): Promise<{ user: User; role: UserRole; isNewUser: boolean }> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const result = await signInWithPopup(auth, provider);
+  const { user } = result;
+
+  const existingProfile = await getUserProfile(user.uid);
+
+  if (!existingProfile) {
+    const isTeacher = HARDCODED_TEACHER_EMAILS.includes(user.email?.toLowerCase() ?? '');
+    const role: UserRole = isTeacher ? 'teacher' : 'student';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userData: Record<string, any> = {
+      uid: user.uid,
+      email: user.email ?? '',
+      fullName: user.displayName ?? '',
+      phone: '',
+      role,
+      status: isTeacher ? 'active' : 'pending',
+      timezone: 'America/Santiago',
+      language: 'es',
+      preferences: { emailNotifications: true },
+      createdAt: serverTimestamp(),
+    };
+
+    await setDoc(doc(db, 'users', user.uid), userData);
+    return { user, role, isNewUser: true };
+  }
+
+  return { user, role: existingProfile.role, isNewUser: false };
 }

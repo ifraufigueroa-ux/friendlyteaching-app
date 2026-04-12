@@ -640,6 +640,54 @@ export default function TeacherDashboardPage() {
           </div>
         )}
 
+        {/* ── WhatsApp contact ───────────────────────────────── */}
+        {students.filter((s) => s.status === 'approved' && s.phone).length > 0 && (
+          <div className="glass-card rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-gray-700 text-sm">💬 Contactar por WhatsApp</p>
+              <span className="text-[10px] text-gray-400">Solo estudiantes con teléfono</span>
+            </div>
+            <div className="space-y-2">
+              {students.filter((s) => s.status === 'approved' && s.phone).map((s) => {
+                const rawPhone = s.phone ?? '';
+                const digits = rawPhone.replace(/\D/g, '');
+                const waPhone = digits.startsWith('56') ? digits : digits.startsWith('9') && digits.length === 9 ? `56${digits}` : digits;
+                const firstName = s.fullName.split(' ')[0];
+                return (
+                  <div key={s.uid} className="flex items-center gap-3 px-3 py-2.5 bg-green-50 border border-green-100 rounded-xl">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-sm flex-shrink-0 font-bold text-green-700">
+                      {firstName[0]?.toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{s.fullName}</p>
+                      <p className="text-[10px] text-gray-400">{rawPhone}</p>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <a
+                        href={`https://wa.me/${waPhone}?text=Hola%20${encodeURIComponent(firstName)}%2C%20soy%20tu%20profesora%20de%20FriendlyTeaching%20%F0%9F%91%8B`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#25D366] hover:bg-[#1ebe5c] text-white rounded-lg text-[10px] font-bold transition-colors"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        Mensaje
+                      </a>
+                      <a
+                        href={`https://wa.me/${waPhone}?text=Recordatorio%3A%20tienes%20clase%20hoy%20con%20FriendlyTeaching%20%F0%9F%93%9A`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="px-2.5 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-[10px] font-bold transition-colors"
+                      >
+                        Recordatorio
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── History button ──────────────────────────────────── */}
         <button
           onClick={() => setHistoryOpen(true)}
