@@ -6,67 +6,86 @@ import { getAuth } from 'firebase/auth';
 import { usePlacementSessions, linkSessionToStudent as _linkSession } from '@/hooks/usePlacementSessions';
 import { useStudents } from '@/hooks/useStudents';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
-import type { PlacementSession, SectionScore, WeakArea } from '@/types/placement';
-import type { LessonLevel } from '@/types/firebase';
+import type { PlacementSession, SectionScore } from '@/types/placement';
 
-// ── Level badge colours ────────────────────────────────────────
-const LEVEL_COLORS: Record<string, string> = {
-  A0:   'bg-gray-100 text-gray-700',
-  A1:   'bg-blue-100 text-blue-700',
-  A2:   'bg-sky-100 text-sky-700',
-  B1:   'bg-green-100 text-green-700',
-  'B1+': 'bg-emerald-100 text-emerald-700',
-  B2:   'bg-yellow-100 text-yellow-700',
-  C1:   'bg-orange-100 text-orange-700',
+// ── Brand palette ─────────────────────────────────────────────
+const B = {
+  purple:      '#5A3D7A',
+  purpleMed:   '#9B7CB8',
+  purpleLight: '#C8A8DC',
+  lavender:    '#F0E5FF',
+  lavenderDark:'#E0D5FF',
+  bg:          '#FDFAFF',
 };
 
-const STATUS_LABELS: Record<string, { label: string; style: string }> = {
-  completed:          { label: 'Completed',   style: 'bg-green-100 text-green-700' },
-  stopped_by_ceiling: { label: 'Auto-stopped', style: 'bg-amber-100 text-amber-700' },
-  in_progress:        { label: 'In progress',  style: 'bg-blue-100 text-blue-700' },
+// ── Level config ──────────────────────────────────────────────
+const LEVEL_CONFIG: Record<string, { bg: string; text: string; bar: string }> = {
+  A0:   { bg: '#F3F0FF', text: '#5A3D7A', bar: '#C8A8DC' },
+  A1:   { bg: '#EEF2FF', text: '#3730A3', bar: '#818CF8' },
+  A2:   { bg: '#E0F2FE', text: '#0369A1', bar: '#38BDF8' },
+  B1:   { bg: '#F0FDF4', text: '#15803D', bar: '#4ADE80' },
+  'B1+':{ bg: '#ECFDF5', text: '#047857', bar: '#34D399' },
+  B2:   { bg: '#FFFBEB', text: '#B45309', bar: '#FBBF24' },
+  C1:   { bg: '#FFF7ED', text: '#C2410C', bar: '#FB923C' },
+};
+
+const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
+  completed:          { label: 'Completed',    bg: '#F0FDF4', text: '#15803D' },
+  stopped_by_ceiling: { label: 'Auto-stopped', bg: '#FFFBEB', text: '#B45309' },
+  in_progress:        { label: 'In progress',  bg: B.lavender, text: B.purple },
 };
 
 function formatDate(ts: unknown): string {
   if (!ts) return '—';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const raw = ts as any;
-  const d = typeof raw?.toDate === 'function' ? raw.toDate() : new Date(raw?.seconds * 1000);
+  const d = typeof raw?.toDate === 'function' ? raw.toDate() : new Date((raw?.seconds ?? 0) * 1000);
   return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ── Level badge ───────────────────────────────────────────────
+function LevelBadge({ level, size = 'sm' }: { level: string; size?: 'sm' | 'lg' }) {
+  const cfg = LEVEL_CONFIG[level] ?? { bg: B.lavender, text: B.purple, bar: B.purpleLight };
+  return (
+    <span
+      className={`inline-flex items-center font-bold rounded-full ${size === 'lg' ? 'px-4 py-1.5 text-base' : 'px-2.5 py-0.5 text-xs'}`}
+      style={{ background: cfg.bg, color: cfg.text }}
+    >
+      {level}
+    </span>
+  );
 }
 
 // ── Section score bar ─────────────────────────────────────────
 function SectionBar({ section }: { section: SectionScore }) {
-  const color = section.passed
-    ? 'bg-green-500'
-    : section.total < 4
-    ? 'bg-gray-300'
-    : 'bg-red-400';
+  const cfg = LEVEL_CONFIG[section.level] ?? { bg: B.lavender, text: B.purple, bar: B.purpleLight };
+  const barColor = section.total < 4 ? '#E0D5FF' : section.passed ? cfg.bar : '#FCA5A5';
 
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <span className={`w-8 text-center font-semibold px-1 py-0.5 rounded text-white text-[10px] ${LEVEL_COLORS[section.level]?.replace('text-', 'bg-').replace('bg-', 'bg-')}`}
-        style={{ background: 'transparent', color: 'inherit' }}>
+    <div className="flex items-center gap-3">
+      <span className="w-9 text-[11px] font-bold text-center rounded-lg py-0.5 flex-shrink-0"
+        style={{ background: cfg.bg, color: cfg.text }}>
         {section.level}
       </span>
-      <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+      <div className="flex-1 rounded-full h-3 overflow-hidden" style={{ background: '#F0E5FF' }}>
         <div
-          className={`h-full rounded-full transition-all ${color}`}
-          style={{ width: `${section.pct}%` }}
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${section.pct}%`, background: barColor }}
         />
       </div>
-      <span className="w-12 text-right text-gray-500">
-        {section.total > 0 ? `${section.correct}/${section.total} (${section.pct}%)` : '—'}
+      <span className="text-xs w-28 text-right flex-shrink-0" style={{ color: B.purpleMed }}>
+        {section.total > 0
+          ? <><strong style={{ color: section.passed ? '#15803D' : '#DC2626' }}>{section.pct}%</strong> &nbsp;{section.correct}/{section.total}</>
+          : <span style={{ color: '#C8A8DC' }}>—</span>
+        }
       </span>
     </div>
   );
 }
 
-// ── Session detail modal ──────────────────────────────────────
+// ── Session modal ─────────────────────────────────────────────
 function SessionModal({
-  session,
-  onClose,
-  onLink,
-  pendingStudents,
+  session, onClose, onLink, pendingStudents,
 }: {
   session: PlacementSession;
   onClose: () => void;
@@ -76,7 +95,7 @@ function SessionModal({
   const [linkStudentId, setLinkStudentId] = useState('');
   const [linking, setLinking]             = useState(false);
   const [tab, setTab]                     = useState<'results' | 'program'>('results');
-  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
   const testUrl = `${appUrl}/placement/${session.teacherId}`;
 
   async function handleLink() {
@@ -86,74 +105,96 @@ function SessionModal({
     setLinking(false);
   }
 
+  const accuracy = session.totalAnswered > 0
+    ? Math.round((session.totalCorrect / session.totalAnswered) * 100) : 0;
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b sticky top-0 bg-white rounded-t-2xl z-10">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{session.studentName}</h2>
-            <p className="text-sm text-gray-500">{session.studentEmail}</p>
-            {session.studentPhone && (
-              <p className="text-sm text-gray-500">{session.studentPhone}</p>
-            )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl shadow-2xl"
+        style={{ background: 'white', boxShadow: '0 24px 60px -8px rgba(90,61,122,0.35)' }}>
+
+        {/* ── Hero header ────────────────────────────── */}
+        <div className="relative p-6 rounded-t-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #5A3D7A 0%, #9B7CB8 100%)' }}>
+          {/* decorative blobs */}
+          <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(30%, -40%)' }} />
+          <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(-30%, 40%)' }} />
+
+          <div className="relative flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>Placement Test Result</p>
+              <h2 className="text-xl font-bold text-white">{session.studentName}</h2>
+              <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>{session.studentEmail}</p>
+              {session.studentPhone && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{session.studentPhone}</p>}
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {session.placedLevel && (
+                <div className="text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>Level</p>
+                  <span className="text-2xl font-black text-white px-3 py-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    {session.placedLevel}
+                  </span>
+                </div>
+              )}
+              <button onClick={onClose}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
+                style={{ fontSize: '18px', lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            {session.placedLevel && (
-              <span className={`px-3 py-1 rounded-full text-sm font-bold ${LEVEL_COLORS[session.placedLevel] ?? ''}`}>
-                {session.placedLevel}
-              </span>
-            )}
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-3 mt-5">
+            {[
+              { label: 'Answered', value: session.totalAnswered },
+              { label: 'Correct',  value: session.totalCorrect },
+              { label: 'Accuracy', value: `${accuracy}%` },
+            ].map((s) => (
+              <div key={s.label} className="text-center rounded-2xl py-3" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                <p className="text-xl font-black text-white">{s.value}</p>
+                <p className="text-[10px] font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b px-6">
+        {/* ── Tabs ───────────────────────────────────── */}
+        <div className="flex border-b px-6" style={{ borderColor: B.lavenderDark }}>
           {(['results', 'program'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`py-3 px-4 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t === 'results' ? 'Test Results' : 'Learning Program'}
+            <button key={t} onClick={() => setTab(t)}
+              className="py-3 px-5 text-sm font-semibold border-b-2 -mb-px transition-colors"
+              style={{
+                borderBottomColor: tab === t ? B.purple : 'transparent',
+                color: tab === t ? B.purple : B.purpleMed,
+              }}>
+              {t === 'results' ? '📊 Test Results' : '📅 Learning Program'}
             </button>
           ))}
         </div>
 
         <div className="p-6 space-y-6">
+
+          {/* ══ RESULTS TAB ══════════════════════════════ */}
           {tab === 'results' && (
             <>
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-900">{session.totalAnswered}</p>
-                  <p className="text-xs text-gray-500 mt-1">Questions answered</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-green-600">{session.totalCorrect}</p>
-                  <p className="text-xs text-gray-500 mt-1">Correct</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-600">
-                    {session.totalAnswered > 0
-                      ? Math.round((session.totalCorrect / session.totalAnswered) * 100)
-                      : 0}%
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">Overall accuracy</p>
-                </div>
-              </div>
-
               {/* Section scores */}
               {session.sectionScores && session.sectionScores.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Score by level</h3>
-                  <div className="space-y-2">
-                    {session.sectionScores.map((s) => (
-                      <SectionBar key={s.level} section={s} />
-                    ))}
+                  <h3 className="text-sm font-bold mb-4" style={{ color: B.purple }}>Score by level</h3>
+                  <div className="space-y-2.5 p-4 rounded-2xl" style={{ background: B.lavender }}>
+                    {session.sectionScores.map((s) => <SectionBar key={s.level} section={s} />)}
+                  </div>
+                  <div className="flex gap-4 mt-2 pl-1">
+                    <span className="text-[10px] flex items-center gap-1" style={{ color: B.purpleMed }}>
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#4ADE80' }} /> Passed (≥ 60%)
+                    </span>
+                    <span className="text-[10px] flex items-center gap-1" style={{ color: B.purpleMed }}>
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#FCA5A5' }} /> Below threshold
+                    </span>
+                    <span className="text-[10px] flex items-center gap-1" style={{ color: B.purpleMed }}>
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: '#E0D5FF' }} /> Not reached
+                    </span>
                   </div>
                 </div>
               )}
@@ -161,62 +202,62 @@ function SessionModal({
               {/* Weak areas */}
               {session.weakAreas && session.weakAreas.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Weak areas</h3>
+                  <h3 className="text-sm font-bold mb-3" style={{ color: B.purple }}>Weak areas</h3>
                   <div className="flex flex-wrap gap-2">
-                    {session.weakAreas.map((w) => (
-                      <span
-                        key={w.topic}
-                        className="bg-red-50 text-red-700 text-xs px-3 py-1 rounded-full border border-red-200"
-                        title={`${w.correct}/${w.total} correct (${w.pct}%)`}
-                      >
-                        {TOPIC_LABELS[w.topic] ?? w.topic} — {w.pct}%
-                      </span>
-                    ))}
+                    {session.weakAreas.map((w) => {
+                      const intensity = w.pct === 0 ? '#FEE2E2' : '#FEF3C7';
+                      const textColor = w.pct === 0 ? '#991B1B' : '#92400E';
+                      return (
+                        <span key={w.topic}
+                          className="text-xs px-3 py-1.5 rounded-full font-medium"
+                          style={{ background: intensity, color: textColor, border: `1px solid ${w.pct === 0 ? '#FECACA' : '#FDE68A'}` }}
+                          title={`${w.correct}/${w.total} correct`}>
+                          {TOPIC_LABELS[w.topic] ?? w.topic}
+                          <span className="ml-1.5 font-bold">{w.pct}%</span>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Link to student */}
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Link to a pending student</h3>
+              <div className="rounded-2xl p-4" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
+                <h3 className="text-sm font-bold mb-3" style={{ color: B.purple }}>Link to a pending student</h3>
                 {session.linkedStudentId ? (
-                  <p className="text-sm text-green-600">Linked to student ID: {session.linkedStudentId}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium" style={{ color: '#15803D' }}>✓ Linked</span>
+                    <span className="text-xs" style={{ color: B.purpleMed }}>({session.linkedStudentId})</span>
+                  </div>
                 ) : (
                   <div className="flex gap-2">
-                    <select
-                      value={linkStudentId}
-                      onChange={(e) => setLinkStudentId(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    >
+                    <select value={linkStudentId} onChange={(e) => setLinkStudentId(e.target.value)}
+                      className="flex-1 rounded-xl px-3 py-2 text-sm outline-none"
+                      style={{ border: `2px solid ${B.lavenderDark}`, background: 'white', color: B.purple }}>
                       <option value="">Select pending student…</option>
                       {pendingStudents.map((s) => (
                         <option key={s.uid} value={s.uid}>{s.fullName}</option>
                       ))}
                     </select>
-                    <button
-                      onClick={handleLink}
-                      disabled={!linkStudentId || linking}
-                      className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white text-sm px-4 py-2 rounded-lg transition-colors"
-                    >
-                      {linking ? 'Linking…' : 'Link'}
+                    <button onClick={handleLink} disabled={!linkStudentId || linking}
+                      className="text-white text-sm px-5 py-2 rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                      style={{ background: B.purple }}>
+                      {linking ? '…' : 'Link'}
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Test URL share */}
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Share test link</h3>
+              {/* Share link */}
+              <div>
+                <h3 className="text-sm font-bold mb-2" style={{ color: B.purple }}>Share test link</h3>
                 <div className="flex gap-2">
-                  <input
-                    readOnly
-                    value={testUrl}
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 bg-gray-50"
-                  />
-                  <button
-                    onClick={() => navigator.clipboard.writeText(testUrl)}
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
-                  >
+                  <input readOnly value={testUrl}
+                    className="flex-1 rounded-xl px-3 py-2 text-xs outline-none"
+                    style={{ border: `1px solid ${B.lavenderDark}`, background: B.lavender, color: B.purpleMed }} />
+                  <button onClick={() => navigator.clipboard.writeText(testUrl)}
+                    className="text-xs font-semibold px-4 py-2 rounded-xl transition-all hover:opacity-80"
+                    style={{ background: B.lavenderDark, color: B.purple }}>
                     Copy
                   </button>
                 </div>
@@ -224,30 +265,55 @@ function SessionModal({
             </>
           )}
 
+          {/* ══ PROGRAM TAB ══════════════════════════════ */}
           {tab === 'program' && (
             <>
               {session.learningProgram ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${LEVEL_COLORS[session.learningProgram.placedLevel] ?? ''}`}>
-                      {session.learningProgram.placedLevel}
-                    </span>
-                    <p className="text-sm text-gray-600">12-week personalised learning plan</p>
-                  </div>
-                  {session.learningProgram.weeks.map((week) => (
-                    <div key={week.week} className="flex gap-4 p-4 bg-gray-50 rounded-xl">
-                      <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <span className="text-indigo-700 text-xs font-bold">W{week.week}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{week.focus}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{week.description}</p>
-                      </div>
+                <>
+                  <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #F0E5FF, #E0D5FF)' }}>
+                    <LevelBadge level={session.learningProgram.placedLevel} size="lg" />
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: B.purple }}>12-Week Personalised Learning Plan</p>
+                      <p className="text-xs" style={{ color: B.purpleMed }}>Based on {session.totalAnswered} answers · {session.learningProgram.weakAreas.length} weak areas addressed</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {session.learningProgram.weeks.map((week) => {
+                      const phase = week.week <= 4 ? 0 : week.week <= 8 ? 1 : 2;
+                      const phaseColors = [
+                        { bg: '#F0E5FF', accent: B.purple, label: 'Foundation' },
+                        { bg: '#E0F2FE', accent: '#0369A1', label: 'Development' },
+                        { bg: '#ECFDF5', accent: '#047857', label: 'Consolidation' },
+                      ];
+                      const ph = phaseColors[phase];
+                      return (
+                        <div key={week.week} className="flex gap-4 p-4 rounded-2xl transition-all hover:shadow-sm"
+                          style={{ background: ph.bg, border: `1px solid ${ph.bg}` }}>
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-white text-sm"
+                            style={{ background: ph.accent }}>
+                            W{week.week}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-sm font-bold" style={{ color: ph.accent }}>{week.focus}</p>
+                              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                                style={{ background: ph.accent + '20', color: ph.accent }}>
+                                {ph.label}
+                              </span>
+                            </div>
+                            <p className="text-xs" style={{ color: '#64748B' }}>{week.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               ) : (
-                <p className="text-sm text-gray-500">Learning program not generated yet.</p>
+                <div className="text-center py-12" style={{ color: B.purpleMed }}>
+                  <p className="text-4xl mb-3">📋</p>
+                  <p className="text-sm">Learning program not generated yet.</p>
+                </div>
               )}
             </>
           )}
@@ -259,17 +325,17 @@ function SessionModal({
 
 // ── Main page ─────────────────────────────────────────────────
 export default function PlacementDashboardPage() {
-  const auth    = getAuth();
-  const uid     = auth.currentUser?.uid ?? '';
+  const auth   = getAuth();
+  const uid    = auth.currentUser?.uid ?? '';
 
-  const { sessions, loading }  = usePlacementSessions(uid);
-  const { pendingStudents }    = useStudents();
+  const { sessions, loading } = usePlacementSessions(uid);
+  const { pendingStudents }   = useStudents();
 
   const [search, setSearch]             = useState('');
   const [selectedSession, setSelected] = useState<PlacementSession | null>(null);
 
   const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
-  const testUrl = `${appUrl}/placement/${uid}`;
+  const testUrl = uid ? `${appUrl}/placement/${uid}` : '';
 
   const filtered = useMemo(() => {
     if (!search.trim()) return sessions;
@@ -284,136 +350,137 @@ export default function PlacementDashboardPage() {
     await _linkSession(sessionId, studentId);
   }
 
+  const completed  = sessions.filter((s) => s.status !== 'in_progress').length;
+  const unlinked   = sessions.filter((s) => !s.linkedStudentId && s.status !== 'in_progress').length;
+  const thisMonth  = sessions.filter((s) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw = s.createdAt as any;
+    const d = typeof raw?.toDate === 'function' ? raw.toDate() : new Date((raw?.seconds ?? 0) * 1000);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
+
       {/* Page header */}
       <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Placement Tests</h1>
-          <p className="text-gray-500 text-sm mt-1">Grammar tests completed by prospective students</p>
+          <h1 className="text-2xl font-bold" style={{ color: B.purple }}>Placement Tests</h1>
+          <p className="text-sm mt-1" style={{ color: B.purpleMed }}>Grammar tests completed by prospective students</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2 flex items-center gap-2 max-w-xs">
-            <span className="text-xs text-indigo-600 font-medium">Share link:</span>
-            <input
-              readOnly
-              value={uid ? testUrl : 'Loading…'}
-              className="text-xs text-gray-600 bg-transparent outline-none truncate w-40"
-            />
-            <button
-              onClick={() => navigator.clipboard.writeText(testUrl)}
-              className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
-            >
+        {/* Share link pill */}
+        {testUrl && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
+            <span className="text-xs font-semibold" style={{ color: B.purple }}>Test link:</span>
+            <span className="text-xs truncate max-w-[180px]" style={{ color: B.purpleMed }}>{testUrl}</span>
+            <button onClick={() => navigator.clipboard.writeText(testUrl)}
+              className="text-xs font-bold px-2.5 py-1 rounded-lg transition-all hover:opacity-80"
+              style={{ background: B.purple, color: 'white' }}>
               Copy
             </button>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Stats bar */}
+      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total tests',   value: sessions.length },
-          { label: 'Completed',     value: sessions.filter((s) => s.status !== 'in_progress').length },
-          { label: 'Not linked',    value: sessions.filter((s) => !s.linkedStudentId && s.status !== 'in_progress').length },
-          { label: 'This month',    value: sessions.filter((s) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const raw = s.createdAt as any;
-            const d = typeof raw?.toDate === 'function' ? raw.toDate() : new Date((raw?.seconds ?? 0) * 1000);
-            const now = new Date();
-            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-          }).length },
+          { label: 'Total tests',  value: sessions.length,  icon: '📋' },
+          { label: 'Completed',    value: completed,          icon: '✅' },
+          { label: 'Pending link', value: unlinked,           icon: '🔗' },
+          { label: 'This month',   value: thisMonth,          icon: '📅' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4">
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+          <div key={stat.label} className="rounded-2xl p-4" style={{ background: 'white', border: `1px solid ${B.lavenderDark}`, boxShadow: '0 2px 12px -2px rgba(200,168,220,0.15)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">{stat.icon}</span>
+              <p className="text-2xl font-black" style={{ color: B.purple }}>{stat.value}</p>
+            </div>
+            <p className="text-xs" style={{ color: B.purpleMed }}>{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Search */}
       <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search by name or email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-sm border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+        <input type="text" placeholder="Search by name or email…"
+          value={search} onChange={(e) => setSearch(e.target.value)}
+          className="w-full max-w-sm rounded-xl px-4 py-2.5 text-sm outline-none"
+          style={{ border: `2px solid ${B.lavenderDark}`, background: B.lavender, color: B.purple }}
+          onFocus={(e) => { e.target.style.borderColor = B.purpleLight; }}
+          onBlur={(e) => { e.target.style.borderColor = B.lavenderDark; }}
         />
       </div>
 
-      {/* Table */}
+      {/* Table / empty state */}
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: B.lavender }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg font-medium mb-2">No placement tests yet</p>
-          <p className="text-sm">Share your test link with prospective students to get started.</p>
-          <div className="mt-4 bg-gray-50 rounded-xl px-6 py-4 inline-block">
-            <p className="text-xs text-gray-600 font-mono">{uid ? testUrl : '—'}</p>
+        <div className="text-center py-20">
+          <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: B.lavender }}>
+            <span className="text-3xl">📐</span>
           </div>
+          <p className="text-lg font-bold mb-1" style={{ color: B.purple }}>No placement tests yet</p>
+          <p className="text-sm mb-4" style={{ color: B.purpleMed }}>Share your link with prospective students to get started.</p>
+          {testUrl && (
+            <div className="inline-flex items-center gap-2 rounded-xl px-4 py-2" style={{ background: B.lavender }}>
+              <span className="text-xs font-mono" style={{ color: B.purpleMed }}>{testUrl}</span>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${B.lavenderDark}`, boxShadow: '0 2px 16px -4px rgba(200,168,220,0.2)' }}>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Student</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Date</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Level</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Score</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3">Linked</th>
-                <th />
+            <thead>
+              <tr style={{ background: B.lavender }}>
+                {['Student', 'Date', 'Status', 'Level', 'Score', 'Linked', ''].map((h) => (
+                  <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wider px-4 py-3" style={{ color: B.purpleMed }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((session) => {
-                const status = STATUS_LABELS[session.status] ?? { label: session.status, style: 'bg-gray-100 text-gray-600' };
-                const accuracy = session.totalAnswered > 0
-                  ? Math.round((session.totalCorrect / session.totalAnswered) * 100)
-                  : 0;
+            <tbody>
+              {filtered.map((session, idx) => {
+                const st = STATUS_CONFIG[session.status] ?? { label: session.status, bg: B.lavender, text: B.purple };
+                const acc = session.totalAnswered > 0
+                  ? Math.round((session.totalCorrect / session.totalAnswered) * 100) : 0;
 
                 return (
-                  <tr key={session.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(session)}>
+                  <tr key={session.id}
+                    className="cursor-pointer transition-colors"
+                    style={{ background: idx % 2 === 0 ? 'white' : B.bg, borderTop: `1px solid ${B.lavender}` }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = B.lavender)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? 'white' : B.bg)}
+                    onClick={() => setSelected(session)}>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-900">{session.studentName}</p>
-                      <p className="text-xs text-gray-500">{session.studentEmail}</p>
+                      <p className="font-semibold" style={{ color: B.purple }}>{session.studentName}</p>
+                      <p className="text-xs" style={{ color: B.purpleMed }}>{session.studentEmail}</p>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{formatDate(session.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs" style={{ color: B.purpleMed }}>{formatDate(session.createdAt)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.style}`}>
-                        {status.label}
+                      <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{ background: st.bg, color: st.text }}>
+                        {st.label}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {session.placedLevel ? (
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${LEVEL_COLORS[session.placedLevel] ?? ''}`}>
-                          {session.placedLevel}
-                        </span>
-                      ) : '—'}
+                      {session.placedLevel ? <LevelBadge level={session.placedLevel} /> : <span style={{ color: B.purpleLight }}>—</span>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {session.totalAnswered > 0
-                        ? `${session.totalCorrect}/${session.totalAnswered} (${accuracy}%)`
-                        : '—'}
+                    <td className="px-4 py-3 text-xs font-medium" style={{ color: B.purple }}>
+                      {session.totalAnswered > 0 ? `${session.totalCorrect}/${session.totalAnswered} (${acc}%)` : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {session.linkedStudentId ? (
-                        <span className="text-green-600 text-xs">Linked</span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">—</span>
-                      )}
+                      {session.linkedStudentId
+                        ? <span className="text-xs font-semibold" style={{ color: '#15803D' }}>✓ Linked</span>
+                        : <span className="text-xs" style={{ color: B.purpleLight }}>—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelected(session); }}
-                        className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
-                      >
+                        className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+                        style={{ background: B.lavender, color: B.purple }}>
                         View
                       </button>
                     </td>
@@ -425,7 +492,6 @@ export default function PlacementDashboardPage() {
         </div>
       )}
 
-      {/* Detail modal */}
       {selectedSession && (
         <SessionModal
           session={selectedSession}
