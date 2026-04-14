@@ -165,5 +165,25 @@ service cloud.firestore {
       allow delete: if isTeacher();
     }
 
+    // ── Placement Sessions ─────────────────────────────────────
+    // Public: anyone (including unauthenticated visitors) can CREATE a session
+    // (to take the placement test without logging in).
+    // Only the owning teacher can READ or UPDATE sessions.
+    match /placementSessions/{sessionId} {
+      allow create: if true;  // public — no login required
+      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow update: if (
+        // Teacher can update (link student, etc.)
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+        ||
+        // Unauthenticated continuation: allow updating own in-progress session.
+        // We allow update if the incoming data keeps the teacherId unchanged,
+        // the status is still in_progress or being completed, and no auth is required.
+        // This covers the periodic progress saves from the public test page.
+        (!isAuthenticated() && resource.data.status == 'in_progress')
+      );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
   }
 }

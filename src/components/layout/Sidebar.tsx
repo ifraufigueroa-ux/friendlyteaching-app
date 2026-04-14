@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { logOut } from '@/lib/firebase/auth';
 import { useStudentHomework, useTeacherHomework } from '@/hooks/useHomework';
 import { useStudents } from '@/hooks/useStudents';
+import { usePlacementSessions } from '@/hooks/usePlacementSessions';
 
 // ── Notification badge counts ─────────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
   const studentHw = useStudentHomework(role === 'student' ? uid : '');
   const teacherHw = useTeacherHomework(role === 'teacher' ? uid : '');
   const { pendingStudents } = useStudents();
+  const { sessions: placementSessions } = usePlacementSessions(role === 'teacher' ? uid : '');
 
   // Memoize badge calculation to prevent unnecessary Map recreations
   return useMemo(() => {
@@ -32,10 +34,14 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
       const toReview = teacherHw.homework.filter(h => h.status === 'submitted').length;
       if (toReview > 0) badges.set('/dashboard/teacher/homework', toReview);
       if (pendingStudents.length > 0) badges.set('/dashboard/teacher/students', pendingStudents.length);
+      const unlinkedPlacements = placementSessions.filter(
+        (s) => !s.linkedStudentId && s.status !== 'in_progress',
+      ).length;
+      if (unlinkedPlacements > 0) badges.set('/dashboard/teacher/placement', unlinkedPlacements);
     }
 
     return badges;
-  }, [role, studentHw.homework, teacherHw.homework, pendingStudents]);
+  }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions]);
 }
 
 const TEACHER_NAV = [
@@ -50,6 +56,7 @@ const TEACHER_NAV = [
   { href: '/dashboard/teacher/reminders', icon: '🔔', label: 'Recordatorios' },
   { href: '/dashboard/teacher/billing', icon: '💳', label: 'Facturación' },
   { href: '/dashboard/teacher/activities', icon: '🎯', label: 'Actividades' },
+  { href: '/dashboard/teacher/placement', icon: '📐', label: 'Placement Test' },
 ];
 
 const STUDENT_NAV = [
