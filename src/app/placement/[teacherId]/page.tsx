@@ -41,11 +41,13 @@ export default function PlacementTestPage() {
   const [consecutiveErrors, setCons]    = useState(0);
   const [stoppedAt, setStoppedAt]       = useState<number | null>(null);
   const [saving, setSaving]             = useState(false);
+  const [saveError, setSaveError]       = useState(false);
 
-  // Firestore session ID (created on first answer)
-  const sessionIdRef  = useRef<string | null>(null);
-  const startTimeRef  = useRef<Date>(new Date());
-  const questionStart = useRef<number>(Date.now());
+  // Firestore session ID (created on first answer, best-effort)
+  const sessionIdRef    = useRef<string | null>(null);
+  const sessionPending  = useRef<Promise<string> | null>(null); // avoid double-creates
+  const startTimeRef    = useRef<Date>(new Date());
+  const questionStart   = useRef<number>(Date.now());
 
   const totalQuestions = PLACEMENT_QUESTIONS.length; // 100
   const currentQ       = PLACEMENT_QUESTIONS[currentIdx];
@@ -63,10 +65,16 @@ export default function PlacementTestPage() {
     setStep('instructions');
   }
 
-  // ── Create Firestore session ─────────────────────────────────
-  async function createSession(): Promise<string> {
+  // ── Create Firestore session (best-effort, never blocks UI) ──
+  function ensureSession(): Promise<string> {
+    if (sessionIdRef.current) return Promise.resolve(sessionIdRef.current);
+    if (sessionPending.current) return sessionPending.current;
+
     const ref = doc(collection(db, 'placementSessions'));
-    await setDoc(ref, {
+    // Optimistically set the ID immediately so subsequent calls reuse it
+    sessionIdRef.current = ref.id;
+
+    const p = setDoc(ref, {
       teacherId,
       studentName: name.trim(),
       studentEmail: email.trim(),
@@ -78,8 +86,10 @@ export default function PlacementTestPage() {
       consecutiveErrors: 0,
       startedAt: Timestamp.fromDate(startTimeRef.current),
       createdAt: serverTimestamp(),
-    });
-    return ref.id;
+    }).then(() => ref.id).catch(() => ref.id); // swallow error, return id regardless
+
+    sessionPending.current = p;
+    return p;
   }
 
   // Staged answers waiting to be persisted (filled after confirm, cleared after next)
@@ -111,71 +121,73 @@ export default function PlacementTestPage() {
   }, [selected, confirmed, currentIdx, answers, consecutiveErrors]);
 
   // ── Step 2: Advance to next question (or finish) ──────────────
-  const handleNext = useCallback(async () => {
+  // UI advances immediately — Firestore writes are best-effort in background.
+  const handleNext = useCallback(() => {
     if (!confirmed || !pendingAnswerRef.current) return;
 
     const { newAnswers, newConsec, stop } = pendingAnswerRef.current;
     pendingAnswerRef.current = null;
 
-    setAnswers(newAnswers);
-    setCons(newConsec);
-
-    // Ensure session exists in Firestore
-    let sid = sessionIdRef.current;
-    if (!sid) {
-      sid = await createSession();
-      sessionIdRef.current = sid;
-    }
-
     const isLast = currentIdx === totalQuestions - 1;
     const q      = PLACEMENT_QUESTIONS[currentIdx];
 
     if (stop || isLast) {
-      // ── Test is over: compute results and save ─────────────
+      // ── Test is over ──────────────────────────────────────
+      setAnswers(newAnswers);
+      setCons(newConsec);
+      if (stop) setStoppedAt(q.id);
       setSaving(true);
+
+      // Compute results
       const sectionScores = computeSectionScores(newAnswers);
       const placedLevel   = determineLevel(sectionScores);
       const weakAreas     = computeWeakAreas(newAnswers);
       const learningProg  = generateLearningProgram(placedLevel, weakAreas);
 
-      await updateDoc(doc(db, 'placementSessions', sid), {
-        status:            stop ? 'stopped_by_ceiling' : 'completed',
-        answers:           newAnswers,
-        totalAnswered:     newAnswers.length,
-        totalCorrect:      newAnswers.filter((a) => a.correct).length,
-        consecutiveErrors: newConsec,
-        stoppedAtQuestion: stop ? q.id : null,
-        placedLevel,
-        sectionScores,
-        weakAreas,
-        learningProgram:   learningProg,
-        completedAt:       serverTimestamp(),
-        updatedAt:         serverTimestamp(),
-      });
+      // Save to Firestore (best-effort — show done screen regardless)
+      ensureSession().then((sid) =>
+        updateDoc(doc(db, 'placementSessions', sid), {
+          status:            stop ? 'stopped_by_ceiling' : 'completed',
+          answers:           newAnswers,
+          totalAnswered:     newAnswers.length,
+          totalCorrect:      newAnswers.filter((a) => a.correct).length,
+          consecutiveErrors: newConsec,
+          stoppedAtQuestion: stop ? q.id : null,
+          placedLevel,
+          sectionScores,
+          weakAreas,
+          learningProgram:   learningProg,
+          completedAt:       serverTimestamp(),
+          updatedAt:         serverTimestamp(),
+        })
+      ).catch(() => setSaveError(true)).finally(() => setSaving(false));
 
-      if (stop) setStoppedAt(q.id);
-      setSaving(false);
       setStep('done');
       return;
     }
 
-    // ── Persist progress every 10 answers ──────────────────
-    if (newAnswers.length % 10 === 0) {
-      updateDoc(doc(db, 'placementSessions', sid), {
-        answers:           newAnswers,
-        totalAnswered:     newAnswers.length,
-        totalCorrect:      newAnswers.filter((a) => a.correct).length,
-        consecutiveErrors: newConsec,
-        updatedAt:         serverTimestamp(),
-      }).catch(() => {/* non-critical, ignore */});
-    }
-
-    // Advance to next question
+    // ── Advance to next question immediately ───────────────
+    setAnswers(newAnswers);
+    setCons(newConsec);
     setCurrentIdx((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
     questionStart.current = Date.now();
-  }, [confirmed, currentIdx, totalQuestions, teacherId]);
+
+    // Persist progress every 10 answers (fire-and-forget)
+    if (newAnswers.length % 10 === 0) {
+      ensureSession().then((sid) =>
+        updateDoc(doc(db, 'placementSessions', sid), {
+          answers:           newAnswers,
+          totalAnswered:     newAnswers.length,
+          totalCorrect:      newAnswers.filter((a) => a.correct).length,
+          consecutiveErrors: newConsec,
+          updatedAt:         serverTimestamp(),
+        })
+      ).catch(() => {/* non-critical */});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmed, currentIdx, totalQuestions]);
 
   // ── Render: Landing ──────────────────────────────────────────
   if (step === 'landing') {
@@ -308,6 +320,12 @@ export default function PlacementTestPage() {
 
           {saving && (
             <p className="text-indigo-500 text-sm animate-pulse">Saving your results…</p>
+          )}
+          {saveError && (
+            <p className="text-amber-600 text-sm">
+              Your answers were recorded but could not be saved to the server.
+              Please let your teacher know you completed the test.
+            </p>
           )}
 
           <div className="bg-indigo-50 rounded-xl p-4 text-left">
