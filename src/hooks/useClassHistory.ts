@@ -103,7 +103,7 @@ export function useClassHistory(teacherId: string, limitDays = 90) {
             id: d.id,
             ...d.data(),
           } as ClassHistoryEntry))
-          .filter((e) => {
+          .filter((e: ClassHistoryEntry) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const raw = e.date as any;
             const ms: number = typeof raw?.toDate === 'function'
@@ -113,7 +113,7 @@ export function useClassHistory(teacherId: string, limitDays = 90) {
                 : new Date(raw).getTime();
             return ms >= sinceMs;
           })
-          .sort((a, b) => {
+          .sort((a: ClassHistoryEntry, b: ClassHistoryEntry) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const getMs = (e: ClassHistoryEntry) => {
               const raw = e.date as any;

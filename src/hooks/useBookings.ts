@@ -202,7 +202,7 @@ export async function cancelFutureRecurringBookings(
 
   const fromMs = fromWeekStart.getTime();
 
-  const toCancel = snap.docs.filter((d) => {
+  const toCancel = snap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => {
     const data = d.data();
     if (data.dayOfWeek !== dayOfWeek) return false;
     if (data.hour !== hour) return false;
@@ -223,7 +223,7 @@ export async function cancelFutureRecurringBookings(
   if (toCancel.length === 0) return 0;
 
   const batch = writeBatch(db);
-  toCancel.forEach((d) => {
+  toCancel.forEach((d: QueryDocumentSnapshot<DocumentData>) => {
     batch.update(d.ref, {
       status: 'cancelled',
       cancellationReason: reason ?? 'Recurrencia cancelada',

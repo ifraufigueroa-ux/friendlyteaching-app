@@ -6,17 +6,20 @@ import Sidebar from '@/components/layout/Sidebar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { firebaseUser, isInitialized, isLoading } = useAuthStore();
+  const { firebaseUser, isInitialized } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (isInitialized && !isLoading && !firebaseUser) {
+    if (isInitialized && !firebaseUser) {
       router.replace('/auth/login');
     }
-  }, [isInitialized, isLoading, firebaseUser, router]);
+  }, [isInitialized, firebaseUser, router]);
 
-  // Show loading while auth initializes
-  if (!isInitialized || isLoading) {
+  // Show loading spinner only during the very first auth check.
+  // Using isLoading here caused children to unmount/remount whenever the auth
+  // flag briefly toggled (e.g. onAuthStateChanged firing twice on first load),
+  // which reset Firestore listeners and safety timers inside child hooks.
+  if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background: 'var(--gradient-hero)' }}>

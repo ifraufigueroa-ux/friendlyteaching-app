@@ -38,6 +38,7 @@ export interface FTUser {
     approvedByTeacherId?: string;
     level?: LessonLevel;
     joinedAt?: Timestamp;
+    notes?: string;
   };
   createdAt: Timestamp;
   updatedAt?: Timestamp;

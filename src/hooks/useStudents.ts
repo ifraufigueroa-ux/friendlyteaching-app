@@ -5,6 +5,7 @@ import {
   collection, query, where, onSnapshot,
   doc, updateDoc, serverTimestamp, runTransaction, Transaction,
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
+  type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
@@ -17,52 +18,52 @@ export function useStudents() {
   const [students, setStudents] = useState<FTUser[]>([]);
   const [pendingStudents, setPendingStudents] = useState<FTUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // teacherId is only non-empty after auth has fully resolved (profile + isLoading
+    // are updated atomically by Zustand). Depending on authLoading directly caused the
+    // effect to re-run whenever the flag toggled, which cleared the safety timer and
+    // reset the Firestore listener — producing an infinite skeleton.
     if (!teacherId) return;
 
-    // Approved students: only those approved by THIS teacher
-    const approvedQ = query(
+    setLoading(true);
+    setError(null);
+
+    // Safety timeout — never show skeleton forever
+    const timer = setTimeout(() => {
+      setLoading(false);
+      setError('Tiempo de espera agotado. Recarga la página.');
+    }, 10000);
+
+    // Single query — only needs the automatic single-field index on 'role'.
+    // Filter approved/pending client-side to avoid composite index requirements.
+    const allStudentsQ = query(
       collection(db, 'users'),
       where('role', '==', 'student'),
-      where('studentData.approvedByTeacherId', '==', teacherId),
     );
 
-    // Pending students: not yet assigned to any teacher — show all pending
-    // so teachers can claim and approve new registrations
-    const pendingQ = query(
-      collection(db, 'users'),
-      where('role', '==', 'student'),
-      where('status', '==', 'pending'),
-    );
-
-    let approved: FTUser[] = [];
-    let pending: FTUser[] = [];
-
-    const unsubApproved = onSnapshot(
-      approvedQ,
+    const unsub = onSnapshot(
+      allStudentsQ,
       (snap: QuerySnapshot<DocumentData>) => {
-        approved = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ uid: d.id, ...d.data() } as FTUser));
-        setStudents(approved);
+        clearTimeout(timer);
+        const all = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ uid: d.id, ...d.data() } as FTUser));
+        setStudents(all.filter((s: FTUser) => s.status === 'approved' && s.studentData?.approvedByTeacherId === teacherId));
+        setPendingStudents(all.filter((s: FTUser) => s.status === 'pending'));
+        setLoading(false);
+      },
+      (err: FirestoreError) => {
+        clearTimeout(timer);
+        console.error('useStudents error:', err);
+        setError(`Error al cargar estudiantes: ${err.code ?? err.message}`);
         setLoading(false);
       },
     );
 
-    const unsubPending = onSnapshot(
-      pendingQ,
-      (snap: QuerySnapshot<DocumentData>) => {
-        pending = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ uid: d.id, ...d.data() } as FTUser));
-        setPendingStudents(pending);
-      },
-    );
-
-    return () => {
-      unsubApproved();
-      unsubPending();
-    };
+    return () => { clearTimeout(timer); unsub(); };
   }, [teacherId]);
 
-  return { students, pendingStudents, loading };
+  return { students, pendingStudents, loading, error };
 }
 
 /**
