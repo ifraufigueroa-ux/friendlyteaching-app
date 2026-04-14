@@ -1,67 +1,109 @@
 // FriendlyTeaching.cl — useStudents hook
 'use client';
 import { useEffect, useState } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
-  collection, query, where, onSnapshot,
+  collection, query, onSnapshot,
   doc, updateDoc, serverTimestamp, runTransaction, Transaction,
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
   type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { useAuthStore } from '@/store/authStore';
 import type { FTUser, LessonLevel } from '@/types/firebase';
 
 export function useStudents() {
-  const { profile } = useAuthStore();
-  const teacherId = profile?.uid ?? '';
-
   const [students, setStudents] = useState<FTUser[]>([]);
   const [pendingStudents, setPendingStudents] = useState<FTUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // teacherId is only non-empty after auth has fully resolved (profile + isLoading
-    // are updated atomically by Zustand). Depending on authLoading directly caused the
-    // effect to re-run whenever the flag toggled, which cleared the safety timer and
-    // reset the Firestore listener — producing an infinite skeleton.
-    if (!teacherId) return;
+    let mounted = true;
+    // stopFn holds the active cleanup (either the Firestore unsub or the auth unsub)
+    let stopFn: (() => void) | null = null;
 
-    setLoading(true);
-    setError(null);
+    function startFirestoreQuery(uid: string) {
+      if (!mounted) return;
 
-    // Safety timeout — never show skeleton forever
-    const timer = setTimeout(() => {
-      setLoading(false);
-      setError('Tiempo de espera agotado. Recarga la página.');
-    }, 10000);
+      setLoading(true);
+      setError(null);
 
-    // Single query — only needs the automatic single-field index on 'role'.
-    // Filter approved/pending client-side to avoid composite index requirements.
-    const allStudentsQ = query(
-      collection(db, 'users'),
-      where('role', '==', 'student'),
-    );
-
-    const unsub = onSnapshot(
-      allStudentsQ,
-      (snap: QuerySnapshot<DocumentData>) => {
-        clearTimeout(timer);
-        const all = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ uid: d.id, ...d.data() } as FTUser));
-        setStudents(all.filter((s: FTUser) => s.status === 'approved' && s.studentData?.approvedByTeacherId === teacherId));
-        setPendingStudents(all.filter((s: FTUser) => s.status === 'pending'));
+      // Safety timeout — if neither callback fires within 12 s, show an error.
+      const timer = setTimeout(() => {
+        if (!mounted) return;
         setLoading(false);
-      },
-      (err: FirestoreError) => {
-        clearTimeout(timer);
-        console.error('useStudents error:', err);
-        setError(`Error al cargar estudiantes: ${err.code ?? err.message}`);
-        setLoading(false);
-      },
-    );
+        setError('No se pudieron cargar los datos. Recarga la página.');
+      }, 12_000);
 
-    return () => { clearTimeout(timer); unsub(); };
-  }, [teacherId]);
+      // Query the entire users collection (no where-clause) and filter
+      // client-side. A bare collection query is simpler for Firestore security
+      // rules to evaluate — a where('role','==','student') list operation
+      // requires Firestore to prove read access for every matching document via
+      // the rules' get() call, which can silently stall when the rules engine
+      // is under load. Filtering client-side avoids that issue entirely.
+      const q = query(collection(db, 'users'));
+
+      const unsub = onSnapshot(
+        q,
+        (snap: QuerySnapshot<DocumentData>) => {
+          if (!mounted) return;
+          clearTimeout(timer);
+          const all = snap.docs.map(
+            (d: QueryDocumentSnapshot<DocumentData>) =>
+              ({ uid: d.id, ...d.data() } as FTUser),
+          );
+          setStudents(
+            all.filter(
+              (s: FTUser) =>
+                s.role === 'student' &&
+                s.status === 'approved' &&
+                s.studentData?.approvedByTeacherId === uid,
+            ),
+          );
+          setPendingStudents(
+            all.filter((s: FTUser) => s.role === 'student' && s.status === 'pending'),
+          );
+          setLoading(false);
+        },
+        (err: FirestoreError) => {
+          if (!mounted) return;
+          clearTimeout(timer);
+          console.error('[useStudents]', err.code, err.message);
+          setError(`Error al cargar estudiantes: ${err.code}`);
+          setLoading(false);
+        },
+      );
+
+      stopFn = () => {
+        clearTimeout(timer);
+        unsub();
+      };
+    }
+
+    const auth = getAuth();
+
+    if (auth.currentUser) {
+      // Auth already resolved — start the query immediately.
+      startFirestoreQuery(auth.currentUser.uid);
+    } else {
+      // Auth not ready yet — wait for the first state change, then start.
+      const authUnsub = onAuthStateChanged(auth, (user) => {
+        authUnsub(); // one-shot: unsubscribe from auth listener right away
+        if (!mounted) return;
+        if (user) {
+          startFirestoreQuery(user.uid);
+        } else {
+          setLoading(false); // Not logged in — nothing to load
+        }
+      });
+      stopFn = authUnsub;
+    }
+
+    return () => {
+      mounted = false;
+      stopFn?.();
+    };
+  }, []); // Run once on mount — no dependency on any external state
 
   return { students, pendingStudents, loading, error };
 }
