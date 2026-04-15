@@ -177,7 +177,7 @@ function SessionModal({
               </div>
             </div>
 
-            {/* Level + actions */}
+            {/* Level + close */}
             <div className="flex items-center gap-3 flex-shrink-0">
               {session.placedLevel && (
                 <div className="text-center">
@@ -187,11 +187,6 @@ function SessionModal({
                   </span>
                 </div>
               )}
-              <button onClick={handleDownloadPdf} disabled={downloading}
-                className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                {downloading ? '…' : '⬇ PDF'}
-              </button>
               <button onClick={onClose}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
                 style={{ fontSize: '18px', lineHeight: 1 }}>
@@ -205,7 +200,14 @@ function SessionModal({
 
           {/* Student info */}
           <div className="relative">
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Placement Test Result</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.55)' }}>Placement Test Result</p>
+              <button onClick={handleDownloadPdf} disabled={downloading}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                {downloading ? '…' : '⬇ PDF'}
+              </button>
+            </div>
             <h2 className="text-xl font-bold text-white">{session.studentName}</h2>
             <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>{session.studentEmail}</p>
             {session.studentPhone && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{session.studentPhone}</p>}
