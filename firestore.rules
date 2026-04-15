@@ -39,10 +39,17 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // QW6: Students can only read their own doc + their approved teacher's doc
-      allow read: if isOwner(userId)
-                    || isTeacher()
-                    || (isApprovedStudent() && resource.data.role == 'teacher');
+      // Single-document reads: owner, any teacher, or approved student reading their teacher's doc.
+      allow get: if isOwner(userId)
+                   || isTeacher()
+                   || (isApprovedStudent() && resource.data.role == 'teacher');
+
+      // Collection list queries (useStudents does a bare collection scan and filters client-side).
+      // isKnownTeacherEmail() is checked FIRST — it uses request.auth.token (no Firestore get()
+      // call needed), which avoids the rules-engine stall that isTeacher() / getUserRole() can
+      // trigger when get() is evaluated per-document inside a list operation.
+      allow list: if isKnownTeacherEmail() || getUserRole() == 'teacher';
+
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isTeacher();
       allow delete: if false;

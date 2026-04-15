@@ -776,9 +776,15 @@ export default function StudentsPage() {
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
               <p className="text-4xl mb-3">👥</p>
               <p className="text-gray-500 text-sm">No hay estudiantes aprobados aún.</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Aprueba las solicitudes pendientes para que aparezcan aquí.
-              </p>
+              {pendingStudents.length === 0 && bookingRequests.length === 0 ? (
+                <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">
+                  Comparte el enlace de <strong>/book</strong> o pide a tus estudiantes que se registren en la app. Aparecerán aquí en cuanto soliciten acceso.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">
+                  Aprueba las solicitudes pendientes para que aparezcan aquí.
+                </p>
+              )}
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">

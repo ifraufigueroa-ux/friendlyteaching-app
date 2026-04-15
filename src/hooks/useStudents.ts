@@ -35,12 +35,9 @@ export function useStudents() {
         setError('No se pudieron cargar los datos. Recarga la página.');
       }, 12_000);
 
-      // Query the entire users collection (no where-clause) and filter
-      // client-side. A bare collection query is simpler for Firestore security
-      // rules to evaluate — a where('role','==','student') list operation
-      // requires Firestore to prove read access for every matching document via
-      // the rules' get() call, which can silently stall when the rules engine
-      // is under load. Filtering client-side avoids that issue entirely.
+      // Bare collection query; Firestore rules (allow list) now use
+      // isKnownTeacherEmail() which needs no get() call, avoiding the
+      // per-document get() stall that plagued the previous allow read rule.
       const q = query(collection(db, 'users'));
 
       const unsub = onSnapshot(
@@ -52,14 +49,23 @@ export function useStudents() {
             (d: QueryDocumentSnapshot<DocumentData>) =>
               ({ uid: d.id, ...d.data() } as FTUser),
           );
+
+          // Approved students: show students assigned to THIS teacher OR students
+          // whose approvedByTeacherId is unset/blank (covers the case where the
+          // teacher's UID changed between sessions due to auth provider linking).
+          // Students explicitly assigned to a DIFFERENT teacher are excluded.
           setStudents(
             all.filter(
               (s: FTUser) =>
                 s.role === 'student' &&
                 s.status === 'approved' &&
-                s.studentData?.approvedByTeacherId === uid,
+                (!s.studentData?.approvedByTeacherId ||
+                  s.studentData.approvedByTeacherId === uid),
             ),
           );
+
+          // Pending students: any student awaiting approval (no teacher filter —
+          // any teacher can approve a pending student).
           setPendingStudents(
             all.filter((s: FTUser) => s.role === 'student' && s.status === 'pending'),
           );
@@ -68,7 +74,7 @@ export function useStudents() {
         (err: FirestoreError) => {
           if (!mounted) return;
           clearTimeout(timer);
-          console.error('[useStudents]', err.code, err.message);
+          console.error('[useStudents] Firestore error:', err.code, err.message);
           setError(`Error al cargar estudiantes: ${err.code}`);
           setLoading(false);
         },
@@ -83,17 +89,30 @@ export function useStudents() {
     const auth = getAuth();
 
     if (auth.currentUser) {
-      // Auth already resolved — start the query immediately.
+      // Auth already resolved synchronously — start the query immediately.
       startFirestoreQuery(auth.currentUser.uid);
     } else {
-      // Auth not ready yet — wait for the first state change, then start.
+      // Firebase hasn't resolved auth from persistence yet.
+      // Keep listening until we get a definitive user (or confirmed null).
+      let resolved = false;
       const authUnsub = onAuthStateChanged(auth, (user) => {
-        authUnsub(); // one-shot: unsubscribe from auth listener right away
         if (!mounted) return;
-        if (user) {
+        // Firebase can emit multiple events; only act on the first non-null user
+        // or on a confirmed logged-out state (after the initial resolution delay).
+        if (user && !resolved) {
+          resolved = true;
+          authUnsub();
           startFirestoreQuery(user.uid);
-        } else {
-          setLoading(false); // Not logged in — nothing to load
+        } else if (!user && !resolved) {
+          // Wait briefly in case this is the pre-resolution null event.
+          // Firebase resolves from persistence within ~1 s; if still null after
+          // 2 s we treat it as genuinely logged out.
+          setTimeout(() => {
+            if (!mounted || resolved) return;
+            resolved = true;
+            authUnsub();
+            setLoading(false);
+          }, 2_000);
         }
       });
       stopFn = authUnsub;
