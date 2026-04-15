@@ -163,49 +163,52 @@ function SessionModal({
           <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(30%, -40%)' }} />
           <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(-30%, 40%)' }} />
 
-          {/* Top action row */}
-          <div className="relative flex items-center justify-end gap-2 mb-5">
-            <button onClick={handleDownloadPdf} disabled={downloading}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-              {downloading ? '…' : '⬇ PDF'}
-            </button>
-            <button onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
-              style={{ fontSize: '18px', lineHeight: 1 }}>
-              ×
-            </button>
-          </div>
-
-          {/* Brand block — centred, prominent */}
-          <div className="relative flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 ring-4 ring-white/20"
-              style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
-              <Image src="/logo-friendlyteaching.jpg" alt="FriendlyTeaching" width={64} height={64} className="object-cover w-full h-full" />
+          {/* Brand row: logo left — level right — actions far right */}
+          <div className="relative flex items-center justify-between mb-5">
+            {/* Logo + name */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 ring-2 ring-white/25"
+                style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+                <Image src="/logo-friendlyteaching.jpg" alt="FriendlyTeaching" width={48} height={48} className="object-cover w-full h-full" />
+              </div>
+              <div>
+                <p className="text-base font-black text-white leading-tight">FriendlyTeaching</p>
+                <p className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>Grammar Placement Test</p>
+              </div>
             </div>
-            <p className="text-xl font-black text-white tracking-tight leading-none">FriendlyTeaching</p>
-            <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>Grammar Placement Test</p>
+
+            {/* Level + actions */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {session.placedLevel && (
+                <div className="text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Level</p>
+                  <span className="text-2xl font-black text-white px-4 py-1.5 rounded-xl block" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    {session.placedLevel}
+                  </span>
+                </div>
+              )}
+              <button onClick={handleDownloadPdf} disabled={downloading}
+                className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                {downloading ? '…' : '⬇ PDF'}
+              </button>
+              <button onClick={onClose}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
+                style={{ fontSize: '18px', lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
           </div>
 
           {/* Divider */}
-          <div className="relative w-full mb-5" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }} />
+          <div className="relative w-full mb-4" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }} />
 
-          {/* Student info + level */}
-          <div className="relative flex items-start justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Placement Test Result</p>
-              <h2 className="text-xl font-bold text-white">{session.studentName}</h2>
-              <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>{session.studentEmail}</p>
-              {session.studentPhone && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{session.studentPhone}</p>}
-            </div>
-            {session.placedLevel && (
-              <div className="text-center flex-shrink-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Level</p>
-                <span className="text-2xl font-black text-white px-4 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                  {session.placedLevel}
-                </span>
-              </div>
-            )}
+          {/* Student info */}
+          <div className="relative">
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Placement Test Result</p>
+            <h2 className="text-xl font-bold text-white">{session.studentName}</h2>
+            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>{session.studentEmail}</p>
+            {session.studentPhone && <p className="text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{session.studentPhone}</p>}
           </div>
 
           {/* Stats row */}
