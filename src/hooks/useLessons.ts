@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {
-  collection, doc, getDoc, getDocs, query, onSnapshot, updateDoc, serverTimestamp,
+  collection, doc, getDoc, getDocs, query, onSnapshot, updateDoc, setDoc, serverTimestamp,
   where, orderBy, type DocumentData, type QuerySnapshot, type QueryDocumentSnapshot,
   type FirestoreError,
 } from 'firebase/firestore';
@@ -287,6 +287,24 @@ export async function createLessonFromPresentation(teacherId: string, data: {
 }
 
 // ── Get all courses (real-time) ───────────────────────────────
+
+export async function createCourse(data: {
+  title: string;
+  level: import('@/types/firebase').LessonLevel;
+  icon?: string;
+  description?: string;
+}): Promise<string> {
+  const ref = doc(collection(db, 'courses'));
+  await setDoc(ref, {
+    title:       data.title.trim(),
+    level:       data.level,
+    icon:        data.icon ?? '📚',
+    description: data.description?.trim() ?? '',
+    lessonCount: 0,
+    createdAt:   serverTimestamp(),
+  });
+  return ref.id;
+}
 
 export function useCourses() {
   const [courses, setCourses] = useState<Course[]>([]);

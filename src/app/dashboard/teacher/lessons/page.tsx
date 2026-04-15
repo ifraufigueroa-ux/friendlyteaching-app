@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useLessons, useCourses, toggleLessonPublished, deleteLesson, duplicateLesson, createLesson, createLessonFromAI } from '@/hooks/useLessons';
+import { useLessons, useCourses, toggleLessonPublished, deleteLesson, duplicateLesson, createLesson, createLessonFromAI, createCourse } from '@/hooks/useLessons';
 import { useAuthStore } from '@/store/authStore';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
@@ -14,6 +14,88 @@ import type { Lesson, LessonLevel, Slide } from '@/types/firebase';
 import { LessonsGridSkeleton } from '@/components/ui/Skeleton';
 
 const LESSON_LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+
+function NewCourseModal({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ title: '', level: 'A1' as LessonLevel, icon: '', description: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.title.trim()) { setError('El nombre del curso es requerido.'); return; }
+    setSaving(true);
+    try {
+      await createCourse({
+        title: form.title.trim(),
+        level: form.level,
+        icon: form.icon.trim() || undefined,
+        description: form.description.trim() || undefined,
+      });
+      onClose();
+    } catch {
+      setError('Error al crear el curso. Intenta de nuevo.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <h2 className="font-bold text-[#5A3D7A]">📁 Nuevo curso</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+        </div>
+        <form onSubmit={handleCreate} className="p-5 space-y-4">
+          {error && <p className="text-red-500 text-xs bg-red-50 p-2 rounded-lg">{error}</p>}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre del curso *</label>
+            <input
+              value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="ej. Inglés Básico A1"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Nivel</label>
+            <select
+              value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value as LessonLevel }))}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white"
+            >
+              {LESSON_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Ícono (emoji opcional)</label>
+            <input
+              value={form.icon} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
+              placeholder="ej. 🌟"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Descripción (opcional)</label>
+            <textarea
+              value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              placeholder="ej. Curso introductorio para principiantes absolutos"
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving}
+              className="flex-1 py-2.5 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
+              {saving ? 'Creando…' : '📁 Crear curso'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 function NewLessonModal({ teacherId, onClose }: { teacherId: string; onClose: () => void }) {
   const router = useRouter();
@@ -252,6 +334,7 @@ export default function LessonsLibraryPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [levelFilter, setLevelFilter] = useState<string>('');
+  const [showNewCourse, setShowNewCourse] = useState(false);
   const [showNewLesson, setShowNewLesson] = useState(false);
   const [showFromPresentation, setShowFromPresentation] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
@@ -296,6 +379,12 @@ export default function LessonsLibraryPage() {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           {/* Action buttons — right-aligned on sm+ */}
           <div className="sm:order-last flex gap-2 flex-shrink-0">
+            <button
+              onClick={() => setShowNewCourse(true)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+            >
+              📁 Crear curso
+            </button>
             <button
               onClick={() => setShowAIWizard(true)}
               className="px-4 py-2 bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] text-white hover:opacity-90 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
@@ -403,6 +492,10 @@ export default function LessonsLibraryPage() {
           </div>
         )}
       </div>
+
+      {showNewCourse && (
+        <NewCourseModal onClose={() => setShowNewCourse(false)} />
+      )}
 
       {showNewLesson && (
         <NewLessonModal
