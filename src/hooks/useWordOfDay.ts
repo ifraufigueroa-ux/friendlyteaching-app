@@ -60,6 +60,9 @@ export function useWordOfDay(studentId: string | undefined) {
         setTodaySubmission(null);
       }
       setLoading(false);
+    }, (err: Error) => {
+      console.warn('[useWordOfDay] Today listener error:', err.message);
+      setLoading(false);
     });
 
     return unsub;
@@ -114,6 +117,8 @@ export function useWordOfDay(studentId: string | undefined) {
       }
 
       setWordStreak(streak);
+    }, (err: Error) => {
+      console.warn('[useWordOfDay] Streak listener error:', err.message);
     });
 
     return unsub;

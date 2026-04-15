@@ -35,6 +35,10 @@ export function useGamification(studentId: string | undefined) {
         setGamification(null);
       }
       setLoading(false);
+    }, (err: Error) => {
+      console.warn('[useGamification] Firestore listener error:', err.message);
+      setGamification(null);
+      setLoading(false);
     });
 
     return unsub;

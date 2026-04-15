@@ -1,7 +1,7 @@
 // FriendlyTeaching.cl — Service Worker
 // Provides offline caching for the PWA shell + key assets.
 
-const CACHE_NAME = 'ft-cache-v1';
+const CACHE_NAME = 'ft-cache-v3';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
