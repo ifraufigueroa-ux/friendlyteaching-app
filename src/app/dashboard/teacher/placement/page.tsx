@@ -2,6 +2,7 @@
 // FriendlyTeaching.cl — Teacher Placement Test Dashboard
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { getAuth } from 'firebase/auth';
 import { usePlacementSessions, linkSessionToStudent as _linkSession } from '@/hooks/usePlacementSessions';
 import { useStudents } from '@/hooks/useStudents';
@@ -94,6 +95,7 @@ function SessionModal({
 }) {
   const [linkStudentId, setLinkStudentId] = useState('');
   const [linking, setLinking]             = useState(false);
+  const [downloading, setDownloading]     = useState(false);
   const [tab, setTab]                     = useState<'results' | 'program'>('results');
   const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
   const testUrl = `${appUrl}/placement/${session.teacherId}`;
@@ -103,6 +105,47 @@ function SessionModal({
     setLinking(true);
     await onLink(session.id, linkStudentId);
     setLinking(false);
+  }
+
+  async function handleDownloadPdf() {
+    setDownloading(true);
+    try {
+      // Serialize Firestore Timestamps → ISO strings for JSON
+      const serializeAnswers = session.answers.map((a) => ({ ...a }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedAtRaw = session.completedAt as any;
+      const completedAt = completedAtRaw
+        ? typeof completedAtRaw.toDate === 'function'
+          ? completedAtRaw.toDate().toISOString()
+          : new Date((completedAtRaw.seconds ?? 0) * 1000).toISOString()
+        : new Date().toISOString();
+
+      const res = await fetch('/api/export-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'placement',
+          studentName:   session.studentName,
+          studentEmail:  session.studentEmail,
+          studentPhone:  session.studentPhone,
+          placedLevel:   session.placedLevel,
+          totalAnswered: session.totalAnswered,
+          totalCorrect:  session.totalCorrect,
+          sectionScores: session.sectionScores ?? [],
+          weakAreas:     session.weakAreas ?? [],
+          answers:       serializeAnswers,
+          completedAt,
+          status:        session.status,
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setDownloading(false);
+    }
   }
 
   const accuracy = session.totalAnswered > 0
@@ -120,6 +163,31 @@ function SessionModal({
           <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(30%, -40%)' }} />
           <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-10" style={{ background: 'white', transform: 'translate(-30%, 40%)' }} />
 
+          {/* Brand row */}
+          <div className="relative flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                <Image src="/logo-friendlyteaching.jpg" alt="FT" width={32} height={32} className="object-cover w-full h-full" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white leading-tight">FriendlyTeaching</p>
+                <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Grammar Placement Test</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={handleDownloadPdf} disabled={downloading}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                {downloading ? '…' : '⬇ PDF'}
+              </button>
+              <button onClick={onClose}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
+                style={{ fontSize: '18px', lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
+          </div>
+
           <div className="relative flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>Placement Test Result</p>
@@ -136,11 +204,6 @@ function SessionModal({
                   </span>
                 </div>
               )}
-              <button onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all hover:bg-white/20"
-                style={{ fontSize: '18px', lineHeight: 1 }}>
-                ×
-              </button>
             </div>
           </div>
 
