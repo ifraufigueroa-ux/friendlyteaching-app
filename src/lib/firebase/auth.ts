@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  fetchSignInMethodsForEmail,
   type User,
 } from 'firebase/auth';
 import {
@@ -27,6 +28,20 @@ const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
 
 export async function signIn(email: string, password: string) {
   return await signInWithEmailAndPassword(auth, email, password);
+}
+
+/**
+ * Returns true if the given email is registered exclusively via Google
+ * (i.e. no password credential is linked). Used to show a targeted error
+ * message when email/password login fails for a Google-linked account.
+ */
+export async function isGoogleOnlyAccount(email: string): Promise<boolean> {
+  try {
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    return methods.length > 0 && !methods.includes('password');
+  } catch {
+    return false;
+  }
 }
 
 export interface SignUpData {

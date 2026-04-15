@@ -3,14 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { signIn, resetPassword, signInWithGoogle } from '@/lib/firebase/auth';
-import { useAuthStore } from '@/store/authStore';
+import { signIn, resetPassword, signInWithGoogle, isGoogleOnlyAccount } from '@/lib/firebase/auth';
 import { Button } from '@/components/ui/Button';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { role } = useAuthStore();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,8 +44,16 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message ?? '';
-      if (msg.includes('invalid-credential') || msg.includes('wrong-password')) {
-        setError('Email o contraseña incorrectos.');
+      if (msg.includes('account-exists-with-different-credential') || msg.includes('wrong-provider')) {
+        setError('Esta cuenta usa Google para iniciar sesión. Usa el botón "Continuar con Google".');
+      } else if (msg.includes('invalid-credential') || msg.includes('wrong-password')) {
+        // Could be wrong password OR a Google-only account — check which
+        const googleOnly = await isGoogleOnlyAccount(email);
+        if (googleOnly) {
+          setError('Esta cuenta fue creada con Google. Usa el botón "Continuar con Google" o restablece tu contraseña.');
+        } else {
+          setError('Email o contraseña incorrectos.');
+        }
       } else if (msg.includes('too-many-requests')) {
         setError('Demasiados intentos. Espera un momento e intenta de nuevo.');
       } else {
