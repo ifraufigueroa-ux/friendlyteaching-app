@@ -187,6 +187,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Per-student lesson plans ───────────────────────────────
+    // Only the teacher writes; plan IDs are composite keys
+    // (teacherId_studentId_lessonId) so no other party can guess them.
+    match /studentLessonPlans/{planId} {
+      allow read, write: if isTeacher();
+    }
+
     // ── Placement Sessions ─────────────────────────────────────
     // Public: anyone (including unauthenticated visitors) can CREATE a session
     // (to take the placement test without logging in).
