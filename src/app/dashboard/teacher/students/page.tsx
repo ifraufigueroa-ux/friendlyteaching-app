@@ -2,7 +2,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useStudents, approveStudent, rejectStudent } from '@/hooks/useStudents';
+import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent } from '@/hooks/useStudents';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useRecurringBookings, linkBookingsByName, type ScheduleSlot } from '@/hooks/useRecurringBookings';
 import { updateDoc, doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -484,14 +484,22 @@ function StudentRow({
   scheduleSlots: ScheduleSlot[];
   unlinkedSlots: ScheduleSlot[];
 }) {
-  const [showEdit,   setShowEdit]   = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
+  const [showEdit,    setShowEdit]    = useState(false);
+  const [showDetail,  setShowDetail]  = useState(false);
+  const [archiving,   setArchiving]   = useState(false);
   const level = student.studentData?.level;
 
   const sortedSlots = useMemo(
     () => [...scheduleSlots].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour),
     [scheduleSlots],
   );
+
+  async function handleArchive() {
+    if (!confirm(`¿Mover a ${student.fullName} a la papelera?\nSus datos se conservarán y podrás restaurarlo cuando quieras.`)) return;
+    setArchiving(true);
+    try { await archiveStudent(student.uid); }
+    finally { setArchiving(false); }
+  }
 
   return (
     <>
@@ -584,6 +592,14 @@ function StudentRow({
           >
             Análisis
           </button>
+          <button
+            onClick={handleArchive}
+            disabled={archiving}
+            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-xl text-xs transition-colors disabled:opacity-40"
+            title="Mover a papelera"
+          >
+            🗑
+          </button>
         </div>
       </div>
 
@@ -614,11 +630,12 @@ export default function StudentsPage() {
   const teacherId   = profile?.uid ?? '';
   const teacherName = profile?.fullName ?? 'Tu profesor';
 
-  const { students, pendingStudents, loading, error } = useStudents();
+  const { students, pendingStudents, archivedStudents, loading, error } = useStudents();
   const { requests: bookingRequests, approveRequest, rejectRequest } = useBookingRequests();
   const { byStudentId, byStudentName } = useRecurringBookings(teacherId);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch]           = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   const filteredStudents = useMemo(() => {
     if (!search.trim()) return students;
@@ -827,6 +844,54 @@ export default function StudentsPage() {
             </>
           )}
         </section>
+
+        {/* ── Archived students ────────────────────────────────── */}
+        {archivedStudents.length > 0 && (
+          <section>
+            <button
+              onClick={() => setShowArchived((v) => !v)}
+              className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider transition-colors"
+            >
+              <span>🗑 Papelera ({archivedStudents.length})</span>
+              <span className="text-xs">{showArchived ? '▲' : '▼'}</span>
+            </button>
+
+            {showArchived && (
+              <div className="mt-3 space-y-2">
+                {archivedStudents.map((s) => {
+                  const level = s.studentData?.level;
+                  return (
+                    <div
+                      key={s.uid}
+                      className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold text-sm flex-shrink-0">
+                        {initials(s.fullName)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-700 text-sm truncate">{s.fullName}</p>
+                        <p className="text-xs text-gray-400 truncate">{s.email}</p>
+                      </div>
+                      {level && (
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${LEVEL_COLORS[level]}`}>
+                          {level}
+                        </span>
+                      )}
+                      <button
+                        onClick={async () => { await restoreStudent(s.uid); }}
+                        className="flex-shrink-0 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl text-xs font-bold transition-colors"
+                        title="Restaurar estudiante"
+                      >
+                        ↩ Restaurar
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
       </div>
     </div>
   );

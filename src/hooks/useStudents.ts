@@ -14,6 +14,7 @@ import type { FTUser, LessonLevel } from '@/types/firebase';
 export function useStudents() {
   const [students, setStudents] = useState<FTUser[]>([]);
   const [pendingStudents, setPendingStudents] = useState<FTUser[]>([]);
+  const [archivedStudents, setArchivedStudents] = useState<FTUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,17 @@ export function useStudents() {
           // any teacher can approve a pending student).
           setPendingStudents(
             all.filter((s: FTUser) => s.role === 'student' && s.status === 'pending'),
+          );
+
+          // Archived students: soft-deleted, scoped to this teacher.
+          setArchivedStudents(
+            all.filter(
+              (s: FTUser) =>
+                s.role === 'student' &&
+                s.status === 'archived' &&
+                (!s.studentData?.approvedByTeacherId ||
+                  s.studentData.approvedByTeacherId === uid),
+            ),
           );
           setLoading(false);
         },
@@ -124,7 +136,7 @@ export function useStudents() {
     };
   }, []); // Run once on mount — no dependency on any external state
 
-  return { students, pendingStudents, loading, error };
+  return { students, pendingStudents, archivedStudents, loading, error };
 }
 
 /**
@@ -194,6 +206,20 @@ export async function approveStudent(
 export async function rejectStudent(uid: string) {
   await updateDoc(doc(db, 'users', uid), {
     status: 'inactive',
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function archiveStudent(uid: string) {
+  await updateDoc(doc(db, 'users', uid), {
+    status: 'archived',
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function restoreStudent(uid: string) {
+  await updateDoc(doc(db, 'users', uid), {
+    status: 'approved',
     updatedAt: serverTimestamp(),
   });
 }

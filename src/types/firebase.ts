@@ -7,7 +7,7 @@ import { Timestamp } from 'firebase/firestore';
 // ─── Roles y Estados ────────────────────────────────────────
 
 export type UserRole = 'teacher' | 'student' | 'admin';
-export type UserStatus = 'active' | 'pending' | 'approved' | 'inactive';
+export type UserStatus = 'active' | 'pending' | 'approved' | 'inactive' | 'archived';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 export type AttendanceStatus = 'attended' | 'absent' | 'late';
 export type LessonLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1';
