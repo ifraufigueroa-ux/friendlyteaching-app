@@ -40,8 +40,8 @@ const DAY_SHORT = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const DAY_FULL  = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 function toWhatsAppUrl(phone: string): string {
-  // Strip everything except digits and use as-is (wa.me handles country codes)
-  return `https://wa.me/${phone.replace(/\D/g, '')}`;
+  // Strip everything except digits; opens the conversation in WhatsApp Web
+  return `https://web.whatsapp.com/send?phone=${phone.replace(/\D/g, '')}`;
 }
 
 function formatSlot(s: ScheduleSlot): string {
