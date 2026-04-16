@@ -96,6 +96,7 @@ function SessionModal({
   const [linkStudentId, setLinkStudentId] = useState('');
   const [linking, setLinking]             = useState(false);
   const [downloading, setDownloading]     = useState(false);
+  const [showPdfMenu, setShowPdfMenu]     = useState(false);
   const [tab, setTab]                     = useState<'results' | 'program'>('results');
   const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
   const testUrl = `${appUrl}/placement/${session.teacherId}`;
@@ -107,7 +108,8 @@ function SessionModal({
     setLinking(false);
   }
 
-  async function handleDownloadPdf() {
+  async function handleDownloadPdf(variant: 'student' | 'teacher') {
+    setShowPdfMenu(false);
     setDownloading(true);
     try {
       // Serialize Firestore Timestamps → ISO strings for JSON
@@ -125,17 +127,19 @@ function SessionModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'placement',
-          studentName:   session.studentName,
-          studentEmail:  session.studentEmail,
-          studentPhone:  session.studentPhone,
-          placedLevel:   session.placedLevel,
-          totalAnswered: session.totalAnswered,
-          totalCorrect:  session.totalCorrect,
-          sectionScores: session.sectionScores ?? [],
-          weakAreas:     session.weakAreas ?? [],
-          answers:       serializeAnswers,
+          variant,
+          studentName:     session.studentName,
+          studentEmail:    session.studentEmail,
+          studentPhone:    session.studentPhone,
+          placedLevel:     session.placedLevel,
+          totalAnswered:   session.totalAnswered,
+          totalCorrect:    session.totalCorrect,
+          sectionScores:   session.sectionScores ?? [],
+          weakAreas:       session.weakAreas ?? [],
+          answers:         serializeAnswers,
           completedAt,
-          status:        session.status,
+          status:          session.status,
+          learningProgram: variant === 'teacher' ? (session.learningProgram ?? null) : undefined,
         }),
       });
       const html = await res.text();
@@ -202,11 +206,34 @@ function SessionModal({
           <div className="relative">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.55)' }}>Placement Test Result</p>
-              <button onClick={handleDownloadPdf} disabled={downloading}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                {downloading ? '…' : '⬇ PDF'}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowPdfMenu((v) => !v)}
+                  disabled={downloading}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                  {downloading ? '…' : '⬇ PDF ▾'}
+                </button>
+                {showPdfMenu && !downloading && (
+                  <div
+                    className="absolute right-0 mt-1 rounded-xl overflow-hidden shadow-xl z-10"
+                    style={{ background: 'white', border: '1px solid #E0D5FF', minWidth: '160px', top: '100%' }}>
+                    <button
+                      onClick={() => handleDownloadPdf('student')}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-purple-50 transition-colors"
+                      style={{ color: B.purple }}>
+                      🎓 Student PDF
+                    </button>
+                    <div style={{ borderTop: '1px solid #F0E5FF' }} />
+                    <button
+                      onClick={() => handleDownloadPdf('teacher')}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-purple-50 transition-colors"
+                      style={{ color: B.purple }}>
+                      📋 Teacher PDF
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <h2 className="text-xl font-bold text-white">{session.studentName}</h2>
             <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>{session.studentEmail}</p>
