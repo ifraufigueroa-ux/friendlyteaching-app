@@ -65,6 +65,7 @@ export default function TeacherDashboardPage() {
 
   const [recordingKey, setRecordingKey]   = useState<string | null>(null);
   const [historyOpen, setHistoryOpen]     = useState(false);
+  const [studentsOpen, setStudentsOpen]   = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
   // Carousel state for "Clases de hoy" card
   // dismissedSlots uses "dow-hour" keys so the same slot never reappears
@@ -628,11 +629,17 @@ export default function TeacherDashboardPage() {
         {/* ── Students overview (merged with contact) ─────────── */}
         {approvedStudents > 0 && (
           <div className="glass-card rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-gray-700 text-sm">👥 Mis estudiantes</p>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => { setStudentsOpen(o => !o); if (studentsOpen) setExpandedStudent(null); }}
+                className="flex items-center gap-2 font-bold text-gray-700 text-sm hover:text-[#5A3D7A] transition-colors"
+              >
+                👥 Mis estudiantes
+                <span className={`text-xs text-[#9B7CB8] transition-transform duration-200 ${studentsOpen ? 'rotate-180' : ''}`}>▾</span>
+              </button>
               <Link href="/dashboard/teacher/students" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Gestionar →</Link>
             </div>
-            <div className="flex flex-wrap gap-2">
+            {studentsOpen && <div className="flex flex-wrap gap-2 mt-3">
               {students.filter((s) => s.status === 'approved').map((s) => {
                 const isOpen = expandedStudent === s.uid;
                 const firstName = s.fullName.split(' ')[0];
@@ -657,10 +664,10 @@ export default function TeacherDashboardPage() {
                   </button>
                 );
               })}
-            </div>
+            </div>}
 
             {/* Expanded contact — renders inline below the pill row */}
-            {expandedStudent && (() => {
+            {studentsOpen && expandedStudent && (() => {
               const s = students.find((st) => st.uid === expandedStudent && st.status === 'approved');
               if (!s) return null;
               const firstName = s.fullName.split(' ')[0];
