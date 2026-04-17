@@ -105,7 +105,7 @@ function ApproveModal({
             <button
               key={l}
               onClick={() => setLevel(l)}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl border text-sm font-semibold transition-all ${
                 level === l
                   ? 'border-[#C8A8DC] bg-[#F0E5FF] text-[#5A3D7A]'
                   : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-[#C8A8DC]'
@@ -122,14 +122,14 @@ function ApproveModal({
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50"
+            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
-            className="flex-1 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-sm font-bold disabled:opacity-50"
+            className="flex-1 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-bold disabled:opacity-50"
           >
             {loading ? 'Aprobando...' : 'Aprobar'}
           </button>
@@ -342,7 +342,7 @@ function EditStudentModal({
                     <button
                       onClick={handleLinkBookings}
                       disabled={linking}
-                      className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold disabled:opacity-50 transition-colors"
+                      className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold disabled:opacity-50 transition-colors"
                     >
                       {linking ? 'Vinculando...' : 'Vincular clases al perfil'}
                     </button>
@@ -366,7 +366,7 @@ function EditStudentModal({
                 <button
                   key={l}
                   onClick={() => setLevel(l)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl border text-sm font-semibold transition-all ${
                     level === l
                       ? 'border-[#C8A8DC] bg-[#F0E5FF] text-[#5A3D7A]'
                       : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-[#C8A8DC]'
@@ -387,14 +387,14 @@ function EditStudentModal({
         <div className="p-4 border-t border-gray-100 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50"
+            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors"
           >
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>
@@ -446,14 +446,14 @@ function PendingCard({
         <div className="flex gap-2">
           <button
             onClick={() => setShowApprove(true)}
-            className="flex-1 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl text-xs font-bold transition-colors"
+            className="flex-1 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-xs font-bold transition-colors"
           >
             Aprobar
           </button>
           <button
             onClick={handleReject}
             disabled={rejecting}
-            className="flex-1 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex-1 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
           >
             Rechazar
           </button>
@@ -569,7 +569,7 @@ function StudentRow({
               href={toWhatsAppUrl(student.phone)}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1.5 bg-[#E7F8EE] hover:bg-[#C8F0D8] text-[#25D366] rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-[#E7F8EE] hover:bg-[#C8F0D8] text-[#25D366] rounded-full text-xs font-bold transition-colors flex items-center gap-1.5"
               title={`WhatsApp: ${student.phone}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -580,14 +580,14 @@ function StudentRow({
           )}
           <button
             onClick={() => setShowEdit(true)}
-            className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-xl text-xs font-bold transition-colors"
+            className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
             title="Editar estudiante"
           >
             Editar
           </button>
           <button
             onClick={() => setShowDetail(true)}
-            className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-semibold transition-colors"
+            className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full text-xs font-semibold transition-colors"
             title="Ver análisis"
           >
             Análisis
@@ -595,7 +595,7 @@ function StudentRow({
           <button
             onClick={handleArchive}
             disabled={archiving}
-            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-xl text-xs transition-colors disabled:opacity-40"
+            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40"
             title="Mover a papelera"
           >
             🗑
@@ -673,7 +673,7 @@ export default function StudentsPage() {
           <p className="text-sm text-gray-500 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#C8A8DC] text-white rounded-xl text-sm font-bold"
+            className="px-4 py-2 bg-[#C8A8DC] text-white rounded-full text-sm font-bold"
           >
             Recargar página
           </button>
@@ -699,7 +699,7 @@ export default function StudentsPage() {
             href="/book"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-xl text-xs font-bold transition-colors flex-shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
           >
             🔗 Página de reserva
           </a>
@@ -748,13 +748,13 @@ export default function StudentsPage() {
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       <button
                         onClick={() => approveRequest(req.id)}
-                        className="py-1.5 px-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl text-xs font-bold transition-colors"
+                        className="py-1.5 px-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-xs font-bold transition-colors"
                       >
                         Aprobar
                       </button>
                       <button
                         onClick={() => rejectRequest(req.id)}
-                        className="py-1.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold transition-colors"
+                        className="py-1.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-full text-xs font-semibold transition-colors"
                       >
                         Rechazar
                       </button>
@@ -879,7 +879,7 @@ export default function StudentsPage() {
                       )}
                       <button
                         onClick={async () => { await restoreStudent(s.uid); }}
-                        className="flex-shrink-0 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl text-xs font-bold transition-colors"
+                        className="flex-shrink-0 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-full text-xs font-bold transition-colors"
                         title="Restaurar estudiante"
                       >
                         ↩ Restaurar

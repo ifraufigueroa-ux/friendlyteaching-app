@@ -94,7 +94,7 @@ export default function AvailabilityModal({ onClose }: Props) {
               Haz clic en las celdas para bloquear/desbloquear · {availableCount} horas disponibles · {blockedCount} bloqueadas
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">×</button>
         </div>
 
         {/* Legend */}
@@ -123,7 +123,7 @@ export default function AvailabilityModal({ onClose }: Props) {
                     <th key={name} className="text-center pb-1">
                       <button
                         onClick={() => blockColumn(DAYS[i])}
-                        className="px-2 py-1 rounded-lg font-bold text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors w-full"
+                        className="px-2 py-1 rounded-full font-bold text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors w-full"
                         title="Clic para alternar toda la columna"
                       >
                         {name}
@@ -151,7 +151,7 @@ export default function AvailabilityModal({ onClose }: Props) {
                         <td key={day} className="text-center">
                           <button
                             onClick={() => toggle(day, hour)}
-                            className={`w-full h-8 rounded-lg transition-all hover:opacity-80 active:scale-95 ${
+                            className={`w-full h-8 rounded-xl transition-all hover:opacity-80 active:scale-95 ${
                               isBlocked
                                 ? 'bg-[#D9D9D9] text-gray-500'
                                 : 'bg-[#A8E6A1] text-[#2D6E2A]'
@@ -175,7 +175,7 @@ export default function AvailabilityModal({ onClose }: Props) {
           <p className="text-xs text-gray-400 w-full">Presets rápidos:</p>
           <button
             onClick={() => setBlocked(new Set())}
-            className="px-3 py-1.5 bg-[#A8E6A1] text-[#2D6E2A] rounded-xl text-xs font-semibold hover:bg-[#8DD67E]"
+            className="px-3 py-1.5 bg-[#A8E6A1] text-[#2D6E2A] rounded-full text-xs font-semibold hover:bg-[#8DD67E]"
           >
             ✅ Todo disponible
           </button>
@@ -185,7 +185,7 @@ export default function AvailabilityModal({ onClose }: Props) {
               DAYS.forEach((d) => HOURS.forEach((h) => all.add(`${d}-${h}`)));
               setBlocked(all);
             }}
-            className="px-3 py-1.5 bg-[#D9D9D9] text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-300"
+            className="px-3 py-1.5 bg-[#D9D9D9] text-gray-600 rounded-full text-xs font-semibold hover:bg-gray-300"
           >
             🚫 Todo bloqueado
           </button>
@@ -198,7 +198,7 @@ export default function AvailabilityModal({ onClose }: Props) {
               });
               setBlocked(s);
             }}
-            className="px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-xl text-xs font-semibold hover:bg-[#E0CCFF]"
+            className="px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-full text-xs font-semibold hover:bg-[#E0CCFF]"
           >
             ⏰ Bloquear mañanas y noches
           </button>
@@ -209,7 +209,7 @@ export default function AvailabilityModal({ onClose }: Props) {
               HOURS.forEach((h) => s.add(`6-${h}`));
               setBlocked(s);
             }}
-            className="px-3 py-1.5 bg-[#FFF5C8] text-[#7A5E00] rounded-xl text-xs font-semibold hover:bg-[#FFE8A8]"
+            className="px-3 py-1.5 bg-[#FFF5C8] text-[#7A5E00] rounded-full text-xs font-semibold hover:bg-[#FFE8A8]"
           >
             📅 Bloquear sábado
           </button>
@@ -217,13 +217,13 @@ export default function AvailabilityModal({ onClose }: Props) {
 
         {/* Actions */}
         <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50">
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={saving || saved}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-70 ${
+            className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-70 ${
               saved ? 'bg-[#A8E6A1] text-[#2D6E2A]' : 'bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white'
             }`}
           >

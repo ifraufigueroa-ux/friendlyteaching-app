@@ -113,7 +113,7 @@ export default function BookingModal({ onCreated }: Props) {
           </div>
           <button
             onClick={closeSlotAction}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100"
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
           >
             ×
           </button>
@@ -134,7 +134,7 @@ export default function BookingModal({ onCreated }: Props) {
                       key={h}
                       type="button"
                       onClick={() => setSelectedHour(h)}
-                      className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      className={`py-1.5 rounded-full text-xs font-semibold transition-colors ${
                         selectedHour === h
                           ? 'bg-[#5A3D7A] text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'
@@ -158,7 +158,7 @@ export default function BookingModal({ onCreated }: Props) {
                       key={m}
                       type="button"
                       onClick={() => setSelectedMinute(m)}
-                      className={`py-2 rounded-lg text-xs font-bold transition-colors ${
+                      className={`py-2 rounded-full text-xs font-bold transition-colors ${
                         selectedMinute === m
                           ? 'bg-[#5A3D7A] text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'
@@ -173,43 +173,43 @@ export default function BookingModal({ onCreated }: Props) {
 
             {/* Live preview */}
             <div className="mt-2 text-center">
-              <span className="inline-block bg-[#F0E5FF] text-[#5A3D7A] font-bold px-4 py-1.5 rounded-xl text-sm">
+              <span className="inline-block bg-[#F0E5FF] text-[#5A3D7A] font-bold px-4 py-1.5 rounded-full text-sm">
                 {dayName} {selectedHour}:{pad(selectedMinute)}
               </span>
             </div>
           </div>
 
           {/* ── Booking type ── */}
-          <div className="flex rounded-xl bg-gray-100 p-1 gap-1">
+          <div className="flex rounded-full bg-gray-100 p-1 gap-1">
             <button
               type="button"
               onClick={() => setBookingType('class')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${bookingType === 'class' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${bookingType === 'class' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               📚 Clase
             </button>
             <button
               type="button"
               onClick={() => setBookingType('interview')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${bookingType === 'interview' ? 'bg-[#FFB347] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${bookingType === 'interview' ? 'bg-[#FFB347] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               🎙 Entrevista
             </button>
           </div>
 
           {/* ── Student mode toggle ── */}
-          <div className="flex rounded-xl bg-gray-100 p-1 gap-1">
+          <div className="flex rounded-full bg-gray-100 p-1 gap-1">
             <button
               type="button"
               onClick={() => { setMode('registered'); setSelectedStudent(null); }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${mode === 'registered' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${mode === 'registered' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               👥 Estudiante registrado
             </button>
             <button
               type="button"
               onClick={() => { setMode('manual'); setSelectedStudent(null); }}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${mode === 'manual' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors ${mode === 'manual' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               ✏️ Nuevo / externo
             </button>
@@ -286,7 +286,7 @@ export default function BookingModal({ onCreated }: Props) {
               <button
                 type="button"
                 onClick={() => setShowLessonPicker(true)}
-                className="w-full flex items-center justify-between px-3 py-2.5 border border-dashed border-[#C8A8DC] text-[#9B7CB8] rounded-xl text-sm font-medium hover:bg-[#F9F5FF] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2.5 border border-dashed border-[#C8A8DC] text-[#9B7CB8] rounded-full text-sm font-medium hover:bg-[#F9F5FF] transition-colors"
               >
                 <span>
                   {selectedLessonId
@@ -360,14 +360,14 @@ export default function BookingModal({ onCreated }: Props) {
             <button
               type="button"
               onClick={closeSlotAction}
-              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`flex-1 px-4 py-2.5 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${
+              className={`flex-1 px-4 py-2.5 text-white rounded-full text-sm font-semibold transition-colors disabled:opacity-50 ${
                 bookingType === 'interview'
                   ? 'bg-[#FFB347] hover:bg-[#FF9F1C]'
                   : 'bg-[#C8A8DC] hover:bg-[#9B7CB8]'

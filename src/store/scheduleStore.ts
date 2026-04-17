@@ -19,6 +19,11 @@ interface ScheduleState {
   isBookingModalOpen: boolean;
   /** Incremented every time booking or schedule onSnapshot listeners fire. */
   dataVersion: number;
+  /**
+   * Set by SlotActionModal after it records a completed class to classHistory.
+   * TeacherDashboardPage watches this and opens ClassNotesModal when non-null.
+   */
+  pendingClassNotes: { entryId: string; studentName: string } | null;
 
   setWeekStart: (date: Date) => void;
   previousWeek: () => void;
@@ -33,6 +38,8 @@ interface ScheduleState {
   bumpDataVersion: () => void;
   /** Wait for the next onSnapshot update (resolves when dataVersion changes, or after maxWait ms). */
   waitForDataRefresh: (maxWait?: number) => Promise<void>;
+  /** Signal TeacherDashboardPage to open ClassNotesModal for a completed class. */
+  setPendingClassNotes: (val: { entryId: string; studentName: string } | null) => void;
 }
 
 function getMonday(date: Date): Date {
@@ -49,6 +56,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   slotAction: { isOpen: false, day: null, hour: null, minute: null, slotType: null, booking: null },
   isBookingModalOpen: false,
   dataVersion: 0,
+  pendingClassNotes: null,
 
   setWeekStart: (date) => set({ currentWeekStart: date }),
 
@@ -80,6 +88,8 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     }),
 
   bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
+
+  setPendingClassNotes: (val) => set({ pendingClassNotes: val }),
 
   waitForDataRefresh: (maxWait = 3000) => {
     const startVersion = get().dataVersion;

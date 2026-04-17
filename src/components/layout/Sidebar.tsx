@@ -129,7 +129,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               href={href}
               onClick={onNavigate}
               className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200
                 ${isActive
                   ? 'bg-gradient-to-r from-[#F0E5FF] to-[#E8DAFF] text-[#5A3D7A] font-semibold shadow-purple-sm nav-active'
                   : 'text-gray-600 hover:bg-[#F0E5FF]/40 hover:text-[#5A3D7A] hover:shadow-sm'}
@@ -152,7 +152,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/dashboard/profile"
           onClick={onNavigate}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
             pathname === '/dashboard/profile'
               ? 'bg-[#F0E5FF] text-[#5A3D7A] font-semibold'
               : 'text-gray-500 hover:bg-gray-50 hover:text-[#5A3D7A]'
@@ -163,7 +163,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all"
         >
           <span className="text-base">🚪</span>
           Cerrar Sesión

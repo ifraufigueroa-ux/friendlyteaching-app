@@ -187,14 +187,14 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
         <button
           onClick={() => handleMark('attended')}
           disabled={loading || exiting}
-          className="flex-1 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex-1 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
         >
           ✅ Se tomó
         </button>
         <button
           onClick={() => handleMark('absent')}
           disabled={loading || exiting}
-          className="flex-1 py-2 bg-[#FFD9D9] hover:bg-[#FFB8B8] text-red-600 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex-1 py-2 bg-[#FFD9D9] hover:bg-[#FFB8B8] text-red-600 rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
         >
           ❌ No se tomó
         </button>

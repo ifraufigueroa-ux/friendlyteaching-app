@@ -79,7 +79,7 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
                   key={opt.value}
                   type="button"
                   onClick={() => setMood(m => (m === opt.value ? null : opt.value))}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border-2 text-xs font-semibold transition-all ${
+                  className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl border-2 text-xs font-semibold transition-all ${
                     mood === opt.value
                       ? opt.color + ' border-opacity-100'
                       : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
@@ -153,14 +153,14 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
         <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0 flex gap-3">
           <button
             onClick={onSkip}
-            className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
           >
             Saltar
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2.5 bg-[#9B7CB8] hover:bg-[#7A5C97] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 bg-[#9B7CB8] hover:bg-[#7A5C97] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors"
           >
             {saving ? 'Guardando...' : '💾 Guardar notas'}
           </button>

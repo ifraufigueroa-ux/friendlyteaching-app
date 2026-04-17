@@ -8,6 +8,7 @@ import {
   cancelFutureRecurringBookings, createBooking, deleteBooking,
 } from '@/hooks/useBookings';
 import { blockSlot, unblockSlot } from '@/hooks/useSchedule';
+import { recordClassSession } from '@/hooks/useClassHistory';
 import { useLessons } from '@/hooks/useLessons';
 import { useStudents } from '@/hooks/useStudents';
 import { auth } from '@/lib/firebase/config';
@@ -46,7 +47,6 @@ export default function SlotActionModal() {
 
   // Complete
   const [completeAttendance, setCompleteAttendance] = useState<'attended' | 'absent' | 'late' | ''>('');
-  const [completeNotes, setCompleteNotes] = useState('');
 
   const { lessons } = useLessons(profile?.uid ?? '', 'teacher');
   const { students } = useStudents();
@@ -65,7 +65,6 @@ export default function SlotActionModal() {
       setSelectedStudentId(slotAction.booking?.studentId ?? '');
       setLessonSearch('');
       setCompleteAttendance('');
-      setCompleteNotes('');
     }
   }, [slotAction.isOpen, slotAction.booking?.lessonId, slotAction.booking?.studentId,
       slotAction.booking?.studentName, slotAction.day, slotAction.hour]);
@@ -211,11 +210,44 @@ export default function SlotActionModal() {
     try {
       const id = await resolveId();
       if (!id) return;
-      await completeBooking(id, {
-        attendance: completeAttendance || undefined,
-        sessionNotes: completeNotes.trim() || undefined,
+
+      // Update booking status in Firestore bookings collection
+      await completeBooking(id, { attendance: completeAttendance || undefined });
+
+      // Compute actual class date from weekStart + dayOfWeek offset
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ws = booking.weekStart as any;
+      const wsDate: Date = ws
+        ? typeof ws.toDate === 'function'
+          ? ws.toDate()
+          : ws.seconds
+            ? new Date(ws.seconds * 1000)
+            : currentWeekStart
+        : currentWeekStart;
+      const classDate = new Date(wsDate);
+      classDate.setDate(classDate.getDate() + (booking.dayOfWeek - 1)); // dow=1 = Monday = weekStart+0
+
+      // Write to classHistory so data appears in the History drawer
+      const attended = completeAttendance !== 'absent';
+      const entryId = await recordClassSession({
+        teacherId: teacherUid,
+        studentName: booking.studentName,
+        dayOfWeek: booking.dayOfWeek,
+        hour: booking.hour,
+        minute: booking.minute ?? 0,
+        date: classDate,
+        attended,
+        isRecurring: booking.isRecurring,
+        bookingId: id,
       });
-      await useScheduleStore.getState().waitForDataRefresh(); closeSlotAction();
+
+      // If attended, signal TeacherDashboardPage to open ClassNotesModal
+      if (attended) {
+        useScheduleStore.getState().setPendingClassNotes({ entryId, studentName: booking.studentName });
+      }
+
+      await useScheduleStore.getState().waitForDataRefresh();
+      closeSlotAction();
     } finally { setLoading(false); }
   }
 
@@ -256,8 +288,8 @@ export default function SlotActionModal() {
         autoFocus
       />
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold">Volver</button>
-        <button onClick={handleRename} disabled={loading || !newName.trim()} className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-semibold disabled:opacity-50">
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={handleRename} disabled={loading || !newName.trim()} className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-full text-sm font-semibold disabled:opacity-50">
           {loading ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
@@ -272,7 +304,7 @@ export default function SlotActionModal() {
           <button
             key={d}
             onClick={() => setMoveDow(d)}
-            className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${moveDow === d ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
+            className={`py-1.5 rounded-full text-xs font-semibold transition-colors ${moveDow === d ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
           >
             {DAY_NAMES[d].slice(0, 3)}
           </button>
@@ -286,7 +318,7 @@ export default function SlotActionModal() {
             <button
               key={h}
               onClick={() => setMoveHour(h)}
-              className={`py-1.5 rounded-lg text-xs font-semibold transition-colors ${moveHour === h ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
+              className={`py-1.5 rounded-full text-xs font-semibold transition-colors ${moveHour === h ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
             >
               {h}
             </button>
@@ -297,7 +329,7 @@ export default function SlotActionModal() {
             <button
               key={m}
               onClick={() => setMoveMinute(m)}
-              className={`py-1.5 rounded-lg text-xs font-bold transition-colors ${moveMinute === m ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
+              className={`py-1.5 rounded-full text-xs font-bold transition-colors ${moveMinute === m ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-[#F0E5FF]'}`}
             >
               :{String(m).padStart(2,'0')}
             </button>
@@ -306,7 +338,7 @@ export default function SlotActionModal() {
       </div>
 
       <div className="text-center">
-        <span className="inline-block bg-[#F0E5FF] text-[#5A3D7A] font-bold px-3 py-1 rounded-lg text-xs">
+        <span className="inline-block bg-[#F0E5FF] text-[#5A3D7A] font-bold px-3 py-1 rounded-full text-xs">
           {DAY_NAMES[moveDow]} {moveHour}:{String(moveMinute).padStart(2,'0')}
         </span>
       </div>
@@ -318,11 +350,11 @@ export default function SlotActionModal() {
       )}
 
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
         <button
           onClick={handleMove}
           disabled={loading || (moveDow === day && moveHour === hour && moveMinute === minute)}
-          className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-semibold disabled:opacity-50"
+          className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-full text-sm font-semibold disabled:opacity-50"
         >
           {loading ? 'Moviendo…' : '↕ Mover'}
         </button>
@@ -362,8 +394,8 @@ export default function SlotActionModal() {
         {filteredLessons.length === 0 && <p className="text-center text-xs text-gray-400 py-2">Sin resultados</p>}
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold">Volver</button>
-        <button onClick={handleAssignLesson} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-lg text-xs font-semibold disabled:opacity-50">
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Volver</button>
+        <button onClick={handleAssignLesson} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-full text-xs font-semibold disabled:opacity-50">
           {loading ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
@@ -393,8 +425,8 @@ export default function SlotActionModal() {
         {students.length === 0 && <p className="text-center text-xs text-gray-400 py-2">No hay estudiantes aprobados</p>}
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold">Volver</button>
-        <button onClick={handleLinkStudent} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-lg text-xs font-semibold disabled:opacity-50">
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Volver</button>
+        <button onClick={handleLinkStudent} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-full text-xs font-semibold disabled:opacity-50">
           {loading ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
@@ -418,13 +450,13 @@ export default function SlotActionModal() {
         </p>
       )}
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold">Volver</button>
-        <button onClick={() => handleCancel(false)} disabled={loading} className="flex-1 px-3 py-2.5 bg-red-400 hover:bg-red-500 text-white rounded-xl text-xs font-semibold disabled:opacity-50">
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={() => handleCancel(false)} disabled={loading} className="flex-1 px-3 py-2.5 bg-red-400 hover:bg-red-500 text-white rounded-full text-xs font-semibold disabled:opacity-50">
           {loading ? '…' : booking?.isRecurring ? 'Solo esta' : 'Eliminar'}
         </button>
       </div>
       {booking?.isRecurring && (
-        <button onClick={() => handleCancel(true)} disabled={loading} className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50">
+        <button onClick={() => handleCancel(true)} disabled={loading} className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-semibold disabled:opacity-50">
           Cancelar todas las futuras ↻
         </button>
       )}
@@ -433,7 +465,7 @@ export default function SlotActionModal() {
 
   const CompletePanel = (
     <div className="space-y-3">
-      <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">Reporte de clase</p>
+      <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">¿Cómo fue la clase?</p>
       <div>
         <p className="text-xs text-gray-500 mb-1.5">Asistencia</p>
         <div className="grid grid-cols-3 gap-1.5">
@@ -445,26 +477,21 @@ export default function SlotActionModal() {
             <button
               key={val}
               onClick={() => setCompleteAttendance(completeAttendance === val ? '' : val)}
-              className={`py-2 rounded-xl text-xs font-semibold transition-colors ${completeAttendance === val ? active : inactive}`}
+              className={`py-2 rounded-full text-xs font-semibold transition-colors ${completeAttendance === val ? active : inactive}`}
             >
               {label}
             </button>
           ))}
         </div>
       </div>
-      <div>
-        <p className="text-xs text-gray-500 mb-1.5">Notas de clase (opcional)</p>
-        <textarea
-          value={completeNotes}
-          onChange={(e) => setCompleteNotes(e.target.value)}
-          rows={3}
-          placeholder="Ej: Trabajamos present perfect. Estudiante mejoró en…"
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
-        />
-      </div>
+      <p className="text-[11px] text-gray-400 italic">
+        {completeAttendance === 'attended' || completeAttendance === 'late'
+          ? 'Se abrirá el formulario de notas a continuación.'
+          : 'Confirma para registrar la ausencia.'}
+      </p>
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold">Volver</button>
-        <button onClick={handleComplete} disabled={loading} className="flex-1 px-3 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-sm font-semibold disabled:opacity-50">
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={handleComplete} disabled={loading || !completeAttendance} className="flex-1 px-3 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50">
           {loading ? 'Guardando…' : '✓ Confirmar'}
         </button>
       </div>
@@ -482,16 +509,16 @@ export default function SlotActionModal() {
             <h2 className="text-lg font-bold text-[#5A3D7A]">{dayName} {hour}:{String(minute).padStart(2,'0')}</h2>
             <p className="text-sm text-gray-400">Gestionar horario</p>
           </div>
-          <button onClick={closeSlotAction} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100">×</button>
+          <button onClick={closeSlotAction} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">×</button>
         </div>
 
         {/* AVAILABLE */}
         {slotType === 'available' && (
           <div className="space-y-3">
-            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-semibold transition-colors">
+            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold transition-colors">
               ✏️ Registrar Estudiante
             </button>
-            <button onClick={handleBlock} disabled={loading} className="w-full px-4 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
+            <button onClick={handleBlock} disabled={loading} className="w-full px-4 py-3 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
               🚫 Bloquear Horario
             </button>
           </div>
@@ -501,10 +528,10 @@ export default function SlotActionModal() {
         {slotType === 'blocked' && (
           <div className="space-y-3">
             <p className="text-center text-sm text-gray-500">Este horario está bloqueado</p>
-            <button onClick={handleUnblock} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-sm font-semibold disabled:opacity-50">
+            <button onClick={handleUnblock} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50">
               ✅ Desbloquear Horario
             </button>
-            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-semibold">
+            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold">
               ✏️ Registrar Estudiante
             </button>
           </div>
@@ -580,29 +607,29 @@ export default function SlotActionModal() {
 
                 {/* 2×2 secondary actions */}
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => setSubPanel('rename')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-xs font-semibold transition-colors">
+                  <button onClick={() => setSubPanel('rename')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors">
                     ✏️ Renombrar
                   </button>
-                  <button onClick={() => setSubPanel('move')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-xs font-semibold transition-colors">
+                  <button onClick={() => setSubPanel('move')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors">
                     ↕ Mover
                   </button>
-                  <button onClick={() => setSubPanel('lesson')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-xl text-xs font-semibold transition-colors">
+                  <button onClick={() => setSubPanel('lesson')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors">
                     📚 {assignedLesson ? 'Cambiar lección' : 'Asignar lección'}
                   </button>
-                  <button onClick={() => setSubPanel('student')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-xl text-xs font-semibold transition-colors">
+                  <button onClick={() => setSubPanel('student')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors">
                     🔗 {linkedStudent ? 'Cambiar alumno' : 'Vincular alumno'}
                   </button>
                 </div>
 
                 {/* Primary action — only show if not already completed */}
                 {booking.status !== 'completed' && (
-                  <button onClick={() => setSubPanel('complete')} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-sm font-semibold transition-colors">
+                  <button onClick={() => setSubPanel('complete')} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors">
                     ✅ Marcar como Completada
                   </button>
                 )}
 
                 {/* Danger action */}
-                <button onClick={() => setSubPanel('cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors">
+                <button onClick={() => setSubPanel('cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 transition-colors">
                   {booking.isRecurring ? '✗ Cancelar / Eliminar clases' : '✗ Eliminar clase'}
                 </button>
               </>
@@ -627,11 +654,11 @@ export default function SlotActionModal() {
                   if (id) { await confirmBooking(id); await useScheduleStore.getState().waitForDataRefresh(); closeSlotAction(); }
                 } finally { setLoading(false); }
               }}
-              className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-xl text-sm font-semibold disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50"
             >
               ✅ Confirmar Clase
             </button>
-            <button onClick={() => setSubPanel(subPanel === 'cancel' ? 'none' : 'cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50">
+            <button onClick={() => setSubPanel(subPanel === 'cancel' ? 'none' : 'cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50">
               ✗ Rechazar
             </button>
             {subPanel === 'cancel' && (
@@ -644,7 +671,7 @@ export default function SlotActionModal() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
                   autoFocus
                 />
-                <button onClick={() => handleCancel(false)} disabled={loading} className="w-full px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50">
+                <button onClick={() => handleCancel(false)} disabled={loading} className="w-full px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-semibold disabled:opacity-50">
                   {loading ? '…' : 'Confirmar Rechazo'}
                 </button>
               </div>

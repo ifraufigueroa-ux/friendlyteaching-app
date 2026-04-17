@@ -73,7 +73,7 @@ export default function ScheduleSlot({ booking, isBlocked, isToday, onClick }: P
     <button
       onClick={status === 'completed' ? onClick : onClick}
       className={`
-        w-full h-full rounded-lg px-2 py-1 text-left text-[15px] font-medium
+        w-full h-full rounded-xl px-2 py-1 text-left text-[15px] font-medium
         transition-all duration-150 cursor-pointer
         ${slotStyles[status]}
       `}

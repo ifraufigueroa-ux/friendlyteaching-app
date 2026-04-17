@@ -25,7 +25,7 @@ export default function WeekNavigator() {
     <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm mb-4">
       <button
         onClick={previousWeek}
-        className="p-2 rounded-xl hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
+        className="p-2 rounded-full hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
         title="Semana anterior"
       >
         ‹
@@ -42,7 +42,7 @@ export default function WeekNavigator() {
 
       <button
         onClick={nextWeek}
-        className="p-2 rounded-xl hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
+        className="p-2 rounded-full hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
         title="Siguiente semana"
       >
         ›

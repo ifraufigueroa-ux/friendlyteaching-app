@@ -165,7 +165,7 @@ export default function SchedulingGrid() {
         <WeekNavigator />
         <button
           onClick={() => setShowAvailability(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-xl transition-colors flex-shrink-0 ml-2"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-full transition-colors flex-shrink-0 ml-2"
         >
           ⚙️ Disponibilidad
         </button>
