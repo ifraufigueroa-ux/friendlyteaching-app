@@ -43,9 +43,9 @@ const TESTIMONIALS = [
 
 // ── Shared pill button style ──
 const pill = 'inline-flex items-center justify-center font-bold rounded-full transition-all duration-200 hover:-translate-y-0.5';
-const pillPrimary   = `${pill} bg-[#5A3D7A] hover:bg-[#4A2E6A] text-white shadow-md hover:shadow-lg`;
-const pillOutline   = `${pill} bg-white hover:bg-[#F0E5FF] text-[#5A3D7A] border-2 border-[#C8A8DC] hover:border-[#9B7CB8]`;
-const pillWhite     = `${pill} bg-white text-[#5A3D7A] hover:bg-[#F0E5FF] shadow-md hover:shadow-lg`;
+const pillPrimary   = `${pill} bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white shadow-md hover:shadow-lg`;
+const pillOutline   = `${pill} bg-white/80 hover:bg-[#F0E5FF] text-[#5A3D7A] border border-[#C8A8DC] hover:border-[#9B7CB8]`;
+const pillWhite     = `${pill} bg-white/80 hover:bg-white text-[#5A3D7A] shadow-md hover:shadow-lg`;
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -173,7 +173,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {STEPS.map(({ n, title, desc }) => (
             <div key={n} className="bg-white/80 rounded-3xl p-5 border border-[#E8D5F5] shadow-sm text-center hover:-translate-y-1 transition-all duration-200">
-              <div className="w-10 h-10 rounded-full bg-[#5A3D7A] text-white font-extrabold text-lg flex items-center justify-center mx-auto mb-3 shadow-md">{n}</div>
+              <div className="w-10 h-10 rounded-full bg-[#C8A8DC] text-white font-extrabold text-lg flex items-center justify-center mx-auto mb-3 shadow-md">{n}</div>
               <h4 className="font-bold text-[#5A3D7A] text-sm mb-1">{title}</h4>
               <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
             </div>
@@ -203,7 +203,7 @@ export default function HomePage() {
               <ul className="flex-1 space-y-2.5 mb-7">
                 {plan.features.map(f => (
                   <li key={f} className={`text-sm flex items-start gap-2.5 ${plan.featured ? 'text-white/90' : 'text-gray-600'}`}>
-                    <span className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${plan.featured ? 'bg-white/20 text-white' : 'bg-[#F0E5FF] text-[#5A3D7A]'}`}>✓</span>
+                    <span className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${plan.featured ? 'bg-white/20 text-white' : 'bg-[#F0E5FF] text-[#9B7CB8]'}`}>✓</span>
                     {f}
                   </li>
                 ))}
@@ -211,7 +211,7 @@ export default function HomePage() {
               <button
                 onClick={() => { setSelectedPlan(plan.name); scrollTo('evaluacion'); }}
                 className={`w-full py-3.5 rounded-full font-bold text-sm transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-lg
-                  ${plan.featured ? 'bg-white text-[#5A3D7A] hover:bg-[#F0E5FF]' : 'bg-[#5A3D7A] text-white hover:bg-[#4A2E6A]'}`}>
+                  ${plan.featured ? 'bg-white text-[#5A3D7A] hover:bg-[#F0E5FF]' : 'bg-[#C8A8DC] text-white hover:bg-[#9B7CB8]'}`}>
                 Seleccionar Plan
               </button>
             </div>
