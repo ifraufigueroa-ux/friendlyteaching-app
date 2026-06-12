@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 interface NotifyBody {
-  type: 'student_approved' | 'student_registered' | 'homework_reviewed' | 'class_reminder';
+  type: 'student_approved' | 'student_registered' | 'student_activated' | 'student_invited' | 'homework_reviewed' | 'class_reminder' | 'evaluation_request';
   to: string;
   studentName?: string;
   teacherName?: string;
@@ -16,12 +16,95 @@ interface NotifyBody {
   classDay?: string;
   classHour?: number;
   hoursUntil?: number;
+  // evaluation_request fields
+  telefono?: string;
+  edad?: string;
+  nivel?: string;
+  objetivo?: string;
+  inicio?: string;
+  plan?: string;
+  // student_invited fields
+  tempPassword?: string;
 }
 
 function buildEmail(body: NotifyBody): { subject: string; html: string } {
   const appUrl = body.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://friendlyteaching.cl';
 
   switch (body.type) {
+    case 'evaluation_request':
+      return {
+        subject: `📋 Nueva solicitud de evaluación gratuita — ${body.studentName ?? 'Sin nombre'}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+            <h1 style="color:#5A3D7A;font-size:22px;margin-bottom:4px;">Nueva solicitud de evaluación gratuita</h1>
+            <p style="color:#999;font-size:13px;margin-bottom:24px;">Recibida desde FriendlyTeaching.cl</p>
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;width:40%;">Nombre</td><td style="padding:10px 14px;color:#333;">${body.studentName ?? '—'}</td></tr>
+              <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Email</td><td style="padding:10px 14px;color:#333;">${body.to}</td></tr>
+              <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Teléfono</td><td style="padding:10px 14px;color:#333;">${body.telefono ?? '—'}</td></tr>
+              <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Edad</td><td style="padding:10px 14px;color:#333;">${body.edad ?? '—'}</td></tr>
+              <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Nivel</td><td style="padding:10px 14px;color:#333;">${body.nivel ?? '—'}</td></tr>
+              <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Objetivo</td><td style="padding:10px 14px;color:#333;">${body.objetivo || '—'}</td></tr>
+              <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">¿Cuándo comenzar?</td><td style="padding:10px 14px;color:#333;">${body.inicio ?? '—'}</td></tr>
+              ${body.plan ? `<tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Plan seleccionado</td><td style="padding:10px 14px;color:#333;">${body.plan}</td></tr>` : ''}
+            </table>
+          </div>
+        `,
+      };
+
+    case 'student_activated':
+      return {
+        subject: '🎉 ¡Tu cuenta en FriendlyTeaching está activa!',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+            <h1 style="color:#5A3D7A;font-size:22px;margin-bottom:8px;">¡Bienvenido/a a FriendlyTeaching! 🎉</h1>
+            <p style="color:#555;font-size:15px;line-height:1.6;">
+              Hola <strong>${body.studentName ?? 'estudiante'}</strong>,<br><br>
+              Tu cuenta ha sido activada automáticamente al verificar tu email.
+              Ya tienes acceso completo al portal, horarios y materiales de clase.
+            </p>
+            <div style="margin:24px 0;">
+              <a href="${appUrl}/auth/login"
+                style="display:inline-block;background:#C8A8DC;color:#fff;font-weight:700;font-size:15px;padding:12px 28px;border-radius:12px;text-decoration:none;">
+                Iniciar sesión →
+              </a>
+            </div>
+            <p style="color:#999;font-size:12px;">FriendlyTeaching.cl · Si no creaste esta cuenta, ignora este mensaje.</p>
+          </div>
+        `,
+      };
+
+    case 'student_invited':
+      return {
+        subject: '🎓 Tu cuenta en FriendlyTeaching está lista',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+            <h1 style="color:#5A3D7A;font-size:22px;margin-bottom:8px;">¡Bienvenido/a a FriendlyTeaching! 🎉</h1>
+            <p style="color:#555;font-size:15px;line-height:1.6;">
+              Hola <strong>${body.studentName ?? 'estudiante'}</strong>,<br><br>
+              <strong>${body.teacherName ?? 'Tu profesor'}</strong> creó una cuenta para ti
+              en FriendlyTeaching. Usa estas credenciales para iniciar sesión:
+            </p>
+            <div style="background:#F9F5FF;border-radius:12px;padding:16px;margin:20px 0;">
+              <p style="color:#5A3D7A;font-size:13px;font-weight:700;margin:0 0 8px;">📧 Email</p>
+              <p style="color:#333;font-size:15px;margin:0 0 12px;font-family:monospace;">${body.to}</p>
+              <p style="color:#5A3D7A;font-size:13px;font-weight:700;margin:0 0 8px;">🔑 Contraseña temporal</p>
+              <p style="color:#333;font-size:15px;margin:0;font-family:monospace;">${body.tempPassword ?? '—'}</p>
+            </div>
+            <p style="color:#888;font-size:13px;line-height:1.6;">
+              Te recomendamos cambiar tu contraseña al iniciar sesión por primera vez.
+            </p>
+            <div style="margin:24px 0;">
+              <a href="${appUrl}/auth/login"
+                style="display:inline-block;background:#C8A8DC;color:#fff;font-weight:700;font-size:15px;padding:12px 28px;border-radius:12px;text-decoration:none;">
+                Iniciar sesión →
+              </a>
+            </div>
+            <p style="color:#999;font-size:12px;">FriendlyTeaching.cl · Si no esperabas este correo, ignóralo.</p>
+          </div>
+        `,
+      };
+
     case 'student_approved':
       return {
         subject: '✅ Tu cuenta en FriendlyTeaching ha sido aprobada',

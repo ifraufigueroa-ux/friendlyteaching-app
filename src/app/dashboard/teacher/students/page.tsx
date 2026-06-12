@@ -2,7 +2,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent } from '@/hooks/useStudents';
+import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent } from '@/hooks/useStudents';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useRecurringBookings, linkBookingsByName, type ScheduleSlot } from '@/hooks/useRecurringBookings';
 import { updateDoc, doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -154,11 +154,14 @@ function EditStudentModal({
   unlinkedSlots: ScheduleSlot[];
   onClose: () => void;
 }) {
-  const [fullName, setFullName] = useState(student.fullName);
-  const [phone,    setPhone]    = useState(student.phone ?? '');
-  const [notes,    setNotes]    = useState(student.studentData?.notes ?? '');
-  const [level,    setLevel]    = useState<LessonLevel>(student.studentData?.level ?? 'A1');
-  const [tab,      setTab]      = useState<'info' | 'schedule' | 'level'>('info');
+  const [fullName,     setFullName]     = useState(student.fullName);
+  const [phone,        setPhone]        = useState(student.phone ?? '');
+  const [notes,        setNotes]        = useState(student.studentData?.notes ?? '');
+  const [level,        setLevel]        = useState<LessonLevel>(student.studentData?.level ?? 'A1');
+  const [off2classUrl, setOff2classUrl] = useState(student.studentData?.platformLinks?.off2class ?? '');
+  const [elliiUrl,     setElliiUrl]     = useState(student.studentData?.platformLinks?.ellii ?? '');
+  const [sounterUrl,   setSounterUrl]   = useState(student.studentData?.platformLinks?.sounter ?? '');
+  const [tab,          setTab]          = useState<'info' | 'schedule' | 'level' | 'platforms'>('info');
   const [saving,   setSaving]   = useState(false);
   const [linking,  setLinking]  = useState(false);
   const [linkedCount, setLinkedCount] = useState(0);
@@ -173,6 +176,9 @@ function EditStudentModal({
         phone,
         'studentData.notes': notes,
         'studentData.level': level,
+        'studentData.platformLinks.off2class': off2classUrl.trim(),
+        'studentData.platformLinks.ellii':     elliiUrl.trim(),
+        'studentData.platformLinks.sounter':   sounterUrl.trim(),
         updatedAt: serverTimestamp(),
       });
 
@@ -225,7 +231,7 @@ function EditStudentModal({
 
         {/* Tabs */}
         <div className="flex border-b border-gray-100">
-          {(['info', 'schedule', 'level'] as const).map((t) => (
+          {(['info', 'schedule', 'level', 'platforms'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -235,7 +241,7 @@ function EditStudentModal({
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              {t === 'info' ? 'Información' : t === 'schedule' ? 'Horario' : 'Nivel'}
+              {t === 'info' ? 'Información' : t === 'schedule' ? 'Horario' : t === 'level' ? 'Nivel' : '🔗 Links'}
             </button>
           ))}
         </div>
@@ -288,6 +294,38 @@ function EditStudentModal({
                   placeholder="Notas sobre el estudiante (solo visibles para ti)"
                 />
               </div>
+            </div>
+          )}
+
+          {tab === 'platforms' && (
+            <div className="space-y-4">
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Pega aquí los links de acceso directo de este estudiante a cada plataforma. Aparecerán como botones en su dashboard.
+              </p>
+              {([
+                { key: 'off2class', label: 'Off2Class', placeholder: 'https://app.off2class.com/...', color: '#1E40AF', val: off2classUrl, set: setOff2classUrl },
+                { key: 'ellii',     label: 'Ellii',     placeholder: 'https://ellii.com/...',          color: '#0D9488', val: elliiUrl,     set: setElliiUrl     },
+                { key: 'sounter',   label: 'Sounter',   placeholder: 'https://sounter.com/...',        color: '#EA580C', val: sounterUrl,   set: setSounterUrl   },
+              ] as { key: string; label: string; placeholder: string; color: string; val: string; set: (v: string) => void }[]).map(({ key, label, placeholder, color, val, set }) => (
+                <div key={key}>
+                  <label className="text-xs font-bold uppercase tracking-wider block mb-1" style={{ color }}>
+                    {label}
+                  </label>
+                  <input
+                    type="url"
+                    value={val}
+                    onChange={(e) => set(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
+                  />
+                  {val && (
+                    <a href={val} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] text-[#9B7CB8] hover:underline mt-0.5 block">
+                      Verificar link →
+                    </a>
+                  )}
+                </div>
+              ))}
             </div>
           )}
 
@@ -623,6 +661,180 @@ function StudentRow({
   );
 }
 
+// ─── Create Student Modal ─────────────────────────────────────────────────────
+
+function CreateStudentModal({ onClose }: { onClose: () => void }) {
+  const [fullName, setFullName] = useState('');
+  const [email,    setEmail]    = useState('');
+  const [phone,    setPhone]    = useState('');
+  const [password, setPassword] = useState('');
+  const [level,    setLevel]    = useState<LessonLevel>('A1');
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+  const [showPwd,  setShowPwd]  = useState(false);
+
+  function genPassword() {
+    // Friendly readable temp password: 3 syllables + 3 digits.
+    const syl = ['ka','ri','to','mu','pe','ra','si','do','lu','ne','ze','xa'];
+    const pick = () => syl[Math.floor(Math.random() * syl.length)];
+    setPassword(`${pick()}${pick()}${pick()}${Math.floor(100 + Math.random() * 900)}`);
+    setShowPwd(true);
+  }
+
+  async function handleSubmit() {
+    setError(null);
+    const e = email.trim().toLowerCase();
+    if (!fullName.trim() || fullName.trim().length < 2) { setError('Nombre completo requerido'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))           { setError('Email inválido'); return; }
+    if (password.length < 6)                              { setError('Password mínimo 6 caracteres'); return; }
+
+    setSaving(true);
+    try {
+      await createStudent({ email: e, fullName: fullName.trim(), password, phone: phone.trim(), level });
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-[#5A3D7A]">Crear estudiante</h2>
+            <p className="text-xs text-gray-400">Le crearás la cuenta con una contraseña temporal.</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-5 flex-1 space-y-4">
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Nombre completo *
+            </label>
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
+              placeholder="Nombre y apellido"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Email *
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
+              placeholder="estudiante@ejemplo.com"
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Teléfono
+            </label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
+              placeholder="+56 9 1234 5678 (opcional)"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
+              Contraseña temporal *
+            </label>
+            <div className="flex gap-2">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8] font-mono"
+                placeholder="Mínimo 6 caracteres"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-500 hover:bg-gray-50"
+                title={showPwd ? 'Ocultar' : 'Mostrar'}
+              >
+                {showPwd ? '🙈' : '👁'}
+              </button>
+              <button
+                type="button"
+                onClick={genPassword}
+                className="px-3 py-2 border border-[#C8A8DC] text-[#5A3D7A] rounded-xl text-xs font-bold hover:bg-[#F0E5FF]"
+              >
+                Generar
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              El estudiante recibirá esta contraseña por email para iniciar sesión.
+            </p>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">
+              Nivel inicial
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {LEVELS.map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLevel(l)}
+                  className={`py-2 rounded-xl border text-xs font-bold transition-all ${
+                    level === l
+                      ? 'border-[#C8A8DC] bg-[#F0E5FF] text-[#5A3D7A]'
+                      : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-[#C8A8DC]'
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">{LEVEL_DESC[level]}</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-600">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <div className="p-5 border-t border-gray-100 flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="flex-1 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-bold disabled:opacity-50"
+          >
+            {saving ? 'Creando…' : 'Crear cuenta'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function StudentsPage() {
@@ -634,8 +846,9 @@ export default function StudentsPage() {
   const { requests: bookingRequests, approveRequest, rejectRequest } = useBookingRequests();
   const { byStudentId, byStudentName } = useRecurringBookings(teacherId);
 
-  const [search, setSearch]           = useState('');
+  const [search, setSearch]             = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [showCreate, setShowCreate]     = useState(false);
 
   const filteredStudents = useMemo(() => {
     if (!search.trim()) return students;
@@ -651,7 +864,7 @@ export default function StudentsPage() {
   // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFFCF7] p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-5xl mx-auto">
           <div className="mb-6 space-y-2">
             <div className="animate-pulse bg-gray-200 rounded-xl h-8 w-48" />
@@ -666,7 +879,7 @@ export default function StudentsPage() {
   // ── Error state ────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="min-h-screen bg-[#FFFCF7] p-6 flex items-center justify-center">
+      <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 shadow-sm text-center max-w-md">
           <p className="text-4xl mb-3">⚠️</p>
           <p className="text-red-600 font-semibold mb-2">Error al cargar</p>
@@ -686,7 +899,7 @@ export default function StudentsPage() {
     .reduce((sum, slots) => sum + slots.length, 0);
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] p-6">
+    <div className="min-h-screen p-6">
       <TopBar
         title="Estudiantes"
         subtitle={`${students.length} aprobado${students.length !== 1 ? 's' : ''} · ${pendingStudents.length} pendiente${pendingStudents.length !== 1 ? 's' : ''}`}
@@ -695,14 +908,22 @@ export default function StudentsPage() {
           { label: 'Estudiantes' },
         ]}
         actions={
-          <a
-            href="/book"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
-          >
-            🔗 Página de reserva
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
+            >
+              ＋ Crear estudiante
+            </button>
+            <a
+              href="/book"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
+            >
+              🔗 Página de reserva
+            </a>
+          </div>
         }
       />
 
@@ -893,6 +1114,8 @@ export default function StudentsPage() {
         )}
 
       </div>
+
+      {showCreate && <CreateStudentModal onClose={() => setShowCreate(false)} />}
     </div>
   );
 }

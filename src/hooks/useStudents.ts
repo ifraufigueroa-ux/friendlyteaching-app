@@ -55,15 +55,30 @@ export function useStudents() {
           // whose approvedByTeacherId is unset/blank (covers the case where the
           // teacher's UID changed between sessions due to auth provider linking).
           // Students explicitly assigned to a DIFFERENT teacher are excluded.
-          setStudents(
-            all.filter(
-              (s: FTUser) =>
-                s.role === 'student' &&
-                s.status === 'approved' &&
-                (!s.studentData?.approvedByTeacherId ||
-                  s.studentData.approvedByTeacherId === uid),
-            ),
+          const approvedRaw = all.filter(
+            (s: FTUser) =>
+              s.role === 'student' &&
+              s.status === 'approved' &&
+              (!s.studentData?.approvedByTeacherId ||
+                s.studentData.approvedByTeacherId === uid),
           );
+          // Deduplicate: when one name is a prefix of another (e.g. "Andrée" vs
+          // "Andrée Barraza"), keep only the longer/more-complete record.
+          const norm = (n: string) => (n ?? '').toLowerCase().trim();
+          const deduped: FTUser[] = [];
+          for (const s of approvedRaw.sort((a, b) =>
+            (b.fullName ?? '').length - (a.fullName ?? '').length, // longest first
+          )) {
+            const sn = norm(s.fullName ?? '');
+            const absorbed = deduped.some(existing => {
+              const en = norm(existing.fullName ?? '');
+              return en.startsWith(sn) || sn.startsWith(en);
+            });
+            if (!absorbed) deduped.push(s);
+          }
+          setStudents(deduped.sort((a, b) =>
+            (a.fullName ?? '').localeCompare(b.fullName ?? '', 'es'),
+          ));
 
           // Pending students: any student awaiting approval (no teacher filter —
           // any teacher can approve a pending student).
@@ -201,6 +216,33 @@ export async function approveStudent(
       }),
     }).catch(() => {/* ignore */});
   }
+}
+
+/**
+ * Manually create a student account from the teacher dashboard.
+ * Goes through /api/students/create which uses the Firebase Admin SDK so
+ * the new auth user doesn't sign in over the teacher's current session.
+ */
+export async function createStudent(input: {
+  email: string;
+  fullName: string;
+  password: string;
+  phone?: string;
+  level?: LessonLevel;
+}): Promise<{ uid: string }> {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error('Sesión no encontrada — vuelve a iniciar sesión');
+  const token = await user.getIdToken();
+
+  const res = await fetch('/api/students/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(input),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error ?? 'No se pudo crear el estudiante');
+  return { uid: data.uid };
 }
 
 export async function rejectStudent(uid: string) {
