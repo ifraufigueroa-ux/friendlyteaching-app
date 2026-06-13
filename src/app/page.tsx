@@ -22,16 +22,16 @@ const STEPS = [
 
 const PLANS = [
   {
-    name: 'Básico', price: '$60.000', period: 'por mes', featured: false, badge: null,
-    features: ['4 clases al mes (1 x semana)', 'Clases de 60 minutos', 'Material digital incluido', 'Evaluación inicial gratuita', 'Acceso a plataforma'],
+    name: 'Básico', price: '$64.000', period: 'por mes', featured: false, badge: null,
+    features: ['4 clases al mes (1 x semana)', 'Clases de 45 minutos', 'Material digital incluido', 'Evaluación inicial gratuita', 'Acceso a plataforma'],
   },
   {
-    name: 'Premium', price: '$112.000', period: 'por mes', featured: true, badge: 'MÁS POPULAR',
-    features: ['8 clases al mes (2 x semana)', 'Clases de 60 minutos', 'Material + ejercicios extras', 'Evaluación inicial gratuita', 'Acceso prioritario', 'Soporte por WhatsApp'],
+    name: 'Premium', price: '$120.000', period: 'por mes', featured: true, badge: 'MÁS POPULAR',
+    features: ['8 clases al mes (2 x semana)', 'Clases de 45 minutos', 'Material + ejercicios extras', 'Evaluación inicial gratuita', 'Acceso prioritario', 'Soporte por WhatsApp'],
   },
   {
-    name: 'Intensivo', price: '$144.000', period: 'por mes', featured: false, badge: null,
-    features: ['12 clases al mes (3 x semana)', 'Clases de 60 minutos', 'Material completo personalizado', 'Evaluación inicial gratuita', 'Acceso ilimitado', 'Soporte 24/7', 'Conversación grupal'],
+    name: 'Intensivo', price: '$156.000', period: 'por mes', featured: false, badge: null,
+    features: ['12 clases al mes (3 x semana)', 'Clases de 45 minutos', 'Material completo personalizado', 'Evaluación inicial gratuita', 'Acceso ilimitado', 'Soporte 24/7'],
   },
 ];
 
@@ -52,6 +52,7 @@ export default function HomePage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [formData, setFormData] = useState({ nombre: '', email: '', telefono: '', edad: '', nivel: '', objetivo: '', inicio: '' });
   const [formSent, setFormSent] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -82,7 +83,7 @@ export default function HomePage() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/auth/login" className={`${pillOutline} px-4 py-2 text-sm`}>
+            <Link href="/portal" className={`${pillOutline} px-4 py-2 text-sm`}>
               🔐 Portal de Clases
             </Link>
             <button onClick={() => scrollTo('evaluacion')} className={`${pillPrimary} px-4 py-2 text-sm`}>
@@ -100,7 +101,7 @@ export default function HomePage() {
             {[['metodologia','Metodología'],['planes','Planes'],['testimonios','Testimonios'],['evaluacion','Evaluación Gratuita']].map(([id, label]) => (
               <button key={id} onClick={() => scrollTo(id)} className="text-left hover:text-[#5A3D7A] transition-colors">{label}</button>
             ))}
-            <Link href="/auth/login" className="text-[#5A3D7A] font-bold">🔐 Portal de Clases</Link>
+            <Link href="/portal" className="text-[#5A3D7A] font-bold">🔐 Portal de Clases</Link>
           </div>
         )}
       </nav>
@@ -119,7 +120,7 @@ export default function HomePage() {
         </div>
 
         <span className="inline-flex items-center gap-1.5 bg-white/80 text-[#5A3D7A] text-xs font-bold px-4 py-2 rounded-full mb-6 shadow-sm border border-[#E0D5FF]">
-          🇬🇧 Academia de Inglés Online
+          Academia de Inglés Online
         </span>
         <h1 className="text-4xl md:text-6xl font-extrabold leading-tight max-w-3xl mb-5 text-[#4B2E7A] tracking-tight">
           Aprende inglés de forma<br />
@@ -255,7 +256,31 @@ export default function HomePage() {
               <button onClick={() => setFormSent(false)} className={`${pillOutline} px-5 py-2 text-sm`}>Enviar otra solicitud</button>
             </div>
           ) : (
-            <form onSubmit={e => { e.preventDefault(); setFormSent(true); }}>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setFormLoading(true);
+              try {
+                await fetch('/api/notify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'evaluation_request',
+                    to: 'friendlyteaching.cl@gmail.com',
+                    studentName: formData.nombre,
+                    telefono: formData.telefono,
+                    edad: formData.edad,
+                    nivel: formData.nivel,
+                    objetivo: formData.objetivo,
+                    inicio: formData.inicio,
+                    plan: selectedPlan ?? undefined,
+                    appUrl: process.env.NEXT_PUBLIC_APP_URL,
+                  }),
+                });
+              } catch { /* non-fatal */ } finally {
+                setFormLoading(false);
+                setFormSent(true);
+              }
+            }}>
               {selectedPlan && (
                 <div className="mb-5 bg-[#F0E5FF] rounded-2xl px-4 py-3 text-sm text-[#5A3D7A] font-semibold flex items-center justify-between border border-[#DDD0F0]">
                   <span>✓ Plan seleccionado: <strong>{selectedPlan}</strong></span>
@@ -320,8 +345,8 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <button type="submit" className={`${pillPrimary} w-full py-4 text-base`}>
-                Solicitar Evaluación Gratuita 🎓
+              <button type="submit" disabled={formLoading} className={`${pillPrimary} w-full py-4 text-base disabled:opacity-60`}>
+                {formLoading ? 'Enviando…' : 'Solicitar Evaluación Gratuita 🎓'}
               </button>
             </form>
           )}
@@ -343,7 +368,7 @@ export default function HomePage() {
             <a href="mailto:contacto@friendlyteaching.cl" title="Email" className="hover:scale-110 transition-transform">✉️</a>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/auth/login" className="hover:text-[#5A3D7A] transition-colors font-medium">🔐 Portal de Clases</Link>
+            <Link href="/portal" className="hover:text-[#5A3D7A] transition-colors font-medium">🔐 Portal de Clases</Link>
             <span>© {new Date().getFullYear()} Friendly Teaching</span>
           </div>
         </div>
