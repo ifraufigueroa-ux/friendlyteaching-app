@@ -50,13 +50,15 @@ function formatSlot(s: ScheduleSlot): string {
   return `${DAY_SHORT[s.dayOfWeek]} ${h}:${m}`;
 }
 
-function initials(name: string): string {
+function initials(name: string | null | undefined): string {
+  if (!name) return '?';
   return name
     .split(' ')
     .map((w) => w[0])
+    .filter(Boolean)
     .slice(0, 2)
     .join('')
-    .toUpperCase();
+    .toUpperCase() || '?';
 }
 
 // ─── Approve Modal ────────────────────────────────────────────────────────────
