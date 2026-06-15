@@ -30,6 +30,20 @@ service cloud.firestore {
       return getUserRole() == 'teacher' || isKnownTeacherEmail();
     }
 
+    function isMaster() {
+      return getUserRole() == 'master';
+    }
+
+    // Returns the teacherId that approved the currently-authenticated student.
+    // Used so students can read their own teacher's lesson plans and class history
+    // even when the documents lack a studentId field (name-only bookings).
+    function getStudentTeacherId() {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return isAuthenticated() && exists(userPath)
+        ? get(userPath).data.get('studentData', {}).get('approvedByTeacherId', null)
+        : null;
+    }
+
     function isApprovedStudent() {
       let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
       return isAuthenticated()
@@ -39,16 +53,17 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Single-document reads: owner, any teacher, or approved student reading their teacher's doc.
+      // Single-document reads: owner, any teacher, master, or approved student reading their teacher's doc.
       allow get: if isOwner(userId)
                    || isTeacher()
+                   || isMaster()
                    || (isApprovedStudent() && resource.data.role == 'teacher');
 
       // Collection list queries (useStudents does a bare collection scan and filters client-side).
       // isKnownTeacherEmail() is checked FIRST — it uses request.auth.token (no Firestore get()
       // call needed), which avoids the rules-engine stall that isTeacher() / getUserRole() can
       // trigger when get() is evaluated per-document inside a list operation.
-      allow list: if isKnownTeacherEmail() || getUserRole() == 'teacher';
+      allow list: if isKnownTeacherEmail() || getUserRole() == 'teacher' || isMaster();
 
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isTeacher();
@@ -61,6 +76,7 @@ service cloud.firestore {
       allow update: if isTeacher();
       allow delete: if isTeacher();
     }
+
 
     // Booking requests — only authenticated students with an approved account can create.
     // Students can read their own requests; teachers can read, update, and delete.
@@ -120,15 +136,17 @@ service cloud.firestore {
     }
 
     match /classHistory/{entryId} {
-      allow read: if isTeacher();
+      allow read: if isTeacher() || isMaster()
+                   || (isApprovedStudent() && resource.data.studentId == request.auth.uid)
+                   || (isApprovedStudent() && resource.data.teacherId == getStudentTeacherId());
       allow create: if isTeacher();
       allow update: if isTeacher();
       allow delete: if isTeacher();
     }
 
     match /payments/{paymentId} {
-      // QW5: Only the owning teacher can read/write their own payment records
-      allow read: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow read: if isMaster()
+                   || (isTeacher() && resource.data.teacherId == request.auth.uid);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
@@ -199,6 +217,57 @@ service cloud.firestore {
     // (teacherId_studentId_lessonId) so no other party can guess them.
     match /studentLessonPlans/{planId} {
       allow read, write: if isTeacher();
+    }
+
+    // ── Placement Assignments ─────────────────────────────────
+    match /placementAssignments/{assignmentId} {
+      allow read: if isTeacher()
+                  || (isApprovedStudent() && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher();
+      allow update: if isTeacher()
+                  || (isApprovedStudent() && resource.data.studentId == request.auth.uid);
+      allow delete: if isTeacher();
+    }
+
+    // ── Lesson Plans (class counter) ──────────────────────────
+    match /lessonPlans/{planId} {
+      allow read: if isTeacher() || isMaster()
+                   || (isApprovedStudent() && resource.data.studentId == request.auth.uid)
+                   || (isApprovedStudent() && resource.data.teacherId == getStudentTeacherId());
+      allow write: if isTeacher();
+    }
+
+    // ── Music Lessons (Friendlyrics®) ────────────────────────────
+    // Library is shared across teachers: any teacher can read every lesson,
+    // and any teacher can update the assignedTo list (to assign their own
+    // students). Edits to other fields and deletes stay restricted to the
+    // creator (teacherId == request.auth.uid).
+    match /musicLessons/{lessonId} {
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && (
+                      resource.data.teacherId == request.auth.uid ||
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['assignedTo', 'updatedAt'])
+                    );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // ── Movie Lessons (Friendlyflix®) ────────────────────────────
+    // Same shared-library model as musicLessons: any teacher reads
+    // every clip lesson, any teacher updates assignedTo, only owner
+    // edits or deletes.
+    match /movieLessons/{lessonId} {
+      allow read: if isTeacher() ||
+                    (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && (
+                      resource.data.teacherId == request.auth.uid ||
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['assignedTo', 'updatedAt'])
+                    );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
     // ── Placement Sessions ─────────────────────────────────────
