@@ -403,7 +403,12 @@ const TYPE_LABEL: Record<SlideType, string> = {
   selection: 'Selección', listening: 'Escuchar', true_false: 'V / F',
   matching: 'Relacionar', drag_drop: 'Ordenar', writing_prompt: 'Escritura',
   speaking: 'Hablar', image_label: 'Imagen',
-  video: 'Video', cloze_test: 'Cloze', image_hotspot: 'Hotspot', sorting: 'Clasificar',
+  video: 'Video', cloze_test: 'Cloze', image_hotspot: 'Hotspot', sorting: 'Clasificar', lyrics: 'Letra de canción',
+  song_cover: 'Portada canción', vocab_match: 'Vocab matching', predictions: 'Predicciones',
+  lyrics_game: 'Juego letra', listening_quiz: 'Comprensión', language_focus: 'Foco lingüístico',
+  language_practice: 'Práctica', translation_game: 'Traducción game',
+  wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
+  clip_dialogue_game: 'Juego diálogo (Friendlyflix®)', friendlyflix_end: 'Fin Friendlyflix®',
 };
 
 export default function SlideEditorPanel() {

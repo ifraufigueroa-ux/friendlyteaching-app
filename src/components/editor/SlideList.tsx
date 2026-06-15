@@ -7,7 +7,11 @@ const TYPE_ICONS: Record<SlideType, string> = {
   cover: '🏷️', free_text: '📄', vocabulary: '📖', multiple_choice: '🔤',
   grammar_table: '📊', selection: '☑️', listening: '🎧', true_false: '✅',
   matching: '🔗', drag_drop: '🔀', writing_prompt: '✍️', speaking: '🗣️', image_label: '🖼️',
-  video: '🎬', cloze_test: '📝', image_hotspot: '🎯', sorting: '📂',
+  video: '🎬', cloze_test: '📝', image_hotspot: '🎯', sorting: '📂', lyrics: '🎵',
+  song_cover: '🎵', vocab_match: '🔤', predictions: '🔮', lyrics_game: '🎮',
+  listening_quiz: '🎧', language_focus: '🔬', language_practice: '✏️',
+  translation_game: '🌐', wrapup: '💬', friendlyrics_end: '🏆',
+  clip_dialogue_game: '🎞️', friendlyflix_end: '🎬',
 };
 
 const TYPE_LABELS: Record<SlideType, string> = {
@@ -16,7 +20,12 @@ const TYPE_LABELS: Record<SlideType, string> = {
   selection: 'Selección', listening: 'Escuchar', true_false: 'Verdadero/Falso',
   matching: 'Relacionar', drag_drop: 'Ordenar palabras', writing_prompt: 'Escritura',
   speaking: 'Hablar', image_label: 'Imagen + texto',
-  video: 'Video', cloze_test: 'Completar (Cloze)', image_hotspot: 'Hotspot imagen', sorting: 'Clasificar',
+  video: 'Video', cloze_test: 'Completar (Cloze)', image_hotspot: 'Hotspot imagen', sorting: 'Clasificar', lyrics: 'Letra de canción',
+  song_cover: 'Portada canción', vocab_match: 'Vocabulario (matching)', predictions: 'Predicciones',
+  lyrics_game: 'Juego de letra', listening_quiz: 'Comprensión auditiva', language_focus: 'Foco lingüístico',
+  language_practice: 'Práctica lingüística', translation_game: 'Juego de traducción',
+  wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
+  clip_dialogue_game: 'Juego de diálogo (clip)', friendlyflix_end: 'Fin Friendlyflix®',
 };
 
 const PHASE_DOT: Record<string, string> = {

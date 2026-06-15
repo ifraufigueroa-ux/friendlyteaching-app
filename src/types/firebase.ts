@@ -6,7 +6,7 @@ import { Timestamp } from 'firebase/firestore';
 
 // ─── Roles y Estados ────────────────────────────────────────
 
-export type UserRole = 'teacher' | 'student' | 'admin';
+export type UserRole = 'teacher' | 'student' | 'admin' | 'master';
 export type UserStatus = 'active' | 'pending' | 'approved' | 'inactive' | 'archived';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 export type AttendanceStatus = 'attended' | 'absent' | 'late';
@@ -39,6 +39,11 @@ export interface FTUser {
     level?: LessonLevel;
     joinedAt?: Timestamp;
     notes?: string;
+    platformLinks?: {
+      off2class?: string;
+      ellii?: string;
+      sounter?: string;
+    };
   };
   createdAt: Timestamp;
   updatedAt?: Timestamp;
@@ -105,7 +110,44 @@ export type SlideType =
   | 'video'
   | 'cloze_test'
   | 'image_hotspot'
-  | 'sorting';
+  | 'sorting'
+  | 'lyrics'
+  // ── Friendlyrics® 10-slide format ─────────────────────────
+  | 'song_cover'
+  | 'vocab_match'
+  | 'predictions'
+  | 'lyrics_game'
+  | 'listening_quiz'
+  | 'language_focus'
+  | 'language_practice'
+  | 'translation_game'
+  | 'wrapup'
+  | 'friendlyrics_end'
+  // ── Friendlyflix® clip-based format ───────────────────────
+  | 'clip_dialogue_game'
+  | 'friendlyflix_end';
+
+// ─── Friendlyrics® game types ────────────────────────────────
+
+export interface LyricsBlank {
+  word: string;
+  options: string[];  // exactly 4 choices including correct
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: MultipleChoiceOption[];
+  correctAnswer: string;
+}
+
+export type PracticeType = 'unscramble' | 'match_halves';
+
+export interface PracticeItem {
+  type: PracticeType;
+  prompt: string;
+  answer: string;
+  options?: string[];  // for match_halves: the 4 second-half choices
+}
 
 export interface VocabWord {
   word: string;
@@ -154,6 +196,76 @@ export interface Slide {
   blanks?: string[];
   prompt?: string;
   dialogLines?: { speaker: string; text: string }[];
+  // Lyrics slide (music lessons)
+  songData?: SongData;
+  // Clip slide (Friendlyflix — series/movie clips)
+  clipData?: ClipData;
+  // Friendlyrics® game slides
+  blanksData?: LyricsBlank[];
+  translationText?: string;
+  questions?: QuizQuestion[];
+  practiceItems?: PracticeItem[];
+}
+
+// ─── Music Lessons ────────────────────────────────────────────
+
+export interface SongData {
+  title: string;
+  artist: string;
+  albumArt: string;
+  previewUrl?: string;
+  youtubeUrl?: string;
+  lyrics: string;
+}
+
+// ─── Friendlyflix® — series & movie clips ────────────────────
+
+export interface ClipDialogueLine {
+  speaker?: string;       // optional character name
+  text: string;           // single dialogue line
+  startTime: number;      // seconds from clip start
+  endTime?: number;       // optional explicit end (else inferred)
+}
+
+export interface ClipData {
+  title: string;          // scene title, e.g. "Breaking Bad — Pilot scene"
+  source: string;         // show/movie name, e.g. "Breaking Bad"
+  posterUrl?: string;     // optional poster/thumbnail
+  youtubeUrl: string;     // required for video embed
+  startTime?: number;     // optional start offset within the YouTube video
+  endTime?: number;       // optional cutoff
+  dialogue: string;       // raw dialogue, newline-separated (same format as lyrics — {{blank}} markers)
+  // Optional pre-computed per-line timings (mirror of LRC). If absent, the slide
+  // falls back to weight-based estimation from video duration.
+  timings?: number[];
+  // Optional fetched captions raw (kept for re-build)
+  captionsSource?: 'youtube' | 'manual' | 'mixed';
+}
+
+export interface MovieLesson {
+  id?: string;
+  teacherId: string;
+  title: string;
+  level: LessonLevel;
+  clip: ClipData;
+  slides: Slide[];
+  publishStatus: 'draft' | 'published';
+  assignedTo: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface MusicLesson {
+  id?: string;
+  teacherId: string;
+  title: string;
+  level: LessonLevel;
+  song: SongData;
+  slides: Slide[];
+  publishStatus: 'draft' | 'published';
+  assignedTo: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 // ─── Lección ─────────────────────────────────────────────────
@@ -192,6 +304,8 @@ export interface Course {
   icon?: string;
   description?: string;
   lessonCount?: number;
+  coverImage?: string;
+  sortOrder?: number;
   createdAt?: Timestamp;
 }
 

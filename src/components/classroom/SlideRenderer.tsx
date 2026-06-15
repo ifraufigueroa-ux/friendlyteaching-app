@@ -17,6 +17,18 @@ import VideoSlide from './slides/VideoSlide';
 import ClozeSlide from './slides/ClozeSlide';
 import ImageHotspotSlide from './slides/ImageHotspotSlide';
 import SortingSlide from './slides/SortingSlide';
+import LyricsSlide from './slides/LyricsSlide';
+import SongCoverSlide from './slides/SongCoverSlide';
+import VocabMatchSlide from './slides/VocabMatchSlide';
+import PredictionsSlide from './slides/PredictionsSlide';
+import LyricsGameSlide from './slides/LyricsGameSlide';
+import ListeningQuizSlide from './slides/ListeningQuizSlide';
+import LanguageFocusSlide from './slides/LanguageFocusSlide';
+import LanguagePracticeSlide from './slides/LanguagePracticeSlide';
+import TranslationGameSlide from './slides/TranslationGameSlide';
+import WrapupSlide from './slides/WrapupSlide';
+import FriendlyricsEndSlide from './slides/FriendlyricsEndSlide';
+import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -25,10 +37,11 @@ interface Props {
   isTeacher?: boolean;
   slideIndex?: number;
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void;
+  youtubeUrl?: string;
 }
 
-export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer }: Props) {
-  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer);
+export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl }: Props) {
+  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl);
 
   // Wrap with audio player if the slide has an audioUrl
   if (slide.audioUrl) {
@@ -51,6 +64,7 @@ function renderSlide(
   isTeacher?: boolean,
   slideIndex?: number,
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void,
+  youtubeUrl?: string,
 ) {
   switch (slide.type) {
     case 'cover':
@@ -87,6 +101,32 @@ function renderSlide(
       return <ImageHotspotSlide slide={slide} />;
     case 'sorting':
       return <SortingSlide slide={slide} />;
+    case 'lyrics':
+      return <LyricsSlide slide={slide} />;
+    case 'song_cover':
+      return <SongCoverSlide slide={slide} />;
+    case 'vocab_match':
+      return <VocabMatchSlide slide={slide} />;
+    case 'predictions':
+      return <PredictionsSlide slide={slide} />;
+    case 'lyrics_game':
+      return <LyricsGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
+    case 'listening_quiz':
+      return <ListeningQuizSlide slide={slide} />;
+    case 'language_focus':
+      return <LanguageFocusSlide slide={slide} />;
+    case 'language_practice':
+      return <LanguagePracticeSlide slide={slide} />;
+    case 'translation_game':
+      return <TranslationGameSlide slide={slide} />;
+    case 'wrapup':
+      return <WrapupSlide slide={slide} />;
+    case 'friendlyrics_end':
+      return <FriendlyricsEndSlide slide={slide} />;
+    case 'clip_dialogue_game':
+      return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
+    case 'friendlyflix_end':
+      return <FriendlyricsEndSlide slide={slide} />;
     default:
       return (
         <div className="flex items-center justify-center h-full text-gray-400">
