@@ -8,26 +8,71 @@ import type { Slide, ClipData, LyricsBlank } from '@/types/firebase';
 import ClipDialogueGameSlide from '@/components/classroom/slides/ClipDialogueGameSlide';
 import TopBar from '@/components/layout/TopBar';
 
-// ── Pre-loaded demo: a famous short scene with simple dialogue ─────────
-// Goblet of Fire — the "constant vigilance!" line is short and clear;
-// timings are approximate, designed so the polling cursor advances
-// roughly in step with the scene.
-const DEMO: { url: string; title: string; source: string; dialogue: string; blanks: LyricsBlank[]; timings: number[] } = {
-  url: 'https://www.youtube.com/watch?v=Z0HSWGCmtbk',
-  title: 'Pilot — interrogation room',
-  source: 'Demo clip',
-  dialogue: [
-    'I want you to {{blank}} me everything you know.',
-    'There is nothing more I can {{blank}} you.',
-    'I think we both know that is not {{blank}}.',
-  ].join('\n'),
-  blanks: [
-    { word: 'tell', options: ['tell', 'show', 'give', 'bring'] },
-    { word: 'tell',  options: ['tell',  'say', 'speak', 'talk'] },
-    { word: 'true', options: ['true', 'real', 'right', 'fair'] },
-  ],
-  timings: [2, 7, 12],
-};
+// ── Pre-loaded demos ──────────────────────────────────────────────────
+// We provide several picks because YouTube blocks embedding on some
+// videos (channel/region restrictions). If the first demo shows "not
+// available", pick another from the dropdown.
+
+interface DemoClip {
+  url: string; title: string; source: string;
+  dialogue: string; blanks: LyricsBlank[]; timings: number[];
+}
+
+const DEMOS: DemoClip[] = [
+  {
+    // Steve Jobs Stanford Commencement — always embeddable, clear English.
+    url: 'https://www.youtube.com/watch?v=UF8uR6Z6KLc',
+    title: 'Stanford Commencement — opening',
+    source: 'Steve Jobs (2005)',
+    dialogue: [
+      "I am honored to be with you {{blank}} at your commencement",
+      "from one of the finest universities in the {{blank}}.",
+      "Truth be told, I never {{blank}} from college.",
+    ].join('\n'),
+    blanks: [
+      { word: 'today',  options: ['today', 'now', 'here', 'tonight'] },
+      { word: 'world',  options: ['world', 'country', 'state', 'nation'] },
+      { word: 'graduated', options: ['graduated', 'finished', 'left', 'returned'] },
+    ],
+    timings: [14, 17, 20],
+  },
+  {
+    // Friends — Ross "Pivot!" scene (often embeddable)
+    url: 'https://www.youtube.com/watch?v=nVOJ9c8yEg4',
+    title: 'The One With the Cop — Pivot scene',
+    source: 'Friends',
+    dialogue: [
+      "{{blank}}!",
+      "I don't think it's gonna pivot {{blank}} more, guys.",
+      "Shut {{blank}}!",
+    ].join('\n'),
+    blanks: [
+      { word: 'Pivot', options: ['Pivot', 'Move', 'Turn', 'Push'] },
+      { word: 'any',   options: ['any', 'much', 'too', 'far'] },
+      { word: 'up',    options: ['up', 'down', 'out', 'off'] },
+    ],
+    timings: [3, 9, 14],
+  },
+  {
+    // TED — Inside the Mind of a Master Procrastinator (Tim Urban) — embeddable
+    url: 'https://www.youtube.com/watch?v=arj7oStGLkU',
+    title: 'TED — Master Procrastinator (intro)',
+    source: 'Tim Urban',
+    dialogue: [
+      "So in college, I was a {{blank}} major.",
+      "And like all government majors, I had to write a lot of {{blank}}.",
+      "And when a normal student writes a paper, they might spread the work out a {{blank}} like this.",
+    ].join('\n'),
+    blanks: [
+      { word: 'government', options: ['government', 'history', 'literature', 'business'] },
+      { word: 'papers',     options: ['papers', 'essays', 'books', 'reports'] },
+      { word: 'little',     options: ['little', 'lot', 'bit', 'while'] },
+    ],
+    timings: [6, 11, 16],
+  },
+];
+
+const DEMO = DEMOS[0];
 
 interface BlankRow { word: string; options: string }
 
@@ -84,13 +129,14 @@ export default function FriendlyflixTestPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, title, source, dialogue, blanks, timingsRaw, renderKey]);
 
-  function loadDemo() {
-    setUrl(DEMO.url);
-    setTitle(DEMO.title);
-    setSource(DEMO.source);
-    setDialogue(DEMO.dialogue);
-    setTimingsRaw(DEMO.timings.join(', '));
-    setBlanks(DEMO.blanks.map(b => ({ word: b.word, options: b.options.join(', ') })));
+  function loadDemo(idx = 0) {
+    const d = DEMOS[idx] ?? DEMOS[0];
+    setUrl(d.url);
+    setTitle(d.title);
+    setSource(d.source);
+    setDialogue(d.dialogue);
+    setTimingsRaw(d.timings.join(', '));
+    setBlanks(d.blanks.map(b => ({ word: b.word, options: b.options.join(', ') })));
     setRenderKey(k => k + 1);
   }
 
@@ -130,14 +176,20 @@ export default function FriendlyflixTestPage() {
         {/* Form */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Clip</h2>
-              <button
-                onClick={loadDemo}
-                className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0D0F5]"
-              >
-                ↻ Cargar demo
-              </button>
+              <div className="flex gap-1">
+                {DEMOS.map((d, i) => (
+                  <button
+                    key={i}
+                    onClick={() => loadDemo(i)}
+                    title={`${d.title} (${d.source})`}
+                    className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0D0F5]"
+                  >
+                    Demo {i + 1}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">URL de YouTube</label>
