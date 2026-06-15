@@ -109,14 +109,16 @@ export default function FriendlyflixTestPage() {
       .map(s => parseFloat(s.trim()))
       .filter(n => Number.isFinite(n));
 
+    const numLines = dialogue.split('\n').length;
     const clipData: ClipData = {
       title: title.trim() || 'Sin título',
       source: source.trim() || '—',
       youtubeUrl: url.trim(),
       dialogue,
-      timings: timings.length === detectedBlanks + (dialogue.split('\n').length - detectedBlanks)
-        ? undefined
-        : timings.length === dialogue.split('\n').length ? timings : undefined,
+      // Per-line timings (one timestamp per line). If the user-supplied
+      // list doesn't match the line count exactly, we fall back to
+      // interpolation from YouTube duration.
+      timings: timings.length === numLines ? timings : undefined,
     };
 
     return {
