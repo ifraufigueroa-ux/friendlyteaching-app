@@ -316,11 +316,11 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   }, [totalLines]);
 
   // ── Auto-scroll script strip ───────────────────────────────────────────
-  // Smooth-scrolls when the cursor advances by one line at a time; jumps
-  // instantly when the change is large (e.g. video seeked, or YouTube
-  // reported a non-zero startTime that shoved the cursor several lines
-  // forward at once). Without this guard, the user saw the script
-  // animate all the way to the last line on first play.
+  // Only auto-scroll when the cursor moves by ONE line at a time. Larger
+  // jumps (e.g. polling firing a corrupt index, YouTube reporting a far
+  // currentTime on first play) leave the scroll position alone — that
+  // keeps the script readable and lets the student scroll manually if
+  // they want to re-read past lines.
   const prevLineIdxRef = useRef(0);
   useEffect(() => {
     const container = dialogueRef.current;
@@ -328,9 +328,10 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
     if (!container || !el) return;
     const delta = Math.abs(currentLineIdx - prevLineIdxRef.current);
     prevLineIdxRef.current = currentLineIdx;
+    if (delta > 3) return; // ignore wild jumps
     container.scrollTo({
       top: el.offsetTop - container.clientHeight / 2 + el.clientHeight / 2,
-      behavior: delta > 2 ? 'auto' : 'smooth',
+      behavior: 'smooth',
     });
   }, [currentLineIdx]);
 
@@ -379,7 +380,13 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
       if (lt.length > 0) {
         let li = 0;
         for (let i = 0; i < lt.length; i++) if (t >= lt[i] + off) li = i;
-        setCurrentLineIdx(li);
+        li = Math.max(0, Math.min(li, lt.length - 1));
+        setCurrentLineIdx(prev => {
+          if (prev !== li && Math.abs(li - prev) > 5) {
+            console.warn(`[clip] suspicious cursor jump: ${prev} → ${li} at t=${t.toFixed(2)}s, off=${off}, lt.length=${lt.length}, lt[0..3]=${lt.slice(0, 4).join(',')}, lt[last]=${lt[lt.length - 1]}`);
+          }
+          return li;
+        });
       }
 
       if (waitingRef.current || cooldownRef.current) return;
