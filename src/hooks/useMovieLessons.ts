@@ -23,9 +23,16 @@ function msTimestamp(e: MovieLesson): number {
 export function useMovieLessons(teacherId: string) {
   const [lessons, setLessons] = useState<MovieLesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [snapshots, setSnapshots] = useState(0);
 
   useEffect(() => {
-    if (!teacherId) { setLoading(false); return; }
+    if (!teacherId) {
+      setLoading(false);
+      setError('No teacherId — auth not loaded yet');
+      return;
+    }
+    setError(null);
     const q = query(collection(db, 'movieLessons'));
     const unsub = onSnapshot(
       q,
@@ -35,18 +42,20 @@ export function useMovieLessons(teacherId: string) {
           .sort((a: MovieLesson, b: MovieLesson) => msTimestamp(b) - msTimestamp(a));
         setLessons(sorted);
         setLoading(false);
+        setSnapshots(n => n + 1);
+        console.log(`[useMovieLessons] snapshot #${snapshots + 1}: ${snap.size} docs received`);
       },
       (err) => {
-        // Surface the firestore error so the user / console can see why
-        // the list comes back empty (most often a rules deny).
         console.error('[useMovieLessons] onSnapshot error:', err.code, err.message);
+        setError(`${err.code}: ${err.message}`);
         setLoading(false);
       },
     );
     return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teacherId]);
 
-  return { lessons, loading };
+  return { lessons, loading, error, snapshots };
 }
 
 export function useStudentMovieLessons(studentId: string) {
