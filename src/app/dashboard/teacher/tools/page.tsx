@@ -30,9 +30,9 @@ const INTERNAL_TOOLS = [
   },
   {
     href:        '/dashboard/teacher/cue-cards',
-    icon:        '🎴',
-    title:       'Cue Cards IELTS',
-    description: 'Cue cards para Speaking Part 2 del IELTS. Deck de cartas con flip animation y timer de prep + speaking.',
+    icon:        '🎤',
+    title:       'IELTS Speaking Mocks',
+    description: 'Simulacros completos de IELTS Speaking: Parte 1 + 2 (cue cards) + 3. Instrucciones y timers por parte.',
     gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
     glow:        'shadow-[#C8A8DC]/40',
     badge:       'Nuevo',
