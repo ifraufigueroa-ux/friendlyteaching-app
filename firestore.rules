@@ -259,7 +259,11 @@ service cloud.firestore {
     // every clip lesson, any teacher updates assignedTo, only owner
     // edits or deletes.
     match /movieLessons/{lessonId} {
-      allow read: if isTeacher() ||
+      // Split list from get so list queries don't need to evaluate
+      // resource.data (which Firestore can't access during query
+      // validation and was silently denying onSnapshot subscriptions).
+      allow list: if isTeacher();
+      allow get:  if isTeacher() ||
                     (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && (
