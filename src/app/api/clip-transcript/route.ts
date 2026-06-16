@@ -2,14 +2,28 @@
 //
 // GET /api/clip-transcript?videoId=XXX&lang=en
 //
-// Tries YouTube's unofficial timedtext endpoint to pull captions for a
-// public video. Returns { lines: [{ start, dur, text }] } on success or
-// { error } if the video has no public captions in that language.
-// The teacher can then prefill the dialogue + timings array in the slide
-// editor; if this fails, they paste manually.
+// The direct `youtube.com/api/timedtext` endpoint is unreliable now:
+// YouTube returns empty XML for most public videos unless you discover
+// the signed `baseUrl` of each caption track from the player response
+// first. So we:
+//   1. Fetch the watch page HTML
+//   2. Pull `ytInitialPlayerResponse` (or `playerResponse`) from it
+//   3. Walk to `captions.playerCaptionsTracklistRenderer.captionTracks`
+//   4. Pick by language (requested → English fallback → first track)
+//   5. Fetch the track's signed baseUrl — that one returns the XML
+//
+// Falls back to the legacy unsigned endpoint as a last resort.
 import { NextRequest, NextResponse } from 'next/server';
 
-interface Caption { start: number; dur: number; text: string }
+interface CaptionLine { start: number; dur: number; text: string }
+interface CaptionTrack {
+  baseUrl: string;
+  languageCode: string;
+  kind?: string;            // 'asr' for auto-generated, else manual
+  name?: { simpleText?: string };
+}
+
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 
 function decodeEntities(s: string): string {
   return s
@@ -18,12 +32,12 @@ function decodeEntities(s: string): string {
     .replace(/&#39;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ');
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
 }
 
-function parseTimedTextXml(xml: string): Caption[] {
-  const out: Caption[] = [];
-  // <text start="123.45" dur="2.1">Hello world</text>
+function parseTimedTextXml(xml: string): CaptionLine[] {
+  const out: CaptionLine[] = [];
   const re = /<text\s+start="([\d.]+)"\s+dur="([\d.]+)"[^>]*>([\s\S]*?)<\/text>/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(xml)) !== null) {
@@ -35,6 +49,66 @@ function parseTimedTextXml(xml: string): Caption[] {
   return out;
 }
 
+// YouTube serves the XML with HTML entities and sometimes nested <s>
+// tags for word-level timings. Stripping them gets us clean lines.
+async function fetchTrackXml(baseUrl: string): Promise<CaptionLine[] | null> {
+  try {
+    const res = await fetch(baseUrl, { headers: { 'User-Agent': UA } });
+    if (!res.ok) return null;
+    const xml = await res.text();
+    if (!xml || xml.length < 30) return null;
+    const lines = parseTimedTextXml(xml);
+    return lines.length > 0 ? lines : null;
+  } catch { return null; }
+}
+
+// Pull captionTracks from the watch page HTML. The player response JSON
+// is embedded twice — `ytInitialPlayerResponse = {...};` (modern) or
+// `"playerResponse":"...escaped JSON..."` (older). We try both.
+function extractCaptionTracks(html: string): CaptionTrack[] {
+  // Modern: ytInitialPlayerResponse = { ... };
+  const m1 = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;\s*(?:var\s|<\/script>)/);
+  const candidates: string[] = [];
+  if (m1) candidates.push(m1[1]);
+
+  // Old-style: "playerResponse":"{\"...\"}"
+  const m2 = html.match(/"playerResponse"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if (m2) {
+    try {
+      const unescaped = JSON.parse(`"${m2[1]}"`);
+      candidates.push(unescaped);
+    } catch { /* ignore */ }
+  }
+
+  for (const raw of candidates) {
+    try {
+      const obj = JSON.parse(raw);
+      const tracks: CaptionTrack[] | undefined =
+        obj?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      if (Array.isArray(tracks) && tracks.length > 0) return tracks;
+    } catch { /* try next */ }
+  }
+  return [];
+}
+
+function pickTrack(tracks: CaptionTrack[], wantLang: string): CaptionTrack | null {
+  if (tracks.length === 0) return null;
+  // 1. Manual track in requested language
+  const manualLang = tracks.find(t => t.languageCode === wantLang && t.kind !== 'asr');
+  if (manualLang) return manualLang;
+  // 2. Any track (incl. ASR) in requested language
+  const anyLang = tracks.find(t => t.languageCode === wantLang);
+  if (anyLang) return anyLang;
+  // 3. Manual English
+  const manualEn = tracks.find(t => t.languageCode === 'en' && t.kind !== 'asr');
+  if (manualEn) return manualEn;
+  // 4. Any English
+  const anyEn = tracks.find(t => t.languageCode === 'en');
+  if (anyEn) return anyEn;
+  // 5. First track available
+  return tracks[0];
+}
+
 export async function GET(req: NextRequest) {
   const videoId = req.nextUrl.searchParams.get('videoId');
   const lang    = req.nextUrl.searchParams.get('lang') ?? 'en';
@@ -42,23 +116,47 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid videoId' }, { status: 400 });
   }
 
-  const tryFetch = async (params: string): Promise<Caption[] | null> => {
-    try {
-      const res = await fetch(`https://www.youtube.com/api/timedtext?${params}`, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (FriendlyTeaching CaptionsFetcher)' },
-      });
-      if (!res.ok) return null;
-      const xml = await res.text();
-      if (!xml || xml.length < 30) return null;
-      const lines = parseTimedTextXml(xml);
-      return lines.length > 0 ? lines : null;
-    } catch {
-      return null;
+  // ── Path A: watch page → player response → track baseUrl → XML ───
+  try {
+    const watchRes = await fetch(`https://www.youtube.com/watch?v=${videoId}&hl=en`, {
+      headers: {
+        'User-Agent': UA,
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+    if (watchRes.ok) {
+      const html = await watchRes.text();
+      const tracks = extractCaptionTracks(html);
+      const track = pickTrack(tracks, lang);
+      if (track) {
+        const lines = await fetchTrackXml(track.baseUrl);
+        if (lines && lines.length > 0) {
+          return NextResponse.json({
+            videoId,
+            lang: track.languageCode,
+            source: track.kind === 'asr' ? 'auto' : 'manual',
+            trackName: track.name?.simpleText,
+            availableLanguages: tracks.map(t => ({
+              lang: t.languageCode,
+              kind: t.kind ?? 'manual',
+              name: t.name?.simpleText,
+            })),
+            lines,
+          });
+        }
+      }
+      // If we got tracks but couldn't fetch the XML, return helpful info.
+      if (tracks.length > 0) {
+        return NextResponse.json({
+          error: `Found ${tracks.length} caption track(s) but the XML fetch failed. Available: ${tracks.map(t => `${t.languageCode}${t.kind === 'asr' ? '(auto)' : ''}`).join(', ')}`,
+        }, { status: 404 });
+      }
     }
-  };
+  } catch (err) {
+    console.warn('[clip-transcript] watch page path failed:', err);
+  }
 
-  // Try in order: manual captions in requested lang, auto-generated in lang,
-  // English fallback.
+  // ── Path B: legacy direct timedtext (last resort) ─────────────────
   const attempts = [
     `lang=${lang}&v=${videoId}`,
     `lang=${lang}&v=${videoId}&kind=asr`,
@@ -67,13 +165,19 @@ export async function GET(req: NextRequest) {
     attempts.push(`lang=en&v=${videoId}`);
     attempts.push(`lang=en&v=${videoId}&kind=asr`);
   }
-
   for (const params of attempts) {
-    const lines = await tryFetch(params);
+    const lines = await fetchTrackXml(`https://www.youtube.com/api/timedtext?${params}`);
     if (lines) {
-      return NextResponse.json({ videoId, lang, lines, source: params.includes('kind=asr') ? 'auto' : 'manual' });
+      return NextResponse.json({
+        videoId,
+        lang,
+        lines,
+        source: params.includes('kind=asr') ? 'auto' : 'manual',
+      });
     }
   }
 
-  return NextResponse.json({ error: 'No captions found for this video' }, { status: 404 });
+  return NextResponse.json({
+    error: 'No captions found for this video. The owner may have disabled captions or this video has no caption tracks.',
+  }, { status: 404 });
 }
