@@ -36,7 +36,12 @@ export function useMovieLessons(teacherId: string) {
         setLessons(sorted);
         setLoading(false);
       },
-      () => setLoading(false),
+      (err) => {
+        // Surface the firestore error so the user / console can see why
+        // the list comes back empty (most often a rules deny).
+        console.error('[useMovieLessons] onSnapshot error:', err.code, err.message);
+        setLoading(false);
+      },
     );
     return unsub;
   }, [teacherId]);
