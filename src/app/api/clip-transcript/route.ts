@@ -81,6 +81,7 @@ async function fetchTrackContent(baseUrl: string, debug?: { logs: string[] }): P
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://www.youtube.com/',
           'Origin': 'https://www.youtube.com',
+          'Cookie': 'CONSENT=YES+cb; SOCS=CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjMwODI5LjA1X3AwGgJlbiACGgYIgL_NpwY',
         },
       });
       const body = await res.text();
