@@ -69,33 +69,40 @@ function buildLineTimings(lines: Segment[][], dur: number): number[] {
   return out;
 }
 
-// Per-line END times — needed to decide when to pause for a blank.
-// For movie dialogue, lines are typically short. We use:
-//   nextLineStart if available, capped at a generous word budget,
-//   otherwise lineStart + word budget.
+// Per-line END times — used by the debug overlay only.
+// Movie dialogue ends when the next line starts (or at clip end). The
+// previous word-budget formula was too tight and pausing 1-2 s before
+// the actor finished the blank line. We now trust the next-line anchor
+// directly: a generous fallback only kicks in for the last line.
 function buildLineEndTimes(lines: Segment[][], lt: number[], dur: number): number[] {
   const out: number[] = new Array(lines.length);
   for (let i = 0; i < lines.length; i++) {
-    const text = lines[i].map(s => s.type === 'text' ? s.text : '___').join('');
-    const words = text.trim().split(/\s+/).filter(Boolean).length;
-    const wordBudget = lt[i] + Math.max(2.5, words * 0.45 + 1.2);
-    const nextStart = i + 1 < lt.length ? lt[i + 1] : dur;
-    out[i] = Math.min(wordBudget, nextStart);
+    const nextStart = i + 1 < lt.length ? lt[i + 1] : Math.min(lt[i] + 6, dur);
+    out[i] = nextStart;
   }
   return out;
 }
 
-// Per-blank trigger = end of containing line + buffer.
-const POST_LINE_BUFFER = 0.35;
+// Per-blank trigger time. Strategy: wait until the actor has clearly
+// finished the line containing the blank. We use the start time of the
+// NEXT line minus a small lead (so the pause lands right as the next
+// line is about to begin and the blank line has been fully spoken).
+//
+// PRE_NEXT_LEAD < POST_LINE_PAD because dialogue lines typically have
+// a tiny silence between them; we want the pause to sit in that gap
+// rather than cutting into the next utterance.
+const PRE_NEXT_LEAD = 0.15;
 
 function buildBlankTimings(
   blanksData: LyricsBlank[],
   blankLineIdx: number[],
-  lineEndTimes: number[],
+  lineTimings: number[],
+  dur: number,
 ): number[] {
   return blanksData.map((_, i) => {
     const li = blankLineIdx[i] ?? 0;
-    return (lineEndTimes[li] ?? 0) + POST_LINE_BUFFER;
+    const nextStart = li + 1 < lineTimings.length ? lineTimings[li + 1] : Math.min(lineTimings[li] + 6, dur);
+    return Math.max(lineTimings[li] + 1.5, nextStart - PRE_NEXT_LEAD);
   });
 }
 
@@ -190,7 +197,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   // Initial timings — recomputed when real duration arrives.
   const lineTimings  = useRef(buildLineTimings(dialogueLines, DEFAULT_DURATION));
   const lineEndTimes = useRef(buildLineEndTimes(dialogueLines, lineTimings.current, DEFAULT_DURATION));
-  const timings      = useRef(buildBlankTimings(blanksData, blankLineIdx, lineEndTimes.current));
+  const timings      = useRef(buildBlankTimings(blanksData, blankLineIdx, lineTimings.current, DEFAULT_DURATION));
 
   // Apply pre-supplied timings (from clipData or captions) if any.
   useEffect(() => {
@@ -200,7 +207,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
       const let_ = buildLineEndTimes(dialogueLines, lt, clipDurationRef.current);
       lineTimings.current  = lt;
       lineEndTimes.current = let_;
-      timings.current      = buildBlankTimings(blanksData, blankLineIdx, let_);
+      timings.current      = buildBlankTimings(blanksData, blankLineIdx, lt, clipDurationRef.current);
       timingsLoadedRef.current = true;
       setSyncStatus('manual');
     } else {
@@ -290,7 +297,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
             const let_ = buildLineEndTimes(dialogueLines, lt, duration);
             lineTimings.current  = lt;
             lineEndTimes.current = let_;
-            timings.current      = buildBlankTimings(blanksData, blankLineIdx, let_);
+            timings.current      = buildBlankTimings(blanksData, blankLineIdx, lt, duration);
           }
         }
 
@@ -303,14 +310,22 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalLines]);
 
-  // ── Auto-scroll dialogue strip ─────────────────────────────────────────
+  // ── Auto-scroll script strip ───────────────────────────────────────────
+  // Smooth-scrolls when the cursor advances by one line at a time; jumps
+  // instantly when the change is large (e.g. video seeked, or YouTube
+  // reported a non-zero startTime that shoved the cursor several lines
+  // forward at once). Without this guard, the user saw the script
+  // animate all the way to the last line on first play.
+  const prevLineIdxRef = useRef(0);
   useEffect(() => {
     const container = dialogueRef.current;
     const el = lineEls.current[currentLineIdx];
     if (!container || !el) return;
+    const delta = Math.abs(currentLineIdx - prevLineIdxRef.current);
+    prevLineIdxRef.current = currentLineIdx;
     container.scrollTo({
       top: el.offsetTop - container.clientHeight / 2 + el.clientHeight / 2,
-      behavior: 'smooth',
+      behavior: delta > 2 ? 'auto' : 'smooth',
     });
   }, [currentLineIdx]);
 
@@ -497,8 +512,8 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
         </button>
       </div>
 
-      {/* ── Video centered (main stage) ─────────────────────────────────── */}
-      <div className="flex-shrink-0 flex items-center justify-center bg-black px-4 py-3" style={{ height: '52%' }}>
+      {/* ── Video centered (main stage) — diagram block 1 ─────────────── */}
+      <div className="flex-1 flex items-center justify-center bg-black px-4 py-3 min-h-0">
         <div className="relative w-full h-full max-w-5xl mx-auto" style={{ aspectRatio: '16 / 9' }}>
           {videoId && !videoBlocked ? (
             <iframe
@@ -533,13 +548,15 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
         </div>
       </div>
 
-      {/* ── Dialogue strip (3-5 visible lines around currentLineIdx) ────── */}
+      {/* ── Scrolling Script — diagram block 2 ─────────────────────────── */}
+      {/* Prominent strip: current line big and centered, prev/next faded
+          above and below to hint context without stealing focus. */}
       <div
         ref={dialogueRef}
-        className="flex-shrink-0 overflow-y-auto bg-gradient-to-b from-black/0 to-black/60 border-y border-white/10"
-        style={{ height: 110, scrollbarWidth: 'none' }}
+        className="flex-shrink-0 overflow-y-auto bg-gradient-to-b from-black/0 via-black/50 to-black/0 border-y border-white/10"
+        style={{ height: 150, scrollbarWidth: 'none' }}
       >
-        <div style={{ height: 24 }} />
+        <div style={{ height: 50 }} />
         {dialogueLines.map((line, lineIdx) => {
           const dist     = lineIdx - currentLineIdx;
           const isActive = dist === 0;
@@ -549,11 +566,11 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
             <div
               key={lineIdx}
               ref={el => { lineEls.current[lineIdx] = el; }}
-              className={`text-center px-6 py-1 transition-all duration-500 leading-snug select-none
-                ${isActive ? 'text-white font-bold text-[1.15rem]'
-                  : isNear  ? 'text-white/50 font-medium text-[0.95rem]'
-                  : isPast  ? 'text-white/20 text-sm'
-                             : 'text-white/25 text-sm'}`}
+              className={`text-center px-6 transition-all duration-500 leading-tight select-none
+                ${isActive ? 'text-white font-bold text-[1.5rem] py-2'
+                  : isNear  ? 'text-white/45 font-medium text-[1rem] py-1'
+                  : isPast  ? 'text-white/15 text-sm py-0.5'
+                             : 'text-white/20 text-sm py-0.5'}`}
             >
               {line.map((seg, segIdx) => {
                 if (seg.type === 'text') return <span key={segIdx}>{seg.text}</span>;
@@ -563,7 +580,8 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
                 return (
                   <span
                     key={segIdx}
-                    className={`inline-block min-w-[68px] text-center px-2 py-0.5 mx-1 rounded-xl font-bold text-base transition-all duration-300
+                    className={`inline-block min-w-[80px] text-center px-3 py-0.5 mx-1.5 rounded-xl font-bold transition-all duration-300
+                      ${isActive ? 'text-lg' : 'text-base'}
                       ${answered
                         ? 'bg-green-500 text-white shadow-md'
                         : isCurrent
@@ -578,37 +596,39 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
             </div>
           );
         })}
-        <div style={{ height: 24 }} />
+        <div style={{ height: 50 }} />
       </div>
 
-      {/* ── Bottom: choices + controls ──────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-[#0F0F18] min-h-0">
-        {/* Choices */}
-        <div className="flex-1 px-6 pt-4 pb-2 min-h-0 overflow-y-auto">
+      {/* ── Bottom row — diagram block 3 ───────────────────────────────── */}
+      {/* alternatives (left, 4 buttons) + control botones (right) */}
+      <div className="flex-shrink-0 flex items-stretch gap-3 px-4 py-3 bg-[#0F0F18] border-t border-white/10">
+
+        {/* ── Alternatives (left, takes the remaining space) ───────────── */}
+        <div className="flex-1 min-w-0">
           {allDone ? (
-            <div className="text-center py-5">
+            <div className="h-full flex flex-col items-center justify-center text-center py-2">
               <p className="text-green-400 font-bold text-xl">🎬 ¡Completado!</p>
               <p className="text-white/40 text-sm mt-1">{score} pts · {correct}/{numBlanks} correctas</p>
             </div>
           ) : currentOptions.length > 0 ? (
-            <div className="max-w-3xl mx-auto">
+            <div className="h-full flex flex-col justify-center">
               {canAnswerNow && currentBlankLineText && (
-                <p className="text-center text-white/55 text-sm mb-3 px-2 leading-snug">
+                <p className="text-center text-white/55 text-xs mb-2 px-2 leading-snug truncate">
                   &ldquo;{currentBlankLineText.trim()}&rdquo;
                   {earlyChance && (
-                    <span className="ml-2 text-[10px] text-[#FF6B6B]/70 uppercase tracking-widest">
+                    <span className="ml-2 text-[9px] text-[#FF6B6B]/70 uppercase tracking-widest">
                       · responde antes
                     </span>
                   )}
                 </p>
               )}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-2">
                 {currentOptions.map((opt, i) => (
                   <button
                     key={i}
                     onClick={() => handleAnswer(opt)}
                     disabled={!canAnswerNow}
-                    className={`py-5 px-4 rounded-2xl text-base font-bold transition-all duration-150 border-2
+                    className={`py-4 px-3 rounded-xl text-sm font-bold transition-all duration-150 border-2
                       ${canAnswerNow
                         ? wrongFlash
                           ? 'bg-red-900/30 border-red-500/50 text-white/50 scale-95'
@@ -624,94 +644,96 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               </div>
             </div>
           ) : (
-            <div className="h-[88px]" />
+            <div className="h-full flex items-center justify-center text-white/30 text-xs">
+              {started ? 'Esperando la siguiente línea con blank…' : 'Presiona ▶ Iniciar para comenzar'}
+            </div>
           )}
         </div>
 
-        {/* Score + Controls row */}
-        <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-t border-white/10">
-          {/* Score chips */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex flex-col leading-tight">
-              <span className="text-[9px] text-white/40 uppercase tracking-widest">Puntaje</span>
-              <span className="text-lg font-bold text-white">{score} <span className="text-xs font-normal text-white/40">pts</span></span>
-            </div>
+        {/* ── Botones (right column, control cluster + score chip) ────── */}
+        <div className="flex-shrink-0 flex flex-col items-stretch justify-between gap-2 w-[260px] border-l border-white/10 pl-3">
+
+          {/* Score + counters mini-row */}
+          <div className="flex items-center justify-between text-[11px] flex-wrap gap-2">
+            <span className="text-white/40 uppercase tracking-widest text-[9px]">Puntaje</span>
+            <span className="font-bold text-white text-base">{score}<span className="text-[9px] font-normal text-white/40"> pts</span></span>
             <span className="text-green-400 font-semibold">✓ {correct}</span>
             <span className="text-red-400 font-semibold">✗ {wrong}</span>
-            <span className="text-[10px] text-white/30">{answeredCount}/{numBlanks}</span>
+            <span className="text-[9px] text-white/30">{answeredCount}/{numBlanks}</span>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 mr-1">
-              <button
-                onClick={() => applySyncOffsetDelta(-1)}
-                disabled={!started}
-                title="Preguntas aparecen 1s antes (recordado para este clip)"
-                className="px-2 py-1.5 rounded-lg bg-[#E50914]/15 hover:bg-[#E50914]/30 text-[10px] font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
-              >
-                ◀ −1s
-              </button>
-              <span className="text-[9px] text-[#FF6B6B] min-w-[36px] text-center font-mono">
-                {syncOffset > 0 ? '+' : ''}{syncOffset}s
-              </span>
-              <button
-                onClick={() => applySyncOffsetDelta(1)}
-                disabled={!started}
-                title="Preguntas aparecen 1s después (recordado para este clip)"
-                className="px-2 py-1.5 rounded-lg bg-[#E50914]/15 hover:bg-[#E50914]/30 text-[10px] font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
-              >
-                +1s ▶
-              </button>
-            </div>
-
+          {/* Transport row */}
+          <div className="flex items-center justify-center gap-1.5">
             <button
               onClick={handleRewind}
               disabled={!started}
-              className="px-3 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
+              title="Retroceder 5 s"
+              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
             >
-              ↺ −5s
+              ↺ 5s
             </button>
 
             {!started ? (
               <button
                 onClick={handleStart}
-                className="px-5 py-2 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-full text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-lg text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
               >
                 ▶ Iniciar
               </button>
             ) : timerRunning ? (
               <button
                 onClick={handlePause}
-                className="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-bold border border-white/15 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold border border-white/15 transition-all active:scale-95"
               >
-                ⏸ Pausar
+                ⏸
               </button>
             ) : waiting ? (
-              <span className="text-yellow-300 text-xs font-semibold animate-pulse px-3">
-                ↑ elige la respuesta
+              <span className="flex-1 text-center text-yellow-300 text-[10px] font-semibold animate-pulse px-2">
+                ← elige
               </span>
             ) : (
               <button
                 onClick={handleResume}
-                className="px-5 py-2 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-full text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-lg text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
               >
-                ▶ Continuar
+                ▶
               </button>
             )}
 
             <button
               onClick={handleForward}
               disabled={!started}
-              className="px-3 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
+              title="Avanzar 5 s"
+              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
             >
-              +5s →
+              5s →
             </button>
+          </div>
 
-            <div className="ml-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-center">
-              <div className="text-[8px] text-white/35 uppercase tracking-widest">Timer</div>
-              <div className="text-base font-mono font-bold text-white">{fmt(elapsed)}</div>
+          {/* Sync + timer row */}
+          <div className="flex items-center justify-between gap-2 text-[10px]">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => applySyncOffsetDelta(-1)}
+                disabled={!started}
+                title="Preguntas 1 s antes (recordado para este clip)"
+                className="px-1.5 py-1 rounded bg-[#E50914]/15 hover:bg-[#E50914]/30 font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
+              >
+                −1s
+              </button>
+              <span className="text-[9px] text-[#FF6B6B] min-w-[28px] text-center font-mono">
+                {syncOffset > 0 ? '+' : ''}{syncOffset}s
+              </span>
+              <button
+                onClick={() => applySyncOffsetDelta(1)}
+                disabled={!started}
+                title="Preguntas 1 s después (recordado para este clip)"
+                className="px-1.5 py-1 rounded bg-[#E50914]/15 hover:bg-[#E50914]/30 font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
+              >
+                +1s
+              </button>
             </div>
+            <div className="font-mono font-bold text-white">{fmt(elapsed)}</div>
           </div>
         </div>
       </div>
