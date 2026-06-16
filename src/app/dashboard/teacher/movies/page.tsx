@@ -14,6 +14,7 @@ import {
 } from '@/hooks/useMovieLessons';
 import ClipDialogueGameSlide from '@/components/classroom/slides/ClipDialogueGameSlide';
 import TopBar from '@/components/layout/TopBar';
+import { parseYouTubeTranscript } from '@/lib/utils/transcriptParser';
 import type {
   MovieLesson, Slide, LessonLevel, ClipData, LyricsBlank,
 } from '@/types/firebase';
@@ -71,7 +72,7 @@ function UpsertModal({
   const [endTime, setEndTime]     = useState(initialClip?.endTime?.toString() ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
-  const [fetchingCaps, setFetchingCaps] = useState(false);
+  const [showTranscriptPaste, setShowTranscriptPaste] = useState(false);
 
   const detectedBlanks = (dialogue.match(/\{\{blank\}\}/g) ?? []).length;
   useEffect(() => {
@@ -87,26 +88,17 @@ function UpsertModal({
   const timings = timingsRaw.split(',').map(s => parseFloat(s.trim())).filter(n => Number.isFinite(n));
   const timingsValid = timings.length === numLines;
 
-  async function fetchCaptions() {
-    const vid = extractVideoId(url);
-    if (!vid) { setError('URL de YouTube inválida'); return; }
-    setFetchingCaps(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/clip-transcript?videoId=${vid}&lang=en`);
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'No se encontraron captions'); return; }
-      const lines: { start: number; text: string }[] = data.lines ?? [];
-      if (lines.length === 0) { setError('Captions vacíos'); return; }
-      const slice = lines.slice(0, 10);
-      setDialogue(slice.map(l => l.text).join('\n'));
-      setTimingsRaw(slice.map(l => l.start.toFixed(1)).join(', '));
-      setBlanks([]);
-    } catch (e) {
-      setError('Error al traer captions: ' + (e instanceof Error ? e.message : String(e)));
-    } finally {
-      setFetchingCaps(false);
+  function applyTranscript(raw: string) {
+    const parsed = parseYouTubeTranscript(raw);
+    if (parsed.length === 0) {
+      setError('No pude leer el transcript. Verifica el formato (MM:SS texto, una línea por entrada).');
+      return false;
     }
+    setDialogue(parsed.map(l => l.text).join('\n'));
+    setTimingsRaw(parsed.map(l => l.time.toFixed(1)).join(', '));
+    setBlanks([]);
+    setError(null);
+    return true;
   }
 
   async function handleSave() {
@@ -192,13 +184,24 @@ function UpsertModal({
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8] font-mono"
                 placeholder="https://www.youtube.com/watch?v=..."
               />
-              <button
-                onClick={fetchCaptions}
-                disabled={fetchingCaps}
-                className="mt-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 disabled:opacity-50"
-              >
-                {fetchingCaps ? 'Trayendo captions…' : '↓ Auto-fetch captions'}
-              </button>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <button
+                  onClick={() => setShowTranscriptPaste(true)}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                >
+                  📋 Pegar transcript de YouTube
+                </button>
+                {url && extractVideoId(url) && (
+                  <a
+                    href={`https://www.youtube.com/watch?v=${extractVideoId(url)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-gray-500 hover:text-red-600 underline"
+                  >
+                    Abrir en YouTube ↗
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -296,6 +299,64 @@ function UpsertModal({
           </button>
           <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] text-white rounded-full text-sm font-bold disabled:opacity-50 shadow-lg">
             {saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear clip lesson'}
+          </button>
+        </div>
+      </div>
+
+      {showTranscriptPaste && (
+        <TranscriptPasteModal
+          onApply={(raw) => {
+            if (applyTranscript(raw)) setShowTranscriptPaste(false);
+          }}
+          onClose={() => setShowTranscriptPaste(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Transcript paste sub-modal ────────────────────────────────────────
+
+function TranscriptPasteModal({
+  onApply,
+  onClose,
+}: {
+  onApply: (raw: string) => void;
+  onClose: () => void;
+}) {
+  const [raw, setRaw] = useState('');
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[88vh]">
+        <div className="p-5 border-b border-gray-100">
+          <h3 className="font-bold text-[#5A3D7A] text-base mb-1">Pegar transcript de YouTube</h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            En YouTube: <strong>… (3 puntos del video) → &ldquo;Mostrar transcripción&rdquo;</strong> → selecciona todo el panel y copia. Pega aquí abajo.
+          </p>
+        </div>
+        <div className="p-5 flex-1 overflow-y-auto">
+          <textarea
+            value={raw}
+            onChange={e => setRaw(e.target.value)}
+            rows={12}
+            placeholder={'0:00\nHello and welcome to this video\n0:05\nLet me show you something amazing\n0:11\nIt is called...'}
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:border-[#9B7CB8]"
+          />
+          <p className="text-[11px] text-gray-400 mt-2">
+            Acepta formatos: <code className="bg-gray-100 px-1 rounded">MM:SS</code> seguido del texto (mismo o siguiente renglón), <code className="bg-gray-100 px-1 rounded">H:MM:SS</code> también funciona, y <code className="bg-gray-100 px-1 rounded">[MM:SS]</code> con corchetes.
+          </p>
+        </div>
+        <div className="p-5 border-t border-gray-100 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50">
+            Cancelar
+          </button>
+          <button
+            onClick={() => onApply(raw)}
+            disabled={!raw.trim()}
+            className="flex-1 py-2.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] text-white rounded-full text-sm font-bold shadow disabled:opacity-50"
+          >
+            Aplicar transcript
           </button>
         </div>
       </div>
