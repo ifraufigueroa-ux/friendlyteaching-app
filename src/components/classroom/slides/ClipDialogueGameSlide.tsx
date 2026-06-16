@@ -83,15 +83,18 @@ function buildLineEndTimes(lines: Segment[][], lt: number[], dur: number): numbe
   return out;
 }
 
-// Per-blank trigger time. Strategy: wait until the actor has clearly
-// finished the line containing the blank. We use the start time of the
-// NEXT line minus a small lead (so the pause lands right as the next
-// line is about to begin and the blank line has been fully spoken).
+// Per-blank trigger time. Subtitle timestamps in YouTube transcripts
+// mark when each caption APPEARS, not when the previous line ENDS.
+// Anime dubs and emotional monologues regularly have the actor still
+// speaking 0.5-1.5 s after the next caption appears, so pausing right
+// before the next line cuts the blank word mid-utterance.
 //
-// PRE_NEXT_LEAD < POST_LINE_PAD because dialogue lines typically have
-// a tiny silence between them; we want the pause to sit in that gap
-// rather than cutting into the next utterance.
-const PRE_NEXT_LEAD = 0.15;
+// We therefore pause a generous POST_NEXT_PAD AFTER the next line
+// starts. The student briefly hears the start of the following line
+// (extra context, not a problem) and the blank word is guaranteed to
+// have been spoken in full. The teacher can fine-tune per clip with
+// the sync ± buttons (persisted to localStorage).
+const POST_NEXT_PAD = 0.8;
 
 function buildBlankTimings(
   blanksData: LyricsBlank[],
@@ -102,7 +105,9 @@ function buildBlankTimings(
   return blanksData.map((_, i) => {
     const li = blankLineIdx[i] ?? 0;
     const nextStart = li + 1 < lineTimings.length ? lineTimings[li + 1] : Math.min(lineTimings[li] + 6, dur);
-    return Math.max(lineTimings[li] + 1.5, nextStart - PRE_NEXT_LEAD);
+    // Guarantee at least 2.5 s of audio for the blank line even if
+    // back-to-back subtitles would otherwise trigger too early.
+    return Math.max(lineTimings[li] + 2.5, nextStart + POST_NEXT_PAD);
   });
 }
 
