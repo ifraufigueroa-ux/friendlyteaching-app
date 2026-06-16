@@ -72,16 +72,27 @@ function parseJson3(raw: string): CaptionLine[] {
 // Try json3 first (more reliable from server IPs) then fall back to the
 // classic XML format. Some Vercel/AWS IPs receive empty XML responses
 // from the default endpoint but valid JSON when ?fmt=json3 is forced.
-async function fetchTrackContent(baseUrl: string): Promise<CaptionLine[] | null> {
-  const tryFmt = async (url: string, parser: (s: string) => CaptionLine[]): Promise<CaptionLine[] | null> => {
+async function fetchTrackContent(baseUrl: string, debug?: { logs: string[] }): Promise<CaptionLine[] | null> {
+  const tryFmt = async (url: string, parser: (s: string) => CaptionLine[], label: string): Promise<CaptionLine[] | null> => {
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'en-US,en;q=0.9' } });
-      if (!res.ok) return null;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': UA,
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://www.youtube.com/',
+          'Origin': 'https://www.youtube.com',
+        },
+      });
       const body = await res.text();
+      debug?.logs.push(`${label}: status=${res.status} len=${body.length} head=${body.slice(0, 80).replace(/\s+/g, ' ')}`);
+      if (!res.ok) return null;
       if (!body || body.length < 20) return null;
       const lines = parser(body);
       return lines.length > 0 ? lines : null;
-    } catch { return null; }
+    } catch (err) {
+      debug?.logs.push(`${label}: throw ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
   };
 
   // The baseUrl already carries a `fmt=` for some videos. Strip it and try
@@ -90,18 +101,18 @@ async function fetchTrackContent(baseUrl: string): Promise<CaptionLine[] | null>
 
   // 1. json3 (modern, JSON)
   const json3Url = `${cleanBase}${cleanBase.includes('?') ? '&' : '?'}fmt=json3`;
-  const j = await tryFmt(json3Url, parseJson3);
+  const j = await tryFmt(json3Url, parseJson3, 'json3');
   if (j) return j;
 
   // 2. Classic XML (srv1)
   const xmlUrl = `${cleanBase}${cleanBase.includes('?') ? '&' : '?'}fmt=srv1`;
-  const x = await tryFmt(xmlUrl, parseTimedTextXml);
+  const x = await tryFmt(xmlUrl, parseTimedTextXml, 'srv1');
   if (x) return x;
 
   // 3. Raw baseUrl (whatever YouTube defaults to)
-  const r1 = await tryFmt(baseUrl, parseTimedTextXml);
+  const r1 = await tryFmt(baseUrl, parseTimedTextXml, 'raw-xml');
   if (r1) return r1;
-  const r2 = await tryFmt(baseUrl, parseJson3);
+  const r2 = await tryFmt(baseUrl, parseJson3, 'raw-json');
   if (r2) return r2;
 
   return null;
@@ -202,8 +213,9 @@ export async function GET(req: NextRequest) {
       const html = await watchRes.text();
       const tracks = extractCaptionTracks(html);
       const track = pickTrack(tracks, lang);
+      const debug = req.nextUrl.searchParams.get('debug') === '1' ? { logs: [] as string[] } : undefined;
       if (track) {
-        const lines = await fetchTrackContent(track.baseUrl);
+        const lines = await fetchTrackContent(track.baseUrl, debug);
         if (lines && lines.length > 0) {
           return NextResponse.json({
             videoId,
@@ -216,6 +228,7 @@ export async function GET(req: NextRequest) {
               name: t.name?.simpleText,
             })),
             lines,
+            ...(debug ? { debug: debug.logs } : {}),
           });
         }
       }
@@ -223,6 +236,7 @@ export async function GET(req: NextRequest) {
       if (tracks.length > 0) {
         return NextResponse.json({
           error: `Found ${tracks.length} caption track(s) but the XML fetch failed. Available: ${tracks.map(t => `${t.languageCode}${t.kind === 'asr' ? '(auto)' : ''}`).join(', ')}`,
+          ...(debug ? { debug: debug.logs, baseUrl: track?.baseUrl } : {}),
         }, { status: 404 });
       }
     }
