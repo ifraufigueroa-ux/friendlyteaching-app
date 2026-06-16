@@ -444,7 +444,7 @@ function AssignModal({
 export default function MoviesPage() {
   const { profile } = useAuthStore();
   const teacherId   = profile?.uid ?? '';
-  const { lessons, loading, error: listenerError, snapshots } = useMovieLessons(teacherId);
+  const { lessons, loading, error: listenerError, snapshots, resolvedUid } = useMovieLessons(teacherId);
   const { students } = useStudents();
 
   const [showCreate, setShowCreate]   = useState(false);
@@ -488,9 +488,10 @@ export default function MoviesPage() {
       <div className="max-w-6xl mx-auto mt-4">
         {/* Diagnostic bar — temporary while we hunt the listener bug */}
         <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] font-mono text-amber-900 flex flex-wrap gap-3">
-          <span>uid: <strong>{teacherId || '(empty)'}</strong></span>
+          <span>store uid: <strong>{teacherId || '(empty)'}</strong></span>
+          <span>auth uid: <strong>{resolvedUid || '(empty)'}</strong></span>
           <span>snapshots: <strong>{snapshots}</strong></span>
-          <span>docs in state: <strong>{lessons.length}</strong></span>
+          <span>docs: <strong>{lessons.length}</strong></span>
           <span>loading: <strong>{String(loading)}</strong></span>
           {listenerError && <span className="text-red-700">err: <strong>{listenerError}</strong></span>}
         </div>
