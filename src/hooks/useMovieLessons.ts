@@ -2,6 +2,7 @@
 // Mirror of useMusicLessons against the movieLessons collection.
 'use client';
 import { useEffect, useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import {
   collection, query, where, onSnapshot, addDoc, updateDoc,
   deleteDoc, doc, serverTimestamp,
@@ -77,8 +78,16 @@ export async function createMovieLesson(data: {
   level: LessonLevel;
   slides: Slide[];
 }): Promise<string> {
+  // Trust the active Firebase Auth uid above the caller-supplied teacherId.
+  // The Firestore rule compares request.resource.data.teacherId against
+  // request.auth.uid, so if those drift (stale store, multi-tab sign-in)
+  // the create fails with "Missing or insufficient permissions".
+  const authUid = getAuth().currentUser?.uid;
+  if (!authUid) throw new Error('No estás autenticado. Refresca la página e ingresa de nuevo.');
+
   const clean = JSON.parse(JSON.stringify({
     ...data,
+    teacherId: authUid,
     title: `${data.clip.source} – ${data.clip.title}`,
     publishStatus: 'draft',
     assignedTo: [],
