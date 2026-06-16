@@ -28,6 +28,15 @@ const INTERNAL_TOOLS = [
     glow:        'shadow-red-200/40',
     badge:       'Beta',
   },
+  {
+    href:        '/dashboard/teacher/cue-cards',
+    icon:        '🎴',
+    title:       'Cue Cards IELTS',
+    description: 'Cue cards para Speaking Part 2 del IELTS. Deck de cartas con flip animation y timer de prep + speaking.',
+    gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
+    glow:        'shadow-[#C8A8DC]/40',
+    badge:       'Nuevo',
+  },
 ];
 
 const EXTERNAL_TOOLS = [
