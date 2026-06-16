@@ -62,16 +62,45 @@ async function fetchTrackXml(baseUrl: string): Promise<CaptionLine[] | null> {
   } catch { return null; }
 }
 
-// Pull captionTracks from the watch page HTML. The player response JSON
-// is embedded twice — `ytInitialPlayerResponse = {...};` (modern) or
-// `"playerResponse":"...escaped JSON..."` (older). We try both.
-function extractCaptionTracks(html: string): CaptionTrack[] {
-  // Modern: ytInitialPlayerResponse = { ... };
-  const m1 = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\})\s*;\s*(?:var\s|<\/script>)/);
-  const candidates: string[] = [];
-  if (m1) candidates.push(m1[1]);
+// Extract a balanced JSON object starting at the given `{` index.
+// Walks character by character tracking brace depth + string state so
+// we don't stop at a `}` that lives inside a quoted string.
+function extractBalancedJson(s: string, startIdx: number): string | null {
+  if (s[startIdx] !== '{') return null;
+  let depth = 0;
+  let inStr = false;
+  let escape = false;
+  for (let i = startIdx; i < s.length; i++) {
+    const c = s[i];
+    if (escape) { escape = false; continue; }
+    if (c === '\\') { escape = true; continue; }
+    if (c === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (c === '{') depth++;
+    else if (c === '}') {
+      depth--;
+      if (depth === 0) return s.slice(startIdx, i + 1);
+    }
+  }
+  return null;
+}
 
-  // Old-style: "playerResponse":"{\"...\"}"
+// Pull captionTracks from the watch page HTML. The player response JSON
+// is embedded as `ytInitialPlayerResponse = {...};` (modern) or
+// `"playerResponse":"...escaped JSON..."` (older). We balance braces
+// manually because regex can't match nested structures.
+function extractCaptionTracks(html: string): CaptionTrack[] {
+  const candidates: string[] = [];
+
+  // Modern: ytInitialPlayerResponse = { ... };
+  const m1 = html.match(/ytInitialPlayerResponse\s*=\s*\{/);
+  if (m1 && typeof m1.index === 'number') {
+    const braceIdx = html.indexOf('{', m1.index);
+    const json = extractBalancedJson(html, braceIdx);
+    if (json) candidates.push(json);
+  }
+
+  // Old-style: "playerResponse":"{\"...\"}" (escaped string).
   const m2 = html.match(/"playerResponse"\s*:\s*"((?:\\.|[^"\\])*)"/);
   if (m2) {
     try {
