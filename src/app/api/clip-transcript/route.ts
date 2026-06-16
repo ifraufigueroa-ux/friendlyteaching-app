@@ -49,17 +49,62 @@ function parseTimedTextXml(xml: string): CaptionLine[] {
   return out;
 }
 
-// YouTube serves the XML with HTML entities and sometimes nested <s>
-// tags for word-level timings. Stripping them gets us clean lines.
-async function fetchTrackXml(baseUrl: string): Promise<CaptionLine[] | null> {
+// json3 format: { events: [{ tStartMs, dDurationMs, segs: [{utf8}] }] }
+interface Json3Event { tStartMs?: number; dDurationMs?: number; segs?: { utf8?: string }[] }
+function parseJson3(raw: string): CaptionLine[] {
   try {
-    const res = await fetch(baseUrl, { headers: { 'User-Agent': UA } });
-    if (!res.ok) return null;
-    const xml = await res.text();
-    if (!xml || xml.length < 30) return null;
-    const lines = parseTimedTextXml(xml);
-    return lines.length > 0 ? lines : null;
-  } catch { return null; }
+    const obj = JSON.parse(raw) as { events?: Json3Event[] };
+    const out: CaptionLine[] = [];
+    for (const ev of obj.events ?? []) {
+      if (typeof ev.tStartMs !== 'number' || !ev.segs) continue;
+      const text = ev.segs.map(s => s.utf8 ?? '').join('').replace(/\n/g, ' ').trim();
+      if (!text) continue;
+      out.push({
+        start: ev.tStartMs / 1000,
+        dur:   (ev.dDurationMs ?? 0) / 1000,
+        text:  decodeEntities(text),
+      });
+    }
+    return out;
+  } catch { return []; }
+}
+
+// Try json3 first (more reliable from server IPs) then fall back to the
+// classic XML format. Some Vercel/AWS IPs receive empty XML responses
+// from the default endpoint but valid JSON when ?fmt=json3 is forced.
+async function fetchTrackContent(baseUrl: string): Promise<CaptionLine[] | null> {
+  const tryFmt = async (url: string, parser: (s: string) => CaptionLine[]): Promise<CaptionLine[] | null> => {
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'en-US,en;q=0.9' } });
+      if (!res.ok) return null;
+      const body = await res.text();
+      if (!body || body.length < 20) return null;
+      const lines = parser(body);
+      return lines.length > 0 ? lines : null;
+    } catch { return null; }
+  };
+
+  // The baseUrl already carries a `fmt=` for some videos. Strip it and try
+  // both json3 and srv1 (XML) explicitly.
+  const cleanBase = baseUrl.replace(/&fmt=[^&]*/g, '');
+
+  // 1. json3 (modern, JSON)
+  const json3Url = `${cleanBase}${cleanBase.includes('?') ? '&' : '?'}fmt=json3`;
+  const j = await tryFmt(json3Url, parseJson3);
+  if (j) return j;
+
+  // 2. Classic XML (srv1)
+  const xmlUrl = `${cleanBase}${cleanBase.includes('?') ? '&' : '?'}fmt=srv1`;
+  const x = await tryFmt(xmlUrl, parseTimedTextXml);
+  if (x) return x;
+
+  // 3. Raw baseUrl (whatever YouTube defaults to)
+  const r1 = await tryFmt(baseUrl, parseTimedTextXml);
+  if (r1) return r1;
+  const r2 = await tryFmt(baseUrl, parseJson3);
+  if (r2) return r2;
+
+  return null;
 }
 
 // Extract a balanced JSON object starting at the given `{` index.
@@ -158,7 +203,7 @@ export async function GET(req: NextRequest) {
       const tracks = extractCaptionTracks(html);
       const track = pickTrack(tracks, lang);
       if (track) {
-        const lines = await fetchTrackXml(track.baseUrl);
+        const lines = await fetchTrackContent(track.baseUrl);
         if (lines && lines.length > 0) {
           return NextResponse.json({
             videoId,
@@ -195,7 +240,7 @@ export async function GET(req: NextRequest) {
     attempts.push(`lang=en&v=${videoId}&kind=asr`);
   }
   for (const params of attempts) {
-    const lines = await fetchTrackXml(`https://www.youtube.com/api/timedtext?${params}`);
+    const lines = await fetchTrackContent(`https://www.youtube.com/api/timedtext?${params}`);
     if (lines) {
       return NextResponse.json({
         videoId,
