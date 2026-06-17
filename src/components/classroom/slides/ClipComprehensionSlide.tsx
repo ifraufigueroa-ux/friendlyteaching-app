@@ -72,7 +72,7 @@ function QuestionCard({
         {/* Back face ────────────────────────────────────────────── */}
         <div
           className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${backGradient} shadow-2xl border-2 border-white/20 overflow-hidden flex flex-col items-center justify-center text-white p-6 group-hover:scale-[1.02] group-disabled:group-hover:scale-100 transition-transform`}
-          style={{ backfaceVisibility: 'hidden' }}
+          style={{ backfaceVisibility: 'hidden', pointerEvents: flipped ? 'none' : 'auto' }}
         >
           <div className="absolute inset-3 border-2 border-white/15 rounded-xl" />
           <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest text-white/40">Friendlyflix®</div>
@@ -85,7 +85,7 @@ function QuestionCard({
         {/* Front face ─────────────────────────────────────────────── */}
         <div
           className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FBF8F0] to-[#F0E5D8] shadow-2xl border-2 border-[#E50914]/30 overflow-hidden p-7 flex flex-col"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', pointerEvents: flipped ? 'auto' : 'none' }}
         >
           <div className="absolute top-3 left-4 text-[10px] font-bold uppercase tracking-widest text-[#7B1F23]/60">Friendlyflix · Comprehension</div>
           {cardNumber != null && totalCards != null && (
