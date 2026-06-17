@@ -84,22 +84,29 @@ function QuestionCard({
 
         {/* Front face ─────────────────────────────────────────────── */}
         <div
-          className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FBF8F0] to-[#F0E5D8] shadow-2xl border-2 border-[#E50914]/30 overflow-hidden p-7 flex flex-col"
+          className={`absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FBF8F0] to-[#F0E5D8] shadow-2xl border-2 border-[#E50914]/30 overflow-hidden flex flex-col ${small ? 'p-3' : 'p-7'}`}
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', pointerEvents: flipped ? 'auto' : 'none' }}
         >
-          <div className="absolute top-3 left-4 text-[10px] font-bold uppercase tracking-widest text-[#7B1F23]/60">Friendlyflix · Comprehension</div>
-          {cardNumber != null && totalCards != null && (
+          <div className={`absolute top-2 left-3 ${small ? 'text-[8px]' : 'text-[10px]'} font-bold uppercase tracking-widest text-[#7B1F23]/60`}>
+            {small ? 'Answered' : 'Friendlyflix · Comprehension'}
+          </div>
+          {cardNumber != null && totalCards != null && !small && (
             <div className="absolute top-3 right-4 text-[10px] font-bold uppercase tracking-widest text-[#7B1F23]/60">
               {cardNumber} / {totalCards}
             </div>
           )}
+          {small && answered && (
+            <div className={`absolute top-2 right-3 text-xs font-bold ${answered.correct ? 'text-green-700' : 'text-red-600'}`}>
+              {answered.correct ? '✓' : '✗'}
+            </div>
+          )}
 
-          <div className="flex-1 flex flex-col mt-6 min-h-0">
-            <h3 className="text-xl font-bold text-[#2D1B4E] leading-snug mb-5">
+          <div className={`flex-1 flex flex-col min-h-0 ${small ? 'mt-4' : 'mt-6'}`}>
+            <h3 className={`font-bold text-[#2D1B4E] leading-snug ${small ? 'text-[11px] mb-2 line-clamp-3' : 'text-xl mb-5'}`}>
               {q.question}
             </h3>
 
-            <div className="grid grid-cols-1 gap-2 mt-auto">
+            <div className={`grid grid-cols-1 mt-auto ${small ? 'gap-1' : 'gap-2'}`}>
               {q.options.map((opt) => {
                 const chosen     = answered?.chosen === opt.text;
                 const isCorrect  = opt.text.toLowerCase().trim() === q.correctAnswer.toLowerCase().trim();
@@ -112,7 +119,8 @@ function QuestionCard({
                     type="button"
                     onClick={(e) => { e.stopPropagation(); if (!answered && onAnswer) onAnswer(opt.text); }}
                     disabled={revealed}
-                    className={`text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all border-2 w-full
+                    className={`text-left rounded-lg font-semibold transition-all border-2 w-full
+                      ${small ? 'px-2 py-1 text-[10px] leading-tight' : 'px-4 py-3 text-sm'}
                       ${revealed
                         ? showRight
                           ? 'bg-green-500/20 border-green-500 text-green-900'
@@ -333,87 +341,68 @@ export default function ClipComprehensionSlide({ slide }: Props) {
             >
               🎲 Random
             </button>
+            {/* Show ONLY the remaining face-down cards in the deck —
+                answered ones live in the bottom strip below. */}
             <div className="flex flex-wrap justify-center gap-3 pt-2">
-              {deckOrder.filter(qIdx => !answeredByIdx.has(qIdx)).map((qIdx, deckPos, arr) => (
-                <div
-                  key={`${qIdx}-${deckPos}`}
-                  style={{ transform: `rotate(${(deckPos - (arr.length - 1) / 2) * 3}deg)` }}
-                  className="transition-transform"
-                >
-                  <QuestionCard
-                    q={questions[qIdx]}
-                    flipped={false}
-                    onClick={() => pickCard(deckOrder.indexOf(qIdx))}
-                    backGradient={backGradients[qIdx]}
-                    small
-                  />
-                </div>
-              ))}
+              {deckOrder
+                .filter(qIdx => !answeredByIdx.has(qIdx))
+                .map((qIdx, deckPos, arr) => (
+                  <div
+                    key={`${qIdx}-${deckPos}`}
+                    style={{ transform: `rotate(${(deckPos - (arr.length - 1) / 2) * 3}deg)` }}
+                    className="transition-transform"
+                  >
+                    <QuestionCard
+                      q={questions[qIdx]}
+                      flipped={false}
+                      onClick={() => pickCard(deckOrder.indexOf(qIdx))}
+                      backGradient={backGradients[qIdx]}
+                      small
+                    />
+                  </div>
+                ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Bottom strip: answered cards ─────────────────────────────── */}
+      {/* ── Bottom strip: answered cards face-up ─────────────────────── */}
       {answeredByIdx.size > 0 && !allAnswered && (
         <div className="flex-shrink-0 border-t border-white/15 bg-black/30 backdrop-blur px-5 py-3 overflow-x-auto">
-          <div className="flex items-end gap-3">
-            <div className="flex-shrink-0 pr-1">
+          <div className="flex items-end gap-4">
+            <div className="flex-shrink-0 pr-2 pb-2">
               <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mb-1">Answered</p>
-              <p className="text-base font-bold text-white">{answeredByIdx.size}<span className="text-white/40 text-xs">/{total}</span></p>
+              <p className="text-xl font-bold text-white leading-none">
+                {answeredByIdx.size}<span className="text-white/40 text-sm">/{total}</span>
+              </p>
             </div>
             {Array.from(answeredByIdx.entries())
               .sort((a, b) => a[0] - b[0])
-              .map(([qIdx, ans], i) => (
-                <AnsweredChip
+              .map(([qIdx]) => (
+                <div
                   key={qIdx}
-                  q={questions[qIdx]}
-                  answered={ans}
-                  num={i + 1}
-                />
+                  className="flex-shrink-0"
+                  style={{ animation: 'fcChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+                >
+                  <QuestionCard
+                    q={questions[qIdx]}
+                    flipped
+                    backGradient={backGradients[qIdx]}
+                    answered={answeredByIdx.get(qIdx)}
+                    small
+                  />
+                </div>
               ))}
           </div>
+          <style>{`
+            @keyframes fcChipIn {
+              from { opacity: 0; transform: translateY(28px) scale(0.85); }
+              to   { opacity: 1; transform: translateY(0)    scale(1);    }
+            }
+          `}</style>
         </div>
       )}
-    </div>
-  );
-}
 
-// ─── Mini "answered" card chip for the bottom strip ────────────────────
-
-function AnsweredChip({ q, answered, num }: { q: QuizQuestion; answered: AnsweredCard; num: number }) {
-  return (
-    <div
-      className={`flex-shrink-0 w-56 rounded-xl border-2 p-3 shadow-md flex flex-col gap-1.5 text-[#2D1B4E] transition-transform hover:scale-[1.03]
-        ${answered.correct
-          ? 'bg-gradient-to-br from-[#FBF8F0] to-[#E8F5E8] border-green-400/70'
-          : 'bg-gradient-to-br from-[#FBF8F0] to-[#FDE8E8] border-red-400/70'
-        }`}
-      style={{ animation: 'fcChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-    >
-      <style>{`
-        @keyframes fcChipIn {
-          from { opacity: 0; transform: translateY(20px) scale(0.92); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);   }
-        }
-      `}</style>
-      <div className="flex items-center justify-between">
-        <span className="text-[9px] font-bold uppercase tracking-widest text-[#7B1F23]/60">#{num}</span>
-        <span className={`text-xs font-bold ${answered.correct ? 'text-green-700' : 'text-red-600'}`}>
-          {answered.correct ? '✓ Correct' : '✗ Wrong'}
-        </span>
-      </div>
-      <p className="text-[11px] font-semibold leading-tight line-clamp-2 text-[#2D1B4E]/90">
-        {q.question}
-      </p>
-      <p className="text-[10px] text-green-700 font-bold truncate" title={q.correctAnswer}>
-        ✓ {q.correctAnswer}
-      </p>
-      {!answered.correct && (
-        <p className="text-[10px] text-red-600 line-through truncate" title={answered.chosen}>
-          {answered.chosen}
-        </p>
-      )}
     </div>
   );
 }
