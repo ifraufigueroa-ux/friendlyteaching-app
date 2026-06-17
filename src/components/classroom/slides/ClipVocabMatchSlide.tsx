@@ -349,11 +349,11 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
                     }`}
                   style={isSelected ? { animation: 'clipPulse 1.4s ease-out infinite' } : undefined}
                 >
-                  <span className="text-base font-bold leading-tight">
+                  <span className="text-lg font-bold leading-tight">
                     {wordMatched ? '✓ ' : ''}{w.word}
                   </span>
                   {w.pronunciation && (
-                    <span className={`text-[10px] font-normal ${wordMatched ? 'text-green-300/60' : isSelected ? 'text-white/70' : 'text-white/40'}`}>
+                    <span className={`text-xs font-normal ${wordMatched ? 'text-green-300/60' : isSelected ? 'text-white/70' : 'text-white/50'}`}>
                       /{w.pronunciation}/
                     </span>
                   )}
@@ -369,12 +369,12 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
                   disabled={defMatched || !defClickable}
                   className={`py-4 px-5 rounded-2xl text-left border-2 leading-snug w-full transition-all duration-200
                     ${defMatched
-                      ? 'bg-green-500/20 border-green-400/60 text-green-100 text-sm font-medium cursor-default'
+                      ? 'bg-green-500/20 border-green-400/60 text-green-100 text-base font-medium cursor-default'
                       : isWrong
-                        ? 'bg-red-500/15 border-red-500/60 text-red-200 scale-[0.98] text-sm'
+                        ? 'bg-red-500/15 border-red-500/60 text-red-200 scale-[0.98] text-base'
                         : defClickable
-                          ? 'bg-[#FBF8F0] border-[#F0C040] text-[#2D1B4E] hover:bg-gradient-to-br hover:from-[#E50914] hover:to-[#FF6B6B] hover:text-white hover:border-[#E50914] cursor-pointer text-sm font-medium hover:scale-[1.02]'
-                          : 'bg-white/8 border-white/15 text-white/40 cursor-default text-sm'
+                          ? 'bg-[#FBF8F0] border-[#F0C040] text-[#2D1B4E] hover:bg-gradient-to-br hover:from-[#E50914] hover:to-[#FF6B6B] hover:text-white hover:border-[#E50914] cursor-pointer text-base font-medium hover:scale-[1.02]'
+                          : 'bg-white/8 border-white/15 text-white/40 cursor-default text-base'
                     }`}
                 >
                   {def.translation}
