@@ -29,6 +29,7 @@ import TranslationGameSlide from './slides/TranslationGameSlide';
 import WrapupSlide from './slides/WrapupSlide';
 import FriendlyricsEndSlide from './slides/FriendlyricsEndSlide';
 import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
+import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -125,6 +126,8 @@ function renderSlide(
       return <FriendlyricsEndSlide slide={slide} />;
     case 'clip_dialogue_game':
       return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
+    case 'clip_comprehension':
+      return <ClipComprehensionSlide slide={slide} />;
     case 'friendlyflix_end':
       return <FriendlyricsEndSlide slide={slide} />;
     default:

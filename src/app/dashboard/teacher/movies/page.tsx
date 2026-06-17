@@ -13,10 +13,11 @@ import {
   deleteMovieLesson,
 } from '@/hooks/useMovieLessons';
 import ClipDialogueGameSlide from '@/components/classroom/slides/ClipDialogueGameSlide';
+import ClipComprehensionSlide from '@/components/classroom/slides/ClipComprehensionSlide';
 import TopBar from '@/components/layout/TopBar';
 import { parseYouTubeTranscript } from '@/lib/utils/transcriptParser';
 import type {
-  MovieLesson, Slide, LessonLevel, ClipData, LyricsBlank,
+  MovieLesson, Slide, LessonLevel, ClipData, LyricsBlank, QuizQuestion,
 } from '@/types/firebase';
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -44,6 +45,7 @@ function ytThumbnail(url: string): string | null {
 // ─── Upsert (create/edit) modal ────────────────────────────────────────
 
 interface BlankRow { word: string; options: string }
+interface QuestionRow { question: string; options: string[]; correctIdx: number }
 
 function UpsertModal({
   teacherId,
@@ -56,7 +58,9 @@ function UpsertModal({
 }) {
   const editing = !!initial;
   const initialSlide = initial?.slides?.[0];
+  const initialComprehensionSlide = initial?.slides?.find(s => s.type === 'clip_comprehension');
   const initialBlanks = initialSlide?.blanksData ?? [];
+  const initialQuestions = initialComprehensionSlide?.questions ?? [];
   const initialClip = initial?.clip;
 
   const [level, setLevel]       = useState<LessonLevel>(initial?.level ?? 'A2');
@@ -67,6 +71,15 @@ function UpsertModal({
   const [timingsRaw, setTimingsRaw] = useState((initialClip?.timings ?? []).join(', '));
   const [blanks, setBlanks]     = useState<BlankRow[]>(
     initialBlanks.map(b => ({ word: b.word, options: b.options.join(', ') })),
+  );
+  const [questions, setQuestions] = useState<QuestionRow[]>(
+    initialQuestions.length > 0
+      ? initialQuestions.map(q => ({
+          question: q.question,
+          options: q.options.map(o => o.text),
+          correctIdx: q.options.findIndex(o => o.text.toLowerCase().trim() === q.correctAnswer.toLowerCase().trim()),
+        }))
+      : [],
   );
   const [startTime, setStartTime] = useState(initialClip?.startTime?.toString() ?? '');
   const [endTime, setEndTime]     = useState(initialClip?.endTime?.toString() ?? '');
@@ -130,12 +143,38 @@ function UpsertModal({
       captionsSource: 'manual',
     };
 
-    const slide: Slide = {
+    // Validate questions if any provided. Skip the comprehension slide
+    // entirely if the teacher left the section empty.
+    const validQuestions: QuestionRow[] = [];
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.question.trim()) continue;
+      const opts = q.options.map(o => o.trim()).filter(Boolean);
+      if (opts.length < 2) { setError(`Question #${i+1}: need at least 2 options`); return; }
+      if (q.correctIdx < 0 || q.correctIdx >= opts.length) { setError(`Question #${i+1}: pick the correct option`); return; }
+      validQuestions.push({ question: q.question.trim(), options: opts, correctIdx: q.correctIdx });
+    }
+
+    const gameSlide: Slide = {
       type: 'clip_dialogue_game',
       content: dialogue.trim(),
       blanksData,
       clipData: clip,
     };
+
+    const slides: Slide[] = [gameSlide];
+    if (validQuestions.length > 0) {
+      const quizQuestions: QuizQuestion[] = validQuestions.map((q, qi) => ({
+        question: q.question,
+        options: q.options.map((text, oi) => ({ id: `q${qi}o${oi}`, text, isCorrect: oi === q.correctIdx })),
+        correctAnswer: q.options[q.correctIdx],
+      }));
+      slides.push({
+        type: 'clip_comprehension',
+        title: 'Comprehension',
+        questions: quizQuestions,
+      });
+    }
 
     setSaving(true);
     try {
@@ -143,7 +182,7 @@ function UpsertModal({
         await updateMovieLesson(initial.id, {
           clip,
           level,
-          slides: [slide],
+          slides,
           title: `${clip.source} – ${clip.title}`,
         });
       } else {
@@ -151,7 +190,7 @@ function UpsertModal({
           teacherId,
           clip,
           level,
-          slides: [slide],
+          slides,
         });
       }
       onClose();
@@ -286,6 +325,74 @@ function UpsertModal({
             ))}
           </div>
 
+          {/* Full-width: comprehension questions */}
+          <div className="md:col-span-2 border-t border-gray-100 pt-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                  Comprehension questions ({questions.length}) · opcional
+                </label>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  Aparecerán como una slide aparte después del juego. Recomendado: 3-5 preguntas.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuestions(prev => prev.length >= 6 ? prev : [...prev, { question: '', options: ['', '', '', ''], correctIdx: 0 }])}
+                disabled={questions.length >= 6}
+                className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#E50914]/10 text-[#E50914] hover:bg-[#E50914]/20 border border-[#E50914]/30 disabled:opacity-40"
+              >
+                + Add question
+              </button>
+            </div>
+
+            {questions.length === 0 ? (
+              <p className="text-xs text-gray-400 italic">Deja vacío para que la lección termine en el juego de blanks.</p>
+            ) : questions.map((q, qi) => (
+              <div key={qi} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-[10px] font-bold text-gray-400 mt-2">#{qi + 1}</span>
+                  <textarea
+                    value={q.question}
+                    onChange={e => setQuestions(prev => prev.map((p, idx) => idx === qi ? { ...p, question: e.target.value } : p))}
+                    placeholder="Question text — e.g. What was Pain's main motivation?"
+                    rows={2}
+                    className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#E50914] bg-white resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuestions(prev => prev.filter((_, idx) => idx !== qi))}
+                    className="text-[11px] text-gray-400 hover:text-red-500 mt-1"
+                    title="Eliminar pregunta"
+                  >
+                    🗑
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 pl-5">
+                  {q.options.map((opt, oi) => (
+                    <label key={oi} className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border cursor-pointer transition-colors ${
+                      q.correctIdx === oi ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <input
+                        type="radio"
+                        name={`q${qi}-correct`}
+                        checked={q.correctIdx === oi}
+                        onChange={() => setQuestions(prev => prev.map((p, idx) => idx === qi ? { ...p, correctIdx: oi } : p))}
+                        className="accent-green-600 w-3 h-3"
+                      />
+                      <input
+                        value={opt}
+                        onChange={e => setQuestions(prev => prev.map((p, idx) => idx === qi ? { ...p, options: p.options.map((o, oj) => oj === oi ? e.target.value : o) } : p))}
+                        placeholder={`Option ${oi + 1}`}
+                        className="flex-1 px-1 py-0.5 text-xs bg-transparent focus:outline-none"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
           {error && (
             <div className="md:col-span-2 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-600">
               {error}
@@ -367,16 +474,54 @@ function TranscriptPasteModal({
 // ─── Play modal ─────────────────────────────────────────────────────────
 
 function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => void }) {
-  const slide = lesson.slides?.[0];
+  const slides = lesson.slides ?? [];
+  const [slideIdx, setSlideIdx] = useState(0);
+  const slide = slides[slideIdx];
   if (!slide) return null;
+
+  const canPrev = slideIdx > 0;
+  const canNext = slideIdx < slides.length - 1;
+
+  const SLIDE_LABEL: Record<string, string> = {
+    clip_dialogue_game: 'Dialogue game',
+    clip_comprehension: 'Comprehension',
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-black/90">
-        <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-2xl px-3">×</button>
+      <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/90">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF6B6B] flex-shrink-0">
+            {SLIDE_LABEL[slide.type] ?? slide.type} · {slideIdx + 1}/{slides.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => setSlideIdx(i => Math.max(0, i - 1))}
+            disabled={!canPrev}
+            className="px-2.5 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-white/80 text-xs font-bold border border-white/10 disabled:opacity-25"
+            title="Slide anterior"
+          >
+            ← Prev
+          </button>
+          <button
+            onClick={() => setSlideIdx(i => Math.min(slides.length - 1, i + 1))}
+            disabled={!canNext}
+            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#E50914] to-[#FF6B6B] hover:opacity-90 text-white text-xs font-bold disabled:opacity-25"
+            title="Slide siguiente"
+          >
+            Next →
+          </button>
+          <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2">×</button>
+        </div>
       </div>
       <div className="flex-1 min-h-0">
-        <ClipDialogueGameSlide slide={slide} />
+        {slide.type === 'clip_comprehension' ? (
+          <ClipComprehensionSlide slide={slide} />
+        ) : (
+          <ClipDialogueGameSlide slide={slide} />
+        )}
       </div>
     </div>
   );

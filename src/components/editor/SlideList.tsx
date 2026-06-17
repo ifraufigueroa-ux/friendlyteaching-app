@@ -11,7 +11,7 @@ const TYPE_ICONS: Record<SlideType, string> = {
   song_cover: '🎵', vocab_match: '🔤', predictions: '🔮', lyrics_game: '🎮',
   listening_quiz: '🎧', language_focus: '🔬', language_practice: '✏️',
   translation_game: '🌐', wrapup: '💬', friendlyrics_end: '🏆',
-  clip_dialogue_game: '🎞️', friendlyflix_end: '🎬',
+  clip_dialogue_game: '🎞️', clip_comprehension: '❓', friendlyflix_end: '🎬',
 };
 
 const TYPE_LABELS: Record<SlideType, string> = {
@@ -25,7 +25,7 @@ const TYPE_LABELS: Record<SlideType, string> = {
   lyrics_game: 'Juego de letra', listening_quiz: 'Comprensión auditiva', language_focus: 'Foco lingüístico',
   language_practice: 'Práctica lingüística', translation_game: 'Juego de traducción',
   wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
-  clip_dialogue_game: 'Juego de diálogo (clip)', friendlyflix_end: 'Fin Friendlyflix®',
+  clip_dialogue_game: 'Juego de diálogo (clip)', clip_comprehension: 'Comprensión (clip)', friendlyflix_end: 'Fin Friendlyflix®',
 };
 
 const PHASE_DOT: Record<string, string> = {

@@ -125,6 +125,7 @@ export type SlideType =
   | 'friendlyrics_end'
   // ── Friendlyflix® clip-based format ───────────────────────
   | 'clip_dialogue_game'
+  | 'clip_comprehension'
   | 'friendlyflix_end';
 
 // ─── Friendlyrics® game types ────────────────────────────────
