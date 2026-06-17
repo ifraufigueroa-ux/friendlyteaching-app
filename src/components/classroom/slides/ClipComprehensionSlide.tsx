@@ -10,6 +10,11 @@ import type { Slide, QuizQuestion } from '@/types/firebase';
 
 interface Props { slide: Slide }
 
+function extractVideoId(url: string): string | null {
+  const m = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?.[1] ?? null;
+}
+
 const BACK_GRADIENTS = [
   'from-[#E50914] via-[#FF6B6B] to-[#7B1F23]',
   'from-[#7B1F23] via-[#E50914] to-[#FF6B6B]',
@@ -128,10 +133,12 @@ function QuestionCard({
 export default function ClipComprehensionSlide({ slide }: Props) {
   const questions: QuizQuestion[] = useMemo(() => slide.questions ?? [], [slide.questions]);
   const total = questions.length;
+  const videoId = slide.clipData?.youtubeUrl ? extractVideoId(slide.clipData.youtubeUrl) : null;
 
   const [deckOrder, setDeckOrder] = useState<number[]>(() => shuffleIndices(total));
   const [pickedIdx, setPickedIdx] = useState<number | null>(null);
   const [answeredByIdx, setAnsweredByIdx] = useState<Map<number, AnsweredCard>>(new Map());
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const backGradients = useMemo(
     () => questions.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
@@ -199,21 +206,50 @@ export default function ClipComprehensionSlide({ slide }: Props) {
             {answeredByIdx.size} / {total} answered · {correctCount} correct
           </h2>
         </div>
-        <div className="flex items-center gap-1.5">
-          {questions.map((_, i) => {
-            const a = answeredByIdx.get(i);
-            return (
-              <div
-                key={i}
-                title={a ? (a.correct ? 'Correct' : 'Wrong') : 'Pending'}
-                className={`w-2 h-2 rounded-full ${
-                  a ? (a.correct ? 'bg-green-500' : 'bg-red-500') : 'bg-white/15'
-                } ${i === pickedIdx ? 'ring-2 ring-yellow-300' : ''}`}
-              />
-            );
-          })}
+        <div className="flex items-center gap-2">
+          {videoId && (
+            <button
+              onClick={() => setVideoOpen(o => !o)}
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                videoOpen
+                  ? 'bg-[#E50914] text-white border-[#E50914]'
+                  : 'bg-white/8 text-white/80 border-white/15 hover:bg-white/15'
+              }`}
+            >
+              🎬 {videoOpen ? 'Hide clip' : 'Re-watch clip'}
+            </button>
+          )}
+          <div className="flex items-center gap-1.5">
+            {questions.map((_, i) => {
+              const a = answeredByIdx.get(i);
+              return (
+                <div
+                  key={i}
+                  title={a ? (a.correct ? 'Correct' : 'Wrong') : 'Pending'}
+                  className={`w-2 h-2 rounded-full ${
+                    a ? (a.correct ? 'bg-green-500' : 'bg-red-500') : 'bg-white/15'
+                  } ${i === pickedIdx ? 'ring-2 ring-yellow-300' : ''}`}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {/* Collapsible re-watch panel */}
+      {videoOpen && videoId && (
+        <div className="flex-shrink-0 border-b border-white/10 bg-black px-4 py-3">
+          <div className="max-w-3xl mx-auto" style={{ aspectRatio: '16 / 9' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${slide.clipData?.startTime ? `&start=${Math.floor(slide.clipData.startTime)}` : ''}${slide.clipData?.endTime ? `&end=${Math.floor(slide.clipData.endTime)}` : ''}`}
+              className="w-full h-full rounded-xl shadow-lg shadow-red-900/20"
+              style={{ border: 'none' }}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main */}
       <div className="flex-1 flex items-center justify-center p-6 min-h-0">

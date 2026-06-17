@@ -12,8 +12,7 @@ import {
   assignMovieLesson,
   deleteMovieLesson,
 } from '@/hooks/useMovieLessons';
-import ClipDialogueGameSlide from '@/components/classroom/slides/ClipDialogueGameSlide';
-import ClipComprehensionSlide from '@/components/classroom/slides/ClipComprehensionSlide';
+import SlideRenderer from '@/components/classroom/SlideRenderer';
 import TopBar from '@/components/layout/TopBar';
 import { parseYouTubeTranscript } from '@/lib/utils/transcriptParser';
 import type {
@@ -483,8 +482,15 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
   const canNext = slideIdx < slides.length - 1;
 
   const SLIDE_LABEL: Record<string, string> = {
-    clip_dialogue_game: 'Dialogue game',
+    cover:              'Cover',
+    vocabulary:         'Vocabulary',
+    predictions:        'Predictions',
+    clip_dialogue_game: 'Listening game',
     clip_comprehension: 'Comprehension',
+    language_focus:     'Language focus',
+    language_practice:  'Controlled practice',
+    clip_production:    'Free production',
+    friendlyflix_end:   'Wrap-up',
   };
 
   const multi = slides.length > 1;
@@ -532,12 +538,8 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
           <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none" title="Close">×</button>
         </div>
       </div>
-      <div className="flex-1 min-h-0 relative z-0">
-        {slide.type === 'clip_comprehension' ? (
-          <ClipComprehensionSlide slide={slide} />
-        ) : (
-          <ClipDialogueGameSlide slide={slide} />
-        )}
+      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto bg-white">
+        <SlideRenderer slide={slide} youtubeUrl={lesson.clip?.youtubeUrl} />
       </div>
     </div>
   );

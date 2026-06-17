@@ -128,6 +128,8 @@ function renderSlide(
       return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'clip_comprehension':
       return <ClipComprehensionSlide slide={slide} />;
+    case 'clip_production':
+      return <PredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
       return <FriendlyricsEndSlide slide={slide} />;
     default:
