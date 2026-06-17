@@ -17,6 +17,49 @@ const SPEAKING_SECONDS     = 120;
 const PART1_SECONDS        = 5 * 60;   // 5 minutes (typical 4-5 min)
 const PART3_SECONDS        = 5 * 60;   // 5 minutes (typical 4-5 min)
 
+// ─── Tips bank ────────────────────────────────────────────────────────
+
+const TIPS: Record<Part, { title: string; intro: string; tips: string[] }> = {
+  1: {
+    title: 'Part 1 · Examiner tips',
+    intro: 'Short, natural answers about familiar topics. Aim for ~20-30 seconds per question.',
+    tips: [
+      'Answer in full sentences, not single words.',
+      'Always add a brief reason or example after your main answer.',
+      'Use natural fillers to sound fluent: "Well", "Actually", "To be honest", "I suppose".',
+      'Show a range of tenses — present, past and future where appropriate.',
+      'Don\'t over-prepare: examiners notice memorised speeches and penalise them.',
+      'If you don\'t catch a question, ask politely: "Sorry, could you repeat that?".',
+    ],
+  },
+  2: {
+    title: 'Part 2 · Long-turn tips',
+    intro: 'You have 1 minute to prepare, then speak for 1-2 minutes without interruption.',
+    tips: [
+      'Use the full prep minute. Jot down 4-6 keywords, one per bullet — not full sentences.',
+      'Open with a clear hook: "I\'d like to talk about...", "The thing that comes to mind is...".',
+      'Cover all four bullets, but spend the most time on "and explain why" — that\'s where the band score is decided.',
+      'Use past narrative tenses if the topic is a memory: past simple, past continuous, past perfect.',
+      'Add sensory detail (what you saw, heard, felt) — examiners reward vivid description.',
+      'Aim for at least 1:30 of speaking. Don\'t stop early even if you feel you\'re done.',
+      'If you blank, paraphrase: "What I mean is..." or "In other words...". Don\'t go silent.',
+    ],
+  },
+  3: {
+    title: 'Part 3 · Discussion tips',
+    intro: 'Two-way abstract discussion, ~4-5 minutes. Talk about society and ideas, not just yourself.',
+    tips: [
+      'Always justify your opinion: POSITION + REASON + EXAMPLE (the "PRE" framework).',
+      'Use opinion phrases: "In my view", "I\'d argue that", "From my perspective".',
+      'Compare with linking words: "Whereas", "On the other hand", "Similarly", "By contrast".',
+      'Hedging is OK and natural: "It depends", "It\'s hard to say but...", "Broadly speaking...".',
+      'Show complex grammar: conditionals ("If we did X, we\'d see Y"), passives, relative clauses.',
+      'Talk abstractly — discuss trends, society, the future — not your personal anecdotes.',
+      'If a question feels too broad, narrow it: "Let me focus on the educational angle...".',
+    ],
+  },
+};
+
 function fmt(s: number): string {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
@@ -70,7 +113,7 @@ function CueCardView({
           <div className="absolute bottom-3 right-3 text-[10px] font-bold uppercase tracking-widest text-white/40">Part 2</div>
           <div className={`${small ? 'text-5xl' : 'text-7xl'} mb-3`}>🎴</div>
           <p className={`${small ? 'text-xs' : 'text-sm'} font-semibold uppercase tracking-widest text-white/70`}>Cue Card</p>
-          {!small && <p className="text-[11px] text-white/40 mt-2">Click para revelar</p>}
+          {!small && <p className="text-[11px] text-white/40 mt-2">Click to reveal</p>}
         </div>
 
         <div
@@ -156,13 +199,13 @@ function TimedPartPanel({
               onClick={onStop}
               className="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-bold shadow active:scale-95"
             >
-              ✓ Terminado
+              ✓ Done
             </button>
             <button
               onClick={onReset}
               className="px-3 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700"
             >
-              Cancelar
+              Cancel
             </button>
           </>
         )}
@@ -171,7 +214,7 @@ function TimedPartPanel({
             onClick={onReset}
             className="px-5 py-2.5 bg-white border border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
           >
-            ↻ Reiniciar
+            ↻ Reset
           </button>
         )}
       </div>
@@ -179,10 +222,63 @@ function TimedPartPanel({
   );
 }
 
+// ─── Tips modal ───────────────────────────────────────────────────────
+
+function TipsModal({ part, onClose }: { part: Part; onClose: () => void }) {
+  const { title, intro, tips } = TIPS[part];
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[88vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-5 border-b border-gray-100 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest mb-0.5">💡 Tips</p>
+            <h3 className="text-lg font-bold text-[#2D1B4E]">{title}</h3>
+            <p className="text-sm text-gray-500 mt-1 leading-snug">{intro}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+        </div>
+        <div className="p-5 overflow-y-auto flex-1">
+          <ul className="space-y-3">
+            {tips.map((tip, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#F0E5FF] text-[#5A3D7A] text-[11px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TipsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+    >
+      💡 Tips
+    </button>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────
 
 export default function IELTSSpeakingMocksPage() {
   const [part, setPart] = useState<Part>(2);
+  const [tipsOpen, setTipsOpen] = useState<Part | null>(null);
 
   // Per-part timer state (independent so switching tabs doesn't reset).
   const [p1Phase, setP1Phase] = useState<SimplePhase>('idle');
@@ -283,15 +379,15 @@ export default function IELTSSpeakingMocksPage() {
     <div className="min-h-screen p-6 bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
       <TopBar
         title="IELTS Speaking Mocks"
-        subtitle="Simulacro completo · 3 partes · ~11-14 minutos"
+        subtitle="Full mock · 3 parts · ~11-14 minutes"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Herramientas', href: '/dashboard/teacher/tools' },
+          { label: 'Tools', href: '/dashboard/teacher/tools' },
           { label: 'IELTS Speaking Mocks' },
         ]}
         actions={
           <span className="text-xs text-gray-500 hidden sm:inline">
-            Cards practicadas: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong>
+            Cards practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong>
           </span>
         }
       />
@@ -321,24 +417,23 @@ export default function IELTSSpeakingMocksPage() {
         {part === 1 && (
           <div className="flex flex-col items-center gap-6">
             <div className="w-full max-w-xl bg-white rounded-2xl shadow-md p-6 space-y-3">
-              <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 1 · Introduction & interview</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 1 · Introduction & interview</p>
+                <TipsButton onClick={() => setTipsOpen(1)} />
+              </div>
               <h2 className="text-xl font-bold text-[#2D1B4E]">Familiar topics about you</h2>
               <p className="text-sm text-gray-600 leading-relaxed">
-                El examinador hace preguntas generales sobre temas familiares: trabajo o estudios,
-                ciudad natal, hobbies, rutina, planes. Duración: <strong>4-5 minutos</strong>.
+                The examiner asks general questions about familiar topics: work or studies,
+                hometown, hobbies, routine, future plans. Duration: <strong>4-5 minutes</strong>.
               </p>
               <div className="bg-[#F9F5FF] rounded-xl p-3 mt-2">
-                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Temas comunes</p>
+                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Common topics</p>
                 <div className="flex flex-wrap gap-1.5">
                   {['Work or study', 'Hometown', 'Hobbies', 'Daily routine', 'Family', 'Food', 'Weather', 'Travel'].map(t => (
                     <span key={t} className="text-[11px] bg-white text-[#5A3D7A] px-2 py-0.5 rounded-full border border-[#C8A8DC]/40 font-semibold">{t}</span>
                   ))}
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400 leading-relaxed pt-1">
-                Tip al estudiante: responde con frases completas + breve justificación. Evita
-                respuestas de una palabra.
-              </p>
             </div>
 
             <TimedPartPanel
@@ -358,15 +453,18 @@ export default function IELTSSpeakingMocksPage() {
         {part === 2 && p2Phase === 'idle' && (
           <div className="space-y-6">
             <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-md p-5 space-y-2">
-              <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 2 · Long turn</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 2 · Long turn</p>
+                <TipsButton onClick={() => setTipsOpen(2)} />
+              </div>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Elige una cue card. Tienes <strong>1 minuto</strong> para preparar y <strong>1-2 minutos</strong> para hablar sin interrupción.
+                Pick a cue card. You have <strong>1 minute</strong> to prepare and <strong>1-2 minutes</strong> to speak without interruption.
               </p>
             </div>
 
             <div className="text-center">
-              <p className="text-[#5A3D7A] font-bold text-lg mb-1">Elige una cue card</p>
-              <p className="text-gray-500 text-sm">Click sobre cualquiera o deja que la suerte decida.</p>
+              <p className="text-[#5A3D7A] font-bold text-lg mb-1">Pick a cue card</p>
+              <p className="text-gray-500 text-sm">Click any card, or let luck decide.</p>
             </div>
 
             <div className="flex justify-center gap-3">
@@ -407,7 +505,7 @@ export default function IELTSSpeakingMocksPage() {
               {p2Phase === 'revealed' && (
                 <div className="text-center space-y-3">
                   <p className="text-sm text-[#5A3D7A] font-semibold">
-                    🕐 1 minuto para preparar · luego 1-2 minutos para hablar
+                    🕐 1 minute to prepare · then 1-2 minutes to speak
                   </p>
                   <div className="flex gap-2 justify-center pt-1">
                     <button onClick={startPrep} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
@@ -437,15 +535,15 @@ export default function IELTSSpeakingMocksPage() {
                   <div className="flex gap-2 justify-center pt-1">
                     {p2Phase === 'prep' ? (
                       <button onClick={startSpeaking} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
-                        ▶ Empezar a hablar
+                        ▶ Start speaking
                       </button>
                     ) : (
                       <button onClick={finishCard} className="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-bold shadow active:scale-95">
-                        ✓ Terminado
+                        ✓ Done
                       </button>
                     )}
                     <button onClick={resetP2} className="px-3 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700">
-                      Cancelar
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -454,14 +552,14 @@ export default function IELTSSpeakingMocksPage() {
               {p2Phase === 'done' && (
                 <div className="text-center space-y-3">
                   <p className="text-2xl">🎉</p>
-                  <p className="text-[#5A3D7A] font-bold">¡Buen trabajo!</p>
-                  <p className="text-sm text-gray-500">Total practicadas: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong></p>
+                  <p className="text-[#5A3D7A] font-bold">Great job!</p>
+                  <p className="text-sm text-gray-500">Total practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong></p>
                   <div className="flex gap-2 justify-center pt-1">
                     <button onClick={nextCard} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
-                      🎴 Siguiente cue card
+                      🎴 Next cue card
                     </button>
                     <button onClick={() => setPart(3)} className="px-5 py-2.5 bg-white border border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
-                      → Continuar a Part 3
+                      → Continue to Part 3
                     </button>
                   </div>
                 </div>
@@ -474,27 +572,26 @@ export default function IELTSSpeakingMocksPage() {
         {part === 3 && (
           <div className="flex flex-col items-center gap-6">
             <div className="w-full max-w-xl bg-white rounded-2xl shadow-md p-6 space-y-3">
-              <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 3 · Discussion</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 3 · Discussion</p>
+                <TipsButton onClick={() => setTipsOpen(3)} />
+              </div>
               <h2 className="text-xl font-bold text-[#2D1B4E]">Two-way abstract discussion</h2>
               <p className="text-sm text-gray-600 leading-relaxed">
-                El examinador hace preguntas más abstractas relacionadas con el tema de la Part 2.
-                Es un diálogo: el estudiante puede pedir aclaraciones y dar opiniones extendidas.
-                Duración: <strong>4-5 minutos</strong>.
+                The examiner asks more abstract questions related to the Part 2 topic.
+                It is a real dialogue: the candidate can ask for clarification and give
+                extended opinions. Duration: <strong>4-5 minutes</strong>.
               </p>
               <div className="bg-[#F9F5FF] rounded-xl p-3 mt-2">
-                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Tipos de pregunta</p>
+                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Question types</p>
                 <ul className="space-y-1 text-sm text-gray-700">
-                  <li>• <strong>Comparación</strong> — &ldquo;How is X different from Y?&rdquo;</li>
-                  <li>• <strong>Causa &amp; efecto</strong> — &ldquo;Why do people prefer ___ nowadays?&rdquo;</li>
-                  <li>• <strong>Predicción</strong> — &ldquo;Do you think ___ will change in the future?&rdquo;</li>
-                  <li>• <strong>Opinión</strong> — &ldquo;Some people say ___. What do you think?&rdquo;</li>
-                  <li>• <strong>Sociedad</strong> — &ldquo;How does ___ affect society?&rdquo;</li>
+                  <li>• <strong>Comparison</strong> — &ldquo;How is X different from Y?&rdquo;</li>
+                  <li>• <strong>Cause &amp; effect</strong> — &ldquo;Why do people prefer ___ nowadays?&rdquo;</li>
+                  <li>• <strong>Prediction</strong> — &ldquo;Do you think ___ will change in the future?&rdquo;</li>
+                  <li>• <strong>Opinion</strong> — &ldquo;Some people say ___. What do you think?&rdquo;</li>
+                  <li>• <strong>Society</strong> — &ldquo;How does ___ affect society?&rdquo;</li>
                 </ul>
               </div>
-              <p className="text-[11px] text-gray-400 leading-relaxed pt-1">
-                Tip al estudiante: justifica cada respuesta con ejemplo + razonamiento. Usa
-                conectores (&ldquo;However&rdquo;, &ldquo;On the other hand&rdquo;, &ldquo;As a result&rdquo;).
-              </p>
             </div>
 
             <TimedPartPanel
@@ -511,6 +608,10 @@ export default function IELTSSpeakingMocksPage() {
         )}
 
       </div>
+
+      {tipsOpen != null && (
+        <TipsModal part={tipsOpen} onClose={() => setTipsOpen(null)} />
+      )}
     </div>
   );
 }
