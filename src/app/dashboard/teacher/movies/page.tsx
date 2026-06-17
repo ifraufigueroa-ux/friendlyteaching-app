@@ -487,36 +487,52 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
     clip_comprehension: 'Comprehension',
   };
 
+  const multi = slides.length > 1;
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/90">
+      {/* Top nav — sticks above the slide content with an explicit z-index */}
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/95">
         <div className="flex items-center gap-3 min-w-0">
           <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF6B6B] flex-shrink-0">
-            {SLIDE_LABEL[slide.type] ?? slide.type} · {slideIdx + 1}/{slides.length}
+            {SLIDE_LABEL[slide.type] ?? slide.type}{multi ? ` · ${slideIdx + 1}/${slides.length}` : ''}
           </span>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <button
-            onClick={() => setSlideIdx(i => Math.max(0, i - 1))}
-            disabled={!canPrev}
-            className="px-2.5 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-white/80 text-xs font-bold border border-white/10 disabled:opacity-25"
-            title="Slide anterior"
-          >
-            ← Prev
-          </button>
-          <button
-            onClick={() => setSlideIdx(i => Math.min(slides.length - 1, i + 1))}
-            disabled={!canNext}
-            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#E50914] to-[#FF6B6B] hover:opacity-90 text-white text-xs font-bold disabled:opacity-25"
-            title="Slide siguiente"
-          >
-            Next →
-          </button>
-          <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2">×</button>
+          {/* Only show navigation arrows when there is somewhere to navigate */}
+          {multi && (
+            <>
+              <button
+                onClick={() => setSlideIdx(i => Math.max(0, i - 1))}
+                disabled={!canPrev}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                  canPrev
+                    ? 'bg-white/8 hover:bg-white/15 text-white/80 border-white/10 cursor-pointer'
+                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                }`}
+                title="Previous slide"
+              >
+                ← Prev
+              </button>
+              <button
+                onClick={() => setSlideIdx(i => Math.min(slides.length - 1, i + 1))}
+                disabled={!canNext}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                  canNext
+                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF6B6B] hover:opacity-90 text-white border-[#E50914] cursor-pointer'
+                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                }`}
+                title="Next slide"
+              >
+                Next →
+              </button>
+            </>
+          )}
+          <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none" title="Close">×</button>
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative z-0">
         {slide.type === 'clip_comprehension' ? (
           <ClipComprehensionSlide slide={slide} />
         ) : (
