@@ -30,6 +30,7 @@ import WrapupSlide from './slides/WrapupSlide';
 import FriendlyricsEndSlide from './slides/FriendlyricsEndSlide';
 import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
 import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
+import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -128,6 +129,8 @@ function renderSlide(
       return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'clip_comprehension':
       return <ClipComprehensionSlide slide={slide} />;
+    case 'clip_vocab_match':
+      return <ClipVocabMatchSlide slide={slide} />;
     case 'clip_production':
       return <PredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
