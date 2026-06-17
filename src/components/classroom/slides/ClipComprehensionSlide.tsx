@@ -132,7 +132,7 @@ function QuestionCard({
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
