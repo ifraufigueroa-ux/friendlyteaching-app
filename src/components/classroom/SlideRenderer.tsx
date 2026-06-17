@@ -31,6 +31,7 @@ import FriendlyricsEndSlide from './slides/FriendlyricsEndSlide';
 import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
 import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
+import ClipPredictionsSlide from './slides/ClipPredictionsSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -131,8 +132,10 @@ function renderSlide(
       return <ClipComprehensionSlide slide={slide} />;
     case 'clip_vocab_match':
       return <ClipVocabMatchSlide slide={slide} />;
+    case 'clip_predictions':
+      return <ClipPredictionsSlide slide={slide} />;
     case 'clip_production':
-      return <PredictionsSlide slide={slide} />;
+      return <ClipPredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
       return <FriendlyricsEndSlide slide={slide} />;
     default:

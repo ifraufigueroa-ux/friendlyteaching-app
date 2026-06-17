@@ -486,6 +486,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
     vocabulary:         'Vocabulary',
     clip_vocab_match:   'Vocab match',
     predictions:        'Predictions',
+    clip_predictions:   'Predictions',
     clip_dialogue_game: 'Listening game',
     clip_comprehension: 'Comprehension',
     language_focus:     'Language focus',

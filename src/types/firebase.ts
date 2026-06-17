@@ -127,6 +127,7 @@ export type SlideType =
   | 'clip_dialogue_game'
   | 'clip_comprehension'
   | 'clip_vocab_match'
+  | 'clip_predictions'
   | 'clip_production'
   | 'friendlyflix_end';
 
