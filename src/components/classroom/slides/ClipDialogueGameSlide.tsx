@@ -316,11 +316,16 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   }, [totalLines]);
 
   // ── Auto-scroll script strip ───────────────────────────────────────────
-  // Only auto-scroll when the cursor moves by ONE line at a time. Larger
-  // jumps (e.g. polling firing a corrupt index, YouTube reporting a far
-  // currentTime on first play) leave the scroll position alone — that
-  // keeps the script readable and lets the student scroll manually if
-  // they want to re-read past lines.
+  // We use getBoundingClientRect to compute the line's position relative
+  // to the scroll container — el.offsetTop bubbles up to the nearest
+  // positioned ancestor, which in our layout is way outside the script
+  // container, so the old math produced enormous scrollTop targets that
+  // the browser clamped to the end of the content (the "jumps to last
+  // line" bug).
+  //
+  // Wild jumps (e.g. YouTube reporting non-zero currentTime on first
+  // play) still use instant scroll instead of smooth so the script
+  // doesn't visibly animate across many lines.
   const prevLineIdxRef = useRef(0);
   useEffect(() => {
     const container = dialogueRef.current;
@@ -328,10 +333,17 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
     if (!container || !el) return;
     const delta = Math.abs(currentLineIdx - prevLineIdxRef.current);
     prevLineIdxRef.current = currentLineIdx;
-    if (delta > 3) return; // ignore wild jumps
+
+    const containerRect = container.getBoundingClientRect();
+    const elRect        = el.getBoundingClientRect();
+    // Position of the line within the container's scrollable coordinate
+    // system = current scrollTop + (visible offset from container top).
+    const elTopInContainer = container.scrollTop + (elRect.top - containerRect.top);
+    const targetTop        = elTopInContainer - container.clientHeight / 2 + el.clientHeight / 2;
+
     container.scrollTo({
-      top: el.offsetTop - container.clientHeight / 2 + el.clientHeight / 2,
-      behavior: 'smooth',
+      top: Math.max(0, targetTop),
+      behavior: delta > 3 ? 'auto' : 'smooth',
     });
   }, [currentLineIdx]);
 
