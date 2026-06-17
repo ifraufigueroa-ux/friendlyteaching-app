@@ -48,11 +48,18 @@ function QuestionCard({
   cardNumber?: number;
   totalCards?: number;
 }) {
+  // NOTE: outer element must be a <div>, not a <button>, because the
+  // face-up side contains <button> children (the 4 options). Nested
+  // buttons are invalid HTML and silently break click handling on the
+  // inner buttons in most browsers.
+  const interactive = !!onClick && !flipped;
   return (
-    <button
-      onClick={onClick}
-      disabled={!onClick || flipped}
-      className={`relative ${small ? 'w-44 h-64' : 'w-[28rem] h-[36rem]'} ${onClick && !flipped ? 'cursor-pointer' : 'cursor-default'} group focus:outline-none`}
+    <div
+      onClick={interactive ? onClick : undefined}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : -1}
+      onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
+      className={`relative ${small ? 'w-44 h-64' : 'w-[28rem] h-[36rem]'} ${interactive ? 'cursor-pointer' : 'cursor-default'} group focus:outline-none`}
       style={{ perspective: '1500px' }}
     >
       <div
@@ -87,7 +94,7 @@ function QuestionCard({
             </div>
           )}
 
-          <div className="flex-1 flex flex-col mt-6">
+          <div className="flex-1 flex flex-col mt-6 min-h-0">
             <h3 className="text-xl font-bold text-[#2D1B4E] leading-snug mb-5">
               {q.question}
             </h3>
@@ -102,16 +109,17 @@ function QuestionCard({
                 return (
                   <button
                     key={opt.id}
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); if (!answered && onAnswer) onAnswer(opt.text); }}
                     disabled={revealed}
-                    className={`text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all border-2
+                    className={`text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all border-2 w-full
                       ${revealed
                         ? showRight
                           ? 'bg-green-500/20 border-green-500 text-green-900'
                           : showWrong
                             ? 'bg-red-500/15 border-red-400 text-red-900 line-through'
                             : 'bg-white/30 border-gray-200 text-gray-400'
-                        : 'bg-white hover:bg-[#7B1F23]/5 border-[#E50914]/20 hover:border-[#E50914] text-[#2D1B4E] hover:scale-[1.02] cursor-pointer'
+                        : 'bg-white hover:bg-[#E50914] hover:text-white border-[#E50914]/30 hover:border-[#E50914] text-[#2D1B4E] hover:scale-[1.02] cursor-pointer shadow-sm hover:shadow-lg'
                       }`}
                   >
                     {revealed && showRight && '✓ '}
