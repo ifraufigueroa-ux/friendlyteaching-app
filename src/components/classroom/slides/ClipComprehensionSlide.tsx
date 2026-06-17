@@ -178,8 +178,18 @@ export default function ClipComprehensionSlide({ slide }: Props) {
     });
   }
   function nextCard() {
+    // Clear current pick first so the bottom strip update is visible,
+    // then auto-pick a random unanswered card (if any remain) so the
+    // flow feels continuous — no manual deck-tap between questions.
     setPickedIdx(null);
-    setDeckOrder(shuffleIndices(total));
+    const remaining = Array.from({ length: total }, (_, i) => i).filter(i => !answeredByIdx.has(i));
+    if (remaining.length === 0) return;
+    // Defer the new pick so the React commit between "card moves down"
+    // and "new card appears" is observable.
+    setTimeout(() => {
+      const pick = remaining[Math.floor(Math.random() * remaining.length)];
+      setPickedIdx(pick);
+    }, 280);
   }
   function restart() {
     setPickedIdx(null);
@@ -204,7 +214,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-[#1E0F35] via-[#0A0A12] to-[#0F0F18] text-white overflow-y-auto">
+    <div className="h-full flex flex-col bg-gradient-to-br from-[#5A3D7A] via-[#4A2D6A] to-[#3D2660] text-white overflow-hidden">
 
       {/* Header */}
       <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b border-white/10 flex items-center justify-between gap-4">
@@ -312,7 +322,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
           </div>
 
         ) : (
-          // ── Deck of face-down cards ───────────────────────────────
+          // ── Deck of face-down REMAINING cards ─────────────────────
           <div className="flex flex-col items-center gap-5">
             <p className="text-center text-white/70 text-sm">
               Pick a question card to reveal it.
@@ -324,31 +334,86 @@ export default function ClipComprehensionSlide({ slide }: Props) {
               🎲 Random
             </button>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
-              {deckOrder.map((qIdx, deckPos) => {
-                const isAnswered = answeredByIdx.has(qIdx);
-                return (
-                  <div
-                    key={`${qIdx}-${deckPos}`}
-                    style={{
-                      transform: `rotate(${(deckPos - (deckOrder.length - 1) / 2) * 3}deg)`,
-                      opacity: isAnswered ? 0.35 : 1,
-                    }}
-                    className="transition-transform"
-                  >
-                    <QuestionCard
-                      q={questions[qIdx]}
-                      flipped={false}
-                      onClick={isAnswered ? undefined : () => pickCard(deckPos)}
-                      backGradient={backGradients[qIdx]}
-                      small
-                    />
-                  </div>
-                );
-              })}
+              {deckOrder.filter(qIdx => !answeredByIdx.has(qIdx)).map((qIdx, deckPos, arr) => (
+                <div
+                  key={`${qIdx}-${deckPos}`}
+                  style={{ transform: `rotate(${(deckPos - (arr.length - 1) / 2) * 3}deg)` }}
+                  className="transition-transform"
+                >
+                  <QuestionCard
+                    q={questions[qIdx]}
+                    flipped={false}
+                    onClick={() => pickCard(deckOrder.indexOf(qIdx))}
+                    backGradient={backGradients[qIdx]}
+                    small
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* ── Bottom strip: answered cards ─────────────────────────────── */}
+      {answeredByIdx.size > 0 && !allAnswered && (
+        <div className="flex-shrink-0 border-t border-white/15 bg-black/30 backdrop-blur px-5 py-3 overflow-x-auto">
+          <div className="flex items-end gap-3">
+            <div className="flex-shrink-0 pr-1">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mb-1">Answered</p>
+              <p className="text-base font-bold text-white">{answeredByIdx.size}<span className="text-white/40 text-xs">/{total}</span></p>
+            </div>
+            {Array.from(answeredByIdx.entries())
+              .sort((a, b) => a[0] - b[0])
+              .map(([qIdx, ans], i) => (
+                <AnsweredChip
+                  key={qIdx}
+                  q={questions[qIdx]}
+                  answered={ans}
+                  num={i + 1}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Mini "answered" card chip for the bottom strip ────────────────────
+
+function AnsweredChip({ q, answered, num }: { q: QuizQuestion; answered: AnsweredCard; num: number }) {
+  return (
+    <div
+      className={`flex-shrink-0 w-56 rounded-xl border-2 p-3 shadow-md flex flex-col gap-1.5 text-[#2D1B4E] transition-transform hover:scale-[1.03]
+        ${answered.correct
+          ? 'bg-gradient-to-br from-[#FBF8F0] to-[#E8F5E8] border-green-400/70'
+          : 'bg-gradient-to-br from-[#FBF8F0] to-[#FDE8E8] border-red-400/70'
+        }`}
+      style={{ animation: 'fcChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+    >
+      <style>{`
+        @keyframes fcChipIn {
+          from { opacity: 0; transform: translateY(20px) scale(0.92); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);   }
+        }
+      `}</style>
+      <div className="flex items-center justify-between">
+        <span className="text-[9px] font-bold uppercase tracking-widest text-[#7B1F23]/60">#{num}</span>
+        <span className={`text-xs font-bold ${answered.correct ? 'text-green-700' : 'text-red-600'}`}>
+          {answered.correct ? '✓ Correct' : '✗ Wrong'}
+        </span>
+      </div>
+      <p className="text-[11px] font-semibold leading-tight line-clamp-2 text-[#2D1B4E]/90">
+        {q.question}
+      </p>
+      <p className="text-[10px] text-green-700 font-bold truncate" title={q.correctAnswer}>
+        ✓ {q.correctAnswer}
+      </p>
+      {!answered.correct && (
+        <p className="text-[10px] text-red-600 line-through truncate" title={answered.chosen}>
+          {answered.chosen}
+        </p>
+      )}
     </div>
   );
 }
