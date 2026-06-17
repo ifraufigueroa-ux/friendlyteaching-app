@@ -211,7 +211,7 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
   return (
     <div
       ref={containerRef}
-      className={`relative h-full flex flex-col bg-gradient-to-br from-[#1E0F35] via-[#0A0A12] to-[#0F0F18] text-white overflow-hidden ${shake ? 'animate-[clipShake_400ms_ease-in-out]' : ''}`}
+      className={`relative h-full flex flex-col bg-gradient-to-br from-[#5A3D7A] via-[#4A2D6A] to-[#3D2660] text-white overflow-hidden ${shake ? 'animate-[clipShake_400ms_ease-in-out]' : ''}`}
     >
       <style>{`
         @keyframes clipShake {
@@ -283,10 +283,11 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
       </div>
 
       {/* ── Main game / completion ──────────────────────────────── */}
-      <div className="flex-1 px-6 pb-6 min-h-0 overflow-y-auto">
+      {/* px-[2cm] py-[4cm] per teacher spec for breathing room around the grid */}
+      <div className="flex-1 px-[2cm] py-[4cm] min-h-0 overflow-y-auto">
 
         {allDone ? (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-4">
+          <div className="h-full flex flex-col items-center justify-center text-center gap-4 max-w-2xl mx-auto">
             <p className="text-6xl mb-1">{stars().emoji}</p>
             <h3 className="text-2xl font-bold">All matched!</h3>
             <div className="grid grid-cols-3 gap-3 max-w-md w-full">
@@ -320,11 +321,11 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
           </div>
 
         ) : (
-          <div className="grid grid-cols-[1fr_36px_1fr] gap-x-2 gap-y-2 items-stretch">
+          <div className="grid grid-cols-[1fr_36px_1fr] gap-x-4 gap-y-3 items-stretch max-w-5xl mx-auto">
 
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 col-start-1 self-end pb-1 px-1">Words</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 col-start-1 self-end pb-1 px-1">Words</p>
             <span />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 col-start-3 self-end pb-1 px-1">Definitions</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/50 col-start-3 self-end pb-1 px-1">Definitions</p>
 
             {words.map((w, i) => {
               const def         = shuffledDefs[i];
@@ -339,12 +340,12 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
                   key={`w-${w.word}`}
                   onClick={(e) => handleWordClick(w.word, e)}
                   disabled={wordMatched}
-                  className={`relative py-3.5 px-4 rounded-2xl text-left border-2 w-full flex flex-col gap-0.5 transition-all duration-200
+                  className={`relative py-4 px-5 rounded-2xl text-left border-2 w-full flex flex-col gap-0.5 transition-all duration-200
                     ${wordMatched
-                      ? 'bg-green-500/15 border-green-500/50 text-green-200 cursor-default'
+                      ? 'bg-green-500/20 border-green-400/60 text-green-100 cursor-default'
                       : isSelected
                         ? 'bg-gradient-to-br from-[#E50914] to-[#7B1F23] border-[#FF6B6B] text-white shadow-2xl shadow-red-900/40 scale-[1.04]'
-                        : 'bg-white/5 border-white/15 text-white hover:bg-white/10 hover:border-white/30 hover:scale-[1.01]'
+                        : 'bg-white/10 border-white/20 text-white hover:bg-white/15 hover:border-white/40 hover:scale-[1.01]'
                     }`}
                   style={isSelected ? { animation: 'clipPulse 1.4s ease-out infinite' } : undefined}
                 >
@@ -366,14 +367,14 @@ export default function ClipVocabMatchSlide({ slide }: Props) {
                   key={`d-${def.word}`}
                   onClick={(e) => handleDefClick(def.word, e)}
                   disabled={defMatched || !defClickable}
-                  className={`py-3.5 px-4 rounded-2xl text-left border-2 leading-snug w-full transition-all duration-200
+                  className={`py-4 px-5 rounded-2xl text-left border-2 leading-snug w-full transition-all duration-200
                     ${defMatched
-                      ? 'bg-green-500/15 border-green-500/50 text-green-200 text-sm font-medium cursor-default'
+                      ? 'bg-green-500/20 border-green-400/60 text-green-100 text-sm font-medium cursor-default'
                       : isWrong
                         ? 'bg-red-500/15 border-red-500/60 text-red-200 scale-[0.98] text-sm'
                         : defClickable
                           ? 'bg-[#FBF8F0] border-[#F0C040] text-[#2D1B4E] hover:bg-gradient-to-br hover:from-[#E50914] hover:to-[#FF6B6B] hover:text-white hover:border-[#E50914] cursor-pointer text-sm font-medium hover:scale-[1.02]'
-                          : 'bg-white/3 border-white/10 text-white/30 cursor-default text-sm'
+                          : 'bg-white/8 border-white/15 text-white/40 cursor-default text-sm'
                     }`}
                 >
                   {def.translation}
