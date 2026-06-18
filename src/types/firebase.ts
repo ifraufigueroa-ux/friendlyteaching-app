@@ -129,6 +129,7 @@ export type SlideType =
   | 'clip_vocab_match'
   | 'clip_predictions'
   | 'clip_language_focus'
+  | 'clip_controlled_practice'
   | 'clip_production'
   | 'friendlyflix_end';
 

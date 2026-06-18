@@ -33,6 +33,7 @@ import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
 import ClipPredictionsSlide from './slides/ClipPredictionsSlide';
 import ClipLanguageFocusSlide from './slides/ClipLanguageFocusSlide';
+import ClipControlledPracticeSlide from './slides/ClipControlledPracticeSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -137,6 +138,8 @@ function renderSlide(
       return <ClipPredictionsSlide slide={slide} />;
     case 'clip_language_focus':
       return <ClipLanguageFocusSlide slide={slide} />;
+    case 'clip_controlled_practice':
+      return <ClipControlledPracticeSlide slide={slide} />;
     case 'clip_production':
       return <ClipPredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
