@@ -490,6 +490,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
     clip_dialogue_game: 'Listening game',
     clip_comprehension: 'Comprehension',
     language_focus:     'Language focus',
+    clip_language_focus:'Language focus',
     language_practice:  'Controlled practice',
     clip_production:    'Free production',
     friendlyflix_end:   'Wrap-up',
