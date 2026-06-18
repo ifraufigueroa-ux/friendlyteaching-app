@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
 import { IELTS_CUE_CARDS, type CueCard } from '@/lib/data/ieltsCueCards';
+import { IELTS_PART1_TOPICS, type Part1Topic } from '@/lib/data/ieltsPart1Topics';
 
 type Part = 1 | 2 | 3;
 type Part2Phase = 'idle' | 'revealed' | 'prep' | 'speaking' | 'done';
@@ -286,6 +287,19 @@ export default function IELTSSpeakingMocksPage() {
   const [p1Time, setP1Time]   = useState(PART1_SECONDS);
   const [p3Time, setP3Time]   = useState(PART3_SECONDS);
 
+  // Part 1 random topic chooser
+  const [p1Topic, setP1Topic] = useState<Part1Topic | null>(null);
+  const [p1RollKey, setP1RollKey] = useState(0); // forces a fresh bounce-in animation on re-roll
+  function rollP1Topic() {
+    // Don't re-pick the same one back-to-back when re-rolling.
+    const pool = p1Topic
+      ? IELTS_PART1_TOPICS.filter(t => t.id !== p1Topic.id)
+      : IELTS_PART1_TOPICS;
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    setP1Topic(next);
+    setP1RollKey(k => k + 1);
+  }
+
   // Part 2 state
   const [deckOrder, setDeckOrder] = useState<number[]>(() => shuffleIndices(IELTS_CUE_CARDS.length));
   const [pickedIdx, setPickedIdx] = useState<number | null>(null);
@@ -416,6 +430,24 @@ export default function IELTSSpeakingMocksPage() {
         {/* ── Part 1 ──────────────────────────────────────────────── */}
         {part === 1 && (
           <div className="flex flex-col items-center gap-6">
+            <style>{`
+              @keyframes p1TopicIn {
+                0%   { opacity: 0; transform: translateY(20px) scale(0.85) rotate(-3deg); }
+                65%  { opacity: 1; transform: translateY(0)    scale(1.04) rotate(1deg);  }
+                100% { opacity: 1; transform: translateY(0)    scale(1)    rotate(0);     }
+              }
+              @keyframes p1QuestionIn {
+                from { opacity: 0; transform: translateX(-12px); }
+                to   { opacity: 1; transform: translateX(0);     }
+              }
+              @keyframes p1DiceSpin {
+                0%   { transform: rotate(0)    scale(1);   }
+                30%  { transform: rotate(180deg) scale(1.2);}
+                60%  { transform: rotate(360deg) scale(0.9);}
+                100% { transform: rotate(540deg) scale(1);  }
+              }
+            `}</style>
+
             <div className="w-full max-w-xl bg-white rounded-2xl shadow-md p-6 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 1 · Introduction & interview</p>
@@ -423,18 +455,82 @@ export default function IELTSSpeakingMocksPage() {
               </div>
               <h2 className="text-xl font-bold text-[#2D1B4E]">Familiar topics about you</h2>
               <p className="text-sm text-gray-600 leading-relaxed">
-                The examiner asks general questions about familiar topics: work or studies,
-                hometown, hobbies, routine, future plans. Duration: <strong>4-5 minutes</strong>.
+                The examiner asks general questions about familiar topics. Duration: <strong>4-5 minutes</strong>.
+                Use the random picker for a topic and four follow-up questions to develop the conversation.
               </p>
-              <div className="bg-[#F9F5FF] rounded-xl p-3 mt-2">
-                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Common topics</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {['Work or study', 'Hometown', 'Hobbies', 'Daily routine', 'Family', 'Food', 'Weather', 'Travel'].map(t => (
-                    <span key={t} className="text-[11px] bg-white text-[#5A3D7A] px-2 py-0.5 rounded-full border border-[#C8A8DC]/40 font-semibold">{t}</span>
-                  ))}
+            </div>
+
+            {/* ── Random topic picker ──────────────────────────────────── */}
+            {!p1Topic ? (
+              <div className="w-full max-w-xl bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] rounded-2xl shadow-md p-7 text-center space-y-4 border border-white">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#5A3D7A]/60">Spin the wheel</p>
+                <p className="text-[#2D1B4E] text-base">
+                  {IELTS_PART1_TOPICS.length} topics in the bank · 4 questions each
+                </p>
+                <button
+                  onClick={rollP1Topic}
+                  className="px-8 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-base font-bold shadow-lg shadow-[#5A3D7A]/30 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all inline-flex items-center gap-2"
+                >
+                  <span style={{ display: 'inline-block', animation: 'p1DiceSpin 600ms ease-in-out' }} key={p1RollKey}>🎲</span>
+                  Pick a random topic
+                </button>
+                <p className="text-[11px] text-[#5A3D7A]/50">
+                  Includes A.I., emails, languages, swimming, music, travel and more.
+                </p>
+              </div>
+            ) : (
+              <div className="w-full max-w-xl space-y-4" key={`topic-${p1RollKey}`}>
+                {/* Topic hero card */}
+                <div
+                  className="bg-gradient-to-br from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] text-white rounded-2xl shadow-xl shadow-[#5A3D7A]/30 p-7 text-center space-y-2"
+                  style={{ animation: 'p1TopicIn 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+                >
+                  <span className="text-7xl block">{p1Topic.emoji}</span>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60">Your topic</p>
+                  <h2 className="text-2xl md:text-3xl font-serif font-bold leading-tight">
+                    {p1Topic.name}
+                  </h2>
+                </div>
+
+                {/* Development questions */}
+                <div className="bg-white rounded-2xl shadow-md p-5 space-y-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#5A3D7A]/60">Questions to develop</p>
+                  <div className="space-y-2">
+                    {p1Topic.questions.map((q, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[#F9F5FF]/60 border border-[#E8D5F0]"
+                        style={{
+                          animation: `p1QuestionIn 350ms ease-out both`,
+                          animationDelay: `${250 + i * 90}ms`,
+                        }}
+                      >
+                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white text-xs font-bold flex items-center justify-center">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm md:text-base text-[#2D1B4E] leading-snug pt-0.5">{q}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 justify-center">
+                  <button
+                    onClick={rollP1Topic}
+                    className="px-5 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+                  >
+                    🔀 New topic
+                  </button>
+                  <button
+                    onClick={() => setP1Topic(null)}
+                    className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
+                  >
+                    Clear
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
             <TimedPartPanel
               durationSec={PART1_SECONDS}
