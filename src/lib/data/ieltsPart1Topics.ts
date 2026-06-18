@@ -9,7 +9,99 @@ export interface Part1Topic {
   questions: string[];
 }
 
+// Core IELTS Part 1 staples — the topics a guided mock must surface.
+// Order matters: slot 1 and slot 2 of every mock are pulled from the front.
+export const IELTS_PART1_CORE_TOPIC_IDS = [
+  'work-studies',
+  'hometown',
+  'free-time',
+  'technology',
+  'books',
+  'travel',
+  'food',
+] as const;
+
 export const IELTS_PART1_TOPICS: Part1Topic[] = [
+  // ── Core IELTS Part 1 staples (must-have per teacher) ─────────────
+  {
+    id: 'work-studies',
+    emoji: '💼',
+    name: 'Work / Studies',
+    questions: [
+      'Do you work or are you a student?',
+      'What do you most enjoy about your work or studies?',
+      'What is the most challenging part of it?',
+      'Where do you see yourself in five years?',
+    ],
+  },
+  {
+    id: 'hometown',
+    emoji: '🏘️',
+    name: 'Hometown',
+    questions: [
+      'Where is your hometown?',
+      'What do you like most about it?',
+      'Has it changed much in recent years?',
+      'Would you like to live there in the future?',
+    ],
+  },
+  {
+    id: 'free-time',
+    emoji: '🌳',
+    name: 'Free Time',
+    questions: [
+      'How do you usually spend your free time?',
+      'Do you have enough free time during the week?',
+      'What did you enjoy doing in your free time as a child?',
+      'Do you think people have less free time now than in the past?',
+    ],
+  },
+  {
+    id: 'technology',
+    emoji: '💻',
+    name: 'Technology',
+    questions: [
+      'Are you good with technology?',
+      'How has technology changed your daily life?',
+      'Do you prefer learning new technology by yourself or with help?',
+      'What piece of technology could you not live without?',
+    ],
+  },
+  {
+    id: 'books',
+    emoji: '📚',
+    name: 'Books',
+    questions: [
+      'Do you read books often?',
+      'What kinds of books do you enjoy?',
+      'Do you prefer paper books or e-books?',
+      'Has your taste in books changed over the years?',
+    ],
+  },
+  {
+    id: 'travel',
+    emoji: '✈️',
+    name: 'Travel',
+    questions: [
+      'Do you enjoy travelling?',
+      'Where was the last place you visited?',
+      'Do you prefer beach destinations or cities?',
+      'Where would you most like to travel to next?',
+    ],
+  },
+  {
+    id: 'food',
+    emoji: '🍝',
+    name: 'Food',
+    questions: [
+      'What is your favourite food?',
+      'Do you enjoy cooking? Why or why not?',
+      'How often do you eat at restaurants?',
+      'Has your diet changed over the years?',
+    ],
+  },
+
+  // ── Extended bank (curveballs to keep mocks fresh) ────────────────
   {
     id: 'ai',
     emoji: '🤖',
@@ -55,17 +147,6 @@ export const IELTS_PART1_TOPICS: Part1Topic[] = [
     ],
   },
   {
-    id: 'hometown',
-    emoji: '🏘️',
-    name: 'Hometown',
-    questions: [
-      'Where is your hometown?',
-      'What do you like most about it?',
-      'Has it changed much in recent years?',
-      'Would you like to live there in the future?',
-    ],
-  },
-  {
     id: 'music',
     emoji: '🎵',
     name: 'Music',
@@ -77,17 +158,6 @@ export const IELTS_PART1_TOPICS: Part1Topic[] = [
     ],
   },
   {
-    id: 'food',
-    emoji: '🍝',
-    name: 'Food',
-    questions: [
-      'What is your favourite food?',
-      'Do you enjoy cooking? Why or why not?',
-      'How often do you eat at restaurants?',
-      'Has your diet changed over the years?',
-    ],
-  },
-  {
     id: 'mobile-phones',
     emoji: '📱',
     name: 'Mobile phones',
@@ -96,28 +166,6 @@ export const IELTS_PART1_TOPICS: Part1Topic[] = [
       'Which apps do you use the most?',
       'Could you live for a day without your phone?',
       'How has your phone changed your daily routine?',
-    ],
-  },
-  {
-    id: 'travel',
-    emoji: '✈️',
-    name: 'Travel',
-    questions: [
-      'Do you enjoy travelling?',
-      'Where was the last place you visited?',
-      'Do you prefer beach destinations or cities?',
-      'Where would you most like to travel to next?',
-    ],
-  },
-  {
-    id: 'reading',
-    emoji: '📚',
-    name: 'Reading',
-    questions: [
-      'Do you read books often?',
-      'What kind of books do you enjoy?',
-      'Do you prefer print or digital books?',
-      'Did you read more when you were younger?',
     ],
   },
   {
@@ -195,17 +243,6 @@ export const IELTS_PART1_TOPICS: Part1Topic[] = [
       'Do you take naps during the day?',
       'Are you a light or deep sleeper?',
       'What do you do if you cannot fall asleep?',
-    ],
-  },
-  {
-    id: 'work-or-study',
-    emoji: '💼',
-    name: 'Work or study',
-    questions: [
-      'Do you work or are you a student?',
-      'What do you most enjoy about it?',
-      'What would you change about your job or studies?',
-      'Where do you see yourself in five years?',
     ],
   },
   {
