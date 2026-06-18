@@ -155,6 +155,11 @@ export default function ClipComprehensionSlide({ slide }: Props) {
   const [pickedIdx, setPickedIdx] = useState<number | null>(null);
   const [answeredByIdx, setAnsweredByIdx] = useState<Map<number, AnsweredCard>>(new Map());
   const [videoOpen, setVideoOpen] = useState(false);
+  // Summary is only shown when the player explicitly taps "Complete" on
+  // the LAST card's feedback view. Otherwise answering the last question
+  // would auto-jump to the results without letting the player see whether
+  // their final answer was correct.
+  const [summaryShown, setSummaryShown] = useState(false);
 
   const backGradients = useMemo(
     () => questions.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
@@ -186,14 +191,16 @@ export default function ClipComprehensionSlide({ slide }: Props) {
     });
   }
   function nextCard() {
-    // Clear current pick first so the bottom strip update is visible,
-    // then auto-pick a random unanswered card (if any remain) so the
-    // flow feels continuous — no manual deck-tap between questions.
-    setPickedIdx(null);
     const remaining = Array.from({ length: total }, (_, i) => i).filter(i => !answeredByIdx.has(i));
-    if (remaining.length === 0) return;
-    // Defer the new pick so the React commit between "card moves down"
-    // and "new card appears" is observable.
+    // No more cards: this CTA was "Complete" — reveal the summary now.
+    if (remaining.length === 0) {
+      setPickedIdx(null);
+      setSummaryShown(true);
+      return;
+    }
+    // Otherwise clear, then auto-pick the next random unanswered so the
+    // bottom-strip animation is visible between questions.
+    setPickedIdx(null);
     setTimeout(() => {
       const pick = remaining[Math.floor(Math.random() * remaining.length)];
       setPickedIdx(pick);
@@ -203,6 +210,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
     setPickedIdx(null);
     setAnsweredByIdx(new Map());
     setDeckOrder(shuffleIndices(total));
+    setSummaryShown(false);
   }
 
   // ── Empty state (no questions configured) ─────────────────────────
@@ -280,7 +288,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
       {/* Main */}
       <div className="flex-1 flex items-center justify-center p-6 min-h-0">
 
-        {allAnswered ? (
+        {summaryShown ? (
           // ── Score summary ─────────────────────────────────────────
           <div className="text-center space-y-4 max-w-md">
             <p className="text-7xl">🎯</p>
@@ -323,7 +331,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
                   onClick={nextCard}
                   className="px-6 py-2.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] text-white rounded-full text-sm font-bold shadow-lg shadow-red-900/30 active:scale-95"
                 >
-                  {answeredByIdx.size === total ? '🎯 See score' : '🎴 Next question'}
+                  {answeredByIdx.size === total ? '🎯 Complete' : '🎴 Next question'}
                 </button>
               </div>
             )}
@@ -367,7 +375,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
       </div>
 
       {/* ── Bottom strip: answered cards face-up ─────────────────────── */}
-      {answeredByIdx.size > 0 && !allAnswered && (
+      {answeredByIdx.size > 0 && !summaryShown && (
         <div className="flex-shrink-0 border-t border-white/15 bg-black/30 backdrop-blur px-5 py-3 overflow-x-auto">
           <div className="flex items-end gap-4">
             <div className="flex-shrink-0 pr-2 pb-2">
