@@ -205,16 +205,43 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   const timings      = useRef(buildBlankTimings(blanksData, blankLineIdx, lineTimings.current, DEFAULT_DURATION));
 
   // Apply pre-supplied timings (from clipData or captions) if any.
+  // We accept partial / mismatched arrays so the sync isn't lost entirely
+  // when an admin script changes the dialogue line count without also
+  // updating timings (the symptom: 25 lines + 33 stale timings would
+  // previously fall back to weight-based estimation across the whole
+  // video, making the cursor wildly out of sync).
   useEffect(() => {
     const supplied = slide.clipData?.timings;
-    if (supplied && supplied.length === totalLines) {
-      const lt = supplied.slice();
+    if (supplied && supplied.length > 0) {
+      let lt: number[];
+      if (supplied.length === totalLines) {
+        lt = supplied.slice();
+      } else if (supplied.length > totalLines) {
+        // Too many timings — truncate to the first totalLines entries.
+        // This handles the common case where lines were merged but the
+        // timings array was left unchanged.
+        lt = supplied.slice(0, totalLines);
+      } else {
+        // Too few timings — use what we have, extrapolate the rest at
+        // the cadence of the last known gap so the cursor still moves
+        // forward at a believable speed.
+        lt = supplied.slice();
+        const last = lt[lt.length - 1] ?? 0;
+        const prev = lt[lt.length - 2] ?? Math.max(0, last - 6);
+        const gap  = Math.max(3, last - prev);
+        for (let i = lt.length; i < totalLines; i++) {
+          lt.push(lt[i - 1] + gap);
+        }
+      }
       const let_ = buildLineEndTimes(dialogueLines, lt, clipDurationRef.current);
       lineTimings.current  = lt;
       lineEndTimes.current = let_;
       timings.current      = buildBlankTimings(blanksData, blankLineIdx, lt, clipDurationRef.current);
       timingsLoadedRef.current = true;
-      setSyncStatus('manual');
+      // Status reflects whether the supplied data perfectly covers the
+      // dialogue — 'manual' for exact match, 'estimated' otherwise so
+      // the teacher knows the sync may need a ± nudge.
+      setSyncStatus(supplied.length === totalLines ? 'manual' : 'estimated');
     } else {
       setSyncStatus('estimated');
     }
