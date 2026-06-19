@@ -5,6 +5,7 @@
 // dialogue text — we inject {{blank}} at one occurrence per word.
 const admin = require('firebase-admin');
 const fs = require('fs');
+const { backupLessonDoc } = require('./_lessonBackup');
 
 const json = fs.readFileSync('C:/Users/UsuarioPC/Downloads/friendly-scheduling-firebase-adminsdk-fbsvc-cb5f5ea061.json', 'utf8');
 admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
@@ -129,6 +130,7 @@ function buildDialogueWithBlanks(lines, targets) {
 }
 
 (async () => {
+  await backupLessonDoc(db, LESSON_ID, 'before-cefr-vocab-rewrite');
   const ref = db.collection('movieLessons').doc(LESSON_ID);
   const snap = await ref.get();
   if (!snap.exists) { console.error('Lesson not found'); process.exit(1); }
