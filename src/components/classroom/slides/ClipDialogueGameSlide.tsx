@@ -104,7 +104,14 @@ function buildBlankTimings(
 ): number[] {
   return blanksData.map((_, i) => {
     const li = blankLineIdx[i] ?? 0;
-    const nextStart = li + 1 < lineTimings.length ? lineTimings[li + 1] : Math.min(lineTimings[li] + 6, dur);
+    // For blanks on the LAST dialogue line (or when timings are
+    // missing) return Infinity so no programmatic pause ever fires —
+    // tick() skips any non-finite timing. The video then plays to its
+    // natural clipData.endTime, letting the student hear the entire
+    // final line. The hard +6 s fallback used here previously cut off
+    // long dramatic closing lines.
+    if (lineTimings.length === 0 || li + 1 >= lineTimings.length) return Infinity;
+    const nextStart = lineTimings[li + 1];
     // Guarantee at least 2.5 s of audio for the blank line even if
     // back-to-back subtitles would otherwise trigger too early.
     return Math.max(lineTimings[li] + 2.5, nextStart + POST_NEXT_PAD);
