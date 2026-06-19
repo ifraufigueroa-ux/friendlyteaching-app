@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
 import { IELTS_CUE_CARDS, type CueCard } from '@/lib/data/ieltsCueCards';
 import { IELTS_PART1_TOPICS, IELTS_PART1_CORE_TOPIC_IDS, type Part1Topic } from '@/lib/data/ieltsPart1Topics';
+import { IELTS_PART3_QUESTIONS, type IELTSBand, type Part3Question } from '@/lib/data/ieltsPart3Questions';
 
 type Part = 1 | 2 | 3;
 type Part2Phase = 'idle' | 'revealed' | 'prep' | 'speaking' | 'done';
@@ -75,6 +76,16 @@ const BACK_GRADIENTS = [
   'from-[#C8A8DC] via-[#9B7CB8] to-[#5A3D7A]',
   'from-[#5A3D7A] via-[#9B5DE5] to-[#7B5EA7]',
 ];
+
+// ─── Band styling (Part 3 picker) ────────────────────────────────────
+// Cool → warm progression from B6 (entry) to B9 (expert) so the visual
+// difficulty cue matches the cognitive load.
+const BAND_STYLES: Record<IELTSBand, { gradient: string; label: string; tagline: string }> = {
+  6: { gradient: 'from-emerald-400 to-teal-500',                label: 'Foundation', tagline: 'Concrete · personal'        },
+  7: { gradient: 'from-sky-400 to-blue-600',                    label: 'Competent',  tagline: 'Compare · explain change'   },
+  8: { gradient: 'from-violet-500 to-purple-600',               label: 'Advanced',   tagline: 'Abstract · hypothetical'    },
+  9: { gradient: 'from-amber-400 via-rose-500 to-fuchsia-600',  label: 'Expert',     tagline: 'Speculative · philosophical' },
+};
 
 // ─── Cue card view (face-down + face-up, 3D flip) ─────────────────────
 
@@ -343,6 +354,28 @@ export default function IELTSSpeakingMocksPage() {
     setP1Topic(null);
     setP1MockQueue(null);
     setP1MockIdx(0);
+  }
+
+  // Part 3 random question by band
+  const [p3Question, setP3Question] = useState<Part3Question | null>(null);
+  const [p3RollKey, setP3RollKey]   = useState(0);
+  const [p3Streak, setP3Streak]     = useState(0); // total questions drawn in this session
+
+  function pickP3Question(band: IELTSBand) {
+    // Avoid serving the exact same question back-to-back at the same band.
+    const all = IELTS_PART3_QUESTIONS.filter(q => q.band === band);
+    const pool = p3Question && p3Question.band === band
+      ? all.filter(q => q.question !== p3Question.question)
+      : all;
+    const final = pool.length > 0 ? pool : all;
+    const next = final[Math.floor(Math.random() * final.length)];
+    setP3Question(next);
+    setP3RollKey(k => k + 1);
+    setP3Streak(n => n + 1);
+  }
+
+  function clearP3Question() {
+    setP3Question(null);
   }
 
   // Part 2 state
@@ -761,6 +794,14 @@ export default function IELTSSpeakingMocksPage() {
         {/* ── Part 3 ──────────────────────────────────────────────── */}
         {part === 3 && (
           <div className="flex flex-col items-center gap-6">
+            <style>{`
+              @keyframes p3QuestionIn {
+                0%   { opacity: 0; transform: translateY(12px) scale(0.96); }
+                60%  { opacity: 1; transform: translateY(0)    scale(1.02); }
+                100% { opacity: 1; transform: translateY(0)    scale(1);    }
+              }
+            `}</style>
+
             <div className="w-full max-w-xl bg-white rounded-2xl shadow-md p-6 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-widest">Part 3 · Discussion</p>
@@ -768,21 +809,74 @@ export default function IELTSSpeakingMocksPage() {
               </div>
               <h2 className="text-xl font-bold text-[#2D1B4E]">Two-way abstract discussion</h2>
               <p className="text-sm text-gray-600 leading-relaxed">
-                The examiner asks more abstract questions related to the Part 2 topic.
-                It is a real dialogue: the candidate can ask for clarification and give
-                extended opinions. Duration: <strong>4-5 minutes</strong>.
+                Tap a band to draw a real Part 3 question at that difficulty. Higher bands
+                push the student into more abstract, hypothetical territory.
+                Duration: <strong>4-5 minutes</strong>.
               </p>
-              <div className="bg-[#F9F5FF] rounded-xl p-3 mt-2">
-                <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest mb-1.5">Question types</p>
-                <ul className="space-y-1 text-sm text-gray-700">
-                  <li>• <strong>Comparison</strong> — &ldquo;How is X different from Y?&rdquo;</li>
-                  <li>• <strong>Cause &amp; effect</strong> — &ldquo;Why do people prefer ___ nowadays?&rdquo;</li>
-                  <li>• <strong>Prediction</strong> — &ldquo;Do you think ___ will change in the future?&rdquo;</li>
-                  <li>• <strong>Opinion</strong> — &ldquo;Some people say ___. What do you think?&rdquo;</li>
-                  <li>• <strong>Society</strong> — &ldquo;How does ___ affect society?&rdquo;</li>
-                </ul>
-              </div>
             </div>
+
+            {/* Band picker — 4 buttons, easy → hard */}
+            <div className="w-full max-w-2xl">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {([6, 7, 8, 9] as IELTSBand[]).map(b => {
+                  const style = BAND_STYLES[b];
+                  const active = p3Question?.band === b;
+                  return (
+                    <button
+                      key={b}
+                      onClick={() => pickP3Question(b)}
+                      className={`relative overflow-hidden rounded-2xl p-4 text-left text-white shadow-lg shadow-black/10 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all bg-gradient-to-br ${style.gradient} ${active ? 'ring-4 ring-white' : ''}`}
+                    >
+                      <div className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{style.label}</div>
+                      <div className="text-3xl font-extrabold leading-none mt-1">Band {b}</div>
+                      <div className="text-[10px] font-medium opacity-80 mt-2 leading-snug">{style.tagline}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-center text-[11px] text-gray-400 mt-3">
+                {IELTS_PART3_QUESTIONS.length} questions in the bank
+                {p3Streak > 0 && <> · drawn this session: <strong className="text-[#5A3D7A]">{p3Streak}</strong></>}
+              </p>
+            </div>
+
+            {/* Drawn question */}
+            {p3Question && (
+              <div className="w-full max-w-xl space-y-3" key={`q3-${p3RollKey}`}>
+                <div
+                  className={`relative rounded-2xl p-6 text-white shadow-xl shadow-black/15 overflow-hidden bg-gradient-to-br ${BAND_STYLES[p3Question.band].gradient}`}
+                  style={{ animation: 'p3QuestionIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+                >
+                  <div className="flex items-center justify-between mb-4 gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.25em] bg-white/20 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                      Band {p3Question.band} · {BAND_STYLES[p3Question.band].label}
+                    </span>
+                    <span className="text-[11px] font-semibold opacity-80 inline-flex items-center gap-1.5">
+                      <span className="text-base leading-none">{p3Question.emoji}</span>
+                      <span className="hidden sm:inline">{p3Question.topic}</span>
+                    </span>
+                  </div>
+                  <p className="text-xl md:text-2xl font-serif leading-snug">
+                    &ldquo;{p3Question.question}&rdquo;
+                  </p>
+                </div>
+
+                <div className="flex gap-2 justify-center flex-wrap">
+                  <button
+                    onClick={() => pickP3Question(p3Question.band)}
+                    className="px-4 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+                  >
+                    🔀 Another Band {p3Question.band}
+                  </button>
+                  <button
+                    onClick={clearP3Question}
+                    className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
 
             <TimedPartPanel
               durationSec={PART3_SECONDS}
