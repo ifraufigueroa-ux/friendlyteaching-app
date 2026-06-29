@@ -66,17 +66,17 @@ export function useStudents() {
           // "Andrée Barraza"), keep only the longer/more-complete record.
           const norm = (n: string) => (n ?? '').toLowerCase().trim();
           const deduped: FTUser[] = [];
-          for (const s of approvedRaw.sort((a, b) =>
+          for (const s of approvedRaw.sort((a: FTUser, b: FTUser) =>
             (b.fullName ?? '').length - (a.fullName ?? '').length, // longest first
           )) {
             const sn = norm(s.fullName ?? '');
-            const absorbed = deduped.some(existing => {
+            const absorbed = deduped.some((existing: FTUser) => {
               const en = norm(existing.fullName ?? '');
               return en.startsWith(sn) || sn.startsWith(en);
             });
             if (!absorbed) deduped.push(s);
           }
-          setStudents(deduped.sort((a, b) =>
+          setStudents(deduped.sort((a: FTUser, b: FTUser) =>
             (a.fullName ?? '').localeCompare(b.fullName ?? '', 'es'),
           ));
 

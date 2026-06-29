@@ -7,6 +7,7 @@ import {
   collection, query, where, onSnapshot, addDoc, updateDoc,
   deleteDoc, doc, serverTimestamp,
   type QuerySnapshot, type QueryDocumentSnapshot, type DocumentData,
+  type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { MovieLesson, Slide, LessonLevel, ClipData } from '@/types/firebase';
@@ -51,7 +52,7 @@ export function useMovieLessons(_teacherId?: string) {
           setLoading(false);
           setSnapshots(n => n + 1);
         },
-        (err) => {
+        (err: FirestoreError) => {
           if (!mounted) return;
           console.error('[useMovieLessons] onSnapshot error:', err.code, err.message);
           setError(`${err.code}: ${err.message}`);

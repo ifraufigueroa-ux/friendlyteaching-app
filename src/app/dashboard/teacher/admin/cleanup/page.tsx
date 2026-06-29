@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   collection, query, where, getDocs,
   writeBatch, doc,
+  type QueryDocumentSnapshot, type DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
@@ -38,15 +39,15 @@ export default function CleanupPage() {
       const snap = await getDocs(
         query(collection(db, 'bookings'), where('teacherId', '==', teacherId))
       );
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() } as Booking));
+      type BookingWithId = Booking & { id: string };
+      const all: BookingWithId[] = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as BookingWithId));
 
       // Group by slot key (dow-hour-minute-studentName)
-      type BookingWithId = Booking & { id: string };
       const groups = new Map<string, BookingWithId[]>();
-      all.forEach(b => {
+      all.forEach((b: BookingWithId) => {
         const key = `${b.dayOfWeek}-${b.hour}-${b.minute ?? 0}-${b.studentName}`;
         const arr = groups.get(key) ?? [];
-        arr.push(b as BookingWithId);
+        arr.push(b);
         groups.set(key, arr);
       });
 
