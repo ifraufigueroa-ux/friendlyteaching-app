@@ -267,6 +267,7 @@ export default function HomePage() {
                     type: 'evaluation_request',
                     to: 'friendlyteaching.cl@gmail.com',
                     studentName: formData.nombre,
+                    studentEmail: formData.email,
                     telefono: formData.telefono,
                     edad: formData.edad,
                     nivel: formData.nivel,

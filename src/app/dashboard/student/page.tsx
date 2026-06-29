@@ -13,6 +13,7 @@ import { useLevelHistory } from '@/hooks/useLevelHistory';
 import { SkillRadarChart } from '@/components/students/SkillRadarChart';
 import { LevelTimeline } from '@/components/students/LevelTimeline';
 import { useGamification } from '@/hooks/useGamification';
+import { useStudentPlacementAssignments } from '@/hooks/usePlacementAssignments';
 import { LessonsGridSkeleton, StatCardSkeleton } from '@/components/ui/Skeleton';
 import XpBar from '@/components/gamification/XpBar';
 import BadgeGrid from '@/components/gamification/BadgeGrid';
@@ -20,6 +21,8 @@ import StreakDisplay from '@/components/gamification/StreakDisplay';
 import BadgeUnlockToast from '@/components/gamification/BadgeUnlockToast';
 import WordOfTheDay from '@/components/gamification/WordOfTheDay';
 import type { Booking } from '@/types/firebase';
+import { useStudentLessonPlans, type LessonPlan } from '@/hooks/useLessonPlans';
+import { useStudentClassHistory, type ClassHistoryEntry } from '@/hooks/useClassHistory';
 
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -49,6 +52,106 @@ function levelsUpTo(level: string): string[] {
   return idx === -1 ? LEVELS_ORDER : LEVELS_ORDER.slice(0, idx + 1);
 }
 
+// ── Student class counter ─────────────────────────────────────────
+
+function getEntryDate(entry: ClassHistoryEntry): Date {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = entry.date as any;
+  return typeof raw?.toDate === 'function' ? raw.toDate() : new Date(raw?.seconds ? raw.seconds * 1000 : 0);
+}
+
+interface ClassDotPopupProps {
+  entry: ClassHistoryEntry;
+  onClose: () => void;
+}
+
+function ClassDotPopup({ entry, onClose }: ClassDotPopupProps) {
+  const date = getEntryDate(entry);
+  const dateStr = date.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const topics = entry.notes?.covered?.trim();
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl p-5 w-full max-w-xs"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-bold text-[#5A3D7A]">Detalle de clase</p>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        </div>
+        <div className="space-y-2 text-sm">
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Fecha</p>
+            <p className="text-gray-700 capitalize">{dateStr}</p>
+          </div>
+          {topics ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Temas</p>
+              <p className="text-gray-700">{topics}</p>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-xs italic">Sin temas registrados aún.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface StudentPlanCardProps {
+  plan: LessonPlan;
+  entries: ClassHistoryEntry[];
+}
+
+function StudentPlanCard({ plan, entries }: StudentPlanCardProps) {
+  const [popupEntry, setPopupEntry] = useState<ClassHistoryEntry | null>(null);
+  const total = plan.totalClasses;
+  const done = Math.min(entries.length, total);
+  const planName = plan.planName || `Plan de ${plan.totalClasses} clases`;
+
+  return (
+    <>
+      <div className="glass-card rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-bold text-[#5A3D7A]">{planName}</p>
+          <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            {done}/{total}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {Array.from({ length: total }).map((_, i) => {
+            const entry = entries[i];
+            const isCompleted = i < done && !!entry;
+            return (
+              <button
+                key={i}
+                title={isCompleted ? 'Ver detalle' : undefined}
+                disabled={!isCompleted}
+                onClick={() => isCompleted && setPopupEntry(entry)}
+                className={`w-5 h-5 rounded-full transition-transform ${
+                  isCompleted
+                    ? 'bg-green-400 cursor-pointer hover:scale-110 active:scale-95'
+                    : 'bg-gray-200 cursor-default'
+                }`}
+              />
+            );
+          })}
+        </div>
+        {done > 0 && (
+          <p className="text-[10px] text-gray-400">🟢 {done} registrada{done !== 1 ? 's' : ''} · toca un punto para ver el detalle</p>
+        )}
+      </div>
+      {popupEntry && (
+        <ClassDotPopup entry={popupEntry} onClose={() => setPopupEntry(null)} />
+      )}
+    </>
+  );
+}
+
 export default function StudentDashboardPage() {
   const { profile, firebaseUser } = useAuthStore();
   const uid = firebaseUser?.uid ?? '';
@@ -66,6 +169,10 @@ export default function StudentDashboardPage() {
   const { averageScores: skillScores } = useSkillAssessments(uid, teacherUid);
   const { history: levelHistory } = useLevelHistory(uid, teacherUid);
   const { gamification: gam, newBadges, dismissBadges, recordDailyLogin, recordWordOfDay } = useGamification(uid);
+  const { assignments: placementAssignments } = useStudentPlacementAssignments(uid);
+  const studentName = profile?.fullName ?? '';
+  const { plans: myPlans, loading: plansLoading } = useStudentLessonPlans(uid, teacherUid, studentName);
+  const { history: myClassHistory, loading: classHistoryLoading } = useStudentClassHistory(uid, teacherUid, studentName);
 
   // Record daily login XP (once)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,7 +228,7 @@ export default function StudentDashboardPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-[#FFFCF7] flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--gradient-hero)' }}>
         <div className="glass-card rounded-2xl p-8 text-center max-w-md w-full shadow-glass-lg">
           <div className="text-5xl mb-4">⏳</div>
           <h2 className="text-xl font-bold text-[#5A3D7A] mb-2">Cuenta pendiente de aprobación</h2>
@@ -140,7 +247,7 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-mesh p-6">
+    <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>
 
       {/* ── Live session banner ── */}
       {activeSessions.map((session) => (
@@ -160,144 +267,134 @@ export default function StudentDashboardPage() {
         </Link>
       ))}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gradient-purple">Hola, {firstName} 👋</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Tu portal de aprendizaje de inglés</p>
-        </div>
-        {studentLevel && (
-          <span className={`text-sm font-bold px-3 py-1.5 rounded-full ${LEVEL_COLORS[studentLevel] ?? 'bg-gray-100 text-gray-600'}`}>
-            Nivel {studentLevel}
+      {/* Placement test banners */}
+      {placementAssignments.map((assignment) => (
+        <Link
+          key={assignment.id}
+          href={`/placement/${assignment.teacherId}?name=${encodeURIComponent(profile?.fullName ?? '')}&email=${encodeURIComponent(profile?.email ?? '')}&assignmentId=${assignment.id}`}
+          className="flex items-center gap-3 mb-4 px-4 py-3.5 rounded-xl text-white shadow-lg hover:opacity-90 transition-opacity group"
+          style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+        >
+          <span className="text-2xl flex-shrink-0">📋</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold">Test de nivel asignado</p>
+            <p className="text-xs opacity-75">Tu profesor te ha pedido completar el placement test.</p>
+          </div>
+          <span className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0 whitespace-nowrap">
+            Comenzar →
           </span>
-        )}
-      </div>
+        </Link>
+      ))}
 
-      {/* Gamification: XP bar + streak */}
-      {gam && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          <XpBar totalXp={gam.totalXp} level={gam.level} />
-          <StreakDisplay
-            currentStreak={gam.currentStreak}
-            longestStreak={gam.longestStreak}
-            weeklyXp={gam.weeklyXp}
-          />
-        </div>
-      )}
+      {/* ── ROW 1: Nivel + Racha | Próxima Lección ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
-          <p className="text-2xl font-bold text-[#5A3D7A]">{progressLoading ? '…' : completedLessons}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones completadas</p>
-        </div>
-        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
-          <p className={`text-2xl font-bold ${pendingHomework > 0 ? 'text-amber-500' : 'text-green-500'}`}>{pendingHomework}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Tareas pendientes</p>
-        </div>
-        <div className="glass-card rounded-2xl p-4 text-center stat-glow hover-lift">
-          <p className="text-2xl font-bold text-blue-600">{myLessons.length}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones disponibles</p>
-        </div>
-      </div>
-
-      {/* Next class banner */}
-      {nextBooking && (
-        <div className="bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-4 mb-6 shadow-glass-lg">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-white/80 font-medium uppercase tracking-wider mb-1">Próxima clase</p>
-              <p className="text-white font-bold text-lg">
-                {DAY_NAMES[nextBooking.dayOfWeek]} · {nextBooking.hour}:00 – {nextBooking.hour + 1}:00
-              </p>
-              {nextBooking.lessonId && (() => {
-                const l = myLessons.find(x => x.id === nextBooking.lessonId);
-                return l ? (
-                  <p className="text-white font-semibold text-sm mt-0.5 truncate">📚 {l.code} · {l.title}</p>
-                ) : null;
-              })()}
-              <p className="text-white/70 text-xs mt-0.5">
-                {nextBooking.isRecurring ? '🔁 Recurrente' : '📌 Clase única'}
-                {nextBooking.notes ? ` · ${nextBooking.notes}` : ''}
-              </p>
+        {/* Nivel + Racha card (spans 2/3) */}
+        <div className="md:col-span-2 glass-card rounded-2xl p-4">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              {studentLevel ? (
+                <span className={`text-sm font-bold px-3 py-1.5 rounded-full ${LEVEL_COLORS[studentLevel] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {studentLevel}
+                </span>
+              ) : null}
+              <div>
+                <p className="text-sm font-bold text-[#5A3D7A]">
+                  Hola, {firstName} 👋
+                </p>
+                <p className="text-xs text-gray-400">Tu portal de aprendizaje</p>
+              </div>
             </div>
-            {nextBooking.lessonId && (
-              <Link
-                href={`/classroom/${nextBooking.lessonId}`}
-                className="flex-shrink-0 px-5 py-2.5 bg-white text-[#5A3D7A] rounded-xl text-sm font-bold hover:bg-white/90 transition-colors shadow-sm"
-              >
-                Entrar →
-              </Link>
+            {/* Racha inline */}
+            {gam && (
+              <div className="flex items-center gap-1.5 bg-orange-50 px-3 py-1.5 rounded-xl flex-shrink-0">
+                <span className="text-base">🔥</span>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-orange-600 leading-none">{gam.currentStreak}</p>
+                  <p className="text-[9px] text-orange-400 leading-none mt-0.5">días</p>
+                </div>
+              </div>
             )}
           </div>
+          {/* XP bar */}
+          {gam ? (
+            <XpBar totalXp={gam.totalXp} level={gam.level} />
+          ) : (
+            <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+          )}
         </div>
-      )}
 
-      {/* Pending homework alert — with urgency */}
-      {pendingHomework > 0 && (() => {
-        const pendingHw = homework.filter(h => h.status === 'assigned' || h.status === 'pending');
-        const now = new Date();
-        // Find nearest deadline
-        const nearest = pendingHw.reduce((best, h) => {
-          const due = h.dueDate && typeof (h.dueDate as unknown as { toDate?: () => Date }).toDate === 'function'
-            ? (h.dueDate as unknown as { toDate: () => Date }).toDate()
-            : h.dueDate ? new Date((h.dueDate as unknown as { seconds: number }).seconds * 1000) : null;
-          if (!due) return best;
-          if (!best.date || due < best.date) return { date: due, title: h.title };
-          return best;
-        }, { date: null as Date | null, title: '' });
-        const hoursLeft = nearest.date ? Math.max(0, Math.floor((nearest.date.getTime() - now.getTime()) / (1000 * 60 * 60))) : null;
-        const isUrgent = hoursLeft !== null && hoursLeft < 24;
-        const isOverdue = hoursLeft !== null && hoursLeft === 0 && nearest.date && nearest.date < now;
-
-        return (
-          <div className={`rounded-2xl p-4 mb-6 shadow-glass border backdrop-blur-sm ${
-            isOverdue
-              ? 'bg-red-50/80 border-red-300/60'
-              : isUrgent
-                ? 'bg-orange-50/80 border-orange-300/60 animate-pulse'
-                : 'bg-amber-50/80 border-amber-200/60'
-          }`}>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className={`text-sm font-bold ${isOverdue ? 'text-red-700' : isUrgent ? 'text-orange-700' : 'text-amber-700'}`}>
-                  {isOverdue ? '🚨' : isUrgent ? '⏰' : '📝'} {pendingHomework} tarea{pendingHomework > 1 ? 's' : ''} pendiente{pendingHomework > 1 ? 's' : ''}
+        {/* Próxima Lección card (spans 1/3) */}
+        <div className="glass-card rounded-2xl p-4 flex flex-col justify-between">
+          <p className="text-xs font-bold text-[#9B7CB8] uppercase tracking-wider mb-2">Próxima Lección</p>
+          {nextBooking ? (
+            <>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[#5A3D7A]">
+                  {DAY_NAMES[nextBooking.dayOfWeek]}
                 </p>
-                {nearest.date && (
-                  <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-600 font-bold' : isUrgent ? 'text-orange-600' : 'text-amber-600'}`}>
-                    {isOverdue
-                      ? `¡"${nearest.title}" está vencida!`
-                      : isUrgent
-                        ? `"${nearest.title}" vence en ${hoursLeft}h`
-                        : `Próxima entrega: ${nearest.date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}`
-                    }
-                  </p>
-                )}
+                <p className="text-lg font-extrabold text-[#5A3D7A]">
+                  {nextBooking.hour}:00 – {nextBooking.hour + 1}:00
+                </p>
+                {nextBooking.lessonId && (() => {
+                  const l = myLessons.find(x => x.id === nextBooking.lessonId);
+                  return l ? (
+                    <p className="text-xs text-gray-500 mt-1 truncate">📚 {l.code} · {l.title}</p>
+                  ) : null;
+                })()}
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {nextBooking.isRecurring ? '🔁 Recurrente' : '📌 Clase única'}
+                </p>
               </div>
-              <Link href="/dashboard/student/homework"
-                className={`flex-shrink-0 px-4 py-2 text-white rounded-xl text-xs font-bold transition-colors ${
-                  isOverdue ? 'bg-red-500 hover:bg-red-600' : isUrgent ? 'bg-orange-500 hover:bg-orange-600' : 'bg-amber-500 hover:bg-amber-600'
-                }`}>
-                {isOverdue ? '¡Entregar!' : 'Ver tareas'}
+              {nextBooking.lessonId && (
+                <Link
+                  href={`/classroom/${nextBooking.lessonId}`}
+                  className="mt-3 w-full text-center px-3 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
+                >
+                  Entrar →
+                </Link>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-2">
+              <span className="text-2xl mb-1">📅</span>
+              <p className="text-xs text-gray-400">Sin clases agendadas</p>
+              <Link href="/dashboard/student/schedule" className="mt-2 text-xs font-semibold text-[#9B7CB8] hover:underline">
+                Ver horario →
               </Link>
             </div>
-          </div>
-        );
-      })()}
+          )}
+        </div>
+      </div>
 
-      {/* ── Word of the Day ── */}
+      {/* ── ROW 2: Stats (3 cards) ── */}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        <Link href="/dashboard/student/progress"
+          className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
+          <p className="text-xl md:text-2xl font-bold text-[#5A3D7A]">{progressLoading ? '…' : completedLessons}</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones Completadas</p>
+        </Link>
+        <Link href="/dashboard/student/homework"
+          className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
+          <p className={`text-xl md:text-2xl font-bold ${pendingHomework > 0 ? 'text-amber-500' : 'text-green-500'}`}>{pendingHomework}</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Tareas Pendientes</p>
+        </Link>
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
+          <p className="text-xl md:text-2xl font-bold text-blue-600">{myLessons.length}</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones Disponibles</p>
+        </div>
+      </div>
+
+      {/* ── ROW 3: Palabra del día ── */}
       {uid && (
-        <div className="mb-6">
-          <WordOfTheDay
-            studentId={uid}
-            recordWordOfDay={recordWordOfDay}
-          />
+        <div className="mb-3">
+          <WordOfTheDay studentId={uid} recordWordOfDay={recordWordOfDay} />
         </div>
       )}
 
-      {/* ── My Progress ── */}
+      {/* ── ROW 4: Mi progreso de inglés ── */}
       {(skillScores || studentLevel) && (
-        <div className="glass-card rounded-2xl overflow-hidden mb-6">
+        <div className="glass-card rounded-2xl overflow-hidden mb-3">
           <div className="px-4 pt-4 pb-2 flex items-center justify-between">
             <p className="font-bold text-gray-700 text-sm">📈 Mi progreso de inglés</p>
             <Link href="/dashboard/student/progress" className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
@@ -305,17 +402,12 @@ export default function StudentDashboardPage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-            {/* Level timeline (compact) */}
             {studentLevel && (
               <div className="px-4 py-4">
                 <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">Nivel CEFR</p>
-                <LevelTimeline
-                  history={levelHistory}
-                  currentLevel={studentLevel}
-                />
+                <LevelTimeline history={levelHistory} currentLevel={studentLevel} />
               </div>
             )}
-            {/* Skill radar (compact) */}
             {skillScores && (
               <div className="px-4 py-4">
                 <p className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Habilidades</p>
@@ -326,16 +418,15 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* Lessons grid */}
+      {/* ── ROW 5: Mis lecciones ── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider">Mis lecciones</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider">📚 Mis lecciones</h2>
           <Link href="/dashboard/student/progress" className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
             Ver progreso →
           </Link>
         </div>
 
-        {/* Search + level filter */}
         {!lessonsLoading && myLessons.length > 0 && (
           <div className="space-y-2 mb-4">
             <input
@@ -374,23 +465,27 @@ export default function StudentDashboardPage() {
         )}
 
         {lessonsLoading ? (
-          <LessonsGridSkeleton count={4} />
+          <div className="flex gap-3 overflow-hidden">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-48 flex-shrink-0 h-40 bg-white/60 rounded-2xl animate-pulse" />
+            ))}
+          </div>
         ) : myLessons.length === 0 ? (
           <div className="glass-card rounded-2xl p-10 text-center">
             <p className="text-3xl mb-3">📚</p>
             <p className="text-gray-500 text-sm">El profesor aún no ha publicado lecciones.</p>
           </div>
         ) : filteredLessons.length === 0 ? (
-          <div className="glass-card rounded-2xl p-8 text-center">
+          <div className="glass-card rounded-2xl p-6 text-center">
             <p className="text-2xl mb-2">🔍</p>
-            <p className="text-gray-500 text-sm">No hay lecciones que coincidan con tu búsqueda.</p>
+            <p className="text-gray-500 text-sm">No hay lecciones que coincidan.</p>
             <button onClick={() => { setSearch(''); setLevelFilter(''); }}
-              className="mt-3 text-xs font-semibold text-[#9B7CB8] underline">
+              className="mt-2 text-xs font-semibold text-[#9B7CB8] underline">
               Limpiar filtros
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide -mx-4 md:-mx-6 px-4 md:px-6">
             {filteredLessons.map(lesson => {
               const isCompleted = completedLessonIds.has(lesson.id);
               const isStarted = startedLessonIds.has(lesson.id);
@@ -398,30 +493,32 @@ export default function StudentDashboardPage() {
               const totalSlides = lesson.slides?.length ?? 0;
               const pct = isStarted && !isCompleted ? slidePercent(lesson.id, totalSlides) : null;
               return (
-                <div key={lesson.id} className="card-interactive rounded-2xl overflow-hidden">
-                  {/* Top progress bar */}
+                <div key={lesson.id} className="w-48 flex-shrink-0 snap-start card-interactive rounded-2xl overflow-hidden flex flex-col">
+                  {/* top colour bar */}
                   {isStarted && !isCompleted && pct !== null ? (
-                    <div className="h-1.5 w-full bg-gray-100 relative">
+                    <div className="h-1.5 w-full bg-gray-100 relative flex-shrink-0">
                       <div className="h-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
                     </div>
                   ) : (
-                    <div className={`h-1.5 w-full ${isCompleted ? 'bg-green-400' : 'bg-[#C8A8DC]'}`} />
+                    <div className={`h-1.5 w-full flex-shrink-0 ${isCompleted ? 'bg-green-400' : 'bg-[#C8A8DC]'}`} />
                   )}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="p-3 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-1 mb-1.5">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-gray-400 font-medium">{lesson.code}</p>
-                        <p className="text-sm font-bold text-[#5A3D7A] truncate mt-0.5">{lesson.title}</p>
+                        <p className="text-[10px] text-gray-400 font-medium">{lesson.code}</p>
+                        <p className="text-xs font-bold text-[#5A3D7A] line-clamp-2 mt-0.5 leading-tight">{lesson.title}</p>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${levelColor}`}>{lesson.level}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${levelColor}`}>{lesson.level}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
-                      <span>🎴 {totalSlides} slides</span>
-                      {lesson.duration && <span>⏱️ {lesson.duration} min</span>}
-                      {pct !== null && <span className="text-amber-500 font-semibold">{pct}% visto</span>}
+                    <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-2">
+                      <span>🎴 {totalSlides}</span>
+                      {lesson.duration && <span>⏱️ {lesson.duration}m</span>}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    {pct !== null && (
+                      <p className="text-[10px] text-amber-500 font-semibold mb-2">{pct}% visto</p>
+                    )}
+                    <div className="mt-auto">
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full block text-center mb-2 ${
                         isCompleted ? 'bg-green-100 text-green-700' :
                         isStarted ? 'bg-amber-100 text-amber-700' :
                         'bg-[#F0E5FF] text-[#5A3D7A]'
@@ -429,7 +526,7 @@ export default function StudentDashboardPage() {
                         {isCompleted ? '✅ Completada' : isStarted ? '⏳ En progreso' : '📖 Nueva'}
                       </span>
                       <Link href={`/classroom/${lesson.id}`}
-                        className="px-3 py-1.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-xs font-bold transition-colors">
+                        className="block w-full text-center px-2 py-1.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-[10px] font-bold transition-colors">
                         {isCompleted ? 'Repasar' : isStarted ? 'Continuar' : 'Abrir'}
                       </Link>
                     </div>
@@ -439,31 +536,6 @@ export default function StudentDashboardPage() {
             })}
           </div>
         )}
-      </div>
-
-      {/* Gamification: Badges */}
-      {gam && gam.badges.length > 0 && (
-        <div className="mb-6">
-          <BadgeGrid earnedBadges={gam.badges} />
-        </div>
-      )}
-
-      {/* Quick links */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-        <Link href="/dashboard/student/homework" className="glass-card rounded-2xl p-4 flex items-center gap-3 hover-lift">
-          <span className="text-2xl">📝</span>
-          <div>
-            <p className="text-sm font-bold text-[#5A3D7A]">Mis Tareas</p>
-            <p className="text-xs text-gray-400">{pendingHomework} pendiente{pendingHomework !== 1 ? 's' : ''}</p>
-          </div>
-        </Link>
-        <Link href="/dashboard/student/schedule" className="glass-card rounded-2xl p-4 flex items-center gap-3 hover-lift">
-          <span className="text-2xl">📅</span>
-          <div>
-            <p className="text-sm font-bold text-[#5A3D7A]">Mi Horario</p>
-            <p className="text-xs text-gray-400">{myBookings.length} clase{myBookings.length !== 1 ? 's' : ''} esta semana</p>
-          </div>
-        </Link>
       </div>
 
       {/* Badge unlock toast */}
