@@ -2,11 +2,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {
-  collection, doc, getDoc, getDocs, query, onSnapshot, updateDoc, setDoc, serverTimestamp,
+  collection, doc, getDoc, query, onSnapshot, updateDoc, setDoc, deleteDoc,
+  serverTimestamp, writeBatch,
   where, orderBy, type DocumentData, type QuerySnapshot, type QueryDocumentSnapshot,
   type FirestoreError,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { db, storage } from '@/lib/firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Lesson, Course } from '@/types/firebase';
 
 // ── Get a single lesson by ID ─────────────────────────────────
@@ -158,8 +160,13 @@ export async function toggleLessonPublished(lessonId: string, isPublished: boole
 // ── Delete lesson ─────────────────────────────────────────────
 
 export async function deleteLesson(lessonId: string) {
-  const { deleteDoc } = await import('firebase/firestore');
+  const { deleteDoc, updateDoc, increment } = await import('firebase/firestore');
+  const lessonSnap = await getDoc(doc(db, 'lessons', lessonId));
+  const courseId = lessonSnap.data()?.courseId as string | undefined;
   await deleteDoc(doc(db, 'lessons', lessonId));
+  if (courseId && courseId !== 'uncategorized') {
+    await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(-1) });
+  }
 }
 
 // ── Duplicate lesson ──────────────────────────────────────────
@@ -193,11 +200,12 @@ export async function createLesson(teacherId: string, data: {
   level: string;
   courseId?: string;
 }): Promise<string> {
-  const { collection: col, doc: newDoc, setDoc, serverTimestamp: sTs } = await import('firebase/firestore');
+  const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
+  const courseId = data.courseId ?? 'uncategorized';
   const ref = newDoc(col(db, 'lessons'));
   await setDoc(ref, {
     teacherId,
-    courseId: data.courseId ?? 'uncategorized',
+    courseId,
     unit: 1,
     lessonNumber: 1,
     code: data.code,
@@ -212,6 +220,9 @@ export async function createLesson(teacherId: string, data: {
     updatedAt: sTs(),
     lastEditedBy: teacherId,
   });
+  if (courseId !== 'uncategorized') {
+    await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(1) });
+  }
   return ref.id;
 }
 
@@ -226,11 +237,12 @@ export async function createLessonFromAI(teacherId: string, data: {
   slides: Record<string, unknown>[];
   courseId?: string;
 }): Promise<string> {
-  const { collection: col, doc: newDoc, setDoc, serverTimestamp: sTs } = await import('firebase/firestore');
+  const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
+  const courseId = data.courseId ?? 'uncategorized';
   const ref = newDoc(col(db, 'lessons'));
   await setDoc(ref, {
     teacherId,
-    courseId: data.courseId ?? 'uncategorized',
+    courseId,
     unit: 1,
     lessonNumber: 1,
     code: data.code,
@@ -246,6 +258,9 @@ export async function createLessonFromAI(teacherId: string, data: {
     updatedAt: sTs(),
     lastEditedBy: teacherId,
   });
+  if (courseId !== 'uncategorized') {
+    await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(1) });
+  }
   return ref.id;
 }
 
@@ -260,18 +275,18 @@ export async function createLessonFromPresentation(teacherId: string, data: {
   canvaMode?: boolean;
   canvaEmbed?: string;
 }): Promise<string> {
-  const { collection: col, doc: newDoc, setDoc, serverTimestamp: sTs } = await import('firebase/firestore');
+  const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
+  const courseId = data.courseId ?? 'uncategorized';
   const ref = newDoc(col(db, 'lessons'));
   await setDoc(ref, {
     teacherId,
-    courseId: data.courseId ?? 'uncategorized',
+    courseId,
     unit: 1,
     lessonNumber: 1,
     code: data.code,
     title: data.title,
     level: data.level,
     isPublished: false,
-    // A cover slide is created so the lesson is never empty
     slides: [{ type: 'cover', phase: 'pre', title: data.title, subtitle: data.code }],
     slidesJson: '[]',
     objectives: [],
@@ -283,6 +298,9 @@ export async function createLessonFromPresentation(teacherId: string, data: {
     updatedAt: sTs(),
     lastEditedBy: teacherId,
   });
+  if (courseId !== 'uncategorized') {
+    await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(1) });
+  }
   return ref.id;
 }
 
@@ -311,12 +329,47 @@ export function useCourses() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDocs(collection(db, 'courses'))
-      .then((snap: QuerySnapshot<DocumentData>) => {
-        setCourses(snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Course)));
-      })
-      .finally(() => setLoading(false));
+    const unsub = onSnapshot(
+      collection(db, 'courses'),
+      (snap: QuerySnapshot<DocumentData>) => {
+        const list = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Course));
+        list.sort((a: Course, b: Course) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
+        setCourses(list);
+        setLoading(false);
+      },
+      () => setLoading(false),
+    );
+    return () => unsub();
   }, []);
 
   return { courses, loading };
+}
+
+export async function deleteCourse(courseId: string): Promise<void> {
+  await deleteDoc(doc(db, 'courses', courseId));
+}
+
+export async function reorderCourses(orderedIds: string[]): Promise<void> {
+  const batch = writeBatch(db);
+  orderedIds.forEach((id, index) => {
+    batch.update(doc(db, 'courses', id), { sortOrder: index });
+  });
+  await batch.commit();
+}
+
+export async function uploadCourseCover(courseId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const storageRef = ref(storage, `courses/${courseId}/cover.${ext}`);
+  await uploadBytes(storageRef, file);
+  return getDownloadURL(storageRef);
+}
+
+export async function updateCourse(courseId: string, patch: {
+  title?: string;
+  level?: import('@/types/firebase').LessonLevel;
+  icon?: string;
+  description?: string;
+  coverImage?: string;
+}): Promise<void> {
+  await updateDoc(doc(db, 'courses', courseId), { ...patch, updatedAt: serverTimestamp() });
 }

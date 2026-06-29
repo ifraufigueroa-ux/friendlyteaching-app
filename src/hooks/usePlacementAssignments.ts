@@ -1,0 +1,123 @@
+// FriendlyTeaching.cl — usePlacementAssignments hook
+'use client';
+import { useEffect, useState } from 'react';
+import {
+  collection, doc, query, where, onSnapshot, setDoc, updateDoc, deleteDoc,
+  serverTimestamp, Timestamp,
+  type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot, type FirestoreError,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+
+export interface PlacementAssignment {
+  id: string;
+  teacherId: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  status: 'pending' | 'completed';
+  placementSessionId?: string;
+  createdAt: Timestamp;
+  completedAt?: Timestamp;
+}
+
+// ── Teacher: all assignments they created ─────────────────────
+
+export function usePlacementAssignments(teacherId: string) {
+  const [assignments, setAssignments] = useState<PlacementAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!teacherId) { setLoading(false); return; }
+
+    const q = query(
+      collection(db, 'placementAssignments'),
+      where('teacherId', '==', teacherId),
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap: QuerySnapshot<DocumentData>) => {
+        const list = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
+          id: d.id, ...d.data(),
+        } as PlacementAssignment));
+        list.sort((a: PlacementAssignment, b: PlacementAssignment) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const getMs = (x: PlacementAssignment) => { const r = x.createdAt as any; return r?.seconds ? r.seconds * 1000 : 0; };
+          return getMs(b) - getMs(a);
+        });
+        setAssignments(list);
+        setLoading(false);
+      },
+      (err: FirestoreError) => { console.error('usePlacementAssignments:', err.message); setLoading(false); },
+    );
+    return () => unsub();
+  }, [teacherId]);
+
+  return { assignments, loading };
+}
+
+// ── Student: their own pending assignments ────────────────────
+
+export function useStudentPlacementAssignments(studentId: string) {
+  const [assignments, setAssignments] = useState<PlacementAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!studentId) { setLoading(false); return; }
+
+    const q = query(
+      collection(db, 'placementAssignments'),
+      where('studentId', '==', studentId),
+      where('status', '==', 'pending'),
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap: QuerySnapshot<DocumentData>) => {
+        setAssignments(snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
+          id: d.id, ...d.data(),
+        } as PlacementAssignment)));
+        setLoading(false);
+      },
+      (err: FirestoreError) => { console.error('useStudentPlacementAssignments:', err.message); setLoading(false); },
+    );
+    return () => unsub();
+  }, [studentId]);
+
+  return { assignments, loading };
+}
+
+// ── CRUD ──────────────────────────────────────────────────────
+
+export async function createPlacementAssignment(data: {
+  teacherId: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+}): Promise<string> {
+  const ref = doc(collection(db, 'placementAssignments'));
+  await setDoc(ref, {
+    teacherId: data.teacherId,
+    studentId: data.studentId,
+    studentName: data.studentName,
+    studentEmail: data.studentEmail,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+export async function completePlacementAssignment(
+  assignmentId: string,
+  placementSessionId?: string,
+): Promise<void> {
+  await updateDoc(doc(db, 'placementAssignments', assignmentId), {
+    status: 'completed',
+    ...(placementSessionId ? { placementSessionId } : {}),
+    completedAt: serverTimestamp(),
+  });
+}
+
+export async function deletePlacementAssignment(assignmentId: string): Promise<void> {
+  await deleteDoc(doc(db, 'placementAssignments', assignmentId));
+}

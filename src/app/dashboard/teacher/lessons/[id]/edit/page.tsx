@@ -131,7 +131,7 @@ export default function EditLessonPage({ params }: PageProps) {
   // Loading states
   if (!isInitialized || loadingLesson) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#FFFCF7]">
+      <div className="h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
           <p className="text-[#9B7CB8] text-sm font-medium">Cargando editor...</p>
@@ -142,7 +142,7 @@ export default function EditLessonPage({ params }: PageProps) {
 
   if (error && !lesson) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#FFFCF7]">
+      <div className="h-screen flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm mx-4">
           <div className="text-4xl mb-3">😕</div>
           <h2 className="font-bold text-[#5A3D7A] mb-2">Error al cargar</h2>

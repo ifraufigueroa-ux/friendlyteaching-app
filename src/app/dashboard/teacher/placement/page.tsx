@@ -6,6 +6,10 @@ import Image from 'next/image';
 import { getAuth } from 'firebase/auth';
 import { usePlacementSessions, linkSessionToStudent as _linkSession } from '@/hooks/usePlacementSessions';
 import { useStudents } from '@/hooks/useStudents';
+import {
+  usePlacementAssignments, createPlacementAssignment,
+  deletePlacementAssignment, type PlacementAssignment,
+} from '@/hooks/usePlacementAssignments';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementSession, SectionScore } from '@/types/placement';
 
@@ -419,16 +423,127 @@ function SessionModal({
   );
 }
 
+// ── Assign test modal ─────────────────────────────────────────
+function AssignTestModal({
+  teacherId,
+  approvedStudents,
+  onClose,
+}: {
+  teacherId: string;
+  approvedStudents: { uid: string; fullName: string; email: string }[];
+  onClose: () => void;
+}) {
+  const [selectedUid, setSelectedUid] = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+  const [done, setDone]               = useState(false);
+
+  const selected = approvedStudents.find(s => s.uid === selectedUid);
+
+  async function handleAssign() {
+    if (!selected) return;
+    setSaving(true);
+    setError('');
+    try {
+      await createPlacementAssignment({
+        teacherId,
+        studentId: selected.uid,
+        studentName: selected.fullName,
+        studentEmail: selected.email,
+      });
+      setDone(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al asignar.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-white">
+        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-base font-bold text-white">Asignar placement test</p>
+            <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
+          </div>
+          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
+            El estudiante verá un aviso en su dashboard para completar el test.
+          </p>
+        </div>
+
+        <div className="p-6">
+          {done ? (
+            <div className="text-center py-4">
+              <p className="text-3xl mb-2">✅</p>
+              <p className="font-semibold text-[#5A3D7A]">Test asignado a {selected?.fullName}</p>
+              <p className="text-xs text-gray-400 mt-1">El estudiante verá el aviso al ingresar a su cuenta.</p>
+              <button onClick={onClose}
+                className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: '#5A3D7A' }}>
+                Cerrar
+              </button>
+            </div>
+          ) : (
+            <>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
+                Estudiante
+              </label>
+              {approvedStudents.length === 0 ? (
+                <p className="text-sm text-gray-400 mb-4">No hay estudiantes aprobados aún.</p>
+              ) : (
+                <select
+                  value={selectedUid}
+                  onChange={e => setSelectedUid(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+                >
+                  <option value="">Seleccionar estudiante...</option>
+                  {approvedStudents.map(s => (
+                    <option key={s.uid} value={s.uid}>{s.fullName}</option>
+                  ))}
+                </select>
+              )}
+
+              {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-3">{error}</p>}
+
+              <div className="flex gap-3">
+                <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAssign}
+                  disabled={!selectedUid || saving}
+                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
+                  style={{ background: '#5A3D7A' }}
+                >
+                  {saving ? '...' : 'Asignar'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────
 export default function PlacementDashboardPage() {
   const auth   = getAuth();
   const uid    = auth.currentUser?.uid ?? '';
 
   const { sessions, loading } = usePlacementSessions(uid);
-  const { pendingStudents }   = useStudents();
+  const { pendingStudents, students }   = useStudents();
+  const { assignments }                 = usePlacementAssignments(uid);
 
   const [search, setSearch]             = useState('');
   const [selectedSession, setSelected] = useState<PlacementSession | null>(null);
+  const [showAssignModal, setShowAssign] = useState(false);
+
+  const approvedStudents = (students ?? [])
+    .filter(s => s.status === 'approved')
+    .map(s => ({ uid: s.uid, fullName: s.fullName, email: s.email }));
 
   const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
   const testUrl = uid ? `${appUrl}/placement/${uid}` : '';
@@ -466,17 +581,25 @@ export default function PlacementDashboardPage() {
           <p className="text-sm mt-1" style={{ color: B.purpleMed }}>Grammar tests completed by prospective students</p>
         </div>
         {/* Share link pill */}
-        {testUrl && (
-          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
-            <span className="text-xs font-semibold" style={{ color: B.purple }}>Test link:</span>
-            <span className="text-xs truncate max-w-[180px]" style={{ color: B.purpleMed }}>{testUrl}</span>
-            <button onClick={() => navigator.clipboard.writeText(testUrl)}
-              className="text-xs font-bold px-2.5 py-1 rounded-lg transition-all hover:opacity-80"
-              style={{ background: B.purple, color: 'white' }}>
-              Copy
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setShowAssign(true)}
+            className="text-sm font-bold px-4 py-2.5 rounded-xl text-white transition-all hover:opacity-90"
+            style={{ background: B.purple }}>
+            + Asignar a estudiante
+          </button>
+          {testUrl && (
+            <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
+              <span className="text-xs font-semibold" style={{ color: B.purple }}>Test link:</span>
+              <span className="text-xs truncate max-w-[180px]" style={{ color: B.purpleMed }}>{testUrl}</span>
+              <button onClick={() => navigator.clipboard.writeText(testUrl)}
+                className="text-xs font-bold px-2.5 py-1 rounded-lg transition-all hover:opacity-80"
+                style={{ background: B.purple, color: 'white' }}>
+                Copy
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -496,6 +619,45 @@ export default function PlacementDashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Pending assignments */}
+      {assignments.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: B.purpleMed }}>
+            Tests asignados ({assignments.filter(a => a.status === 'pending').length} pendientes)
+          </p>
+          <div className="space-y-2">
+            {assignments.map((a: PlacementAssignment) => (
+              <div key={a.id} className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3"
+                style={{ background: a.status === 'completed' ? '#F0FDF4' : B.lavender, border: `1px solid ${a.status === 'completed' ? '#BBF7D0' : B.lavenderDark}` }}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 text-white"
+                    style={{ background: a.status === 'completed' ? '#16A34A' : B.purple }}>
+                    {a.studentName?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: B.purple }}>{a.studentName}</p>
+                    <p className="text-xs truncate" style={{ color: B.purpleMed }}>{a.studentEmail}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{ background: a.status === 'completed' ? '#DCFCE7' : B.lavenderDark, color: a.status === 'completed' ? '#15803D' : B.purple }}>
+                    {a.status === 'completed' ? '✓ Completado' : '⏳ Pendiente'}
+                  </span>
+                  <button
+                    onClick={() => deletePlacementAssignment(a.id)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors hover:bg-red-50 hover:text-red-500"
+                    style={{ color: B.purpleMed }}
+                    title="Eliminar asignación">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="mb-4">
@@ -594,6 +756,14 @@ export default function PlacementDashboardPage() {
           onClose={() => setSelected(null)}
           onLink={handleLink}
           pendingStudents={pendingStudents}
+        />
+      )}
+
+      {showAssignModal && (
+        <AssignTestModal
+          teacherId={uid}
+          approvedStudents={approvedStudents}
+          onClose={() => setShowAssign(false)}
         />
       )}
     </div>

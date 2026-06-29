@@ -3,7 +3,7 @@
 // URL: /placement/[teacherId]  — no login required
 
 import { useState, useCallback, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   collection, doc, setDoc, updateDoc,
@@ -101,11 +101,15 @@ function BrandStrip({ subtitle }: { subtitle?: string }) {
 }
 
 export default function PlacementTestPage() {
-  const { teacherId } = useParams<{ teacherId: string }>();
+  const { teacherId }  = useParams<{ teacherId: string }>();
+  const searchParams   = useSearchParams();
+  const prefilledName  = searchParams.get('name') ?? '';
+  const prefilledEmail = searchParams.get('email') ?? '';
+  const assignmentId   = searchParams.get('assignmentId') ?? '';
 
-  const [step, setStep]     = useState<Step>('landing');
-  const [name, setName]     = useState('');
-  const [email, setEmail]   = useState('');
+  const [step, setStep]     = useState<Step>(prefilledName && prefilledEmail ? 'instructions' : 'landing');
+  const [name, setName]     = useState(prefilledName);
+  const [email, setEmail]   = useState(prefilledEmail);
   const [phone, setPhone]   = useState('');
   const [formError, setFormError] = useState('');
 
@@ -153,6 +157,7 @@ export default function PlacementTestPage() {
       consecutiveErrors: 0,
       startedAt: Timestamp.fromDate(startTimeRef.current),
       createdAt: serverTimestamp(),
+      ...(assignmentId ? { assignmentId } : {}),
     }).then(() => ref.id).catch(() => ref.id);
     sessionPending.current = p;
     return p;
@@ -190,8 +195,8 @@ export default function PlacementTestPage() {
       const placedLevel   = determineLevel(sectionScores);
       const weakAreas     = computeWeakAreas(newAnswers);
       const learningProg  = generateLearningProgram(placedLevel, weakAreas);
-      ensureSession().then((sid) =>
-        updateDoc(doc(db, 'placementSessions', sid), {
+      ensureSession().then(async (sid) => {
+        await updateDoc(doc(db, 'placementSessions', sid), {
           status: stop ? 'stopped_by_ceiling' : 'completed',
           answers: newAnswers, totalAnswered: newAnswers.length,
           totalCorrect: newAnswers.filter((a) => a.correct).length,
@@ -199,8 +204,13 @@ export default function PlacementTestPage() {
           stoppedAtQuestion: stop ? q.id : null,
           placedLevel, sectionScores, weakAreas, learningProgram: learningProg,
           completedAt: serverTimestamp(), updatedAt: serverTimestamp(),
-        })
-      ).catch(() => setSaveError(true)).finally(() => setSaving(false));
+        });
+        // Auto-complete the assignment if the student came via a direct assignment link
+        if (assignmentId) {
+          const { completePlacementAssignment } = await import('@/hooks/usePlacementAssignments');
+          await completePlacementAssignment(assignmentId, sid).catch(() => {});
+        }
+      }).catch(() => setSaveError(true)).finally(() => setSaving(false));
       setStep('done');
       return;
     }
