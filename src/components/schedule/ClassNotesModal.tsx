@@ -11,24 +11,31 @@ const MOOD_OPTIONS: { value: ClassMood; label: string; emoji: string; color: str
   { value: 'regular', label: 'Regular', emoji: '😕', color: 'border-amber-400 bg-amber-50 text-amber-700' },
 ];
 
+type AttendanceValue = 'attended' | 'absent' | 'late';
+
 interface Props {
   studentName: string;
-  onSave: (notes: ClassNotes) => Promise<void>;
-  onSkip: () => void;
+  /** When true, shows the attendance selector and requires it before saving. */
+  requireAttendance?: boolean;
+  onSave: (notes: ClassNotes, attendance?: AttendanceValue) => Promise<void>;
+  onSkip: (attendance?: AttendanceValue) => void | Promise<void>;
 }
 
-export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
+export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip }: Props) {
   const [covered, setCovered] = useState('');
   const [performance, setPerformance] = useState('');
   const [nextClass, setNextClass] = useState('');
   const [homework, setHomework] = useState('');
   const [mood, setMood] = useState<ClassMood | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceValue | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const canProceed = !requireAttendance || attendance !== null;
+
   async function handleSave() {
-    // Require at least one field filled
+    if (!canProceed) return;
     if (!covered && !performance && !nextClass && !homework && !mood) {
-      onSkip();
+      await onSkip(attendance ?? undefined);
       return;
     }
     setSaving(true);
@@ -39,10 +46,15 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
       if (nextClass.trim()) notes.nextClass = nextClass.trim();
       if (homework.trim()) notes.homework = homework.trim();
       if (mood) notes.mood = mood;
-      await onSave(notes);
+      await onSave(notes, attendance ?? undefined);
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSkip() {
+    if (!canProceed) return;
+    await onSkip(attendance ?? undefined);
   }
 
   return (
@@ -57,16 +69,42 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
               <p className="text-xs text-gray-400 mt-0.5">Clase con {studentName}</p>
             </div>
             <button
-              onClick={onSkip}
-              className="text-xs text-gray-400 hover:text-gray-600 underline"
+              onClick={handleSkip}
+              disabled={!canProceed}
+              className="text-xs text-gray-400 hover:text-gray-600 underline disabled:opacity-40"
             >
-              Saltar
+              {requireAttendance ? 'Saltar notas' : 'Saltar'}
             </button>
           </div>
         </div>
 
         {/* Form */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+          {/* Attendance selector (only when requireAttendance) */}
+          {requireAttendance && (
+            <div>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+                Asistencia *
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {([
+                  { val: 'attended', label: '✅ Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
+                  { val: 'late',     label: '⏰ Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
+                  { val: 'absent',   label: '❌ Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
+                ] as const).map(({ val, label, active, inactive }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setAttendance(a => (a === val ? null : val))}
+                    className={`py-2 rounded-full text-xs font-semibold transition-colors ${attendance === val ? active : inactive}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Mood selector */}
           <div>
@@ -152,14 +190,15 @@ export function ClassNotesModal({ studentName, onSave, onSkip }: Props) {
         {/* Footer */}
         <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0 flex gap-3">
           <button
-            onClick={onSkip}
-            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
+            onClick={handleSkip}
+            disabled={saving || !canProceed}
+            className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-40"
           >
-            Saltar
+            {requireAttendance ? 'Saltar notas' : 'Saltar'}
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !canProceed}
             className="flex-1 py-2.5 bg-[#9B7CB8] hover:bg-[#7A5C97] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors"
           >
             {saving ? 'Guardando...' : '💾 Guardar notas'}

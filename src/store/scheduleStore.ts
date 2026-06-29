@@ -25,6 +25,13 @@ interface ScheduleState {
    */
   pendingClassNotes: { entryId: string; studentName: string } | null;
 
+  /**
+   * Set by SlotActionModal when the teacher clicks "Marcar como Completada".
+   * TeacherDashboardPage opens ClassNotesModal (with attendance) to handle the
+   * full save in one step — replacing the two-step CompletePanel flow.
+   */
+  pendingCompleteNotes: { bookingId: string; studentName: string; booking: Booking; teacherUid: string; weekStart: Date } | null;
+
   setWeekStart: (date: Date) => void;
   previousWeek: () => void;
   nextWeek: () => void;
@@ -40,6 +47,8 @@ interface ScheduleState {
   waitForDataRefresh: (maxWait?: number) => Promise<void>;
   /** Signal TeacherDashboardPage to open ClassNotesModal for a completed class. */
   setPendingClassNotes: (val: { entryId: string; studentName: string } | null) => void;
+  /** Signal TeacherDashboardPage to open the combined attendance+notes modal. */
+  setPendingCompleteNotes: (val: { bookingId: string; studentName: string; booking: Booking; teacherUid: string; weekStart: Date } | null) => void;
 }
 
 function getMonday(date: Date): Date {
@@ -57,6 +66,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   isBookingModalOpen: false,
   dataVersion: 0,
   pendingClassNotes: null,
+  pendingCompleteNotes: null,
 
   setWeekStart: (date) => set({ currentWeekStart: date }),
 
@@ -90,6 +100,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
 
   setPendingClassNotes: (val) => set({ pendingClassNotes: val }),
+  setPendingCompleteNotes: (val) => set({ pendingCompleteNotes: val }),
 
   waitForDataRefresh: (maxWait = 3000) => {
     const startVersion = get().dataVersion;

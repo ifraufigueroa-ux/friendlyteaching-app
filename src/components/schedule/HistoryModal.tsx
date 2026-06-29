@@ -31,6 +31,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
   const [range, setRange]               = useState<Range>('30');
   const [attendFilter, setAttendFilter] = useState<AttendFilter>('all');
   const [studentFilter, setStudentFilter] = useState('');
+  const [studentDropdownOpen, setStudentDropdownOpen] = useState(false);
   const [expandedId, setExpandedId]     = useState<string | null>(null);
   const [deletingId, setDeletingId]     = useState<string | null>(null);
   const [visible, setVisible]           = useState(false);
@@ -188,15 +189,35 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
             ))}
           </div>
 
-          {/* Student */}
-          <select
-            value={studentFilter}
-            onChange={(e) => setStudentFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 text-gray-600 outline-none hover:bg-gray-200 transition-colors cursor-pointer"
-          >
-            <option value="">Todos los estudiantes</option>
-            {studentNames.map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
+          {/* Student — custom dropdown to avoid native select overflowing off right edge */}
+          <div className="relative">
+            <button
+              onClick={() => setStudentDropdownOpen(o => !o)}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-1 max-w-[160px]"
+            >
+              <span className="truncate">{studentFilter || 'Todos los estudiantes'}</span>
+              <span className="flex-shrink-0 text-[9px] opacity-60">▾</span>
+            </button>
+            {studentDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 z-20 max-h-48 overflow-y-auto min-w-[180px]">
+                <button
+                  onClick={() => { setStudentFilter(''); setStudentDropdownOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-[11px] hover:bg-gray-50 transition-colors ${!studentFilter ? 'text-[#5A3D7A] font-semibold bg-[#F9F5FF]' : 'text-gray-600'}`}
+                >
+                  Todos los estudiantes
+                </button>
+                {studentNames.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => { setStudentFilter(n); setStudentDropdownOpen(false); }}
+                    className={`w-full text-left px-3 py-2 text-[11px] hover:bg-gray-50 transition-colors ${studentFilter === n ? 'text-[#5A3D7A] font-semibold bg-[#F9F5FF]' : 'text-gray-700'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* List */}

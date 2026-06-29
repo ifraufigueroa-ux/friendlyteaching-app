@@ -82,9 +82,10 @@ export default function TeacherDashboardPage() {
       return raw ? new Set<string>(JSON.parse(raw) as string[]) : new Set<string>();
     } catch { return new Set<string>(); }
   });
-  // Post-class notes modal state
+  // Post-class notes modal state (from carousel quick-record)
   const [pendingNotesEntryId, setPendingNotesEntryId] = useState<string | null>(null);
   const [pendingNotesStudentName, setPendingNotesStudentName] = useState<string>('');
+
 
   // ── Hooks (must be declared before useEffects that reference them) ──────────
   const effectiveUid = uid || auth.currentUser?.uid || '';
@@ -92,7 +93,7 @@ export default function TeacherDashboardPage() {
   const { homework } = useTeacherHomework(uid);
   const { progress } = useAllProgress(uid);
   const { lessons } = useLessons(uid, 'teacher');
-  const { bookings } = useBookings(uid, currentWeekStart);
+  const { bookings, loading: bookingsLoading } = useBookings(uid, currentWeekStart);
   const { history: classHistory, loading: historyLoading } = useClassHistory(effectiveUid);
 
   // Sync dismissedSlots → sessionStorage (persist across refreshes, reset next day)
@@ -140,6 +141,14 @@ export default function TeacherDashboardPage() {
     }
   }, [pendingClassNotes]);
 
+  // Clear any stale store signals when leaving the dashboard
+  useEffect(() => {
+    return () => {
+      useScheduleStore.getState().setPendingClassNotes(null);
+      useScheduleStore.getState().setPendingCompleteNotes(null);
+    };
+  }, []);
+
   // Helper: get calendar date for a given dow in the current week
   const getClassDate = useCallback((dow: number): Date => {
     const d = new Date(currentWeekStart);
@@ -173,6 +182,7 @@ export default function TeacherDashboardPage() {
       // for the carousel filter and the history drawer.
       const entryId = await recordClassSession({
         teacherId: tid,
+        studentId: booking.studentId ?? undefined,
         studentName: booking.studentName,
         dayOfWeek: booking.dayOfWeek,
         hour: booking.hour,
@@ -238,7 +248,9 @@ export default function TeacherDashboardPage() {
   const todayDow = today.getDay() === 0 ? 7 : today.getDay(); // 1=Mon…6=Sat
 
   // Shared dedup helper: picks one booking per hour slot for today,
-  // choosing the doc whose weekStart is closest to the current calendar week.
+  // restricted to bookings whose weekStart falls within THIS calendar week.
+  // Prevents past-week completed docs from showing as today's classes when
+  // the recurring series has no document for the current week.
   // statusFilter controls which statuses are included.
   const dedupeToday = useCallback((statusFilter: string[]): Booking[] => {
     const d = new Date();
@@ -246,26 +258,52 @@ export default function TeacherDashboardPage() {
     d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
     d.setHours(0, 0, 0, 0);
     const thisWeekMs = d.getTime();
+    const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    const TOLERANCE_MS = 12 * 60 * 60 * 1000;
 
-    // Key by hour AND minute so 10:00 and 10:30 are distinct slots
+    function getWsMs(b: Booking): number {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ws = b.weekStart as any;
+      return ws
+        ? typeof ws.toDate === 'function' ? ws.toDate().getTime()
+          : ws instanceof Date ? ws.getTime()
+          : (ws.seconds ?? 0) * 1000
+        : 0;
+    }
+
+    // Pass 1 — strict current-week window (prevents stale completed docs from
+    // appearing as pending, which was the original dedupeToday bug).
     const slotMap = new Map<string, { booking: Booking; diff: number }>();
     for (const b of bookings) {
       if (b.dayOfWeek !== todayDow || !statusFilter.includes(b.status)) continue;
-      const min = b.minute ?? 0;
-      const slotId = `${b.hour}-${min}`;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ws = b.weekStart as any;
-      const wsMs: number = ws
-        ? typeof ws.toDate === 'function'
-          ? ws.toDate().getTime()
-          : ws instanceof Date
-            ? ws.getTime()
-            : (ws.seconds ?? 0) * 1000
-        : 0;
-      const diff = Math.abs(wsMs - thisWeekMs);
+      const wsMs = getWsMs(b);
+      const signedDiff = wsMs - thisWeekMs;
+      if (signedDiff < -TOLERANCE_MS || signedDiff >= ONE_WEEK_MS) continue;
+      const slotId = `${b.hour}-${b.minute ?? 0}`;
+      const diff = Math.abs(signedDiff);
       const prev = slotMap.get(slotId);
       if (!prev || diff < prev.diff) slotMap.set(slotId, { booking: b, diff });
     }
+
+    // Pass 2 — for confirmed recurring slots with no current-week document (series
+    // expired or not yet seeded for this week), fall back to the nearest available
+    // confirmed doc so the carousel still shows the active recurring schedule.
+    // Capped at 8 weeks back to avoid ghost classes from deleted/moved schedules.
+    const MAX_FALLBACK_MS = 2 * ONE_WEEK_MS;
+    if (statusFilter.includes('confirmed')) {
+      const fallback = new Map<string, { booking: Booking; diff: number }>();
+      for (const b of bookings) {
+        if (b.dayOfWeek !== todayDow || b.status !== 'confirmed' || !b.isRecurring) continue;
+        const slotId = `${b.hour}-${b.minute ?? 0}`;
+        if (slotMap.has(slotId)) continue; // already covered by a current-week doc
+        const diff = Math.abs(getWsMs(b) - thisWeekMs);
+        if (diff > MAX_FALLBACK_MS) continue; // skip ghost bookings older than 8 weeks
+        const prev = fallback.get(slotId);
+        if (!prev || diff < prev.diff) fallback.set(slotId, { booking: b, diff });
+      }
+      fallback.forEach((entry, slotId) => slotMap.set(slotId, entry));
+    }
+
     return [...slotMap.values()]
       .map((e) => e.booking)
       .sort((a, b) => (a.hour * 60 + (a.minute ?? 0)) - (b.hour * 60 + (b.minute ?? 0)));
@@ -287,9 +325,11 @@ export default function TeacherDashboardPage() {
 
   // Right-panel source — full canonical set (shows all classes, marked or not)
   const todayAllBookings = todayCanonicalBookings;
+  // Only show the static fallback once Firestore has confirmed there are no real bookings.
+  // While loading, show nothing to avoid flashing stale fallback data.
   const todayScheduleFallback: ScheduleEntry[] = useMemo(
-    () => hasFirestoreBookings ? [] : getScheduleForDay(todayDow),
-    [hasFirestoreBookings, todayDow]
+    () => (!bookingsLoading && !hasFirestoreBookings) ? getScheduleForDay(todayDow) : [],
+    [bookingsLoading, hasFirestoreBookings, todayDow]
   );
 
   // Build the set of "dow-hour-minute" slots already recorded TODAY in classHistory.
@@ -407,7 +447,12 @@ export default function TeacherDashboardPage() {
 
             {/* Card body */}
             <div className="flex-1">
-              {carouselClasses.length === 0 ? (
+              {bookingsLoading ? (
+                <div className="flex flex-col gap-2 animate-pulse py-2">
+                  <div className="h-5 bg-white/10 rounded-full w-3/4" />
+                  <div className="h-3 bg-white/10 rounded-full w-1/2" />
+                </div>
+              ) : carouselClasses.length === 0 ? (
                 /* All done or no classes */
                 <div className="flex flex-col items-center justify-center py-4 gap-1">
                   {todayRecordedSlots.size > 0 || dismissedSlots.size > 0
@@ -511,7 +556,16 @@ export default function TeacherDashboardPage() {
               <p className="font-bold text-gray-700 text-sm">Clases de hoy</p>
               <span className="text-xs text-gray-400">{DAY_ES[today.getDay()]} {today.getDate()}</span>
             </div>
-            {todayAllBookings.length > 0 ? (
+            {bookingsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-gray-50 animate-pulse">
+                    <div className="w-12 h-3 bg-gray-200 rounded" />
+                    <div className="flex-1 h-3 bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : todayAllBookings.length > 0 ? (
               <div className="space-y-2">
                 {todayAllBookings.map((b) => {
                   const isCompleted = b.status === 'completed';
@@ -642,7 +696,7 @@ export default function TeacherDashboardPage() {
             {studentsOpen && <div className="flex flex-wrap gap-2 mt-3">
               {students.filter((s) => s.status === 'approved').map((s) => {
                 const isOpen = expandedStudent === s.uid;
-                const firstName = s.fullName.split(' ')[0];
+                const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Estudiante';
                 return (
                   <button
                     key={s.uid}
@@ -670,7 +724,7 @@ export default function TeacherDashboardPage() {
             {studentsOpen && expandedStudent && (() => {
               const s = students.find((st) => st.uid === expandedStudent && st.status === 'approved');
               if (!s) return null;
-              const firstName = s.fullName.split(' ')[0];
+              const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Estudiante';
               const rawPhone = s.phone ?? '';
               const digits = rawPhone.replace(/\D/g, '');
               const waPhone = digits.startsWith('56') ? digits : digits.startsWith('9') && digits.length === 9 ? `56${digits}` : digits;
@@ -735,7 +789,7 @@ export default function TeacherDashboardPage() {
         </button>
 
         {/* ── Weekly schedule ── */}
-        <div className="glass-card rounded-2xl overflow-hidden">
+        <div className="glass-card no-hover-lift rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="font-bold text-gray-700 text-sm">📅 Horario Semanal</p>
           </div>
@@ -751,7 +805,7 @@ export default function TeacherDashboardPage() {
         <HistoryModal teacherId={effectiveUid} onClose={() => setHistoryOpen(false)} />
       )}
 
-      {/* ── Post-class notes modal ── */}
+      {/* ── Post-class notes modal (from carousel quick-record) ── */}
       {pendingNotesEntryId && (
         <ClassNotesModal
           studentName={pendingNotesStudentName}
@@ -764,6 +818,7 @@ export default function TeacherDashboardPage() {
           }}
         />
       )}
+
     </div>
   );
 }

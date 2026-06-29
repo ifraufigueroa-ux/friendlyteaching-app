@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import {
   cancelBooking, completeBooking, updateBooking,
-  cancelFutureRecurringBookings, createBooking, deleteBooking,
+  cancelFutureRecurringBookings, cancelAllBookingsForSlot, createBooking, deleteBooking,
 } from '@/hooks/useBookings';
 import { blockSlot, unblockSlot } from '@/hooks/useSchedule';
 import { recordClassSession } from '@/hooks/useClassHistory';
@@ -89,8 +89,11 @@ export default function SlotActionModal() {
       dayOfWeek: booking.dayOfWeek,
       hour: booking.hour,
       minute: booking.minute ?? 0,
-      weekStart: currentWeekStart,     // Use the viewed week, not today's week
-      isRecurring: booking.isRecurring,
+      weekStart: currentWeekStart,
+      // Always materialize as a single occurrence. The recurring series already
+      // exists in Firestore (created during seed). Using isRecurring:true here
+      // would create 52 overlapping duplicate docs.
+      isRecurring: false,
     });
     setResolvedId(id);
     return id;
@@ -179,15 +182,12 @@ export default function SlotActionModal() {
     if (!booking || !teacherUid) return;
     setLoading(true);
     try {
-      if (cancelAll && booking.isRecurring) {
-        const weekStart = booking.weekStart
-          ? (typeof (booking.weekStart as { toDate?: () => Date }).toDate === 'function'
-              ? (booking.weekStart as { toDate: () => Date }).toDate()
-              : new Date((booking.weekStart as { seconds: number }).seconds * 1000))
-          : currentWeekStart;
-        await cancelFutureRecurringBookings(
+      if (cancelAll) {
+        // Remove ALL confirmed bookings for this slot (past + future, recurring or not)
+        // so nothing reappears as a fallback.
+        await cancelAllBookingsForSlot(
           teacherUid, booking.dayOfWeek, booking.hour,
-          booking.studentName, weekStart, cancelReason || undefined, booking.minute ?? 0
+          booking.studentName, cancelReason || undefined, booking.minute ?? 0
         );
       } else if (!booking.isRecurring && !isFallbackBooking) {
         // Hard-delete non-recurring one-time bookings
@@ -201,6 +201,25 @@ export default function SlotActionModal() {
     } finally {
       setLoading(false);
       setCancelReason('');
+    }
+  }
+
+  async function handleOpenCompleteNotes() {
+    if (!booking || !teacherUid) return;
+    setLoading(true);
+    try {
+      const id = await resolveId();
+      if (!id) return;
+      useScheduleStore.getState().setPendingCompleteNotes({
+        bookingId: id,
+        studentName: booking.studentName,
+        booking: { ...booking, id },
+        teacherUid,
+        weekStart: currentWeekStart,
+      });
+      closeSlotAction();
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -225,12 +244,18 @@ export default function SlotActionModal() {
             : currentWeekStart
         : currentWeekStart;
       const classDate = new Date(wsDate);
-      classDate.setDate(classDate.getDate() + (booking.dayOfWeek - 1)); // dow=1 = Monday = weekStart+0
+      classDate.setHours(12, 0, 0, 0); // noon avoids DST shifting the date when adding days
+      classDate.setDate(classDate.getDate() + (booking.dayOfWeek - 1));
 
       // Write to classHistory so data appears in the History drawer
       const attended = completeAttendance !== 'absent';
+      // Auto-detect studentId from name if the booking isn't explicitly linked
+      const resolvedStudentId = booking.studentId
+        ?? students.find((s) => s.fullName.trim().toLowerCase() === booking.studentName.trim().toLowerCase())?.uid
+        ?? undefined;
       const entryId = await recordClassSession({
         teacherId: teacherUid,
+        studentId: resolvedStudentId,
         studentName: booking.studentName,
         dayOfWeek: booking.dayOfWeek,
         hour: booking.hour,
@@ -241,13 +266,14 @@ export default function SlotActionModal() {
         bookingId: id,
       });
 
-      // If attended, signal TeacherDashboardPage to open ClassNotesModal
+      await useScheduleStore.getState().waitForDataRefresh();
+      closeSlotAction();
+
+      // Open ClassNotesModal AFTER SlotActionModal has closed to prevent both
+      // modals being visible simultaneously (which caused the blinking effect).
       if (attended) {
         useScheduleStore.getState().setPendingClassNotes({ entryId, studentName: booking.studentName });
       }
-
-      await useScheduleStore.getState().waitForDataRefresh();
-      closeSlotAction();
     } finally { setLoading(false); }
   }
 
@@ -455,11 +481,9 @@ export default function SlotActionModal() {
           {loading ? '…' : booking?.isRecurring ? 'Solo esta' : 'Eliminar'}
         </button>
       </div>
-      {booking?.isRecurring && (
-        <button onClick={() => handleCancel(true)} disabled={loading} className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-semibold disabled:opacity-50">
-          Cancelar todas las futuras ↻
-        </button>
-      )}
+      <button onClick={() => handleCancel(true)} disabled={loading} className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-semibold disabled:opacity-50">
+        Eliminar permanentemente este horario ↻
+      </button>
     </div>
   );
 
@@ -623,7 +647,7 @@ export default function SlotActionModal() {
 
                 {/* Primary action — only show if not already completed */}
                 {booking.status !== 'completed' && (
-                  <button onClick={() => setSubPanel('complete')} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors">
+                  <button onClick={handleOpenCompleteNotes} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors disabled:opacity-50">
                     ✅ Marcar como Completada
                   </button>
                 )}

@@ -1,6 +1,6 @@
 // FriendlyTeaching.cl — BookingModal
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { createBooking } from '@/hooks/useBookings';
@@ -34,6 +34,7 @@ export default function BookingModal({ onCreated }: Props) {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
 
   // Time picker — pre-filled from the clicked slot, but fully editable
   const [selectedHour, setSelectedHour] = useState<number>(slotAction.hour ?? 10);
@@ -59,12 +60,20 @@ export default function BookingModal({ onCreated }: Props) {
     const finalEmail = mode === 'registered' ? (selectedStudent?.email ?? '') : studentEmail.trim();
     const finalStudentId = mode === 'registered' ? (selectedStudent?.uid ?? undefined) : undefined;
 
-    if (!finalName) { setError(mode === 'registered' ? 'Selecciona un estudiante' : 'El nombre es requerido'); return; }
+    if (!finalName) {
+      const msg = mode === 'registered'
+        ? 'Selecciona un estudiante de la lista, o usa "Nuevo / externo" para escribir el nombre manualmente.'
+        : 'El nombre es requerido';
+      setError(msg);
+      setTimeout(() => errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
+      console.log('[BookingModal] saving booking', { teacherUid, finalName, day: slotAction.day, hour: selectedHour, isRecurring });
       await createBooking(teacherUid, {
         studentName: finalName,
         studentEmail: finalEmail,
@@ -92,7 +101,10 @@ export default function BookingModal({ onCreated }: Props) {
       closeBookingModal();
       closeSlotAction();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al crear booking');
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[BookingModal] createBooking failed:', msg, err);
+      setError(`Error al guardar: ${msg}`);
+      setTimeout(() => errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
     } finally {
       setLoading(false);
     }
@@ -353,7 +365,7 @@ export default function BookingModal({ onCreated }: Props) {
           </label>
 
           {error && (
-            <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+            <p ref={errorRef} className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
           )}
 
           <div className="flex gap-3 pt-2">

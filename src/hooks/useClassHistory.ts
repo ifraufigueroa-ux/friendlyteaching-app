@@ -2,11 +2,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import {
-  collection, query, where, onSnapshot, doc, setDoc, updateDoc,
+  collection, query, where, onSnapshot, doc, setDoc, updateDoc, getDocs, writeBatch,
   serverTimestamp, Timestamp,
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot, type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { normalizeName } from '@/lib/utils/nameUtils';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ export interface ClassNotes {
 export interface ClassHistoryEntry {
   id: string;
   teacherId: string;
+  studentId?: string;
   studentName: string;
   dayOfWeek: number;   // 1=Lun … 6=Sáb
   hour: number;        // 10-21
@@ -35,10 +37,64 @@ export interface ClassHistoryEntry {
   updatedAt?: Timestamp;
 }
 
+// ── Read: real-time history for a student (by studentId) ──────────
+
+export function useStudentClassHistory(studentId: string, teacherId: string, studentName: string) {
+  const [history, setHistory] = useState<ClassHistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!studentId || !teacherId) { setLoading(false); return; }
+
+    const normName = normalizeName(studentName);
+
+    // Query all history entries for the teacher; match by studentId OR by normalized name.
+    // This covers classes recorded before the booking was linked to a student account.
+    const q = query(
+      collection(db, 'classHistory'),
+      where('teacherId', '==', teacherId),
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap: QuerySnapshot<DocumentData>) => {
+        const getMs = (e: ClassHistoryEntry) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const raw = e.date as any;
+          return typeof raw?.toDate === 'function' ? raw.toDate().getTime() : raw?.seconds ? raw.seconds * 1000 : 0;
+        };
+
+        const entries = snap.docs
+          .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as ClassHistoryEntry))
+          .filter((e: ClassHistoryEntry) => {
+            if (!e.attended) return false;
+            if (e.studentId && e.studentId === studentId) return true;
+            if (!normName) return false; // no name to match — skip name fallback
+            const entryNorm = normalizeName(e.studentName);
+            return entryNorm === normName || normName.startsWith(entryNorm) || entryNorm.startsWith(normName);
+          })
+          .sort((a: ClassHistoryEntry, b: ClassHistoryEntry) => getMs(a) - getMs(b)); // oldest first
+
+        setHistory(entries);
+        setLoading(false);
+      },
+      (err: FirestoreError) => {
+        console.error('useStudentClassHistory:', err.message);
+        setLoading(false);
+      },
+    );
+
+    return () => unsub();
+  }, [studentId, teacherId, studentName]);
+
+  return { history, loading };
+}
+
 // ── Write: record a class session ─────────────────────────────────
 
 export async function recordClassSession(data: {
   teacherId: string;
+  studentId?: string;
   studentName: string;
   dayOfWeek: number;
   hour: number;
@@ -51,6 +107,7 @@ export async function recordClassSession(data: {
   const ref = doc(collection(db, 'classHistory'));
   await setDoc(ref, {
     teacherId: data.teacherId,
+    ...(data.studentId ? { studentId: data.studentId } : {}),
     studentName: data.studentName,
     dayOfWeek: data.dayOfWeek,
     hour: data.hour,
@@ -136,4 +193,45 @@ export function useClassHistory(teacherId: string, limitDays = 90) {
   }, [teacherId, limitDays]);
 
   return { history, loading, error };
+}
+
+/**
+ * Renames all classHistory entries for a teacher whose studentName is in
+ * `fromNames` to `toName`. Runs as batched writes (max 500 per batch).
+ * Returns the number of documents updated.
+ */
+export async function bulkRenameClassHistory(
+  teacherId: string,
+  fromNames: string[],
+  toName: string,
+): Promise<number> {
+  if (fromNames.length === 0) return 0;
+
+  // Firestore `in` supports up to 30 values; chunk if needed
+  const CHUNK = 30;
+  let total = 0;
+
+  for (let i = 0; i < fromNames.length; i += CHUNK) {
+    const chunk = fromNames.slice(i, i + CHUNK);
+    const q = query(
+      collection(db, 'classHistory'),
+      where('teacherId', '==', teacherId),
+      where('studentName', 'in', chunk),
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) continue;
+
+    // Batch in groups of 500 (Firestore limit)
+    const docs = snap.docs;
+    for (let j = 0; j < docs.length; j += 500) {
+      const batch = writeBatch(db);
+      docs.slice(j, j + 500).forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+        batch.update(d.ref, { studentName: toName, updatedAt: serverTimestamp() });
+      });
+      await batch.commit();
+      total += Math.min(500, docs.length - j);
+    }
+  }
+
+  return total;
 }

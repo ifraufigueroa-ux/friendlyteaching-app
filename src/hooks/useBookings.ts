@@ -11,20 +11,21 @@ import { db } from '@/lib/firebase/config';
 import type { Booking, AttendanceStatus } from '@/types/firebase';
 
 export function useBookings(teacherId: string, weekStart: Date) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>('init');
   const [dataVersion, setDataVersion] = useState(0);
 
-  // Stabilize weekStartMs to avoid re-subscribing on every render
-  // Use useMemo to ensure the same reference when weekStart hasn't meaningfully changed
   const weekStartMs = useMemo(() => {
     const d = new Date(weekStart);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
   }, [weekStart]);
 
+  // Subscription depends only on teacherId — the query is not week-specific, so
+  // navigating between weeks must NOT unsubscribe/resubscribe (that caused a brief
+  // loading flash where all non-fallback slots disappeared on every week change).
   useEffect(() => {
     if (!teacherId) {
       setDebugInfo('no-uid');
@@ -35,34 +36,14 @@ export function useBookings(teacherId: string, weekStart: Date) {
     setDebugInfo('querying...');
     setLoading(true);
 
-    // Query only this teacher's bookings server-side (much faster, no cross-teacher data leakage).
     const q = query(collection(db, 'bookings'), where('teacherId', '==', teacherId));
-
-    // Compute the target week's Monday midnight (ms) for one-time matching
-    const wsMs = weekStartMs;
-    const weMs = wsMs + 7 * 24 * 60 * 60 * 1000;
 
     const unsub = onSnapshot(
       q,
       (snap: QuerySnapshot<DocumentData>) => {
         const all = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Booking));
-
-        // Unique teacherIds in collection (for debugging)
-        const ids = [...new Set(all.map((b: Booking) => b.teacherId))];
-
-        // Keep recurring always + one-time bookings for the current week only
-        const filtered = all.filter((b: Booking) => {
-          if (b.status === 'cancelled') return false;
-          if (b.isRecurring) return true;
-          if (!b.weekStart) return false;
-          const bMs = typeof (b.weekStart as unknown as { toDate?: () => Date }).toDate === 'function'
-            ? (b.weekStart as unknown as { toDate: () => Date }).toDate().getTime()
-            : (b.weekStart as unknown as { seconds: number }).seconds * 1000;
-          return bMs >= wsMs && bMs < weMs;
-        });
-
-        setDebugInfo(`total:${all.length} shown:${filtered.length} teacherIds:[${ids.join('|')}]`);
-        setBookings(filtered);
+        setAllBookings(all);
+        setDebugInfo(`total:${all.length}`);
         setDataVersion((v) => v + 1);
         setLoading(false);
       },
@@ -74,9 +55,34 @@ export function useBookings(teacherId: string, weekStart: Date) {
     );
 
     return () => unsub();
-  }, [teacherId, weekStartMs]);
+  }, [teacherId]);
 
-  return { bookings, loading, error, debugInfo, dataVersion };
+  // Client-side filter: recurring bookings (all weeks) + one-time bookings for this week.
+  // Cancelled bookings for the CURRENT week are included so the grid can clear fallback
+  // slots where the teacher explicitly cancelled a class this week.
+  const bookings = useMemo(() => {
+    const weMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
+
+    return allBookings.filter((b: Booking) => {
+      const ws = b.weekStart as unknown as { toDate?: () => Date; seconds?: number } | null;
+      const bMs: number | null = ws
+        ? typeof ws.toDate === 'function'
+          ? ws.toDate!().getTime()
+          : typeof ws.seconds === 'number'
+            ? ws.seconds * 1000
+            : null
+        : null;
+
+      if (b.status === 'cancelled') {
+        // Include current-week cancelled docs so bookingMap can populate cancelledSlots
+        return bMs !== null && bMs >= weekStartMs && bMs < weMs;
+      }
+      if (b.isRecurring) return true;
+      return bMs !== null && bMs >= weekStartMs && bMs < weMs;
+    });
+  }, [allBookings, weekStartMs]);
+
+  return { bookings, allBookings, loading, error, debugInfo, dataVersion };
 }
 
 // ── CRUD helpers ─────────────────────────────────────────────────
@@ -235,6 +241,52 @@ export async function cancelFutureRecurringBookings(
 }
 
 /**
+ * Permanently remove ALL confirmed bookings for a given teacher/student/slot combo,
+ * regardless of weekStart or isRecurring. Use this when the teacher wants to
+ * completely remove a student from a time slot (past + future).
+ */
+export async function cancelAllBookingsForSlot(
+  teacherId: string,
+  dayOfWeek: number,
+  hour: number,
+  studentName: string,
+  reason?: string,
+  minute?: number,
+): Promise<number> {
+  const { getDocs, writeBatch: wb } = await import('firebase/firestore');
+  const q = query(collection(db, 'bookings'), where('teacherId', '==', teacherId));
+  const snap = await getDocs(q);
+  if (snap.empty) return 0;
+
+  const toCancel = snap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => {
+    const data = d.data();
+    if (data.dayOfWeek !== dayOfWeek) return false;
+    if (data.hour !== hour) return false;
+    if ((data.minute ?? 0) !== (minute ?? 0)) return false;
+    if (data.studentName !== studentName) return false;
+    if (data.status !== 'confirmed') return false;
+    return true;
+  });
+
+  if (toCancel.length === 0) return 0;
+
+  const BATCH_CAP = 450;
+  let batch = wb(db);
+  let ops = 0;
+  for (const d of toCancel) {
+    batch.update(d.ref, {
+      status: 'cancelled',
+      cancellationReason: reason ?? 'Removido del horario',
+      cancelledAt: serverTimestamp(),
+    });
+    ops++;
+    if (ops % BATCH_CAP === 0) { await batch.commit(); batch = wb(db); }
+  }
+  if (ops % BATCH_CAP !== 0 || ops === 0) await batch.commit();
+  return toCancel.length;
+}
+
+/**
  * One-time schedule seed:
  * 1. Hard-deletes ALL existing bookings for a teacher.
  * 2. Creates every slot in `slots` as a fresh booking (recurring creates 52 weeks).
@@ -301,4 +353,52 @@ export async function updateBooking(
     ...patch,
     updatedAt: serverTimestamp(),
   });
+}
+
+// Returns a Map<bookingId, studentId> for all teacher bookings that have a studentId.
+// Used by the billing page to cross-reference classHistory entries (which store bookingId)
+// with a student even when the classHistory entry itself has no studentId.
+export function useBookingStudentIdMap(teacherId: string): Map<string, string> {
+  const [map, setMap] = useState(new Map<string, string>());
+
+  useEffect(() => {
+    if (!teacherId) return;
+    const q = query(
+      collection(db, 'bookings'),
+      where('teacherId', '==', teacherId),
+    );
+    const unsub = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
+      const next = new Map<string, string>();
+      snap.docs.forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+        const sid = d.data().studentId;
+        if (sid) next.set(d.id, sid);
+      });
+      setMap(next);
+    }, (err: FirestoreError) => {
+      console.error('useBookingStudentIdMap:', err.message);
+    });
+    return () => unsub();
+  }, [teacherId]);
+
+  return map;
+}
+
+/**
+ * Renames all bookings whose studentName is in `fromNames` to `toName`.
+ * `fromNames` must NOT include `toName` itself.
+ * Returns the number of documents updated.
+ */
+export async function bulkRenameStudentBookings(
+  bookingIds: string[],
+  toName: string,
+): Promise<number> {
+  const batch = await import('firebase/firestore').then(m => m.writeBatch(db));
+  for (const id of bookingIds) {
+    batch.update(doc(db, 'bookings', id), {
+      studentName: toName,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
+  return bookingIds.length;
 }
