@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.mzstatic.com' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
+      { protocol: 'https', hostname: 'is1-ssl.mzstatic.com' },
+      { protocol: 'https', hostname: 'is2-ssl.mzstatic.com' },
+      { protocol: 'https', hostname: 'is3-ssl.mzstatic.com' },
+      { protocol: 'https', hostname: 'is4-ssl.mzstatic.com' },
+      { protocol: 'https', hostname: 'is5-ssl.mzstatic.com' },
+      { protocol: 'https', hostname: 'is6-ssl.mzstatic.com' },
+    ],
+  },
+  async redirects() {
+    return [
+      { source: '/login', destination: '/auth/login', permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // Firebase Auth action emails link to /__/auth/action — rewrite to our handler
