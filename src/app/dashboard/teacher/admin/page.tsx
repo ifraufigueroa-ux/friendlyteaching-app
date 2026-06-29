@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { seedTeacherSchedule } from '@/hooks/useBookings';
 import { auth, db } from '@/lib/firebase/config';
-import { collection, query, where, getDocs, writeBatch, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, writeBatch, serverTimestamp, Timestamp, type QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import TopBar from '@/components/layout/TopBar';
 
 // ── Type ─────────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ const SCHEDULE_ARANXA: SlotDef[] = [
   { dow: 4, hour: 20, name: 'Entrevis',        isRecurring: true  },
   // ── Viernes ──
   { dow: 5, hour: 10, name: 'Carly',           isRecurring: false },
-  { dow: 5, hour: 11, name: 'Magdalena',       isRecurring: true  },
+  { dow: 5, hour: 11, name: 'Magdalena Barrios', isRecurring: true  },
   { dow: 5, hour: 12, name: 'Dani Lanas',      isRecurring: false },
   { dow: 5, hour: 18, name: 'Fabricio',        isRecurring: true  },
   { dow: 5, hour: 19, name: 'Andrée',          isRecurring: true  },
@@ -126,6 +126,69 @@ export default function SeedSchedulePage() {
   const [cleanupStatus, setCleanupStatus] = useState<CleanupStatus>('idle');
   const [cleanupCount, setCleanupCount]   = useState(0);
   const [cleanupError, setCleanupError]   = useState('');
+
+  // ── Name merge tool ────────────────────────────────────────────────────────
+  type MergeStatus = 'idle' | 'previewing' | 'preview' | 'merging' | 'done' | 'error';
+  const [mergeStatus, setMergeStatus] = useState<MergeStatus>('idle');
+  const [mergePairs, setMergePairs]   = useState<{ from: string; to: string; count: number }[]>([]);
+  const [mergeCount, setMergeCount]   = useState(0);
+  const [mergeError, setMergeError]   = useState('');
+
+  async function previewMerge() {
+    if (!teacherUid) return;
+    setMergeStatus('previewing');
+    try {
+      const snap = await getDocs(query(collection(db, 'bookings'), where('teacherId', '==', teacherUid)));
+      const nameSet = new Set<string>();
+      snap.docs.forEach((d: QueryDocumentSnapshot<DocumentData>) => { const n = (d.data().studentName as string)?.trim(); if (n) nameSet.add(n); });
+      const names = [...nameSet];
+      const pairs: { from: string; to: string; count: number }[] = [];
+      const absorbed = new Set<string>();
+      for (const a of names) {
+        if (absorbed.has(a)) continue;
+        for (const b of names) {
+          if (a === b || absorbed.has(b)) continue;
+          if (b.toLowerCase().startsWith(a.toLowerCase() + ' ')) {
+            const count = snap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => (d.data().studentName as string)?.trim() === a).length;
+            pairs.push({ from: a, to: b, count });
+            absorbed.add(a);
+            break;
+          }
+        }
+      }
+      setMergePairs(pairs);
+      setMergeStatus('preview');
+    } catch (e) {
+      setMergeError(e instanceof Error ? e.message : String(e));
+      setMergeStatus('error');
+    }
+  }
+
+  async function executeMerge() {
+    setMergeStatus('merging');
+    try {
+      const snap = await getDocs(query(collection(db, 'bookings'), where('teacherId', '==', teacherUid)));
+      const BATCH_CAP = 450;
+      let batch = writeBatch(db);
+      let ops = 0;
+      let total = 0;
+      for (const { from, to } of mergePairs) {
+        for (const d of snap.docs) {
+          if ((d.data().studentName as string)?.trim() === from) {
+            batch.update(d.ref, { studentName: to, updatedAt: serverTimestamp() });
+            ops++; total++;
+            if (ops % BATCH_CAP === 0) { await batch.commit(); batch = writeBatch(db); ops = 0; }
+          }
+        }
+      }
+      if (ops > 0) await batch.commit();
+      setMergeCount(total);
+      setMergeStatus('done');
+    } catch (e) {
+      setMergeError(e instanceof Error ? e.message : String(e));
+      setMergeStatus('error');
+    }
+  }
 
   async function handleCleanupHistory() {
     if (!teacherUid) return;
@@ -367,6 +430,89 @@ export default function SeedSchedulePage() {
               >
                 Volver a intentar
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Name merge tool ── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
+          <div>
+            <p className="font-bold text-gray-700 text-sm">🔀 Unificar nombres duplicados</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Detecta nombres cortos que son prefijos de nombres completos (ej. &ldquo;Magdalena&rdquo; → &ldquo;Magdalena Barrios&rdquo;)
+              y actualiza todos los bookings para usar el nombre completo.
+            </p>
+          </div>
+
+          {mergeStatus === 'idle' && (
+            <button
+              onClick={previewMerge}
+              className="w-full py-2.5 border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] rounded-xl text-sm font-semibold transition-colors"
+            >
+              Ver duplicados →
+            </button>
+          )}
+
+          {mergeStatus === 'previewing' && (
+            <div className="flex items-center justify-center gap-2 py-2">
+              <div className="w-4 h-4 border-2 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs text-gray-500">Analizando bookings…</p>
+            </div>
+          )}
+
+          {mergeStatus === 'preview' && (
+            <div className="space-y-3">
+              {mergePairs.length === 0 ? (
+                <p className="text-sm text-center text-gray-500 py-2">No se encontraron nombres duplicados.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-500">Se actualizarán los siguientes nombres en Firestore:</p>
+                  <div className="space-y-1.5">
+                    {mergePairs.map(({ from, to, count }) => (
+                      <div key={from} className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 text-xs">
+                        <span className="font-bold text-red-600 line-through">{from}</span>
+                        <span className="text-gray-400">→</span>
+                        <span className="font-bold text-green-700">{to}</span>
+                        <span className="ml-auto text-gray-400">{count} booking{count !== 1 ? 's' : ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setMergeStatus('idle')}
+                      className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50">
+                      Cancelar
+                    </button>
+                    <button onClick={executeMerge}
+                      className="flex-1 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors">
+                      Unificar nombres
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {mergeStatus === 'merging' && (
+            <div className="flex items-center justify-center gap-2 py-2">
+              <div className="w-4 h-4 border-2 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs text-gray-500">Actualizando bookings…</p>
+            </div>
+          )}
+
+          {mergeStatus === 'done' && (
+            <div className="text-center space-y-1">
+              <p className="text-2xl">✅</p>
+              <p className="text-sm font-bold text-gray-700">{mergeCount} booking{mergeCount !== 1 ? 's' : ''} actualizados.</p>
+              <button onClick={() => { setMergeStatus('idle'); setMergePairs([]); }}
+                className="text-xs text-gray-400 underline">Cerrar</button>
+            </div>
+          )}
+
+          {mergeStatus === 'error' && (
+            <div className="text-center space-y-1">
+              <p className="text-xs text-red-500">{mergeError}</p>
+              <button onClick={() => setMergeStatus('idle')}
+                className="text-xs text-gray-400 underline">Reintentar</button>
             </div>
           )}
         </div>
