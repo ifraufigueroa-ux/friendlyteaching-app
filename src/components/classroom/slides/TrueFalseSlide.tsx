@@ -16,11 +16,11 @@ export default function TrueFalseSlide({ slide, onAnswer }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
       </div>
 
       {slide.question && (
-        <div className="text-xl text-gray-700 font-semibold mb-8 bg-[#F0E5FF]/40 rounded-2xl p-6 text-center">
+        <div className="text-2xl text-gray-700 font-semibold mb-8 bg-[#F0E5FF]/40 rounded-2xl p-8 text-center">
           {slide.question}
         </div>
       )}
@@ -47,7 +47,7 @@ export default function TrueFalseSlide({ slide, onAnswer }: Props) {
               setAnswer(value);
               onAnswer?.(value === isCorrect);
             }}
-              className={`flex-1 max-w-[200px] py-6 rounded-2xl text-xl font-bold transition-all ${style} ${answer === null ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}`}
+              className={`flex-1 max-w-[240px] py-8 rounded-2xl text-2xl font-bold transition-all ${style} ${answer === null ? 'cursor-pointer hover:shadow-md' : 'cursor-default'}`}
             >
               {label}
             </button>

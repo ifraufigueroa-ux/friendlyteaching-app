@@ -10,16 +10,16 @@ export default function GrammarTableSlide({ slide }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
-        {slide.subtitle && <p className="text-gray-500 mt-1">{slide.subtitle}</p>}
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        {slide.subtitle && <p className="text-base text-gray-500 mt-1">{slide.subtitle}</p>}
       </div>
 
       {slide.content && (
-        <p className="text-gray-600 mb-4 text-sm leading-relaxed">{slide.content}</p>
+        <p className="text-gray-600 mb-4 text-base leading-relaxed">{slide.content}</p>
       )}
 
       <div className="overflow-auto rounded-2xl border border-gray-200 shadow-sm">
-        <table className="w-full text-sm">
+        <table className="w-full text-base">
           {headers.length > 0 && (
             <thead>
               <tr>
@@ -52,8 +52,8 @@ export default function GrammarTableSlide({ slide }: Props) {
 
       {slide.tips && (
         <div className="mt-4 bg-[#B8E8E8]/30 border border-[#B8E8E8] rounded-xl p-4">
-          <p className="text-xs font-bold text-teal-700 mb-1">💡 Tip</p>
-          <p className="text-sm text-teal-600">{slide.tips}</p>
+          <p className="text-sm font-bold text-teal-700 mb-1">💡 Tip</p>
+          <p className="text-base text-teal-600">{slide.tips}</p>
         </div>
       )}
     </div>

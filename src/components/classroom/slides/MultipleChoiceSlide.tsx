@@ -26,11 +26,11 @@ export default function MultipleChoiceSlide({ slide, onAnswer }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
       </div>
 
       {slide.question && (
-        <p className="text-xl text-gray-700 font-semibold mb-6 bg-[#F0E5FF]/40 rounded-xl p-4">
+        <p className="text-2xl text-gray-700 font-semibold mb-6 bg-[#F0E5FF]/40 rounded-xl p-5">
           {slide.question}
         </p>
       )}
@@ -65,12 +65,12 @@ export default function MultipleChoiceSlide({ slide, onAnswer }: Props) {
               setSelected(i);
               if (hasCorrect) onAnswer?.(i === correctIndex);
             }}
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${bgClass} ${selected === null ? 'cursor-pointer' : 'cursor-default'}`}
+              className={`w-full flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all ${bgClass} ${selected === null ? 'cursor-pointer' : 'cursor-default'}`}
             >
-              <span className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-sm font-bold ${letterBg}`}>
+              <span className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-base font-bold ${letterBg}`}>
                 {LETTERS[i] ?? String(i + 1)}
               </span>
-              <span className="text-gray-800 font-medium">{opt.text}</span>
+              <span className="text-lg text-gray-800 font-medium">{opt.text}</span>
             </button>
           );
         })}

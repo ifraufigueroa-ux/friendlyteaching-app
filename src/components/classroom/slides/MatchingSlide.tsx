@@ -50,8 +50,8 @@ export default function MatchingSlide({ slide }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
-        {slide.subtitle && <p className="text-gray-500 mt-1">{slide.subtitle}</p>}
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        {slide.subtitle && <p className="text-base text-gray-500 mt-1">{slide.subtitle}</p>}
       </div>
 
       <div className="flex gap-4 justify-center">
@@ -61,7 +61,7 @@ export default function MatchingSlide({ slide }: Props) {
             <button
               key={i}
               onClick={() => selectLeft(i)}
-              className={`w-full py-3 px-4 rounded-xl text-sm font-semibold border-2 transition-all text-left
+              className={`w-full py-4 px-5 rounded-xl text-base font-semibold border-2 transition-all text-left
                 ${matched[i] !== undefined
                   ? 'bg-green-50 border-green-400 text-green-700 cursor-default'
                   : selectedLeft === i
@@ -84,7 +84,7 @@ export default function MatchingSlide({ slide }: Props) {
               <button
                 key={rightIdx}
                 onClick={() => selectRight(rightIdx)}
-                className={`w-full py-3 px-4 rounded-xl text-sm font-semibold border-2 transition-all text-left
+                className={`w-full py-4 px-5 rounded-xl text-base font-semibold border-2 transition-all text-left
                   ${isMatchedRight
                     ? 'bg-green-50 border-green-400 text-green-700 cursor-default'
                     : isWrong

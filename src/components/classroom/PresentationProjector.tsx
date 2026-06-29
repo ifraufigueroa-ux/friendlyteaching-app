@@ -4,6 +4,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import NextImage from 'next/image';
+import WhiteboardPanel from './WhiteboardPanel';
 
 // ── Types ──────────────────────────────────────────────────────
 type DrawTool = 'pointer' | 'pen' | 'eraser';
@@ -86,7 +87,9 @@ export default function PresentationProjector({
   const [showToolbar,  setShowToolbar]  = useState(true);
   const [textMode,     setTextMode]     = useState(false);
   const [annotations,  setAnnotations]  = useState<TextAnnotation[]>([]);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen,   setIsFullscreen]   = useState(false);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [interactMode,   setInteractMode]   = useState(false);
 
   // ── Viewer switching (Office Online ↔ Google Docs viewer) ─────
   type ViewerMode = 'office' | 'google';
@@ -277,7 +280,7 @@ export default function PresentationProjector({
     : 'default';
 
   const canvasPointerEvents =
-    tool === 'pointer' && !textMode ? 'none' : 'auto';
+    interactMode || (tool === 'pointer' && !textMode) ? 'none' : 'auto';
 
   // ── Windowed vs fullscreen sizing ─────────────────────────────
   // In windowed mode the 16:9 box is constrained to ~75% of space (Off2Class style).
@@ -327,6 +330,34 @@ export default function PresentationProjector({
                 {isLive ? 'En vivo' : 'Iniciar en vivo'}
               </button>
             )}
+            {/* Interact mode — lets teacher use Canva features (confetti, Q&A, etc.) */}
+            {isTeacher && (
+              <button
+                onClick={() => setInteractMode(v => !v)}
+                title="Interactuar con la presentación (Canva, confetti, Q&A…)"
+                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold transition-colors ${
+                  interactMode
+                    ? 'bg-[#22C55E] text-white'
+                    : 'text-[#C8547A] hover:bg-[#FFB3CC]/40'
+                }`}
+              >
+                {interactMode ? '🎮 Interacción ON' : '🎮 Interactuar'}
+              </button>
+            )}
+            {/* Whiteboard toggle — teacher only */}
+            {isTeacher && (
+              <button
+                onClick={() => setShowWhiteboard(v => !v)}
+                title="Pizarra"
+                className={`text-[10px] px-2 py-0.5 rounded-md font-semibold transition-colors ${
+                  showWhiteboard
+                    ? 'bg-[#C8A8DC] text-white'
+                    : 'text-[#C8547A] hover:bg-[#FFB3CC]/40'
+                }`}
+              >
+                🖊️ Pizarra
+              </button>
+            )}
             {/* Fullscreen toggle */}
             <button
               onClick={toggleFullscreen}
@@ -371,8 +402,17 @@ export default function PresentationProjector({
               />
             )}
 
+            {/* Interact mode banner */}
+            {isTeacher && interactMode && (
+              <div
+                className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-green-600/90 text-white text-xs font-semibold rounded-full pointer-events-none"
+                style={{ zIndex: 25 }}
+              >
+                🎮 Modo interacción — anotaciones pausadas
+              </div>
+            )}
             {/* Text mode indicator */}
-            {isTeacher && textMode && (
+            {isTeacher && textMode && !interactMode && (
               <div
                 className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/70 text-white text-xs font-semibold rounded-full pointer-events-none"
                 style={{ zIndex: 25 }}
@@ -549,6 +589,11 @@ export default function PresentationProjector({
         </div>
         <div className="w-3 h-3 rounded-full bg-[#FFB3CC] flex-shrink-0" />
       </div>
+
+      {/* Whiteboard panel — rendered inside wrapper so it survives fullscreen */}
+      {isTeacher && showWhiteboard && (
+        <WhiteboardPanel onClose={() => setShowWhiteboard(false)} />
+      )}
 
     </div>
   );

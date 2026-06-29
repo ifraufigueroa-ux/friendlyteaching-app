@@ -8,8 +8,8 @@ export default function FreeTextSlide({ slide, isTeacher }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
-        {slide.subtitle && <p className="text-gray-500 mt-1">{slide.subtitle}</p>}
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        {slide.subtitle && <p className="text-base text-gray-500 mt-1">{slide.subtitle}</p>}
       </div>
 
       {slide.imageUrl && (
@@ -25,7 +25,7 @@ export default function FreeTextSlide({ slide, isTeacher }: Props) {
 
       {slide.content && (
         <div
-          className="text-gray-700 text-lg leading-relaxed bg-[#F0E5FF]/30 rounded-2xl p-5 flex-1"
+          className="text-gray-700 text-xl leading-relaxed bg-[#F0E5FF]/30 rounded-2xl p-5 flex-1"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(slide.content.replace(/\n/g, '<br>')) }}
         />
       )}

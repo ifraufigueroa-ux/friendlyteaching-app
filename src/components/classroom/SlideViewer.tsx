@@ -51,6 +51,8 @@ const SCORE_LABELS: Record<number, string> = {
 };
 
 export default function SlideViewer({ lesson, course, progressId, initialSlideIndex, previewAsStudent, onComplete }: Props) {
+  const slideViewerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
@@ -119,6 +121,20 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
   const [showLivePanel, setShowLivePanel] = useState(false);
   const { session: liveSession, isLive, syncCanvas, syncStatus } =
     useTeacherLiveSession(isTeacher ? lesson.id : '');
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      slideViewerRef.current?.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
 
   // Track the highest slide index visited (for resume support)
   const maxVisitedRef = useRef(currentIndex);
@@ -261,6 +277,7 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
 
   return (
     <div
+      ref={slideViewerRef}
       className="flex flex-col h-full outline-none"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -334,6 +351,13 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
               {currentIndex + 1} / {slides.length}
             </span>
           )}
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors bg-gray-100 text-gray-500 hover:bg-[#F0E5FF] hover:text-[#5A3D7A]"
+          >
+            {isFullscreen ? '⊠ Salir' : '⛶ Full'}
+          </button>
         </div>
       </div>
 

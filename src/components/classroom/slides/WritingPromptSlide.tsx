@@ -12,18 +12,18 @@ export default function WritingPromptSlide({ slide }: Props) {
   return (
     <div className="flex flex-col h-full overflow-auto p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-[#5A3D7A]">{slide.title}</h2>
+        <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
       </div>
 
       {slide.prompt && (
         <div className="mb-6 bg-[#F0E5FF]/40 rounded-2xl p-5">
           <p className="text-2xl mb-2">✍️</p>
-          <p className="text-lg font-semibold text-gray-800">{slide.prompt}</p>
+          <p className="text-xl font-semibold text-gray-800">{slide.prompt}</p>
         </div>
       )}
 
       {slide.content && (
-        <p className="text-gray-500 text-sm mb-4 leading-relaxed">{slide.content}</p>
+        <p className="text-gray-500 text-base mb-4 leading-relaxed">{slide.content}</p>
       )}
 
       {slide.blanks && slide.blanks.length > 0 && (
@@ -46,12 +46,12 @@ export default function WritingPromptSlide({ slide }: Props) {
             onChange={(e) => setText(e.target.value)}
             placeholder="Escribe tu respuesta aquí..."
             rows={5}
-            className="flex-1 w-full rounded-2xl border-2 border-gray-200 focus:border-[#C8A8DC] focus:outline-none p-4 text-gray-700 resize-none text-sm"
+            className="flex-1 w-full rounded-2xl border-2 border-gray-200 focus:border-[#C8A8DC] focus:outline-none p-4 text-gray-700 resize-none text-base"
           />
           <button
             onClick={() => text.trim() && setSubmitted(true)}
             disabled={!text.trim()}
-            className="mt-3 px-6 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-40"
+            className="mt-3 px-6 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-base font-semibold transition-colors disabled:opacity-40"
           >
             Enviar ✓
           </button>
