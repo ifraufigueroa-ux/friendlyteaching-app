@@ -12,6 +12,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://friendlyteaching.cl'),
   title: 'FriendlyTeaching.cl — Academia de Inglés Online',
   description: 'Aprende inglés de forma amigable y efectiva con clases personalizadas.',
   manifest: '/manifest.json',
@@ -19,6 +20,28 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'FriendlyTeaching',
+  },
+  openGraph: {
+    title: 'FriendlyTeaching.cl',
+    description: 'Aprende inglés de forma amigable y efectiva',
+    url: 'https://friendlyteaching.cl',
+    siteName: 'FriendlyTeaching.cl',
+    images: [
+      {
+        url: 'https://friendlyteachingcl.vercel.app/logo-friendlyteaching.jpg',
+        width: 800,
+        height: 800,
+        alt: 'FriendlyTeaching.cl',
+      },
+    ],
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'FriendlyTeaching.cl',
+    description: 'Aprende inglés de forma amigable y efectiva',
+    images: ['https://friendlyteachingcl.vercel.app/logo-friendlyteaching.jpg'],
   },
 };
 

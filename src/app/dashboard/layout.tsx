@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!firebaseUser) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FFFCF7]">
+    <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar — always visible on md+ */}
       <div className="hidden md:flex">
         <Sidebar onNavigate={() => setSidebarOpen(false)} />

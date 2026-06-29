@@ -12,10 +12,10 @@ import { useAuthStore } from '@/store/authStore';
  */
 export default function DashboardPage() {
   const router = useRouter();
-  const { role, profile, isInitialized } = useAuthStore();
+  const { role, profile, isInitialized, isLoading } = useAuthStore();
 
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || isLoading) return;
 
     switch (role) {
       case 'teacher':
@@ -27,10 +27,13 @@ export default function DashboardPage() {
       case 'admin':
         router.replace('/admin');
         break;
+      case 'master':
+        router.replace('/dashboard/master');
+        break;
       default:
         router.replace('/auth/login');
     }
-  }, [role, isInitialized, router]);
+  }, [role, isInitialized, isLoading, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center"
@@ -38,7 +41,7 @@ export default function DashboardPage() {
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
         <p className="text-[#9B7CB8] font-semibold">
-          {profile ? `Bienvenido, ${profile.fullName.split(' ')[0]} 👋` : 'Redirigiendo...'}
+          {profile ? `Bienvenido, ${profile.fullName?.split(' ')[0] ?? profile.email?.split('@')[0] ?? ''} 👋` : 'Redirigiendo...'}
         </p>
       </div>
     </div>
