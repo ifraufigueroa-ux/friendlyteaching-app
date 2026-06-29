@@ -110,7 +110,7 @@ export default function TeacherHomeworkPage() {
   const lessonTitle = (id?: string) => lessons.find(l => l.id === id)?.title ?? '';
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] p-6">
+    <div className="min-h-screen p-6">
       <TopBar
         title="📝 Tareas"
         subtitle="Asigna y revisa las tareas de tus estudiantes"

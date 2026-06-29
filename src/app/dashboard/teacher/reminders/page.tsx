@@ -90,7 +90,7 @@ function ReminderRow({
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-full bg-[#F0E5FF] flex items-center justify-center text-[#5A3D7A] font-bold text-sm flex-shrink-0">
-            {entry.name[0]?.toUpperCase()}
+            {entry.name?.[0]?.toUpperCase() ?? "?"}
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-gray-800 text-sm">{entry.name}</p>

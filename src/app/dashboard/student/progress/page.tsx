@@ -48,7 +48,7 @@ export default function StudentProgressPage() {
   const uniqueLessons = new Set(completed.map(p => p.lessonId)).size;
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7]">
+    <div className="min-h-screen">
       <TopBar
         title="Mi Progreso"
         subtitle="Tu historial de aprendizaje"

@@ -63,7 +63,7 @@ export default function StudentSchedulePage() {
   const completedBookings = myBookings.filter(b => b.status === 'completed');
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7]">
+    <div className="min-h-screen">
       <TopBar
         title="Mi Horario"
         subtitle="Tus clases agendadas con tu profesor"

@@ -56,7 +56,7 @@ export default function TeacherProgressPage() {
   const lessonTitle = (id: string) => lessons.find(l => l.id === id)?.title ?? id;
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] p-6">
+    <div className="min-h-screen p-6">
       <TopBar
         title="📊 Progreso de estudiantes"
         subtitle="Visualiza el avance de todos tus estudiantes en las lecciones"
@@ -118,7 +118,7 @@ export default function TeacherProgressPage() {
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-9 h-9 rounded-full bg-[#F0E5FF] flex items-center justify-center text-sm font-bold text-[#5A3D7A] flex-shrink-0">
-                          {student.fullName[0]?.toUpperCase()}
+                          {student.fullName?.[0]?.toUpperCase() ?? "?"}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-[#5A3D7A] truncate">{student.fullName}</p>

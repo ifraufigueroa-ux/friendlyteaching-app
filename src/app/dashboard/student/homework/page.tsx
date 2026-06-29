@@ -80,7 +80,7 @@ export default function StudentHomeworkPage() {
   const lessonTitle = (id?: string) => lessons.find(l => l.id === id)?.title ?? '';
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7]">
+    <div className="min-h-screen">
       <TopBar
         title="Mis Tareas"
         subtitle={`${pending.length} tarea${pending.length !== 1 ? 's' : ''} pendiente${pending.length !== 1 ? 's' : ''}`}

@@ -235,7 +235,7 @@ export default function BulkUploadPage() {
   const skipCount = results.filter((r) => r.status === 'skipped').length;
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7] p-6">
+    <div className="min-h-screen p-6">
       <TopBar
         title="📥 Carga masiva de lecciones"
         subtitle="Importa lecciones desde un archivo .json directamente a Firestore"

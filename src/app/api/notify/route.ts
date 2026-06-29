@@ -2,6 +2,8 @@
 // Uses Resend (https://resend.com) — free tier: 3000 emails/month
 // Set RESEND_API_KEY in .env.local to enable. Falls back to console.log in dev.
 import { NextRequest, NextResponse } from 'next/server';
+import { adminDb } from '@/lib/firebase/admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 interface NotifyBody {
   type: 'student_approved' | 'student_registered' | 'student_activated' | 'student_invited' | 'homework_reviewed' | 'class_reminder' | 'evaluation_request';
@@ -17,6 +19,7 @@ interface NotifyBody {
   classHour?: number;
   hoursUntil?: number;
   // evaluation_request fields
+  studentEmail?: string;
   telefono?: string;
   edad?: string;
   nivel?: string;
@@ -40,7 +43,7 @@ function buildEmail(body: NotifyBody): { subject: string; html: string } {
             <p style="color:#999;font-size:13px;margin-bottom:24px;">Recibida desde FriendlyTeaching.cl</p>
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
               <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;width:40%;">Nombre</td><td style="padding:10px 14px;color:#333;">${body.studentName ?? '—'}</td></tr>
-              <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Email</td><td style="padding:10px 14px;color:#333;">${body.to}</td></tr>
+              <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Email</td><td style="padding:10px 14px;color:#333;">${body.studentEmail ?? '—'}</td></tr>
               <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Teléfono</td><td style="padding:10px 14px;color:#333;">${body.telefono ?? '—'}</td></tr>
               <tr><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Edad</td><td style="padding:10px 14px;color:#333;">${body.edad ?? '—'}</td></tr>
               <tr style="background:#F9F5FF;"><td style="padding:10px 14px;font-weight:700;color:#5A3D7A;">Nivel</td><td style="padding:10px 14px;color:#333;">${body.nivel ?? '—'}</td></tr>
@@ -206,6 +209,30 @@ function buildEmail(body: NotifyBody): { subject: string; html: string } {
   }
 }
 
+async function persistLead(body: NotifyBody, emailResult: { sent: boolean; error?: string }) {
+  // Only persist landing-page evaluation requests; other notification types
+  // (transactional emails to known students) don't need a lead record.
+  if (body.type !== 'evaluation_request') return;
+  try {
+    await adminDb().collection('evaluationRequests').add({
+      nombre: body.studentName ?? '',
+      email: body.studentEmail ?? '',
+      telefono: body.telefono ?? '',
+      edad: body.edad ?? '',
+      nivel: body.nivel ?? '',
+      objetivo: body.objetivo ?? '',
+      inicio: body.inicio ?? '',
+      plan: body.plan ?? '',
+      status: 'new',
+      emailSent: emailResult.sent,
+      emailError: emailResult.error ?? null,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    console.error('[notify] Failed to persist lead:', err);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: NotifyBody = await req.json();
@@ -223,10 +250,15 @@ export async function POST(req: NextRequest) {
       console.log('[notify] No RESEND_API_KEY set. Email would have been sent:');
       console.log('  to:', body.to);
       console.log('  subject:', subject);
+      await persistLead(body, { sent: false, error: 'RESEND_API_KEY not set' });
       return NextResponse.json({ ok: true, dev: true });
     }
 
     // ── Production: send via Resend ────────────────────────────────────────────
+    // NOTE: using onboarding@resend.dev because friendlyteaching.cl is not yet
+    // verified as a sending domain in Resend. Switch to noreply@friendlyteaching.cl
+    // once the domain DNS is verified at resend.com/domains.
+    const fromAddress = process.env.RESEND_FROM ?? 'FriendlyTeaching <onboarding@resend.dev>';
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -234,20 +266,25 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'FriendlyTeaching <noreply@friendlyteaching.cl>',
+        from: fromAddress,
         to: [body.to],
         subject,
         html,
+        ...(body.type === 'evaluation_request' && body.studentEmail
+          ? { reply_to: body.studentEmail }
+          : {}),
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
       console.error('[notify] Resend error:', err);
+      await persistLead(body, { sent: false, error: err.slice(0, 500) });
       return NextResponse.json({ error: err }, { status: 500 });
     }
 
     const data: unknown = await res.json();
+    await persistLead(body, { sent: true });
     return NextResponse.json({ ok: true, data });
 
   } catch (err) {

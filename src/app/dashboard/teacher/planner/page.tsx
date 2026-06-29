@@ -536,7 +536,7 @@ export default function PlannerPage() {
                   {initials(student.fullName)}
                 </div>
                 <span className="text-xs font-semibold text-gray-600 group-hover:text-[#5A3D7A] whitespace-nowrap">
-                  {student.fullName.split(' ')[0]}
+                  {student.fullName?.split(' ')[0] ?? student.email?.split('@')[0] ?? 'Estudiante'}
                 </span>
                 {student.studentData?.level && (
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${LEVEL_COLORS[student.studentData.level] ?? ''}`}>

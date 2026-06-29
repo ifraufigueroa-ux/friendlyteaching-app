@@ -170,7 +170,7 @@ export default function StudentBookPage() {
 
   if (!teacherId) {
     return (
-      <div className="min-h-screen bg-[#FFFCF7] p-6 flex items-center justify-center">
+      <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm">
           <p className="text-4xl mb-4">🔒</p>
           <h2 className="text-lg font-bold text-[#5A3D7A] mb-2">Sin profesor asignado</h2>
@@ -190,7 +190,7 @@ export default function StudentBookPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#FFFCF7] p-6 flex items-center justify-center">
+      <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-sm">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-4xl mx-auto mb-4">✅</div>
           <h2 className="text-xl font-extrabold text-[#5A3D7A] mb-2">¡Solicitud enviada!</h2>
@@ -233,7 +233,7 @@ export default function StudentBookPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#FFFCF7]">
+    <div className="min-h-screen">
       {/* Header */}
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-1">
