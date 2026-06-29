@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
@@ -74,6 +75,15 @@ export async function signUp({ email, password, fullName, phone, teacherCode }: 
   };
 
   await setDoc(doc(db, 'users', uid), userData);
+
+  if (role === 'student') {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://friendlyteaching.cl';
+    await sendEmailVerification(userCredential.user, {
+      url: `${appUrl}/auth/login?activated=1`,
+      handleCodeInApp: false,
+    });
+  }
+
   return { user: userCredential.user, role };
 }
 

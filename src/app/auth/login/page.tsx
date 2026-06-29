@@ -1,13 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn, resetPassword, signInWithGoogle, isGoogleOnlyAccount } from '@/lib/firebase/auth';
 import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/store/authStore';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { firebaseUser, isInitialized, clearAuth } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,6 +17,13 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Redirect already-authenticated users to their dashboard
+  useEffect(() => {
+    if (isInitialized && firebaseUser) {
+      router.replace('/dashboard');
+    }
+  }, [isInitialized, firebaseUser, router]);
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -40,7 +49,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signIn(email, password);
-      // AuthProvider will update store; redirect based on role
       router.push('/dashboard');
     } catch (err: unknown) {
       const msg = (err as { message?: string })?.message ?? '';

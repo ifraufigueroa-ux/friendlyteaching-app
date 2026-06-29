@@ -154,16 +154,16 @@ function AuthActionContent() {
         </div>
       )}
 
-      {/* Email verified */}
+      {/* Email verified / account activated */}
       {pageState === 'verify_success' && (
         <div className="text-center py-4">
-          <div className="text-5xl mb-4">📧</div>
-          <h1 className="text-xl font-bold text-[#5A3D7A] mb-2">¡Correo verificado!</h1>
-          <p className="text-sm text-gray-500 mb-6">Tu dirección de email ha sido confirmada.</p>
+          <div className="text-5xl mb-4">🎉</div>
+          <h1 className="text-xl font-bold text-[#5A3D7A] mb-2">¡Cuenta activada!</h1>
+          <p className="text-sm text-gray-500 mb-6">Tu cuenta está lista. Ya puedes iniciar sesión y acceder a tu portal.</p>
           <button onClick={() => router.push('/auth/login')}
             className="w-full py-3 rounded-xl font-bold text-white text-sm"
             style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
-            Ir al login
+            Iniciar sesión
           </button>
         </div>
       )}

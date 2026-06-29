@@ -274,6 +274,16 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // ── Evaluation Requests (landing page leads) ──────────────
+    // Written server-side via Firebase Admin SDK (bypasses rules);
+    // teachers list/read/update to manage lead status.
+    match /evaluationRequests/{leadId} {
+      allow list, get: if isTeacher();
+      allow create: if false;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
     // ── Placement Sessions ─────────────────────────────────────
     // Public: anyone (including unauthenticated visitors) can CREATE a session
     // (to take the placement test without logging in).

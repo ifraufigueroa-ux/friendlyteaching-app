@@ -4,7 +4,7 @@
 // Repairs a missing Firestore profile on login to prevent permanent lock-out.
 
 import { useEffect } from 'react';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { observeAuthState, getUserProfile } from '@/lib/firebase/auth';
 import { useAuthStore } from '@/store/authStore';
@@ -61,6 +61,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               profile = await getUserProfile(user.uid);
             } catch {
               // Firestore write blocked by rules — use in-memory fallback below
+            }
+          }
+
+          // ── Auto-approve students who verified their email ─────────────
+          if (
+            profile &&
+            profile.role === 'student' &&
+            profile.status === 'pending' &&
+            user.emailVerified
+          ) {
+            try {
+              await updateDoc(doc(db, 'users', user.uid), { status: 'approved' });
+              profile = { ...profile, status: 'approved' };
+              fetch('/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'student_activated',
+                  to: user.email,
+                  studentName: profile.fullName,
+                  appUrl: process.env.NEXT_PUBLIC_APP_URL,
+                }),
+              }).catch(() => {});
+            } catch {
+              // Non-fatal — profile stays pending until next load
             }
           }
 

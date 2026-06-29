@@ -109,13 +109,13 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center p-4"
         style={{ background: 'var(--gradient-primary)' }}>
         <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-8 text-center animate-slide-in border border-white/40">
-          <div className="text-6xl mb-4">🎉</div>
+          <div className="text-6xl mb-4">📧</div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--ft-purple-text)' }}>
-            ¡Cuenta creada!
+            ¡Revisa tu correo!
           </h2>
           <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-            Tu cuenta está pendiente de aprobación. Tu profesor recibirá una notificación
-            y activará tu acceso pronto.
+            Te enviamos un enlace de activación a <strong>{email}</strong>.
+            Haz clic en el enlace para activar tu cuenta al instante.
           </p>
           <Link href="/auth/login">
             <Button fullWidth>Ir al Login</Button>

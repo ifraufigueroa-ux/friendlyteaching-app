@@ -60,6 +60,15 @@ service firebase.storage {
       allow delete: if isAuthenticated() && request.auth.uid == teacherId;
     }
 
+    // ── Course cover images ───────────────────────────────────────────────────
+    match /courses/{courseId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isTeacher()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isTeacher();
+    }
+
     // ── Block everything else ─────────────────────────────────────────────────
     match /{allPaths=**} {
       allow read, write: if false;
