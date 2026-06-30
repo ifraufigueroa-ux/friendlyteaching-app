@@ -37,6 +37,15 @@ const INTERNAL_TOOLS = [
     glow:        'shadow-[#C8A8DC]/40',
     badge:       'Nuevo',
   },
+  {
+    href:        '/dashboard/teacher/tools/qa-simulator',
+    icon:        '🎯',
+    title:       'Q&A Simulator',
+    description: 'Simulación tipo foro internacional para defensas de tesis. Categorías, timer, racha y modo grabación.',
+    gradient:    'from-[#10B981] to-[#34D399]',
+    glow:        'shadow-emerald-200/40',
+    badge:       'Nuevo',
+  },
 ];
 
 const EXTERNAL_TOOLS = [
