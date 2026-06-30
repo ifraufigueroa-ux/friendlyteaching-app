@@ -16,6 +16,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { Slide, LyricsBlank } from '@/types/firebase';
+import SubtitleCover from '../SubtitleCover';
 
 interface Props { slide: Slide; youtubeUrl?: string; }
 
@@ -596,6 +597,9 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               Agrega una URL de YouTube en clipData.youtubeUrl
             </div>
           )}
+
+          {/* Hardcoded-subtitle cover (draggable + resizable, persisted in localStorage) */}
+          {videoId && !videoBlocked && <SubtitleCover />}
         </div>
       </div>
 
