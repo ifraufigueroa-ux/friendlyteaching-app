@@ -7,6 +7,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import type { Slide, QuizQuestion } from '@/types/firebase';
+import SubtitleCover from '../SubtitleCover';
 
 interface Props { slide: Slide }
 
@@ -273,7 +274,7 @@ export default function ClipComprehensionSlide({ slide }: Props) {
       {/* Collapsible re-watch panel */}
       {videoOpen && videoId && (
         <div className="flex-shrink-0 border-b border-white/10 bg-black px-4 py-3">
-          <div className="max-w-3xl mx-auto" style={{ aspectRatio: '16 / 9' }}>
+          <div className="relative max-w-3xl mx-auto" style={{ aspectRatio: '16 / 9' }}>
             <iframe
               src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1${slide.clipData?.startTime ? `&start=${Math.floor(slide.clipData.startTime)}` : ''}${slide.clipData?.endTime ? `&end=${Math.floor(slide.clipData.endTime)}` : ''}`}
               className="w-full h-full rounded-xl shadow-lg shadow-red-900/20"
@@ -281,6 +282,8 @@ export default function ClipComprehensionSlide({ slide }: Props) {
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
             />
+            {/* Hardcoded-subtitle cover (draggable + resizable, persisted in localStorage) */}
+            <SubtitleCover />
           </div>
         </div>
       )}
