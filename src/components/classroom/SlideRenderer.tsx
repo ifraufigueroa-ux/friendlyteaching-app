@@ -17,6 +17,9 @@ import VideoSlide from './slides/VideoSlide';
 import ClozeSlide from './slides/ClozeSlide';
 import ImageHotspotSlide from './slides/ImageHotspotSlide';
 import SortingSlide from './slides/SortingSlide';
+import PredictionsSlide from './slides/PredictionsSlide';
+import LanguageFocusSlide from './slides/LanguageFocusSlide';
+import LanguagePracticeSlide from './slides/LanguagePracticeSlide';
 import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
 import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
@@ -95,6 +98,12 @@ function renderSlide(
       return <ImageHotspotSlide slide={slide} />;
     case 'sorting':
       return <SortingSlide slide={slide} />;
+    case 'predictions':
+      return <PredictionsSlide slide={slide} />;
+    case 'language_focus':
+      return <LanguageFocusSlide slide={slide} isTeacher={isTeacher} />;
+    case 'language_practice':
+      return <LanguagePracticeSlide slide={slide} />;
     case 'clip_dialogue_game':
       return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'clip_comprehension':
