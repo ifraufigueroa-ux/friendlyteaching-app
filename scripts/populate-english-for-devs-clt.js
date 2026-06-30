@@ -36,7 +36,7 @@ const VIDEO_ID  = 'MsxcpZr1LpM';
   const clip   = lesson.clip;
 
   // ── Backup BEFORE any write ──────────────────────────────────────
-  await backupLessonDoc(db, LESSON_ID, 'populate-clt');
+  await backupLessonDoc(db, LESSON_ID, 'migrate-to-clip-types');
 
   // ── Preserve teacher-curated slides ──────────────────────────────
   const existingSlides    = Array.isArray(lesson.slides) ? lesson.slides : [];
@@ -54,38 +54,48 @@ const VIDEO_ID  = 'MsxcpZr1LpM';
     imageUrl: `https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`,
   };
 
-  // ── 2. Vocabulary ─────────────────────────────────────────────────
+  // ── 2. Vocabulary (Friendlyflix gamified match) ──────────────────
   const vocabSlide = {
-    type: 'vocabulary',
+    type: 'clip_vocab_match',
     title: 'Key vocabulary',
     subtitle: 'Tap each card to reveal the meaning. You will hear these in the standup.',
     words: [
       { word: 'standup',         translation: 'short daily team meeting (≈15 min) where each member reports progress, blockers and next steps',
-        example: "Let's kick off our daily standup. Who wants to start today?" },
+        example: "Let's kick off our daily standup. Who wants to start today?",
+        pronunciation: 'ˈstænd.ʌp' },
       { word: 'blocker',         translation: 'something that is stopping you from making progress',
-        example: "I've been waiting for some clarification on the security requirements." },
+        example: "I've been waiting for some clarification on the security requirements.",
+        pronunciation: 'ˈblɒk.ər' },
       { word: 'swamped',         translation: 'extremely busy, overwhelmed with work',
-        example: "I've been swamped with meetings." },
+        example: "I've been swamped with meetings.",
+        pronunciation: 'swɒmpt' },
       { word: 'ticket',          translation: 'a unit of work in your project tracker (Jira, Linear, etc.)',
-        example: "You've cleared up all other information about this ticket, right?" },
+        example: "You've cleared up all other information about this ticket, right?",
+        pronunciation: 'ˈtɪk.ɪt' },
       { word: 'JWT',             translation: 'JSON Web Token — a compact, signed token used for authentication',
-        example: 'I think I need to dig deeper into our JWT library.', pronunciation: 'ˌdʒeɪ-ˈdʌbəl-juː-ˈtiː' },
+        example: 'I think I need to dig deeper into our JWT library.',
+        pronunciation: 'ˌdʒeɪ.ˌdʌb.l̩.juːˈtiː' },
       { word: 'staging',         translation: 'a pre-production environment used to test before release',
-        example: "I'll push the initial version to our staging environment this afternoon." },
+        example: "I'll push the initial version to our staging environment this afternoon.",
+        pronunciation: 'ˈsteɪ.dʒɪŋ' },
       { word: 'edge case',       translation: 'an uncommon scenario that exposes hidden bugs',
-        example: "We've uncovered a few edge cases in the user profile update flow." },
+        example: "We've uncovered a few edge cases in the user profile update flow.",
+        pronunciation: 'ˈedʒ.keɪs' },
       { word: 'showstopper',     translation: 'a critical bug that blocks the release',
-        example: 'Nothing showstopping, but there is an intermittent bug…' },
+        example: 'Nothing showstopping, but there is an intermittent bug…',
+        pronunciation: 'ˈʃoʊˌstɒp.ər' },
       { word: 'code splitting',  translation: 'breaking a large bundle into smaller chunks loaded on demand',
-        example: "I've started implementing code splitting and lazy loading for some of our larger components." },
+        example: "I've started implementing code splitting and lazy loading for some of our larger components.",
+        pronunciation: 'ˈkoʊd ˌsplɪt.ɪŋ' },
       { word: 'tree shaking',    translation: "removing code that isn't used so the final bundle is smaller",
-        example: "I'm looking into using Webpack's tree shaking more aggressively." },
+        example: "I'm looking into using Webpack's tree shaking more aggressively.",
+        pronunciation: 'ˈtriː ˌʃeɪ.kɪŋ' },
     ],
   };
 
   // ── 3. Predictions ───────────────────────────────────────────────
   const predictionsSlide = {
-    type: 'predictions',
+    type: 'clip_predictions',
     title: 'Before you watch',
     prompt: 'You are about to listen to a real daily standup at a software team. Think before you watch.',
     content: [
@@ -101,7 +111,7 @@ const VIDEO_ID  = 'MsxcpZr1LpM';
 
   // ── 6. Language Focus ────────────────────────────────────────────
   const languageFocusSlide = {
-    type: 'language_focus',
+    type: 'clip_language_focus',
     title: 'Standup language patterns',
     content: [
       'A standup is a fast, repetitive format. Every developer answers three questions:',
@@ -134,7 +144,7 @@ const VIDEO_ID  = 'MsxcpZr1LpM';
 
   // ── 7. Controlled Practice ───────────────────────────────────────
   const controlledPracticeSlide = {
-    type: 'language_practice',
+    type: 'clip_controlled_practice',
     title: 'Controlled practice',
     subtitle: 'Use the four standup patterns to build the sentences.',
     practiceItems: [
