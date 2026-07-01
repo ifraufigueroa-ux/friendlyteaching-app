@@ -57,6 +57,8 @@ const TEACHER_NAV = [
   { href: '/dashboard/teacher/billing', icon: '💳', label: 'Facturación' },
   { href: '/dashboard/teacher/activities', icon: '🎯', label: 'Actividades' },
   { href: '/dashboard/teacher/placement', icon: '📐', label: 'Placement Test' },
+  { href: '/dashboard/teacher/tools', icon: '🧰', label: 'Herramientas' },
+  { href: '/dashboard/teacher/leads', icon: '✨', label: 'Leads' },
 ];
 
 const STUDENT_NAV = [
