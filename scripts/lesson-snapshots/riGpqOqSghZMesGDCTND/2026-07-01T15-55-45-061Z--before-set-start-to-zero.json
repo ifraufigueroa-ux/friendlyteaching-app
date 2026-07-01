@@ -1,0 +1,1091 @@
+{
+  "lessonId": "riGpqOqSghZMesGDCTND",
+  "capturedAt": "2026-07-01T15:55:45.062Z",
+  "note": "before-set-start-to-zero",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B2",
+    "title": "ESL – English for Devs",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1782857080,
+      "_nanoseconds": 422000000
+    },
+    "slides": [
+      {
+        "type": "cover",
+        "title": "ESL — English for Devs",
+        "subtitle": "A realistic daily standup. The everyday English you will hear and use as a developer.",
+        "content": "B2",
+        "imageUrl": "https://img.youtube.com/vi/MsxcpZr1LpM/maxresdefault.jpg"
+      },
+      {
+        "type": "clip_vocab_match",
+        "title": "Key vocabulary",
+        "subtitle": "Tap each card to reveal the meaning. You will hear these in the standup.",
+        "words": [
+          {
+            "word": "standup",
+            "translation": "short daily team meeting (≈15 min) where each member reports progress, blockers and next steps",
+            "example": "Let's kick off our daily standup. Who wants to start today?",
+            "pronunciation": "ˈstænd.ʌp"
+          },
+          {
+            "word": "blocker",
+            "translation": "something that is stopping you from making progress",
+            "example": "I've been waiting for some clarification on the security requirements.",
+            "pronunciation": "ˈblɒk.ər"
+          },
+          {
+            "word": "swamped",
+            "translation": "extremely busy, overwhelmed with work",
+            "example": "I've been swamped with meetings.",
+            "pronunciation": "swɒmpt"
+          },
+          {
+            "word": "ticket",
+            "translation": "a unit of work in your project tracker (Jira, Linear, etc.)",
+            "example": "You've cleared up all other information about this ticket, right?",
+            "pronunciation": "ˈtɪk.ɪt"
+          },
+          {
+            "word": "JWT",
+            "translation": "JSON Web Token — a compact, signed token used for authentication",
+            "example": "I think I need to dig deeper into our JWT library.",
+            "pronunciation": "ˌdʒeɪ.ˌdʌb.l̩.juːˈtiː"
+          },
+          {
+            "word": "staging",
+            "translation": "a pre-production environment used to test before release",
+            "example": "I'll push the initial version to our staging environment this afternoon.",
+            "pronunciation": "ˈsteɪ.dʒɪŋ"
+          },
+          {
+            "word": "edge case",
+            "translation": "an uncommon scenario that exposes hidden bugs",
+            "example": "We've uncovered a few edge cases in the user profile update flow.",
+            "pronunciation": "ˈedʒ.keɪs"
+          },
+          {
+            "word": "showstopper",
+            "translation": "a critical bug that blocks the release",
+            "example": "Nothing showstopping, but there is an intermittent bug…",
+            "pronunciation": "ˈʃoʊˌstɒp.ər"
+          },
+          {
+            "word": "code splitting",
+            "translation": "breaking a large bundle into smaller chunks loaded on demand",
+            "example": "I've started implementing code splitting and lazy loading for some of our larger components.",
+            "pronunciation": "ˈkoʊd ˌsplɪt.ɪŋ"
+          },
+          {
+            "word": "tree shaking",
+            "translation": "removing code that isn't used so the final bundle is smaller",
+            "example": "I'm looking into using Webpack's tree shaking more aggressively.",
+            "pronunciation": "ˈtriː ˌʃeɪ.kɪŋ"
+          }
+        ]
+      },
+      {
+        "type": "clip_predictions",
+        "title": "Before you watch",
+        "prompt": "You are about to listen to a real daily standup at a software team. Think before you watch.",
+        "content": "What roles do you expect to hear? (developer, QA, product owner, etc.)\nWhat format will the meeting probably follow?\nWhich technical topics or problems do you expect each person to mention?\nWhat English phrases would you use to report progress, blockers, and next steps in your own standup?"
+      },
+      {
+        "type": "clip_dialogue_game",
+        "content": "From clean code to clear communication, we to\nlearn to present your work with\nconfidence and precision.\nHave you ever struggled to explain a\ncomplex technical problem during a daily\nmeeting in English? You know the issue,\nbut finding the right words can be\ntough. In this video, we'll listen to a\nrealistic daily standup. Your goal is to\npay attention to the specific phrases\nused to describe challenges. Notice how\nthe developers talk about bugs,\nblockers, and performance issues. This\nis the real everyday language you'll use\nin your career. Let's jump in.\nAll right, team. Let's kick {{blank}} our\ndaily standup. Who wants to start today?\nI can go first. I've {{blank}} working on the\nnew authentication service.\nHow's it coming along? Any progress?\nYeah, it's going okay.\nI've got the basic structure set up, but\nI've run into some issues with token\nrefresh. Sometimes the tokens are\n{{blank}} before they should. I think I\nneed to dig deeper into our {{blank}} library.\nDo you need any help with that?\nI might need to discuss further with\nAlex's team. He's worked with this\n{{blank}} before.\nOkay, you've cleared up all other\ninformation about this ticket, right?\nI've been waiting for some {{blank}}\non the security requirements from the\nclient.\nI see. Have you talked to Henry about\nit? He's our point of contact with the\nclient.\nHe was quite {{blank}} yesterday, so he\ncouldn't help.\nOh, I'm sorry about that, John. I've\nbeen {{blank}} with meetings. After this\nmeeting, come to my desk and we'll\nclarify these issues. Okay,\ngreat. Thanks, Henry. John, what's your\nplan for today? I'll keep working on the\ntoken {{blank}} logic. Oh, and there's\nthat weird bug with the password reset\nfeature. I need to look into\nthe {{blank}} reset. What's going on with\nthat?\nIt's uh sometimes it doesn't send the\nreset email. Like you request a reset\nand it just doesn't work, you know?\nH that sounds tricky. Any ideas what's\ncausing it?\nNot really. I mean, it works fine most\nof the time. It's just sometimes it\ndoesn't. I'll {{blank}} it and update you\nlater.\nAll right, keep at it. Let me know if\nyou need any help. Okay.\nYeah, sure. Oh, wait. Almost forgot. Has\nanyone seen the updated database schema?\nI thought the {{blank}} team was supposed to\nsend it over.\nI think Mark mentioned something about\nthat in the team chat this morning. Did\nyou check Slack?\nOh man, {{blank}}? Why didn't he send an\nemail? I haven't looked at Slack today.\nI'll check after the standup.\nSounds good. Anything else you want to\nbring up?\nNah, that's it for me.\nAll right. Thanks, John. Evan, what's\nyour status?\nYesterday, I was implementing the new {{blank}}\ncomponents for the dashboard and ran\ninto some issues with state management\nin {{blank}}. Today, I'll be refactoring the\ncode to use Redux for better state\nhandling.\nState management issues again. What's\nhappening this time? It seems that\nsometimes the component states aren't\n{{blank}} properly. It's causing\ninconsistencies in the UI, especially\nwhen dealing with real-time updates.\nThat sounds {{blank}}. Do you have any\nleads on the cause?\nI suspect it might be related to how\nwe're handling asynchronous actions,\nparticularly with our {{blank}}\nconnections. When multiple updates come\nin rapidly, we seem to lose some state\nchanges.\nThat's possible. Have you looked into\nusing middleware like Redux Saga to\nhandle side effects?\nYes, I've been researching that. I think\nimplementing Redux Saga might help us\nmanage these complex {{blank}} flows\nbetter.\nHave you discussed this with the rest of\nthe front-end team?\nNot yet. I'm trying to put together a\nsmall proof of concept before {{blank}}\nit up, but I may need their input soon.\nWhat about the new UI components? When\ndo you think they'll be ready for\nreview?\nI'll push the initial version to our\n{{blank}} environment this afternoon. It\nwon't be fully styled yet, but the core\nfunctionality should be there. I'm\naiming to have it ready for a proper\nreview by tomorrow afternoon.\nThat would be helpful. Even if it's not\nthe final {{blank}}, it will allow the\nteam to start testing and provide\nfeedback.\nI'll {{blank}} getting a testable\nversion out.\nWhat else have you been working on?\nThere's an ongoing issue with our bundle\nsize. It's getting pretty large and\naffecting load times.\nRight. You mentioned that in our last\nsprint retrospective. Still working\n{{blank}} it.\nYes, I've started implementing code\nsplitting and lazy loading for some of\nour larger components, but we're still\nseeing longer than ideal load times on\nslower connections.\nThat's concerning. What's your plan to\naddress it further?\nI'm looking into using Webpack's tree\n{{blank}} more aggressively and\npotentially moving some of our larger\ndependencies to be loaded on demand. I'm\nalso considering implementing a service\nworker for better caching. I'm hoping\nthis will improve the situation, but\nit's a complex {{blank}}.\nPerhaps we should schedule a separate\nmeeting to dive deeper into this. Maybe\ninvolve some of the performance\noptimization experts from other teams.\nThat's a good idea. I'll put together\nsome data and we can set that up later\nthis week.\nPerfect. {{blank}} team, what's your status?\nWe've been running our automated test\nsuite against the latest build. We've\nuncovered a few {{blank}} cases in the user\nprofile update flow.\nAnything critical? Nothing\nshowstoppping, but there is an\n{{blank}} bug where profile pictures\nsometimes don't update immediately. I'll\nsend over the full report this\nafternoon.\nH, that might be related to the state\nmanagement issues I mentioned. I'll take\na look once I get your report, Mia.\nSounds good. Oh, and we've started\nsetting up some new endto-end tests for\nthe dashboard {{blank}}. Should have those\nready for review by tomorrow.\nGreat work, everyone. Product owner, any\nupdates from your end?\nYes, just a couple of things. I've been\nreviewing the user stories for our next\nsprint. We might need to {{blank}} some\npriorities.\nWhat's changing?\nWell, the client's been pushing for that\ndata export feature. They're saying it's\nbecoming crucial for some of their\nenterprise customers. Oof, that's going\nto be tricky to implement with our\ncurrent architecture. We might need to\nrethink how we're {{blank}} large data\nsets on the client side.\nYeah. And we'll need to optimize our API\nendpoints to handle potentially large\ndata exports. might impact our current\nAPI design.\nI know it's not ideal timing, but it's\ncoming from the {{blank}} level. Can we\ndiscuss this more in sprint planning\nlater today?\nDefinitely. We'll need to weigh this\nagainst our current commitments.\nAnything else before we wrap up?\nJust a {{blank}} one. Are we still on for\nthat team building activity next week?\nYou know, the escape room challenge.\nAbsolutely. It's booked for next\n{{blank}} afternoon.\nSounds fun. Looking forward to it. All\nright, that wraps up our daily standup.\nThanks everyone. Let's have a productive\nday. That's it for our video today. I\nhope this has been helpful. Now, I have\na question for you. What is the most\nchallenging phrase you've had to say\nduring a daily meeting in English? Leave\na comment below and we can all learn\nfrom each other. If you found this video\nvaluable, please hit the like button and\nsubscribe to English not Null so you\ndon't miss our next video. Thanks for\nwatching and I'll see you in the next",
+        "blanksData": [
+          {
+            "word": "off",
+            "options": [
+              "off",
+              "on",
+              "of",
+              "top"
+            ]
+          },
+          {
+            "word": "been",
+            "options": [
+              "seen",
+              "been",
+              "being",
+              "team"
+            ]
+          },
+          {
+            "word": "expiring",
+            "options": [
+              "spirit",
+              "expire",
+              "inspiring",
+              "expiring"
+            ]
+          },
+          {
+            "word": "JWT",
+            "options": [
+              "JWT",
+              "MIT",
+              "IT",
+              "DMT"
+            ]
+          },
+          {
+            "word": "library",
+            "options": [
+              "librarian",
+              "library",
+              "liberty",
+              "liberate"
+            ]
+          },
+          {
+            "word": "clarification",
+            "options": [
+              "classification",
+              "clarification",
+              "constipation",
+              "clarification"
+            ]
+          },
+          {
+            "word": "busy",
+            "options": [
+              "dizzy",
+              "busy",
+              "fussy",
+              "steezy"
+            ]
+          },
+          {
+            "word": "swamped",
+            "options": [
+              "vamped",
+              "swamped",
+              "cramped",
+              "banned"
+            ]
+          },
+          {
+            "word": "validation",
+            "options": [
+              "classification",
+              "validation",
+              "confirmation",
+              "reaffirm"
+            ]
+          },
+          {
+            "word": "password",
+            "options": [
+              "pass",
+              "word",
+              "password",
+              "passport"
+            ]
+          },
+          {
+            "word": "debug",
+            "options": [
+              "fix",
+              "maintain",
+              "debug",
+              "bugged"
+            ]
+          },
+          {
+            "word": "DBA",
+            "options": [
+              "TPA",
+              "ATP",
+              "DBA",
+              "DBZ"
+            ]
+          },
+          {
+            "word": "Slack",
+            "options": [
+              "Lack",
+              "Back",
+              "Truck",
+              "Slack"
+            ]
+          },
+          {
+            "word": "UI",
+            "options": [
+              "Device",
+              "UI",
+              "U2",
+              "Unified"
+            ]
+          },
+          {
+            "word": "React",
+            "options": [
+              "React",
+              "Act",
+              "Compact",
+              "Intact"
+            ]
+          },
+          {
+            "word": "syncing",
+            "options": [
+              "syncing",
+              "synchronizing",
+              "monitorizing",
+              "singing"
+            ]
+          },
+          {
+            "word": "concerning",
+            "options": [
+              "concentrating",
+              "concerning",
+              "involving",
+              "concern"
+            ]
+          },
+          {
+            "word": "websocket",
+            "options": [
+              "socket",
+              "scooter",
+              "web",
+              "websocket"
+            ]
+          },
+          {
+            "word": "asynchronous",
+            "options": [
+              "synced",
+              "asynchronous",
+              "synthetic",
+              "synthetization"
+            ]
+          },
+          {
+            "word": "bringing",
+            "options": [
+              "singing",
+              "rythm",
+              "bringing",
+              "complaining"
+            ]
+          },
+          {
+            "word": "staging",
+            "options": [
+              "stating",
+              "starting",
+              "staging",
+              "stages"
+            ]
+          },
+          {
+            "word": "version",
+            "options": [
+              "vision",
+              "envisioned",
+              "version",
+              "envision"
+            ]
+          },
+          {
+            "word": "prioritize",
+            "options": [
+              "prioritize",
+              "priority",
+              "priorly",
+              "sanitize"
+            ]
+          },
+          {
+            "word": "through",
+            "options": [
+              "thought",
+              "through",
+              "though",
+              "although"
+            ]
+          },
+          {
+            "word": "shaking",
+            "options": [
+              "baking",
+              "skating",
+              "shaking",
+              "aching"
+            ]
+          },
+          {
+            "word": "issue",
+            "options": [
+              "issue",
+              "tissue",
+              "mission",
+              "leisure"
+            ]
+          },
+          {
+            "word": "QA",
+            "options": [
+              "VA",
+              "SA",
+              "QA",
+              "QI"
+            ]
+          },
+          {
+            "word": "edge",
+            "options": [
+              "edge",
+              "ledge",
+              "search",
+              "each"
+            ]
+          },
+          {
+            "word": "intermittent",
+            "options": [
+              "commitment",
+              "intermittent",
+              "convinced",
+              "interestellar"
+            ]
+          },
+          {
+            "word": "feature",
+            "options": [
+              "characteristic",
+              "future",
+              "feature",
+              "featuring"
+            ]
+          },
+          {
+            "word": "adjust",
+            "options": [
+              "add",
+              "just",
+              "adjust",
+              "justify"
+            ]
+          },
+          {
+            "word": "handling",
+            "options": [
+              "handle",
+              "sampling",
+              "being",
+              "handling"
+            ]
+          },
+          {
+            "word": "executive",
+            "options": [
+              "execute",
+              "consecutive",
+              "executive",
+              "exceptional"
+            ]
+          },
+          {
+            "word": "quick",
+            "options": [
+              "quit",
+              "sick",
+              "lick",
+              "quick"
+            ]
+          },
+          {
+            "word": "thursday",
+            "options": [
+              "tuesday",
+              "saturday",
+              "wednesday",
+              "thursday"
+            ]
+          }
+        ],
+        "clipData": {
+          "title": "English for Devs",
+          "source": "ESL",
+          "youtubeUrl": "https://www.youtube.com/watch?v=MsxcpZr1LpM",
+          "dialogue": "From clean code to clear communication, we to\nlearn to present your work with\nconfidence and precision.\nHave you ever struggled to explain a\ncomplex technical problem during a daily\nmeeting in English? You know the issue,\nbut finding the right words can be\ntough. In this video, we'll listen to a\nrealistic daily standup. Your goal is to\npay attention to the specific phrases\nused to describe challenges. Notice how\nthe developers talk about bugs,\nblockers, and performance issues. This\nis the real everyday language you'll use\nin your career. Let's jump in.\nAll right, team. Let's kick {{blank}} our\ndaily standup. Who wants to start today?\nI can go first. I've {{blank}} working on the\nnew authentication service.\nHow's it coming along? Any progress?\nYeah, it's going okay.\nI've got the basic structure set up, but\nI've run into some issues with token\nrefresh. Sometimes the tokens are\n{{blank}} before they should. I think I\nneed to dig deeper into our {{blank}} library.\nDo you need any help with that?\nI might need to discuss further with\nAlex's team. He's worked with this\n{{blank}} before.\nOkay, you've cleared up all other\ninformation about this ticket, right?\nI've been waiting for some {{blank}}\non the security requirements from the\nclient.\nI see. Have you talked to Henry about\nit? He's our point of contact with the\nclient.\nHe was quite {{blank}} yesterday, so he\ncouldn't help.\nOh, I'm sorry about that, John. I've\nbeen {{blank}} with meetings. After this\nmeeting, come to my desk and we'll\nclarify these issues. Okay,\ngreat. Thanks, Henry. John, what's your\nplan for today? I'll keep working on the\ntoken {{blank}} logic. Oh, and there's\nthat weird bug with the password reset\nfeature. I need to look into\nthe {{blank}} reset. What's going on with\nthat?\nIt's uh sometimes it doesn't send the\nreset email. Like you request a reset\nand it just doesn't work, you know?\nH that sounds tricky. Any ideas what's\ncausing it?\nNot really. I mean, it works fine most\nof the time. It's just sometimes it\ndoesn't. I'll {{blank}} it and update you\nlater.\nAll right, keep at it. Let me know if\nyou need any help. Okay.\nYeah, sure. Oh, wait. Almost forgot. Has\nanyone seen the updated database schema?\nI thought the {{blank}} team was supposed to\nsend it over.\nI think Mark mentioned something about\nthat in the team chat this morning. Did\nyou check Slack?\nOh man, {{blank}}? Why didn't he send an\nemail? I haven't looked at Slack today.\nI'll check after the standup.\nSounds good. Anything else you want to\nbring up?\nNah, that's it for me.\nAll right. Thanks, John. Evan, what's\nyour status?\nYesterday, I was implementing the new {{blank}}\ncomponents for the dashboard and ran\ninto some issues with state management\nin {{blank}}. Today, I'll be refactoring the\ncode to use Redux for better state\nhandling.\nState management issues again. What's\nhappening this time? It seems that\nsometimes the component states aren't\n{{blank}} properly. It's causing\ninconsistencies in the UI, especially\nwhen dealing with real-time updates.\nThat sounds {{blank}}. Do you have any\nleads on the cause?\nI suspect it might be related to how\nwe're handling asynchronous actions,\nparticularly with our {{blank}}\nconnections. When multiple updates come\nin rapidly, we seem to lose some state\nchanges.\nThat's possible. Have you looked into\nusing middleware like Redux Saga to\nhandle side effects?\nYes, I've been researching that. I think\nimplementing Redux Saga might help us\nmanage these complex {{blank}} flows\nbetter.\nHave you discussed this with the rest of\nthe front-end team?\nNot yet. I'm trying to put together a\nsmall proof of concept before {{blank}}\nit up, but I may need their input soon.\nWhat about the new UI components? When\ndo you think they'll be ready for\nreview?\nI'll push the initial version to our\n{{blank}} environment this afternoon. It\nwon't be fully styled yet, but the core\nfunctionality should be there. I'm\naiming to have it ready for a proper\nreview by tomorrow afternoon.\nThat would be helpful. Even if it's not\nthe final {{blank}}, it will allow the\nteam to start testing and provide\nfeedback.\nI'll {{blank}} getting a testable\nversion out.\nWhat else have you been working on?\nThere's an ongoing issue with our bundle\nsize. It's getting pretty large and\naffecting load times.\nRight. You mentioned that in our last\nsprint retrospective. Still working\n{{blank}} it.\nYes, I've started implementing code\nsplitting and lazy loading for some of\nour larger components, but we're still\nseeing longer than ideal load times on\nslower connections.\nThat's concerning. What's your plan to\naddress it further?\nI'm looking into using Webpack's tree\n{{blank}} more aggressively and\npotentially moving some of our larger\ndependencies to be loaded on demand. I'm\nalso considering implementing a service\nworker for better caching. I'm hoping\nthis will improve the situation, but\nit's a complex {{blank}}.\nPerhaps we should schedule a separate\nmeeting to dive deeper into this. Maybe\ninvolve some of the performance\noptimization experts from other teams.\nThat's a good idea. I'll put together\nsome data and we can set that up later\nthis week.\nPerfect. {{blank}} team, what's your status?\nWe've been running our automated test\nsuite against the latest build. We've\nuncovered a few {{blank}} cases in the user\nprofile update flow.\nAnything critical? Nothing\nshowstoppping, but there is an\n{{blank}} bug where profile pictures\nsometimes don't update immediately. I'll\nsend over the full report this\nafternoon.\nH, that might be related to the state\nmanagement issues I mentioned. I'll take\na look once I get your report, Mia.\nSounds good. Oh, and we've started\nsetting up some new endto-end tests for\nthe dashboard {{blank}}. Should have those\nready for review by tomorrow.\nGreat work, everyone. Product owner, any\nupdates from your end?\nYes, just a couple of things. I've been\nreviewing the user stories for our next\nsprint. We might need to {{blank}} some\npriorities.\nWhat's changing?\nWell, the client's been pushing for that\ndata export feature. They're saying it's\nbecoming crucial for some of their\nenterprise customers. Oof, that's going\nto be tricky to implement with our\ncurrent architecture. We might need to\nrethink how we're {{blank}} large data\nsets on the client side.\nYeah. And we'll need to optimize our API\nendpoints to handle potentially large\ndata exports. might impact our current\nAPI design.\nI know it's not ideal timing, but it's\ncoming from the {{blank}} level. Can we\ndiscuss this more in sprint planning\nlater today?\nDefinitely. We'll need to weigh this\nagainst our current commitments.\nAnything else before we wrap up?\nJust a {{blank}} one. Are we still on for\nthat team building activity next week?\nYou know, the escape room challenge.\nAbsolutely. It's booked for next\n{{blank}} afternoon.\nSounds fun. Looking forward to it. All\nright, that wraps up our daily standup.\nThanks everyone. Let's have a productive\nday. That's it for our video today. I\nhope this has been helpful. Now, I have\na question for you. What is the most\nchallenging phrase you've had to say\nduring a daily meeting in English? Leave\na comment below and we can all learn\nfrom each other. If you found this video\nvaluable, please hit the like button and\nsubscribe to English not Null so you\ndon't miss our next video. Thanks for\nwatching and I'll see you in the next",
+          "timings": [
+            1,
+            5,
+            6,
+            9,
+            11,
+            14,
+            17,
+            19,
+            23,
+            26,
+            28,
+            32,
+            34,
+            37,
+            40,
+            47,
+            48,
+            51,
+            54,
+            55,
+            58,
+            62,
+            64,
+            66,
+            68,
+            70,
+            73,
+            75,
+            77,
+            79,
+            81,
+            83,
+            85,
+            86,
+            88,
+            88,
+            91,
+            93,
+            94,
+            95,
+            97,
+            98,
+            101,
+            102,
+            104,
+            107,
+            109,
+            111,
+            113,
+            115,
+            117,
+            118,
+            121,
+            125,
+            128,
+            132,
+            133,
+            136,
+            140,
+            142,
+            143,
+            145,
+            147,
+            150,
+            153,
+            155,
+            156,
+            158,
+            160,
+            161,
+            164,
+            168,
+            169,
+            172,
+            173,
+            175,
+            177,
+            179,
+            181,
+            183,
+            185,
+            188,
+            190,
+            191,
+            193,
+            195,
+            196,
+            198,
+            200,
+            203,
+            205,
+            207,
+            209,
+            210,
+            212,
+            214,
+            216,
+            217,
+            219,
+            221,
+            224,
+            225,
+            227,
+            229,
+            230,
+            232,
+            234,
+            236,
+            237,
+            241,
+            243,
+            245,
+            246,
+            248,
+            250,
+            253,
+            254,
+            256,
+            258,
+            260,
+            263,
+            264,
+            266,
+            267,
+            269,
+            272,
+            274,
+            275,
+            278,
+            280,
+            282,
+            283,
+            285,
+            286,
+            288,
+            290,
+            292,
+            293,
+            296,
+            297,
+            299,
+            301,
+            303,
+            305,
+            307,
+            309,
+            312,
+            313,
+            315,
+            317,
+            320,
+            321,
+            323,
+            323,
+            326,
+            328,
+            330,
+            332,
+            334,
+            335,
+            337,
+            339,
+            341,
+            342,
+            343,
+            344,
+            346,
+            349,
+            350,
+            352,
+            354,
+            356,
+            359,
+            360,
+            363,
+            365,
+            367,
+            368,
+            369,
+            372,
+            374,
+            376,
+            379,
+            380,
+            382,
+            384,
+            385,
+            388,
+            389,
+            393,
+            394,
+            396,
+            398,
+            400,
+            400,
+            403,
+            405,
+            406,
+            409,
+            411,
+            413,
+            416,
+            417,
+            419,
+            422,
+            423,
+            426,
+            428,
+            431,
+            433,
+            436,
+            438,
+            440,
+            442,
+            444,
+            447
+          ],
+          "startTime": 46,
+          "endTime": 424,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "questions": [
+          {
+            "question": "What issue has John run into while working on the authentication service?",
+            "options": [
+              {
+                "id": "q0o0",
+                "text": "The login page is missing its CSS styles.",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o1",
+                "text": "The tokens are expiring earlier than they should.",
+                "isCorrect": true
+              },
+              {
+                "id": "q0o2",
+                "text": "The database connection keeps timing out.",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o3",
+                "text": "Users cannot create new accounts.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "The tokens are expiring earlier than they should."
+          },
+          {
+            "question": "Why is John unable to complete his ticket at the moment?",
+            "options": [
+              {
+                "id": "q1o0",
+                "text": "He is waiting for the QA team's approval.",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o1",
+                "text": "He is waiting for clarification on the client's security requirements.",
+                "isCorrect": true
+              },
+              {
+                "id": "q1o2",
+                "text": "The authentication service has not been deployed yet.",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o3",
+                "text": "He is waiting for Evan to finish the dashboard.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "He is waiting for clarification on the client's security requirements."
+          },
+          {
+            "question": "What happens when the password reset feature fails?",
+            "options": [
+              {
+                "id": "q2o0",
+                "text": "Users receive two reset emails.",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o1",
+                "text": "The reset link expires immediately.",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o2",
+                "text": "Users cannot change their passwords after logging in.",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o3",
+                "text": "The reset email is not sent.",
+                "isCorrect": true
+              }
+            ],
+            "correctAnswer": "The reset email is not sent."
+          },
+          {
+            "question": "What will be included in the initial version of Evan's new UI components?",
+            "options": [
+              {
+                "id": "q3o0",
+                "text": "A fully styled version ready for production.",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o1",
+                "text": "Only the login page redesign.",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o2",
+                "text": "A version containing only the visual design without functionality.",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o3",
+                "text": "The core functionality, but not the final styling.",
+                "isCorrect": true
+              }
+            ],
+            "correctAnswer": "The core functionality, but not the final styling."
+          },
+          {
+            "question": "Which solution is Evan considering to improve state management?",
+            "options": [
+              {
+                "id": "q4o0",
+                "text": "Vuex",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o1",
+                "text": "Context API",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o2",
+                "text": "Redux Saga",
+                "isCorrect": true
+              },
+              {
+                "id": "q4o3",
+                "text": "MobX",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Redux Saga"
+          }
+        ]
+      },
+      {
+        "type": "clip_language_focus",
+        "title": "Standup language patterns",
+        "content": "A standup is a fast, repetitive format. Every developer answers three questions:\n• What did I work on?\n• What am I working on now?\n• Am I blocked on anything?\n\nNotice four patterns in the clip — they are the building blocks you will use every morning:\n• Present perfect continuous (I have been + -ing) → ongoing work since yesterday\n• Run into / dig deeper into → describing problems and how you are tackling them\n• Hedging language (kind of / sort of / I think / maybe) → expressing uncertainty politely\n• Future intent (I will / I am going to / I will keep + -ing) → next steps",
+        "words": [
+          {
+            "word": "I've been working on the new authentication service.",
+            "translation": "Reporting ongoing work",
+            "example": "Pattern: I have been + -ing  (since yesterday / this week)"
+          },
+          {
+            "word": "I've run into some issues with token refresh.",
+            "translation": "Reporting a blocker",
+            "example": "Pattern: run into / dig deeper into / look into"
+          },
+          {
+            "word": "I'm not sure but it might be related to how we're handling asynchronous actions.",
+            "translation": "Hedging uncertainty",
+            "example": "Pattern: I am not sure but… / it might / I think / maybe"
+          },
+          {
+            "word": "I'll keep working on the token validation logic.",
+            "translation": "Stating next steps",
+            "example": "Pattern: I will + verb  /  I will keep + -ing  /  I am going to + verb"
+          }
+        ],
+        "teacherNotes": "Drill the four patterns orally before the controlled practice. Encourage the student to swap nouns (auth service → API endpoint, deployment, dashboard) so the patterns become reusable."
+      },
+      {
+        "type": "clip_controlled_practice",
+        "title": "Controlled practice",
+        "subtitle": "Use the four standup patterns to build the sentences.",
+        "practiceItems": [
+          {
+            "type": "unscramble",
+            "prompt": "I/have/run/into/some/issues/with/the/token/refresh",
+            "answer": "I have run into some issues with the token refresh"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "I/have/been/working/on/the/new/authentication/service",
+            "answer": "I have been working on the new authentication service"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "I/will/push/the/initial/version/to/our/staging/environment",
+            "answer": "I will push the initial version to our staging environment"
+          },
+          {
+            "type": "match_halves",
+            "prompt": "I've been swamped with meetings,",
+            "answer": "so I'll get back to you about that ticket later today.",
+            "options": [
+              "so I'll get back to you about that ticket later today.",
+              "so the deployment was successful.",
+              "so the unit tests are now passing.",
+              "so the bundle size has dropped significantly."
+            ]
+          },
+          {
+            "type": "match_halves",
+            "prompt": "I'm not sure what's causing the bug,",
+            "answer": "but I think it might be related to how we handle async actions.",
+            "options": [
+              "but I think it might be related to how we handle async actions.",
+              "and the release went out yesterday.",
+              "and the staging environment is up.",
+              "but the standup is at 10am."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "clip_production",
+        "title": "Your turn — give your own standup",
+        "prompt": "Imagine you are at tomorrow morning's standup. Give your update in 60–90 seconds.",
+        "content": "Pick a real or hypothetical project you are working on.\nReport ONE thing you worked on yesterday  (use: I have been + -ing).\nReport ONE blocker  (use: I have run into… / I am waiting for…).\nHedge ONE uncertainty  (use: I am not sure but… / it might…).\nState ONE thing you will do next  (use: I will… / I am going to…).\nSpeak for ~60–90 seconds. Then swap to the teacher's role and ask one follow-up question."
+      }
+    ],
+    "clip": {
+      "title": "English for Devs",
+      "source": "ESL",
+      "youtubeUrl": "https://www.youtube.com/watch?v=MsxcpZr1LpM",
+      "dialogue": "From clean code to clear communication, we to\nlearn to present your work with\nconfidence and precision.\nHave you ever struggled to explain a\ncomplex technical problem during a daily\nmeeting in English? You know the issue,\nbut finding the right words can be\ntough. In this video, we'll listen to a\nrealistic daily standup. Your goal is to\npay attention to the specific phrases\nused to describe challenges. Notice how\nthe developers talk about bugs,\nblockers, and performance issues. This\nis the real everyday language you'll use\nin your career. Let's jump in.\nAll right, team. Let's kick {{blank}} our\ndaily standup. Who wants to start today?\nI can go first. I've {{blank}} working on the\nnew authentication service.\nHow's it coming along? Any progress?\nYeah, it's going okay.\nI've got the basic structure set up, but\nI've run into some issues with token\nrefresh. Sometimes the tokens are\n{{blank}} before they should. I think I\nneed to dig deeper into our {{blank}} library.\nDo you need any help with that?\nI might need to discuss further with\nAlex's team. He's worked with this\n{{blank}} before.\nOkay, you've cleared up all other\ninformation about this ticket, right?\nI've been waiting for some {{blank}}\non the security requirements from the\nclient.\nI see. Have you talked to Henry about\nit? He's our point of contact with the\nclient.\nHe was quite {{blank}} yesterday, so he\ncouldn't help.\nOh, I'm sorry about that, John. I've\nbeen {{blank}} with meetings. After this\nmeeting, come to my desk and we'll\nclarify these issues. Okay,\ngreat. Thanks, Henry. John, what's your\nplan for today? I'll keep working on the\ntoken {{blank}} logic. Oh, and there's\nthat weird bug with the password reset\nfeature. I need to look into\nthe {{blank}} reset. What's going on with\nthat?\nIt's uh sometimes it doesn't send the\nreset email. Like you request a reset\nand it just doesn't work, you know?\nH that sounds tricky. Any ideas what's\ncausing it?\nNot really. I mean, it works fine most\nof the time. It's just sometimes it\ndoesn't. I'll {{blank}} it and update you\nlater.\nAll right, keep at it. Let me know if\nyou need any help. Okay.\nYeah, sure. Oh, wait. Almost forgot. Has\nanyone seen the updated database schema?\nI thought the {{blank}} team was supposed to\nsend it over.\nI think Mark mentioned something about\nthat in the team chat this morning. Did\nyou check Slack?\nOh man, {{blank}}? Why didn't he send an\nemail? I haven't looked at Slack today.\nI'll check after the standup.\nSounds good. Anything else you want to\nbring up?\nNah, that's it for me.\nAll right. Thanks, John. Evan, what's\nyour status?\nYesterday, I was implementing the new {{blank}}\ncomponents for the dashboard and ran\ninto some issues with state management\nin {{blank}}. Today, I'll be refactoring the\ncode to use Redux for better state\nhandling.\nState management issues again. What's\nhappening this time? It seems that\nsometimes the component states aren't\n{{blank}} properly. It's causing\ninconsistencies in the UI, especially\nwhen dealing with real-time updates.\nThat sounds {{blank}}. Do you have any\nleads on the cause?\nI suspect it might be related to how\nwe're handling asynchronous actions,\nparticularly with our {{blank}}\nconnections. When multiple updates come\nin rapidly, we seem to lose some state\nchanges.\nThat's possible. Have you looked into\nusing middleware like Redux Saga to\nhandle side effects?\nYes, I've been researching that. I think\nimplementing Redux Saga might help us\nmanage these complex {{blank}} flows\nbetter.\nHave you discussed this with the rest of\nthe front-end team?\nNot yet. I'm trying to put together a\nsmall proof of concept before {{blank}}\nit up, but I may need their input soon.\nWhat about the new UI components? When\ndo you think they'll be ready for\nreview?\nI'll push the initial version to our\n{{blank}} environment this afternoon. It\nwon't be fully styled yet, but the core\nfunctionality should be there. I'm\naiming to have it ready for a proper\nreview by tomorrow afternoon.\nThat would be helpful. Even if it's not\nthe final {{blank}}, it will allow the\nteam to start testing and provide\nfeedback.\nI'll {{blank}} getting a testable\nversion out.\nWhat else have you been working on?\nThere's an ongoing issue with our bundle\nsize. It's getting pretty large and\naffecting load times.\nRight. You mentioned that in our last\nsprint retrospective. Still working\n{{blank}} it.\nYes, I've started implementing code\nsplitting and lazy loading for some of\nour larger components, but we're still\nseeing longer than ideal load times on\nslower connections.\nThat's concerning. What's your plan to\naddress it further?\nI'm looking into using Webpack's tree\n{{blank}} more aggressively and\npotentially moving some of our larger\ndependencies to be loaded on demand. I'm\nalso considering implementing a service\nworker for better caching. I'm hoping\nthis will improve the situation, but\nit's a complex {{blank}}.\nPerhaps we should schedule a separate\nmeeting to dive deeper into this. Maybe\ninvolve some of the performance\noptimization experts from other teams.\nThat's a good idea. I'll put together\nsome data and we can set that up later\nthis week.\nPerfect. {{blank}} team, what's your status?\nWe've been running our automated test\nsuite against the latest build. We've\nuncovered a few {{blank}} cases in the user\nprofile update flow.\nAnything critical? Nothing\nshowstoppping, but there is an\n{{blank}} bug where profile pictures\nsometimes don't update immediately. I'll\nsend over the full report this\nafternoon.\nH, that might be related to the state\nmanagement issues I mentioned. I'll take\na look once I get your report, Mia.\nSounds good. Oh, and we've started\nsetting up some new endto-end tests for\nthe dashboard {{blank}}. Should have those\nready for review by tomorrow.\nGreat work, everyone. Product owner, any\nupdates from your end?\nYes, just a couple of things. I've been\nreviewing the user stories for our next\nsprint. We might need to {{blank}} some\npriorities.\nWhat's changing?\nWell, the client's been pushing for that\ndata export feature. They're saying it's\nbecoming crucial for some of their\nenterprise customers. Oof, that's going\nto be tricky to implement with our\ncurrent architecture. We might need to\nrethink how we're {{blank}} large data\nsets on the client side.\nYeah. And we'll need to optimize our API\nendpoints to handle potentially large\ndata exports. might impact our current\nAPI design.\nI know it's not ideal timing, but it's\ncoming from the {{blank}} level. Can we\ndiscuss this more in sprint planning\nlater today?\nDefinitely. We'll need to weigh this\nagainst our current commitments.\nAnything else before we wrap up?\nJust a {{blank}} one. Are we still on for\nthat team building activity next week?\nYou know, the escape room challenge.\nAbsolutely. It's booked for next\n{{blank}} afternoon.\nSounds fun. Looking forward to it. All\nright, that wraps up our daily standup.\nThanks everyone. Let's have a productive\nday. That's it for our video today. I\nhope this has been helpful. Now, I have\na question for you. What is the most\nchallenging phrase you've had to say\nduring a daily meeting in English? Leave\na comment below and we can all learn\nfrom each other. If you found this video\nvaluable, please hit the like button and\nsubscribe to English not Null so you\ndon't miss our next video. Thanks for\nwatching and I'll see you in the next",
+      "timings": [
+        1,
+        5,
+        6,
+        9,
+        11,
+        14,
+        17,
+        19,
+        23,
+        26,
+        28,
+        32,
+        34,
+        37,
+        40,
+        47,
+        48,
+        51,
+        54,
+        55,
+        58,
+        62,
+        64,
+        66,
+        68,
+        70,
+        73,
+        75,
+        77,
+        79,
+        81,
+        83,
+        85,
+        86,
+        88,
+        88,
+        91,
+        93,
+        94,
+        95,
+        97,
+        98,
+        101,
+        102,
+        104,
+        107,
+        109,
+        111,
+        113,
+        115,
+        117,
+        118,
+        121,
+        125,
+        128,
+        132,
+        133,
+        136,
+        140,
+        142,
+        143,
+        145,
+        147,
+        150,
+        153,
+        155,
+        156,
+        158,
+        160,
+        161,
+        164,
+        168,
+        169,
+        172,
+        173,
+        175,
+        177,
+        179,
+        181,
+        183,
+        185,
+        188,
+        190,
+        191,
+        193,
+        195,
+        196,
+        198,
+        200,
+        203,
+        205,
+        207,
+        209,
+        210,
+        212,
+        214,
+        216,
+        217,
+        219,
+        221,
+        224,
+        225,
+        227,
+        229,
+        230,
+        232,
+        234,
+        236,
+        237,
+        241,
+        243,
+        245,
+        246,
+        248,
+        250,
+        253,
+        254,
+        256,
+        258,
+        260,
+        263,
+        264,
+        266,
+        267,
+        269,
+        272,
+        274,
+        275,
+        278,
+        280,
+        282,
+        283,
+        285,
+        286,
+        288,
+        290,
+        292,
+        293,
+        296,
+        297,
+        299,
+        301,
+        303,
+        305,
+        307,
+        309,
+        312,
+        313,
+        315,
+        317,
+        320,
+        321,
+        323,
+        323,
+        326,
+        328,
+        330,
+        332,
+        334,
+        335,
+        337,
+        339,
+        341,
+        342,
+        343,
+        344,
+        346,
+        349,
+        350,
+        352,
+        354,
+        356,
+        359,
+        360,
+        363,
+        365,
+        367,
+        368,
+        369,
+        372,
+        374,
+        376,
+        379,
+        380,
+        382,
+        384,
+        385,
+        388,
+        389,
+        393,
+        394,
+        396,
+        398,
+        400,
+        400,
+        403,
+        405,
+        406,
+        409,
+        411,
+        413,
+        416,
+        417,
+        419,
+        422,
+        423,
+        426,
+        428,
+        431,
+        433,
+        436,
+        438,
+        440,
+        442,
+        444,
+        447
+      ],
+      "startTime": 46,
+      "endTime": 424,
+      "captionsSource": "manual"
+    },
+    "updatedAt": {
+      "_seconds": 1782920428,
+      "_nanoseconds": 748000000
+    }
+  }
+}
