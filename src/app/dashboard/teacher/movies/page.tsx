@@ -56,9 +56,15 @@ function UpsertModal({
   onClose: () => void;
 }) {
   const editing = !!initial;
-  const initialSlide = initial?.slides?.[0];
+  // Find the slide that actually carries the dialogue + blanks. Post-migration
+  // the game slide is `clip_dialogue_game` (usually at index 3, after cover /
+  // vocabulary / predictions); the old flow used `lyrics_game`; the very first
+  // pre-CLT lessons only had one slide at index 0.
+  const initialGameSlide =
+    initial?.slides?.find(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game')
+    ?? initial?.slides?.[0];
   const initialComprehensionSlide = initial?.slides?.find(s => s.type === 'clip_comprehension');
-  const initialBlanks = initialSlide?.blanksData ?? [];
+  const initialBlanks = initialGameSlide?.blanksData ?? [];
   const initialQuestions = initialComprehensionSlide?.questions ?? [];
   const initialClip = initial?.clip;
 
@@ -66,7 +72,7 @@ function UpsertModal({
   const [url, setUrl]           = useState(initialClip?.youtubeUrl ?? '');
   const [title, setTitle]       = useState(initialClip?.title ?? '');
   const [source, setSource]     = useState(initialClip?.source ?? '');
-  const [dialogue, setDialogue] = useState(initialClip?.dialogue ?? initialSlide?.content ?? '');
+  const [dialogue, setDialogue] = useState(initialClip?.dialogue ?? initialGameSlide?.content ?? '');
   const [timingsRaw, setTimingsRaw] = useState((initialClip?.timings ?? []).join(', '));
   const [blanks, setBlanks]     = useState<BlankRow[]>(
     initialBlanks.map(b => ({ word: b.word, options: b.options.join(', ') })),
@@ -161,18 +167,42 @@ function UpsertModal({
       clipData: clip,
     };
 
-    const slides: Slide[] = [gameSlide];
-    if (validQuestions.length > 0) {
-      const quizQuestions: QuizQuestion[] = validQuestions.map((q, qi) => ({
-        question: q.question,
-        options: q.options.map((text, oi) => ({ id: `q${qi}o${oi}`, text, isCorrect: oi === q.correctIdx })),
-        correctAnswer: q.options[q.correctIdx],
-      }));
-      slides.push({
-        type: 'clip_comprehension',
-        title: 'Comprehension',
-        questions: quizQuestions,
+    const comprehensionSlide: Slide | null = validQuestions.length > 0
+      ? {
+          type: 'clip_comprehension',
+          title: 'Comprehension',
+          questions: validQuestions.map((q, qi) => ({
+            question: q.question,
+            options: q.options.map((text, oi) => ({ id: `q${qi}o${oi}`, text, isCorrect: oi === q.correctIdx })),
+            correctAnswer: q.options[q.correctIdx],
+          })),
+        }
+      : null;
+
+    let slides: Slide[];
+    if (editing && initial?.slides && initial.slides.length > 0) {
+      // Editing: preserve every non-game / non-comprehension slide in place
+      // (cover, vocabulary, predictions, language_focus, language_practice,
+      // production, etc.) and swap only the game + comprehension slots.
+      slides = initial.slides.map(s => {
+        if (s.type === 'clip_dialogue_game' || s.type === 'lyrics_game') return gameSlide;
+        if (s.type === 'clip_comprehension') return comprehensionSlide ?? s;
+        return s;
       });
+      // If the original didn't have a game slide (very old lesson), prepend one.
+      if (!initial.slides.some(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game')) {
+        slides = [gameSlide, ...slides];
+      }
+      // If the original didn't have a comprehension slide but the teacher just
+      // added questions, insert it right after the game slide.
+      if (comprehensionSlide && !initial.slides.some(s => s.type === 'clip_comprehension')) {
+        const gameIdx = slides.findIndex(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game');
+        slides.splice(gameIdx + 1, 0, comprehensionSlide);
+      }
+    } else {
+      // Creating from scratch: just the game (+ optional comprehension).
+      slides = [gameSlide];
+      if (comprehensionSlide) slides.push(comprehensionSlide);
     }
 
     setSaving(true);
