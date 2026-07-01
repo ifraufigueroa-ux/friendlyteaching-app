@@ -10,7 +10,6 @@ import { useLessons } from '@/hooks/useLessons';
 import { useBookings, completeBooking, updateBooking } from '@/hooks/useBookings';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { useClassHistory, recordClassSession, saveClassNotes } from '@/hooks/useClassHistory';
-import { useLeads } from '@/hooks/useLeads';
 import { ClassNotesModal } from '@/components/schedule/ClassNotesModal';
 import HistoryModal from '@/components/schedule/HistoryModal';
 import { auth } from '@/lib/firebase/config';
@@ -95,7 +94,6 @@ export default function TeacherDashboardPage() {
   const { lessons } = useLessons(uid, 'teacher');
   const { bookings } = useBookings(uid, currentWeekStart);
   const { history: classHistory, loading: historyLoading } = useClassHistory(effectiveUid);
-  const { leads } = useLeads();
 
   // Sync dismissedSlots → sessionStorage (persist across refreshes, reset next day)
   useEffect(() => {
@@ -361,12 +359,6 @@ export default function TeacherDashboardPage() {
   // Recent homework to review (submitted, not yet reviewed)
   const toReview = homework.filter((h) => h.status === 'submitted').slice(0, 3);
 
-  // Leads pipeline snapshot
-  const leadsNew       = leads.filter((l) => l.status === 'new').length;
-  const leadsContacted = leads.filter((l) => l.status === 'contacted').length;
-  const leadsTrial     = leads.filter((l) => l.status === 'trial').length;
-  const leadsActive    = leadsNew + leadsContacted + leadsTrial;
-
   const firstName = profile?.fullName?.split(' ')[0] ?? 'Profesor';
 
   return (
@@ -399,64 +391,6 @@ export default function TeacherDashboardPage() {
           <StatCard icon="📚" label="Lecciones publicadas" value={publishedLessons} sub={`de ${lessons.length} total`} color="#A8E6A1" href="/dashboard/teacher/lessons" />
           <StatCard icon="📝" label="Tareas por revisar" value={pendingHomework} sub={pendingHomework > 0 ? 'Requieren atención' : 'Todo al día'} color="#FFE8A8" href="/dashboard/teacher/homework" />
           <StatCard icon="⭐" label="Puntuación promedio" value={avgScore ?? '—'} sub={avgScore ? 'escala 1–7' : 'Sin datos aún'} color="#FFC0CB" href="/dashboard/teacher/progress" />
-        </div>
-
-        {/* ── Quick access row ───────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Link
-            href="/dashboard/teacher/tools"
-            className="group relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-[#7B5EA7] to-[#9B7CB8] text-white shadow-glass hover-lift"
-          >
-            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-colors" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center text-xl shadow-inner">
-                🧰
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm">Herramientas</p>
-                <p className="text-[11px] text-white/70">Friendlyflix · Friendlyrics · IELTS · Q&A</p>
-              </div>
-              <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
-            </div>
-          </Link>
-
-          <Link
-            href="/dashboard/teacher/leads"
-            className="group relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-[#EC4899] to-[#F472B6] text-white shadow-glass hover-lift"
-          >
-            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-colors" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center text-xl shadow-inner">
-                ✨
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm">Leads</p>
-                <p className="text-[11px] text-white/70">
-                  {leadsActive > 0
-                    ? `${leadsActive} en pipeline · ${leadsNew} nuevos`
-                    : 'Prospectos y conversiones'}
-                </p>
-              </div>
-              <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
-            </div>
-          </Link>
-
-          <Link
-            href="/dashboard/teacher/planner"
-            className="group relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-[#10B981] to-[#34D399] text-white shadow-glass hover-lift"
-          >
-            <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-colors" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center text-xl shadow-inner">
-                🗂️
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm">Planner</p>
-                <p className="text-[11px] text-white/70">Planifica próximas clases</p>
-              </div>
-              <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
-            </div>
-          </Link>
         </div>
 
         {/* ── Next class + Today's schedule ───────────────────── */}
