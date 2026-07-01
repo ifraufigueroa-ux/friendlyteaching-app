@@ -44,30 +44,56 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
   }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions]);
 }
 
-const TEACHER_NAV = [
+// ── Navigation structure ─────────────────────────────────────────────────────
+// Top-level items render without a section header; sections render with a header.
+
+type NavItem = { href: string; icon: string; label: string };
+type NavSection = { section: string; items: NavItem[] };
+type NavEntry = NavItem | NavSection;
+
+const TEACHER_NAV: NavEntry[] = [
   { href: '/dashboard/teacher', icon: '🏠', label: 'Panel Principal' },
-  { href: '/dashboard/teacher/students', icon: '👥', label: 'Estudiantes' },
-  { href: '/dashboard/teacher/history', icon: '📋', label: 'Historial de clases' },
-  { href: '/dashboard/teacher/lessons', icon: '📚', label: 'Lecciones' },
-  { href: '/dashboard/teacher/bulk-upload', icon: '📥', label: 'Importar lecciones' },
-  { href: '/dashboard/teacher/homework', icon: '📝', label: 'Tareas' },
-  { href: '/dashboard/teacher/progress', icon: '📊', label: 'Progreso' },
-  { href: '/dashboard/teacher/planner', icon: '🗂️', label: 'Planner' },
-  { href: '/dashboard/teacher/reminders', icon: '🔔', label: 'Recordatorios' },
-  { href: '/dashboard/teacher/billing', icon: '💳', label: 'Facturación' },
-  { href: '/dashboard/teacher/activities', icon: '🎯', label: 'Actividades' },
-  { href: '/dashboard/teacher/placement', icon: '📐', label: 'Placement Test' },
-  { href: '/dashboard/teacher/tools', icon: '🧰', label: 'Herramientas' },
-  { href: '/dashboard/teacher/leads', icon: '✨', label: 'Leads' },
+  {
+    section: 'Enseñanza',
+    items: [
+      { href: '/dashboard/teacher/students',     icon: '👥',  label: 'Estudiantes' },
+      { href: '/dashboard/teacher/history',      icon: '📋',  label: 'Historial de clases' },
+      { href: '/dashboard/teacher/lessons',      icon: '📚',  label: 'Lecciones' },
+      { href: '/dashboard/teacher/bulk-upload',  icon: '📥',  label: 'Importar lecciones' },
+      { href: '/dashboard/teacher/activities',   icon: '🎯',  label: 'Actividades' },
+      { href: '/dashboard/teacher/placement',    icon: '📐',  label: 'Placement Test' },
+      { href: '/dashboard/teacher/planner',      icon: '🗂️',  label: 'Planner' },
+      { href: '/dashboard/teacher/reminders',    icon: '🔔',  label: 'Recordatorios' },
+      { href: '/dashboard/teacher/homework',     icon: '📝',  label: 'Tareas' },
+      { href: '/dashboard/teacher/progress',     icon: '📊',  label: 'Progreso' },
+    ],
+  },
+  {
+    section: 'Negocio',
+    items: [
+      { href: '/dashboard/teacher/leads',   icon: '✨', label: 'Leads' },
+      { href: '/dashboard/teacher/billing', icon: '💳', label: 'Facturación' },
+    ],
+  },
+  {
+    section: 'Herramientas',
+    items: [
+      { href: '/dashboard/teacher/tools', icon: '🧰', label: 'Herramientas' },
+    ],
+  },
 ];
 
-const STUDENT_NAV = [
-  { href: '/dashboard/student', icon: '📚', label: 'Mis Lecciones' },
+const STUDENT_NAV: NavEntry[] = [
+  { href: '/dashboard/student',          icon: '📚', label: 'Mis Lecciones' },
   { href: '/dashboard/student/homework', icon: '📝', label: 'Mis Tareas' },
   { href: '/dashboard/student/schedule', icon: '📅', label: 'Horario' },
-  { href: '/dashboard/student/book', icon: '📆', label: 'Solicitar clase' },
+  { href: '/dashboard/student/book',     icon: '📆', label: 'Solicitar clase' },
   { href: '/dashboard/student/progress', icon: '📊', label: 'Mi Progreso' },
 ];
+
+function isSection(entry: NavEntry): entry is NavSection {
+  return (entry as NavSection).section !== undefined;
+}
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { profile, role } = useAuthStore();
@@ -121,30 +147,37 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {nav.map(({ href, icon, label }) => {
-          const isActive = pathname === href || (href !== '/dashboard/teacher' && href !== '/dashboard/student' && pathname.startsWith(href));
-          const badge = navBadges.get(href) ?? 0;
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        {nav.map((entry, idx) => {
+          if (isSection(entry)) {
+            return (
+              <div key={entry.section} className={idx > 0 ? 'mt-5' : ''}>
+                <p className="px-3 mb-1.5 text-[10px] font-bold text-[#9B7CB8]/70 uppercase tracking-widest">
+                  {entry.section}
+                </p>
+                <div className="space-y-1">
+                  {entry.items.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      item={item}
+                      pathname={pathname}
+                      badge={navBadges.get(item.href) ?? 0}
+                      onNavigate={onNavigate}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          }
           return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavigate}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200
-                ${isActive
-                  ? 'bg-gradient-to-r from-[#F0E5FF] to-[#E8DAFF] text-[#5A3D7A] font-semibold shadow-purple-sm nav-active'
-                  : 'text-gray-600 hover:bg-[#F0E5FF]/40 hover:text-[#5A3D7A] hover:shadow-sm'}
-              `}
-            >
-              <span className="text-base">{icon}</span>
-              <span className="flex-1">{label}</span>
-              {badge > 0 && (
-                <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )}
-            </Link>
+            <div key={entry.href} className={idx > 0 ? 'mt-1' : ''}>
+              <NavLink
+                item={entry}
+                pathname={pathname}
+                badge={navBadges.get(entry.href) ?? 0}
+                onNavigate={onNavigate}
+              />
+            </div>
           );
         })}
       </nav>
@@ -172,5 +205,39 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
     </aside>
+  );
+}
+
+// ── Nav link ─────────────────────────────────────────────────────────────────
+
+function NavLink({
+  item, pathname, badge, onNavigate,
+}: {
+  item: NavItem;
+  pathname: string;
+  badge: number;
+  onNavigate?: () => void;
+}) {
+  const isRoot = item.href === '/dashboard/teacher' || item.href === '/dashboard/student';
+  const isActive = pathname === item.href || (!isRoot && pathname.startsWith(item.href));
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={`
+        flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200
+        ${isActive
+          ? 'bg-gradient-to-r from-[#F0E5FF] to-[#E8DAFF] text-[#5A3D7A] font-semibold shadow-purple-sm nav-active'
+          : 'text-gray-600 hover:bg-[#F0E5FF]/40 hover:text-[#5A3D7A] hover:shadow-sm'}
+      `}
+    >
+      <span className="text-base">{item.icon}</span>
+      <span className="flex-1">{item.label}</span>
+      {badge > 0 && (
+        <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
+    </Link>
   );
 }
