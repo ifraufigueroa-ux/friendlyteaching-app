@@ -23,6 +23,19 @@ import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
 import ClipPredictionsSlide from './slides/ClipPredictionsSlide';
 import ClipLanguageFocusSlide from './slides/ClipLanguageFocusSlide';
 import ClipControlledPracticeSlide from './slides/ClipControlledPracticeSlide';
+// Friendlyrics (music-lesson) slide types
+import SongCoverSlide from './slides/SongCoverSlide';
+import LyricsSlide from './slides/LyricsSlide';
+import LyricsGameSlide from './slides/LyricsGameSlide';
+import VocabMatchSlide from './slides/VocabMatchSlide';
+import TranslationGameSlide from './slides/TranslationGameSlide';
+import ListeningQuizSlide from './slides/ListeningQuizSlide';
+import FriendlyricsEndSlide from './slides/FriendlyricsEndSlide';
+// CLT curriculum slides (shared with Friendlyrics + English for Devs)
+import PredictionsSlide from './slides/PredictionsSlide';
+import LanguageFocusSlide from './slides/LanguageFocusSlide';
+import LanguagePracticeSlide from './slides/LanguagePracticeSlide';
+import WrapupSlide from './slides/WrapupSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -109,6 +122,30 @@ function renderSlide(
       return <ClipControlledPracticeSlide slide={slide} />;
     case 'clip_production':
       return <ClipPredictionsSlide slide={slide} />;
+    // ─── Friendlyrics (music lessons) ────────────────────────────
+    case 'song_cover':
+      return <SongCoverSlide slide={slide} />;
+    case 'lyrics':
+      return <LyricsSlide slide={slide} />;
+    case 'lyrics_game':
+      return <LyricsGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
+    case 'vocab_match':
+      return <VocabMatchSlide slide={slide} />;
+    case 'translation_game':
+      return <TranslationGameSlide slide={slide} />;
+    case 'listening_quiz':
+      return <ListeningQuizSlide slide={slide} />;
+    case 'friendlyrics_end':
+      return <FriendlyricsEndSlide slide={slide} />;
+    // ─── CLT curriculum slides (shared) ──────────────────────────
+    case 'predictions':
+      return <PredictionsSlide slide={slide} />;
+    case 'language_focus':
+      return <LanguageFocusSlide slide={slide} />;
+    case 'language_practice':
+      return <LanguagePracticeSlide slide={slide} />;
+    case 'wrapup':
+      return <WrapupSlide slide={slide} />;
     default:
       return (
         <div className="flex items-center justify-center h-full text-gray-400">
