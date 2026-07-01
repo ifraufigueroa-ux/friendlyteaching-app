@@ -48,10 +48,10 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 function loadState(): { layout: Layout; enabled: boolean } {
-  if (typeof window === 'undefined') return { layout: DEFAULT_LAYOUT, enabled: false };
+  if (typeof window === 'undefined') return { layout: DEFAULT_LAYOUT, enabled: true };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { layout: DEFAULT_LAYOUT, enabled: false };
+    if (!raw) return { layout: DEFAULT_LAYOUT, enabled: true };
     const parsed = JSON.parse(raw) as { layout?: Partial<Layout>; enabled?: boolean };
     return {
       layout: {
@@ -60,10 +60,10 @@ function loadState(): { layout: Layout; enabled: boolean } {
         width:  typeof parsed.layout?.width  === 'number' ? parsed.layout.width  : DEFAULT_LAYOUT.width,
         height: typeof parsed.layout?.height === 'number' ? parsed.layout.height : DEFAULT_LAYOUT.height,
       },
-      enabled: parsed.enabled ?? false,
+      enabled: parsed.enabled ?? true,
     };
   } catch {
-    return { layout: DEFAULT_LAYOUT, enabled: false };
+    return { layout: DEFAULT_LAYOUT, enabled: true };
   }
 }
 
@@ -78,7 +78,7 @@ function saveState(layout: Layout, enabled: boolean) {
 
 export default function SubtitleCover() {
   const [layout,  setLayout]  = useState<Layout>(DEFAULT_LAYOUT);
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const dragRef = useRef<DragState | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -226,11 +226,12 @@ export default function SubtitleCover() {
             height: `${layout.height}%`,
           }}
         >
-          {/* The white cover itself — onPointerDown drags it */}
+          {/* The cover itself — onPointerDown drags it. Colored to blend
+              into the video stage's black background so the teacher gets a
+              clean seam over hardcoded subtitles. */}
           <div
             onPointerDown={(e) => beginDrag(e, 'move')}
-            className="absolute inset-0 bg-white shadow-xl cursor-move rounded-sm"
-            style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}
+            className="absolute inset-0 bg-black cursor-move rounded-sm ring-1 ring-white/10"
           />
 
           {/* Small floating action row (reset + close) — pointer-events controlled
