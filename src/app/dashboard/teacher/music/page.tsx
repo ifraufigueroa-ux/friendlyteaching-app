@@ -14,6 +14,7 @@ import {
   assignMusicLesson,
 } from '@/hooks/useMusicLessons';
 import TopBar from '@/components/layout/TopBar';
+import TranscriptClipEditor from '@/components/teacher/TranscriptClipEditor';
 import type { Slide, LessonLevel, SongData, MusicLesson } from '@/types/firebase';
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -123,6 +124,8 @@ export default function TeacherMusicPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [assignTarget, setAssignTarget] = useState<MusicLesson | null>(null);
+  const [manualEditorOpen, setManualEditorOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<MusicLesson | null>(null);
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -253,6 +256,27 @@ export default function TeacherMusicPage() {
             {/* ── Step 1: Search ──────────────────────────────── */}
             {step === 1 && (
               <div className="space-y-4">
+                {/* Manual transcript entry point — mirror of the Friendlyflix flow */}
+                <button
+                  onClick={() => { setEditTarget(null); setManualEditorOpen(true); }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-pink-50 to-white border border-pink-100 hover:border-pink-300 hover:from-pink-100 transition-colors text-left group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#EC4899] to-[#F472B6] flex items-center justify-center text-white text-lg shadow-sm">
+                    📋
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#5A3D7A]">Manual con transcript</p>
+                    <p className="text-[11px] text-gray-500">Pega el transcript de YouTube + marca <code className="bg-pink-100 text-pink-700 px-1 rounded font-mono">{`{{blank}}`}</code>. Genera el deck CLT automáticamente.</p>
+                  </div>
+                  <span className="text-pink-500 group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">o busca en iTunes</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
                   <input
@@ -445,6 +469,7 @@ export default function TeacherMusicPage() {
                   lesson={lesson}
                   isOwner={lesson.teacherId === uid}
                   onAssign={() => setAssignTarget(lesson)}
+                  onEdit={() => { setEditTarget(lesson); setManualEditorOpen(true); }}
                   onDelete={() => deleteMusicLesson(lesson.id!)}
                   onTogglePublish={() => publishMusicLesson(lesson.id!, lesson.publishStatus !== 'published')}
                 />
@@ -461,6 +486,15 @@ export default function TeacherMusicPage() {
           onClose={() => setAssignTarget(null)}
         />
       )}
+
+      {manualEditorOpen && (
+        <TranscriptClipEditor
+          mode="song"
+          teacherId={uid}
+          initial={editTarget ?? undefined}
+          onClose={() => { setManualEditorOpen(false); setEditTarget(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -469,12 +503,14 @@ function MusicLessonCard({
   lesson,
   isOwner,
   onAssign,
+  onEdit,
   onDelete,
   onTogglePublish,
 }: {
   lesson: MusicLesson;
   isOwner: boolean;
   onAssign: () => void;
+  onEdit: () => void;
   onDelete: () => void;
   onTogglePublish: () => void;
 }) {
@@ -512,6 +548,15 @@ function MusicLessonCard({
         >
           ▶ Abrir
         </Link>
+        {isOwner && (
+          <button
+            onClick={onEdit}
+            className="flex-1 text-xs font-semibold py-1.5 rounded-lg border border-pink-200 text-pink-600 hover:bg-pink-50 transition-colors"
+            title="Editar transcript + blanks"
+          >
+            ✏️ Editar
+          </button>
+        )}
         {isOwner && (
           <button
             onClick={onTogglePublish}

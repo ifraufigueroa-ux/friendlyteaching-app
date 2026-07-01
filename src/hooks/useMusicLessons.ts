@@ -96,6 +96,16 @@ export async function createMusicLesson(data: {
   return ref.id;
 }
 
+export async function updateMusicLesson(
+  id: string,
+  patch: Partial<Pick<MusicLesson, 'song' | 'level' | 'slides' | 'title'>>,
+) {
+  await updateDoc(doc(db, 'musicLessons', id), {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function publishMusicLesson(id: string, published: boolean) {
   await updateDoc(doc(db, 'musicLessons', id), {
     publishStatus: published ? 'published' : 'draft',
