@@ -1,12 +1,17 @@
 // FriendlyTeaching.cl — Name Normalizer Modal
 // Combines auto-detection (accent / first-name prefix) with full manual grouping.
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Booking } from '@/types/firebase';
-import { groupSimilarNames } from '@/lib/utils/nameUtils';
+import { groupSimilarNames, pickCanonicalName } from '@/lib/utils/nameUtils';
 import { bulkRenameStudentBookings } from '@/hooks/useBookings';
 import { bulkRenameClassHistory } from '@/hooks/useClassHistory';
 import { useAuthStore } from '@/store/authStore';
+import {
+  collection, query, where, getDocs,
+  type QueryDocumentSnapshot, type DocumentData,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 interface Props {
   allBookings: Booking[];
@@ -20,6 +25,37 @@ interface MergeGroup {
 }
 
 export default function NameNormalizerModal({ allBookings, onClose }: Props) {
+  const { profile } = useAuthStore();
+  const teacherId = profile?.uid ?? '';
+
+  // ── Names that appear ONLY in classHistory (no active booking) ──
+  // Without this the modal misses students who used to have classes
+  // but no longer do, so their history-only variants ("Andrée", "Anto
+  // Acuña" etc.) never showed up as merge candidates.
+  const [historyOnlyNames, setHistoryOnlyNames] = useState<string[]>([]);
+  useEffect(() => {
+    if (!teacherId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const snap = await getDocs(query(
+          collection(db, 'classHistory'),
+          where('teacherId', '==', teacherId),
+        ));
+        if (cancelled) return;
+        const set = new Set<string>();
+        snap.forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+          const n = (d.data().studentName ?? '').trim();
+          if (n) set.add(n);
+        });
+        setHistoryOnlyNames([...set]);
+      } catch (err) {
+        console.warn('[NameNormalizerModal] classHistory read failed', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [teacherId]);
+
   // ── Derive unique names + booking ID index ────────────────────
   const { byName, uniqueNames } = useMemo(() => {
     const byName: Record<string, string[]> = {};
@@ -28,22 +64,27 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
       if (!n) continue;
       (byName[n] ??= []).push(b.id);
     }
+    // Merge in history-only names (no booking IDs to point at, but still
+    // eligible for renaming across classHistory rows).
+    for (const n of historyOnlyNames) {
+      if (!(n in byName)) byName[n] = [];
+    }
     return { byName, uniqueNames: Object.keys(byName).sort() };
-  }, [allBookings]);
+  }, [allBookings, historyOnlyNames]);
 
-  // Auto-detected groups (accent / prefix rules)
+  // Auto-detected groups (accent / prefix / nickname rules)
   const autoGroups: MergeGroup[] = useMemo(() => {
     const similar = groupSimilarNames(uniqueNames);
     return similar.map(names => ({
       names,
-      canonical: names.reduce((best, n) =>
-        n.length > best.length ? n : best,
-      ),
+      canonical: pickCanonicalName(names),
     }));
   }, [uniqueNames]);
 
-  // Track which names are already in a confirmed group
+  // Track which names are already in a confirmed group. Reset when
+  // autoGroups changes (i.e. after historyOnlyNames finishes loading).
   const [groups, setGroups] = useState<MergeGroup[]>(autoGroups);
+  useEffect(() => { setGroups(autoGroups); }, [autoGroups]);
 
   const assignedNames = useMemo(
     () => new Set(groups.flatMap(g => g.names)),
@@ -69,7 +110,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
   function createGroup() {
     if (selected.size < 2) return;
     const names = [...selected].sort();
-    const canonical = names.reduce((best, n) => n.length > best.length ? n : best);
+    const canonical = pickCanonicalName(names);
     setGroups(prev => [...prev, { names, canonical }]);
     setSelected(new Set());
   }
@@ -83,9 +124,6 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
   }
 
   // ── Save ──────────────────────────────────────────────────────
-  const { profile } = useAuthStore();
-  const teacherId = profile?.uid ?? '';
-
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [mergedCount, setMergedCount] = useState(0);
