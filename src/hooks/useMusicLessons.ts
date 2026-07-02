@@ -100,8 +100,12 @@ export async function updateMusicLesson(
   id: string,
   patch: Partial<Pick<MusicLesson, 'song' | 'level' | 'slides' | 'title'>>,
 ) {
+  // Firestore rejects undefined values in updateDoc(). Round-trip strips
+  // them so optional editor fields (startTime, endTime, timings,
+  // previewUrl…) don't blow up the save.
+  const clean = JSON.parse(JSON.stringify(patch));
   await updateDoc(doc(db, 'musicLessons', id), {
-    ...patch,
+    ...clean,
     updatedAt: serverTimestamp(),
   });
 }
