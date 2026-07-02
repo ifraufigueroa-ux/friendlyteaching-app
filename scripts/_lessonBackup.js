@@ -15,7 +15,8 @@
 //   node scripts/list-lesson-snapshots.js <lessonId>
 //   node scripts/restore-lesson.js <lessonId> <snapshotFile> --yes
 
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { Timestamp } = require('firebase-admin/firestore');
 const fs    = require('fs');
 const path  = require('path');
 
@@ -23,10 +24,9 @@ const ADMIN_KEY_PATH = 'C:/Users/UsuarioPC/Downloads/friendly-scheduling-firebas
 const SNAPSHOT_ROOT  = path.join(__dirname, 'lesson-snapshots');
 
 function initAdmin() {
-  if (admin.apps.length > 0) return admin;
+  if (getApps().length > 0) return;
   const json = fs.readFileSync(ADMIN_KEY_PATH, 'utf8');
-  admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
-  return admin;
+  initializeApp({ credential: cert(JSON.parse(json)) });
 }
 
 function slugifyNote(note) {
@@ -70,7 +70,7 @@ function reviveTimestamps(value) {
       typeof nsec === 'number' &&
       keys.length <= 2 &&
       keys.every(k => k === '_seconds' || k === '_nanoseconds' || k === 'seconds' || k === 'nanoseconds');
-    if (looksLikeTimestamp) return new admin.firestore.Timestamp(sec, nsec);
+    if (looksLikeTimestamp) return new Timestamp(sec, nsec);
     const out = {};
     for (const k of keys) out[k] = reviveTimestamps(value[k]);
     return out;
