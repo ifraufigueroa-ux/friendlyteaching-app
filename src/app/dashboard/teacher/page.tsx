@@ -285,19 +285,34 @@ export default function TeacherDashboardPage() {
       if (!prev || diff < prev.diff) slotMap.set(slotId, { booking: b, diff });
     }
 
-    // Pass 2 — for confirmed recurring slots with no current-week document (series
-    // expired or not yet seeded for this week), fall back to the nearest available
-    // confirmed doc so the carousel still shows the active recurring schedule.
-    // Capped at 8 weeks back to avoid ghost classes from deleted/moved schedules.
+    // Slots that have ANY document dated to the current week (regardless of
+    // status). If the teacher explicitly cancelled this week's occurrence,
+    // there will be a current-week doc with status='cancelled' — we must
+    // respect that and NOT fall back to another week's confirmed doc.
+    const slotsWithCurrentWeekDoc = new Set<string>();
+    for (const b of bookings) {
+      if (b.dayOfWeek !== todayDow) continue;
+      const wsMs = getWsMs(b);
+      const signedDiff = wsMs - thisWeekMs;
+      if (signedDiff < -TOLERANCE_MS || signedDiff >= ONE_WEEK_MS) continue;
+      slotsWithCurrentWeekDoc.add(`${b.hour}-${b.minute ?? 0}`);
+    }
+
+    // Pass 2 — for confirmed recurring slots with NO current-week document
+    // at all (series expired or not yet seeded for this week), fall back to
+    // the nearest available confirmed doc so the carousel still shows the
+    // active recurring schedule. Capped at 2 weeks to avoid ghost classes
+    // from deleted/moved schedules.
     const MAX_FALLBACK_MS = 2 * ONE_WEEK_MS;
     if (statusFilter.includes('confirmed')) {
       const fallback = new Map<string, { booking: Booking; diff: number }>();
       for (const b of bookings) {
         if (b.dayOfWeek !== todayDow || b.status !== 'confirmed' || !b.isRecurring) continue;
         const slotId = `${b.hour}-${b.minute ?? 0}`;
-        if (slotMap.has(slotId)) continue; // already covered by a current-week doc
+        if (slotMap.has(slotId)) continue;                    // already covered
+        if (slotsWithCurrentWeekDoc.has(slotId)) continue;    // teacher-cancelled or otherwise filtered — respect it
         const diff = Math.abs(getWsMs(b) - thisWeekMs);
-        if (diff > MAX_FALLBACK_MS) continue; // skip ghost bookings older than 8 weeks
+        if (diff > MAX_FALLBACK_MS) continue;
         const prev = fallback.get(slotId);
         if (!prev || diff < prev.diff) fallback.set(slotId, { booking: b, diff });
       }
