@@ -170,8 +170,13 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
 
   function startGame() {
     if (poolCount === 0) return;
-    const shuffled = shuffle(filteredPool).slice(0, effectiveCount);
-    setQuestions(shuffled);
+    // Beginner sims (A1/A2) opt into preserveOrder so questions play in the
+    // authored flow (personal info → family → hobbies → …). Everyone else
+    // shuffles for spaced-recall variety.
+    const pool = simulation?.preserveOrder
+      ? filteredPool.slice(0, effectiveCount)
+      : shuffle(filteredPool).slice(0, effectiveCount);
+    setQuestions(pool);
     setCurrentIdx(0);
     setScore(0);
     setStreak(0);

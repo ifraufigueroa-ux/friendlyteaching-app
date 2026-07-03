@@ -37,6 +37,10 @@ export interface QASimulation {
   glow:         string;
   /** The full question bank. */
   questions:    QAQuestion[];
+  /** If true, questions play in declaration order instead of being shuffled.
+   *  Useful for structured beginner questionnaires (A1/A2) where the flow
+   *  matters — e.g. personal info before hobbies before goals. */
+  preserveOrder?: boolean;
 }
 
 // ── Category visual lookup ───────────────────────────────────────────────────
@@ -56,6 +60,13 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   'Critical':    { icon: '⚔️', color: '#B91C1C', bg: '#FEE2E2' },
   'Examiner':    { icon: '🎓', color: '#6D28D9', bg: '#EDE9FE' },
   'Follow-up':   { icon: '💬', color: '#0E7490', bg: '#CFFAFE' },
+  // Beginner categories (A1 / A2 questionnaires)
+  'Personal':    { icon: '👤', color: '#1D4ED8', bg: '#DBEAFE' },
+  'Family':      { icon: '👨‍👩‍👧', color: '#BE185D', bg: '#FCE7F3' },
+  'Work':        { icon: '💼', color: '#B45309', bg: '#FEF3C7' },
+  'Likes':       { icon: '❤️', color: '#B91C1C', bg: '#FEE2E2' },
+  'Free Time':   { icon: '🎨', color: '#047857', bg: '#D1FAE5' },
+  'English':     { icon: '🇬🇧', color: '#5A3D7A', bg: '#F0E5FF' },
 };
 
 const DEFAULT_CATEGORY_META: CategoryMeta = { icon: '❓', color: '#374151', bg: '#F3F4F6' };

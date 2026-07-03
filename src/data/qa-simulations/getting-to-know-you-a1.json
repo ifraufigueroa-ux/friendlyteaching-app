@@ -1,0 +1,44 @@
+{
+  "id":            "getting-to-know-you-a1",
+  "title":         "Getting to Know You — A1",
+  "description":   "Cuestionario de 27 preguntas para conocer al estudiante en su primera clase. Nivel A1.",
+  "topic":         "First-class questionnaire · A1 beginner",
+  "icon":          "👋",
+  "gradient":      "from-[#3B82F6] to-[#60A5FA]",
+  "glow":          "shadow-blue-200/40",
+  "preserveOrder": true,
+  "questions": [
+    { "id":  1, "category": "Personal",  "difficulty": "easy", "question": "What is your name?" },
+    { "id":  2, "category": "Personal",  "difficulty": "easy", "question": "How old are you?" },
+    { "id":  3, "category": "Personal",  "difficulty": "easy", "question": "Where are you from?" },
+    { "id":  4, "category": "Personal",  "difficulty": "easy", "question": "Where do you live?" },
+    { "id":  5, "category": "Personal",  "difficulty": "easy", "question": "What is your phone number?" },
+
+    { "id":  6, "category": "Family",    "difficulty": "easy", "question": "Do you have a big family or a small family?" },
+    { "id":  7, "category": "Family",    "difficulty": "easy", "question": "Do you have brothers or sisters?" },
+    { "id":  8, "category": "Family",    "difficulty": "easy", "question": "Are you married? Do you have children?" },
+    { "id":  9, "category": "Family",    "difficulty": "easy", "question": "Who do you live with?" },
+
+    { "id": 10, "category": "Work",      "difficulty": "easy", "question": "What is your job? (What do you do?)" },
+    { "id": 11, "category": "Work",      "difficulty": "easy", "question": "Where do you work?" },
+    { "id": 12, "category": "Work",      "difficulty": "easy", "question": "Do you like your job? Why / Why not?" },
+    { "id": 13, "category": "Work",      "difficulty": "easy", "question": "What do you want to be in the future?" },
+
+    { "id": 14, "category": "Likes",     "difficulty": "easy", "question": "What do you like? (food, music, colors...)" },
+    { "id": 15, "category": "Likes",     "difficulty": "easy", "question": "What don't you like?" },
+    { "id": 16, "category": "Likes",     "difficulty": "easy", "question": "What is your hobby?" },
+    { "id": 17, "category": "Likes",     "difficulty": "easy", "question": "Do you like sports? Which ones?" },
+    { "id": 18, "category": "Likes",     "difficulty": "easy", "question": "What is your favorite movie or TV show?" },
+    { "id": 19, "category": "Likes",     "difficulty": "easy", "question": "Do you like animals? Do you have a pet?" },
+
+    { "id": 20, "category": "Free Time", "difficulty": "easy", "question": "What do you do in your free time?" },
+    { "id": 21, "category": "Free Time", "difficulty": "easy", "question": "Do you like reading? What do you read?" },
+    { "id": 22, "category": "Free Time", "difficulty": "easy", "question": "Do you like traveling? Where do you want to go?" },
+    { "id": 23, "category": "Free Time", "difficulty": "easy", "question": "What do you usually do on weekends?" },
+
+    { "id": 24, "category": "English",   "difficulty": "easy", "question": "Why do you want to learn English?" },
+    { "id": 25, "category": "English",   "difficulty": "easy", "question": "Is this your first English class?" },
+    { "id": 26, "category": "English",   "difficulty": "easy", "question": "What do you find difficult? (speaking, listening, grammar...)" },
+    { "id": 27, "category": "English",   "difficulty": "easy", "question": "What are your goals?" }
+  ]
+}
