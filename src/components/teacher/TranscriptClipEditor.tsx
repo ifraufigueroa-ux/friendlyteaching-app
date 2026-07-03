@@ -83,6 +83,103 @@ function extractVideoId(url: string): string | null {
   return m?.[1] ?? null;
 }
 
+// ─── Random blanks picker ─────────────────────────────────────────────
+// Preserves punctuation and word boundaries: we tokenise each line into
+// [word, gap, word, gap …] segments, choose N word segments at random
+// from the "content word" pool (length ≥ 4, not a stopword), replace
+// each chosen segment with {{blank}}, and stitch the line back so the
+// output text still reads naturally when the teacher previews it.
+
+const STOPWORDS = new Set<string>([
+  // English
+  'the','and','that','this','with','from','they','have','been','will','were','was','are','not','you','all','can','has','had','been','would','could','should','may','might','must','but','for','out','one','into','your','their','what','when','where','who','why','how','which','than','then','also','some','any','many','much','very','just','only','over','same','such','more','most','other','into','onto','upon','off','down','here','there','about','above','below','under','again','still','ever','never','now','yet','soon','because','while','until','after','before','since','among','though','although','however','therefore','otherwise','even','ourselves','yourself','yourselves','himself','herself','itself','themselves','being','doing','going','coming','saying','getting','making','taking','giving','looking','feeling','thinking','wanting','knowing','seeing',
+  // Spanish (in case the transcript is a Spanish translation game)
+  'que','con','por','para','del','las','los','una','unas','unos','sus','este','esta','esa','ese','como','pero','sin','sobre','entre','hasta','desde','cuando','donde','porque','aunque','mientras','entonces','tambien','muy','mas','menos','todo','todos','todas','otro','otra','otros','otras','mismo','misma','ellos','ellas','usted','ustedes','nosotros','nosotras','vosotros','vosotras','soy','eres','somos','sois','son','fui','fue','fueron','ser','estar','tener','haber','hacer','decir','poder','ir','ver','dar','saber','querer','poner','venir','llegar','pasar','deber','creer','hablar','llevar','dejar','seguir','encontrar','llamar','pensar','salir','volver','conocer','vivir','sentir','tratar','mirar','contar','empezar','esperar','buscar','existir','entrar','trabajar','escribir','perder','producir','ocurrir','entender','pedir','recibir','recordar','terminar','permitir','aparecer','conseguir','comenzar','servir','sacar','necesitar','mantener','resultar','leer','caer','cambiar','presentar','crear','abrir','considerar','oir','acabar','convertir','ganar','formar','traer','partir','morir','aceptar','realizar','suponer','comprender','lograr','explicar','preguntar','tocar','reconocer','estudiar','alcanzar','nacer','dirigir','correr','utilizar','pagar','ayudar','gustar','jugar','escuchar','cumplir','ofrecer','descubrir','levantar','intentar','usar','decidir','repetir','olvidar','valer','producir','abrir','tomar','venir','estar',
+]);
+
+interface Segment { text: string; isWord: boolean }
+
+function tokenise(line: string): Segment[] {
+  // Split preserving word / non-word boundaries. Unicode letter class
+  // catches accented characters so Spanish tokens survive intact.
+  const parts = line.split(/([\p{L}\p{N}']+)/u);
+  return parts
+    .filter(p => p.length > 0)
+    .map(p => ({ text: p, isWord: /^[\p{L}\p{N}'][\p{L}\p{N}']*$/u.test(p) }));
+}
+
+function isCandidate(w: string): boolean {
+  if (w.length < 4) return false;
+  if (STOPWORDS.has(w.toLowerCase())) return false;
+  // Skip pure numbers.
+  if (/^\d+$/.test(w)) return false;
+  return true;
+}
+
+function pickRandomBlanks(
+  text: string, target: number,
+): { newText: string; words: string[]; count: number } {
+  const lines = text.split('\n');
+  type Slot = { line: number; seg: number; word: string };
+  const slots: Slot[] = [];
+  const perLine: Segment[][] = lines.map(l => tokenise(l));
+
+  perLine.forEach((segs, i) => {
+    segs.forEach((s, j) => {
+      if (s.isWord && isCandidate(s.text)) {
+        slots.push({ line: i, seg: j, word: s.text });
+      }
+    });
+  });
+
+  if (slots.length === 0) return { newText: text, words: [], count: 0 };
+
+  // Try to spread picks across lines: bucket slots by line, then round-robin
+  // pick from buckets until we reach the target (or run out).
+  const buckets = new Map<number, Slot[]>();
+  for (const s of slots) {
+    const arr = buckets.get(s.line) ?? [];
+    arr.push(s);
+    buckets.set(s.line, arr);
+  }
+  // Shuffle each bucket so within a line the pick is random.
+  for (const arr of buckets.values()) arr.sort(() => Math.random() - 0.5);
+
+  const chosen: Slot[] = [];
+  const lineOrder = [...buckets.keys()].sort(() => Math.random() - 0.5);
+  let idx = 0;
+  while (chosen.length < target && buckets.size > 0) {
+    const line = lineOrder[idx % lineOrder.length];
+    const bucket = buckets.get(line);
+    if (!bucket || bucket.length === 0) {
+      buckets.delete(line);
+      const remainingLines = lineOrder.filter(l => buckets.has(l));
+      if (remainingLines.length === 0) break;
+      lineOrder.length = 0;
+      lineOrder.push(...remainingLines);
+      idx = 0;
+      continue;
+    }
+    chosen.push(bucket.shift()!);
+    idx++;
+  }
+
+  // Sort chosen slots by line + seg so replacements go in reading order —
+  // that way the blanksData array lines up with the {{blank}} markers.
+  chosen.sort((a, b) => a.line !== b.line ? a.line - b.line : a.seg - b.seg);
+
+  // Apply replacements to perLine segments.
+  for (const s of chosen) {
+    perLine[s.line][s.seg] = { text: '{{blank}}', isWord: false };
+  }
+
+  const newText = perLine
+    .map(segs => segs.map(s => s.text).join(''))
+    .join('\n');
+
+  return { newText, words: chosen.map(s => s.word), count: chosen.length };
+}
+
 // ─── Song helpers ──────────────────────────────────────────────────────
 
 // Strip {{blank}} markers so we can send clean lyrics to the AI generator.
@@ -203,6 +300,7 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
   const [savingMsg, setSavingMsg] = useState('');
   const [error, setError]         = useState<string | null>(null);
   const [showTranscriptPaste, setShowTranscriptPaste] = useState(false);
+  const [randomizeCount, setRandomizeCount] = useState<number>(mode === 'song' ? 8 : 12);
 
   const detectedBlanks = (dialogue.match(/\{\{blank\}\}/g) ?? []).length;
   useEffect(() => {
@@ -229,6 +327,32 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
     setBlanks([]);
     setError(null);
     return true;
+  }
+
+  function randomizeBlanks(target: number) {
+    if (!dialogue.trim()) {
+      setError('Primero pega el diálogo o letra.');
+      return;
+    }
+    // If the teacher has non-empty blank words filled in, ask before wiping.
+    const hasWork = blanks.some(b => b.word.trim() || b.options.trim());
+    if (hasWork && !confirm(
+      `Vas a reemplazar los ${blanks.length} blank${blanks.length !== 1 ? 's' : ''} actuales por ${target} nuevos randomizados. ¿Continuar?`,
+    )) return;
+
+    // Strip existing {{blank}} markers so the pick is idempotent across
+    // clicks. keeps punctuation and whitespace intact.
+    const clean = dialogue.replace(/\{\{blank\}\}/g, '___STRIPPED___');
+    const picked = pickRandomBlanks(clean, target);
+    if (picked.count === 0) {
+      setError('No encontré palabras candidatas (>3 letras, no stopwords) para blanquear. Prueba con menos blanks o revisa el texto.');
+      return;
+    }
+    // Restore the stripped markers so any manually authored ones survive the
+    // no-candidates case above; here they are just replaced with new picks.
+    setDialogue(picked.newText.replace(/___STRIPPED___/g, ''));
+    setBlanks(picked.words.map(w => ({ word: w, options: '' })));
+    setError(null);
   }
 
   async function handleSave() {
@@ -538,11 +662,34 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
 
           {/* Right col: blanks editor */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
-              Blanks ({detectedBlanks})
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                Blanks ({detectedBlanks})
+              </label>
+              <div
+                className="flex items-center gap-1.5 bg-gradient-to-r from-white to-[#F0E5FF]/40 border border-[#E0D5FF] rounded-full pl-2 pr-1 py-0.5 shadow-sm"
+                title="Elige N palabras al azar del diálogo y márcalas como blanks. Se saltan stopwords y palabras cortas."
+              >
+                <span className="text-[10px] font-bold text-[#5A3D7A]/70 whitespace-nowrap">🎲 Auto</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={40}
+                  value={randomizeCount}
+                  onChange={e => setRandomizeCount(Math.max(1, Math.min(40, parseInt(e.target.value, 10) || 1)))}
+                  className="w-10 px-1 py-0.5 text-xs font-bold text-center bg-transparent focus:outline-none text-[#5A3D7A]"
+                />
+                <button
+                  type="button"
+                  onClick={() => randomizeBlanks(randomizeCount)}
+                  className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#5A3D7A] to-[#7B5EA7] text-white hover:opacity-90 active:scale-95"
+                >
+                  Randomizar
+                </button>
+              </div>
+            </div>
             {blanks.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">Agrega <code className="bg-gray-100 px-1 rounded">{`{{blank}}`}</code> {mode === 'song' ? 'a la letra' : 'al diálogo'} para que aparezcan aquí.</p>
+              <p className="text-xs text-gray-400 italic">Agrega <code className="bg-gray-100 px-1 rounded">{`{{blank}}`}</code> {mode === 'song' ? 'a la letra' : 'al diálogo'} para que aparezcan aquí — o usa <span className="font-semibold text-[#5A3D7A]">🎲 Auto</span> para autogenerar.</p>
             ) : blanks.map((b, i) => (
               <div key={i} className="border border-gray-100 rounded-xl p-2 bg-gray-50">
                 <div className="flex items-center gap-2 mb-1">
