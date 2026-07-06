@@ -1,0 +1,879 @@
+{
+  "lessonId": "ehLwwdBg6XwBItvSaHqM",
+  "capturedAt": "2026-07-06T21:42:00.410Z",
+  "note": "shift-timings-minus2s-lines41-end",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "clip": {
+      "title": "TMS",
+      "source": "Logistics",
+      "youtubeUrl": "https://www.youtube.com/watch?v=ZHr0dTapcX4",
+      "dialogue": "How global giants like Amazon, DHL or {{blank}} manage thousands of shipments every single day without losing control?\nThe answer lies in one powerful system, the transportation management system or TMS.\nIn today's video, we'll break down what TMS really is, how it works, and why it's becoming a must-have tool for every modern supply chain.\n{{blank}} start.\nOne, what is a {{blank}} management system, TMS?\nA transportation management system, TMS, is a software platform designed to manage, automate, and optimize transportation operations.\nIt serves as a central hub that connects shippers, carriers, freight forwarders, and customers to ensure goods are moved {{blank}} and cost-effectively.\nIn simple {{blank}}, a TMS answers three critical questions.\nHow should we {{blank}} our goods? Planning.\nWho should move them? Execution.\nHow well did we perform? Optimization and reporting.\nTwo, core functions of a TMS.\nA TMS performs several integrated functions across the transportation life cycle.\nA. Planning and optimization. Determines the best transportation mode, road, air, sea, rail based on cost, time, and service level.\nSuggests {{blank}} routes and load consolidation to minimize cost per shipment.\nUses algorithms to balance cost, delivery {{blank}}, and resource utilization.\nExample, a TMS might recommend combining two half truck shipments from nearby suppliers into a single full truckload to save 30% on freight cost.\nB. Execution. {{blank}} carrier selection, shipment booking and dispatching.\nGenerates documentation like bills of lading, shipment manifests, customs paperwork, etc.\nProvides real-{{blank}} tracking of vehicles and shipments through GPS and IoT devices.\nExample, once an order is ready, TMS automatically assigns the shipment to the most cost-{{blank}} carrier based on contracted rates and availability.\nC. Freight settlement and payment. Automates the freight audit process, {{blank}} carrier invoices with contracted rates to detect over billing.\nProcesses {{blank}} to carriers and integrates with accounting systems.\nHelps {{blank}} total landed cost per shipment.\nExample, if a {{blank}} bills $2,500, but the contracted rate is $2,300, the TMS flags the discrepancy before payment is released.\nD. Reporting and analytics. Generates reports on carrier performance, cost analysis, {{blank}} efficiency, and on-time delivery.\nEnables data-driven decision-making by analyzing freight spend, {{blank}} footprint, and shipment patterns.\nExample, a TMS dashboard might show that air freight costs rose 12% last {{blank}}, prompting management to explore multimodal transport.\nThree, how does a TMS work? Step-by-step process.\nLet's {{blank}} down how a transportation management system operates in a typical supply chain environment.\n{{blank}} one, data integration. The TMS connects with other enterprise systems such as ERP, enterprise resource planning for order and inventory data, WMS, warehouse management system for shipment readiness and loading, carrier systems for rate contracts and capacity availability.\nThis creates a unified data ecosystem where all shipment {{blank}} information flows seamlessly.\nStep two, planning and {{blank}}.\nOnce customer orders are received, the TMS consolidates shipments, chooses the best mode, e.g. truckload versus LTL, plans routes based on distance, delivery deadlines and {{blank}}, assigns carriers based on cost and performance.\nModern TMS systems use AI and machine learning to continuously refine planning accuracy and optimize route selection.\nStep three, execution. After {{blank}}, the system generates shipping orders and labels.\nCommunicates with carriers via EDI, {{blank}} data interchange or APIs.\nTracks shipments using GPS, RFID or IoT enabled sensors.\nSends real-time updates to customers on shipment status.\nStep four, freight {{blank}}. Once shipments are delivered, the TMS validates carrier invoices against contracts.\nApproves correct invoices for payment.\nAllocates transportation costs to relevant {{blank}} centers or orders.\nThis {{blank}} administrative effort and ensures billing accuracy.\nStep five, performance monitoring and reporting.\nTMS dashboards and {{blank}} tools measure KPIs such as on-time delivery rate (OTD), transportation cost per unit, carrier performance index, freight audit accuracy.\nThese insights help identify cost-saving opportunities and improve carrier relationships.\nFour, technologies behind TMS.\nModern TMS platforms leverage advanced technologies to enhance {{blank}}.\nAI and machine learning, predict delays, optimize carrier selection, forecast demand.\nIoT, internet of things, real-{{blank}} vehicle and shipment tracking.\nCloud computing, scalability, global accessibility, and reduced IT overhead.\nBlockchain, secure and transparent freight documentation and payment.\nBig data analytics, freight spend analysis and route performance insights.\nFive {{blank}} of a TMS.\nImplementing a TMS brings several strategic and operational benefits.\nCost reduction, {{blank}} routes, carrier selection and load consolidation, lower freight costs.\nEnhanced visibility, real-time tracking and predictive alerts, improve control.\nImproved {{blank}}, automation reduces manual effort and errors.\nCustomer satisfaction, accurate ETAs and faster deliveries enhance service levels.\nData-driven decisions, analytics improve planning, budgeting, and strategic sourcing.\nSix challenges in TMS implementation.\nDespite its benefits, organizations must manage certain challenges.\nHigh initial cost, enterprise-grade TMS solutions can {{blank}} substantial investment.\nIntegration complexity, requires seamless linking with ERP, WMS, and carrier systems.\nData quality issues, poor master data can lead to incorrect optimization.\nChange {{blank}}, employees need training to adapt to new digital workflows.\nSeven types of TMS deployment.\nOn-premise TMS, installed locally, high control but expensive, best for large enterprises.\n{{blank}}-based TMS, SaaS model, scalable and easy to deploy, best for SMEs and global logistics networks.\nHybrid TMS, combination of both models, best for firms needing flexibility and control.\nConclusion. The transportation management system TMS has evolved from a simple tracking {{blank}} into a powerful strategic platform.\nIt helps businesses balance cost, service, and sustainability while offering deep visibility and control over logistics {{blank}}.\nIn a world where transportation costs can make or break profitability, adopting a robust TMS is not just an option, it's a strategic necessity.\nWith the rise of cloud computing, AI, and IoT, the next generation of TMS platforms will enable predictive, {{blank}}, and fully integrated logistics ecosystems.\nThat's it for today. If this video helped you understand how TMS works, don't forget to hit like, share it with your team, and subscribe for more supply chain insights.\nAnd tell me in the comments, is your organization using a TMS? If yes, how has it changed your logistics performance?\nSee you in the next video.",
+      "timings": [
+        0,
+        6,
+        10,
+        17,
+        20,
+        22,
+        31,
+        39,
+        41,
+        43,
+        45,
+        50,
+        53,
+        58,
+        65,
+        71,
+        73,
+        82,
+        86,
+        92,
+        96,
+        104,
+        112,
+        116,
+        118,
+        126,
+        135,
+        140,
+        147,
+        152,
+        155,
+        174,
+        178,
+        181,
+        198,
+        204,
+        208,
+        213,
+        219,
+        222,
+        228,
+        230,
+        235,
+        239,
+        241,
+        254,
+        256,
+        261,
+        264,
+        269,
+        273,
+        277,
+        282,
+        288,
+        291,
+        293,
+        299,
+        303,
+        307,
+        313,
+        319,
+        321,
+        323,
+        329,
+        335,
+        341,
+        346,
+        349,
+        353,
+        360,
+        367,
+        374,
+        381,
+        389,
+        399,
+        409,
+        413
+      ],
+      "captionsSource": "manual"
+    },
+    "level": "B2",
+    "title": "Logistics – TMS",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1783364821,
+      "_nanoseconds": 594000000
+    },
+    "updatedAt": {
+      "_seconds": 1783365197,
+      "_nanoseconds": 631000000
+    },
+    "slides": [
+      {
+        "type": "clip_cover",
+        "title": "Logistics — TMS",
+        "subtitle": "How Transportation Management Systems keep modern supply chains moving.",
+        "content": "B2",
+        "imageUrl": "https://img.youtube.com/vi/ZHr0dTapcX4/maxresdefault.jpg"
+      },
+      {
+        "type": "clip_vocab_match",
+        "title": "Vocabulary — Technical Terms",
+        "words": [
+          {
+            "word": "freight",
+            "pronunciation": "freɪt",
+            "translation": "goods transported in bulk by truck, ship, train, or plane",
+            "example": "The freight was delivered ahead of schedule."
+          },
+          {
+            "word": "shipment",
+            "pronunciation": "ˈʃɪp.mənt",
+            "translation": "a load of goods sent together as one delivery",
+            "example": "Each shipment is tracked in real time."
+          },
+          {
+            "word": "carrier",
+            "pronunciation": "ˈkær.i.ər",
+            "translation": "a company that transports goods for others",
+            "example": "The carrier reported a delay at the border."
+          },
+          {
+            "word": "fleet",
+            "pronunciation": "fliːt",
+            "translation": "a group of vehicles owned or operated by one company",
+            "example": "We manage a fleet of over 200 trucks."
+          },
+          {
+            "word": "dispatch",
+            "pronunciation": "dɪˈspætʃ",
+            "translation": "to send goods or vehicles out on their way",
+            "example": "Orders are dispatched within 24 hours."
+          },
+          {
+            "word": "route optimization",
+            "pronunciation": "ruːt ˌɒp.tɪ.maɪˈzeɪ.ʃən",
+            "translation": "the process of finding the most efficient path for deliveries",
+            "example": "TMS software enables route optimization."
+          },
+          {
+            "word": "supply chain",
+            "pronunciation": "səˈplaɪ tʃeɪn",
+            "translation": "the full network from raw materials to the final customer",
+            "example": "A resilient supply chain is a competitive advantage."
+          },
+          {
+            "word": "lead time",
+            "pronunciation": "liːd taɪm",
+            "translation": "the total time from placing an order to receiving the goods",
+            "example": "Automation reduces lead time significantly."
+          },
+          {
+            "word": "bottleneck",
+            "pronunciation": "ˈbɒt.əl.nek",
+            "translation": "a stage that slows down the whole process",
+            "example": "Customs clearance is often a bottleneck."
+          },
+          {
+            "word": "warehouse",
+            "pronunciation": "ˈweə.haʊs",
+            "translation": "a large building where goods are stored before distribution",
+            "example": "Goods are stored in a central warehouse."
+          }
+        ],
+        "subtitle": "Tap each card to reveal the meaning. You will hear these in the video."
+      },
+      {
+        "type": "clip_predictions",
+        "title": "Before Reading",
+        "prompt": "Before we dive into today's topic, let's see what you already know.",
+        "content": "Have you ever heard the term \"Transportation Management System\" or TMS?\nWhat kind of challenges do you think logistics companies face when moving goods across countries?\nIn your opinion, how has technology changed the way products reach customers?\nWhat software or apps do you use that involve tracking or delivery?"
+      },
+      {
+        "type": "clip_dialogue_game",
+        "content": "How global giants like Amazon, DHL or {{blank}} manage thousands of shipments every single day without losing control?\nThe answer lies in one powerful system, the transportation management system or TMS.\nIn today's video, we'll break down what TMS really is, how it works, and why it's becoming a must-have tool for every modern supply chain.\n{{blank}} start.\nOne, what is a {{blank}} management system, TMS?\nA transportation management system, TMS, is a software platform designed to manage, automate, and optimize transportation operations.\nIt serves as a central hub that connects shippers, carriers, freight forwarders, and customers to ensure goods are moved {{blank}} and cost-effectively.\nIn simple {{blank}}, a TMS answers three critical questions.\nHow should we {{blank}} our goods? Planning.\nWho should move them? Execution.\nHow well did we perform? Optimization and reporting.\nTwo, core functions of a TMS.\nA TMS performs several integrated functions across the transportation life cycle.\nA. Planning and optimization. Determines the best transportation mode, road, air, sea, rail based on cost, time, and service level.\nSuggests {{blank}} routes and load consolidation to minimize cost per shipment.\nUses algorithms to balance cost, delivery {{blank}}, and resource utilization.\nExample, a TMS might recommend combining two half truck shipments from nearby suppliers into a single full truckload to save 30% on freight cost.\nB. Execution. {{blank}} carrier selection, shipment booking and dispatching.\nGenerates documentation like bills of lading, shipment manifests, customs paperwork, etc.\nProvides real-{{blank}} tracking of vehicles and shipments through GPS and IoT devices.\nExample, once an order is ready, TMS automatically assigns the shipment to the most cost-{{blank}} carrier based on contracted rates and availability.\nC. Freight settlement and payment. Automates the freight audit process, {{blank}} carrier invoices with contracted rates to detect over billing.\nProcesses {{blank}} to carriers and integrates with accounting systems.\nHelps {{blank}} total landed cost per shipment.\nExample, if a {{blank}} bills $2,500, but the contracted rate is $2,300, the TMS flags the discrepancy before payment is released.\nD. Reporting and analytics. Generates reports on carrier performance, cost analysis, {{blank}} efficiency, and on-time delivery.\nEnables data-driven decision-making by analyzing freight spend, {{blank}} footprint, and shipment patterns.\nExample, a TMS dashboard might show that air freight costs rose 12% last {{blank}}, prompting management to explore multimodal transport.\nThree, how does a TMS work? Step-by-step process.\nLet's {{blank}} down how a transportation management system operates in a typical supply chain environment.\n{{blank}} one, data integration. The TMS connects with other enterprise systems such as ERP, enterprise resource planning for order and inventory data, WMS, warehouse management system for shipment readiness and loading, carrier systems for rate contracts and capacity availability.\nThis creates a unified data ecosystem where all shipment {{blank}} information flows seamlessly.\nStep two, planning and {{blank}}.\nOnce customer orders are received, the TMS consolidates shipments, chooses the best mode, e.g. truckload versus LTL, plans routes based on distance, delivery deadlines and {{blank}}, assigns carriers based on cost and performance.\nModern TMS systems use AI and machine learning to continuously refine planning accuracy and optimize route selection.\nStep three, execution. After {{blank}}, the system generates shipping orders and labels.\nCommunicates with carriers via EDI, {{blank}} data interchange or APIs.\nTracks shipments using GPS, RFID or IoT enabled sensors.\nSends real-time updates to customers on shipment status.\nStep four, freight {{blank}}. Once shipments are delivered, the TMS validates carrier invoices against contracts.\nApproves correct invoices for payment.\nAllocates transportation costs to relevant {{blank}} centers or orders.\nThis {{blank}} administrative effort and ensures billing accuracy.\nStep five, performance monitoring and reporting.\nTMS dashboards and {{blank}} tools measure KPIs such as on-time delivery rate (OTD), transportation cost per unit, carrier performance index, freight audit accuracy.\nThese insights help identify cost-saving opportunities and improve carrier relationships.\nFour, technologies behind TMS.\nModern TMS platforms leverage advanced technologies to enhance {{blank}}.\nAI and machine learning, predict delays, optimize carrier selection, forecast demand.\nIoT, internet of things, real-{{blank}} vehicle and shipment tracking.\nCloud computing, scalability, global accessibility, and reduced IT overhead.\nBlockchain, secure and transparent freight documentation and payment.\nBig data analytics, freight spend analysis and route performance insights.\nFive {{blank}} of a TMS.\nImplementing a TMS brings several strategic and operational benefits.\nCost reduction, {{blank}} routes, carrier selection and load consolidation, lower freight costs.\nEnhanced visibility, real-time tracking and predictive alerts, improve control.\nImproved {{blank}}, automation reduces manual effort and errors.\nCustomer satisfaction, accurate ETAs and faster deliveries enhance service levels.\nData-driven decisions, analytics improve planning, budgeting, and strategic sourcing.\nSix challenges in TMS implementation.\nDespite its benefits, organizations must manage certain challenges.\nHigh initial cost, enterprise-grade TMS solutions can {{blank}} substantial investment.\nIntegration complexity, requires seamless linking with ERP, WMS, and carrier systems.\nData quality issues, poor master data can lead to incorrect optimization.\nChange {{blank}}, employees need training to adapt to new digital workflows.\nSeven types of TMS deployment.\nOn-premise TMS, installed locally, high control but expensive, best for large enterprises.\n{{blank}}-based TMS, SaaS model, scalable and easy to deploy, best for SMEs and global logistics networks.\nHybrid TMS, combination of both models, best for firms needing flexibility and control.\nConclusion. The transportation management system TMS has evolved from a simple tracking {{blank}} into a powerful strategic platform.\nIt helps businesses balance cost, service, and sustainability while offering deep visibility and control over logistics {{blank}}.\nIn a world where transportation costs can make or break profitability, adopting a robust TMS is not just an option, it's a strategic necessity.\nWith the rise of cloud computing, AI, and IoT, the next generation of TMS platforms will enable predictive, {{blank}}, and fully integrated logistics ecosystems.\nThat's it for today. If this video helped you understand how TMS works, don't forget to hit like, share it with your team, and subscribe for more supply chain insights.\nAnd tell me in the comments, is your organization using a TMS? If yes, how has it changed your logistics performance?\nSee you in the next video.",
+        "blanksData": [
+          {
+            "word": "Unilever",
+            "options": [
+              "universe",
+              "deliver",
+              "Unilever",
+              "unify"
+            ]
+          },
+          {
+            "word": "Let's",
+            "options": [
+              "left",
+              "Let's",
+              "less",
+              "lest"
+            ]
+          },
+          {
+            "word": "transportation",
+            "options": [
+              "transformation",
+              "transportation",
+              "transaction",
+              "translation"
+            ]
+          },
+          {
+            "word": "efficiently",
+            "options": [
+              "officially",
+              "efficiently",
+              "effectively",
+              "sufficientl"
+            ]
+          },
+          {
+            "word": "terms",
+            "options": [
+              "turns",
+              "teams",
+              "terms",
+              "times"
+            ]
+          },
+          {
+            "word": "move",
+            "options": [
+              "mood",
+              "prove",
+              "move",
+              "moon"
+            ]
+          },
+          {
+            "word": "optimal",
+            "options": [
+              "optional",
+              "optical",
+              "optimal",
+              "optimistic"
+            ]
+          },
+          {
+            "word": "time",
+            "options": [
+              "team",
+              "dime",
+              "time",
+              "tide"
+            ]
+          },
+          {
+            "word": "automates",
+            "options": [
+              "automates",
+              "motivates",
+              "estimates",
+              "imitates"
+            ]
+          },
+          {
+            "word": "time",
+            "options": [
+              "time",
+              "team",
+              "tide",
+              "dime"
+            ]
+          },
+          {
+            "word": "effective",
+            "options": [
+              "effective",
+              "attractive",
+              "defective",
+              "reflective"
+            ]
+          },
+          {
+            "word": "comparing",
+            "options": [
+              "comparing",
+              "compiling",
+              "compelling",
+              "preparing"
+            ]
+          },
+          {
+            "word": "payments",
+            "options": [
+              "payments",
+              "pavements",
+              "fragments",
+              "statements"
+            ]
+          },
+          {
+            "word": "monitor",
+            "options": [
+              "monitor",
+              "mentor",
+              "motor",
+              "matter"
+            ]
+          },
+          {
+            "word": "carrier",
+            "options": [
+              "career",
+              "carrier",
+              "courier",
+              "barrier"
+            ]
+          },
+          {
+            "word": "route",
+            "options": [
+              "root",
+              "route",
+              "wrote",
+              "road"
+            ]
+          },
+          {
+            "word": "carbon",
+            "options": [
+              "ribbon",
+              "carbon",
+              "carton",
+              "cabin"
+            ]
+          },
+          {
+            "word": "quarter",
+            "options": [
+              "charter",
+              "quarter",
+              "quartered",
+              "quarter"
+            ]
+          },
+          {
+            "word": "break",
+            "options": [
+              "brake",
+              "break",
+              "brick",
+              "branch"
+            ]
+          },
+          {
+            "word": "step",
+            "options": [
+              "stop",
+              "steep",
+              "step",
+              "stamp"
+            ]
+          },
+          {
+            "word": "related",
+            "options": [
+              "related",
+              "relayed",
+              "deleted",
+              "repeated"
+            ]
+          },
+          {
+            "word": "optimization",
+            "options": [
+              "organization",
+              "optimization",
+              "operation",
+              "optimizations"
+            ]
+          },
+          {
+            "word": "constraints",
+            "options": [
+              "containers",
+              "constraints",
+              "complaints",
+              "contracts"
+            ]
+          },
+          {
+            "word": "planning",
+            "options": [
+              "planting",
+              "planning",
+              "playing",
+              "plumbing"
+            ]
+          },
+          {
+            "word": "electronic",
+            "options": [
+              "electric",
+              "electronic",
+              "electrician",
+              "electricity"
+            ]
+          },
+          {
+            "word": "settlement",
+            "options": [
+              "statement",
+              "settlement",
+              "installment",
+              "treatment"
+            ]
+          },
+          {
+            "word": "cost",
+            "options": [
+              "cast",
+              "coast",
+              "cost",
+              "cause"
+            ]
+          },
+          {
+            "word": "reduces",
+            "options": [
+              "reduces",
+              "produces",
+              "introduces",
+              "deduces"
+            ]
+          },
+          {
+            "word": "analytics",
+            "options": [
+              "analytics",
+              "analysis",
+              "analysts",
+              "analogies"
+            ]
+          },
+          {
+            "word": "performance",
+            "options": [
+              "performance",
+              "permanence",
+              "performer",
+              "preference"
+            ]
+          },
+          {
+            "word": "time",
+            "options": [
+              "dime",
+              "team",
+              "tide",
+              "time"
+            ]
+          },
+          {
+            "word": "benefits",
+            "options": [
+              "benefits",
+              "beneficiaries",
+              "deficits",
+              "benefit"
+            ]
+          },
+          {
+            "word": "optimized",
+            "options": [
+              "optimized",
+              "optimize",
+              "optimum",
+              "organized"
+            ]
+          },
+          {
+            "word": "efficiency",
+            "options": [
+              "efficiency",
+              "deficiency",
+              "proficiency",
+              "emergency"
+            ]
+          },
+          {
+            "word": "require",
+            "options": [
+              "request",
+              "require",
+              "acquire",
+              "retire"
+            ]
+          },
+          {
+            "word": "management",
+            "options": [
+              "management",
+              "engagement",
+              "encouragement",
+              "arrangement"
+            ]
+          },
+          {
+            "word": "Cloud",
+            "options": [
+              "crowd",
+              "cloud",
+              "loud",
+              "clout"
+            ]
+          },
+          {
+            "word": "tool",
+            "options": [
+              "towel",
+              "tool",
+              "stool",
+              "rule"
+            ]
+          },
+          {
+            "word": "operations",
+            "options": [
+              "operators",
+              "operations",
+              "operation",
+              "opportunities"
+            ]
+          },
+          {
+            "word": "autonomous",
+            "options": [
+              "automatic",
+              "authoritative",
+              "autonomous",
+              "anonymous"
+            ]
+          }
+        ],
+        "clipData": {
+          "title": "TMS",
+          "source": "Logistics",
+          "youtubeUrl": "https://www.youtube.com/watch?v=ZHr0dTapcX4",
+          "dialogue": "How global giants like Amazon, DHL or {{blank}} manage thousands of shipments every single day without losing control?\nThe answer lies in one powerful system, the transportation management system or TMS.\nIn today's video, we'll break down what TMS really is, how it works, and why it's becoming a must-have tool for every modern supply chain.\n{{blank}} start.\nOne, what is a {{blank}} management system, TMS?\nA transportation management system, TMS, is a software platform designed to manage, automate, and optimize transportation operations.\nIt serves as a central hub that connects shippers, carriers, freight forwarders, and customers to ensure goods are moved {{blank}} and cost-effectively.\nIn simple {{blank}}, a TMS answers three critical questions.\nHow should we {{blank}} our goods? Planning.\nWho should move them? Execution.\nHow well did we perform? Optimization and reporting.\nTwo, core functions of a TMS.\nA TMS performs several integrated functions across the transportation life cycle.\nA. Planning and optimization. Determines the best transportation mode, road, air, sea, rail based on cost, time, and service level.\nSuggests {{blank}} routes and load consolidation to minimize cost per shipment.\nUses algorithms to balance cost, delivery {{blank}}, and resource utilization.\nExample, a TMS might recommend combining two half truck shipments from nearby suppliers into a single full truckload to save 30% on freight cost.\nB. Execution. {{blank}} carrier selection, shipment booking and dispatching.\nGenerates documentation like bills of lading, shipment manifests, customs paperwork, etc.\nProvides real-{{blank}} tracking of vehicles and shipments through GPS and IoT devices.\nExample, once an order is ready, TMS automatically assigns the shipment to the most cost-{{blank}} carrier based on contracted rates and availability.\nC. Freight settlement and payment. Automates the freight audit process, {{blank}} carrier invoices with contracted rates to detect over billing.\nProcesses {{blank}} to carriers and integrates with accounting systems.\nHelps {{blank}} total landed cost per shipment.\nExample, if a {{blank}} bills $2,500, but the contracted rate is $2,300, the TMS flags the discrepancy before payment is released.\nD. Reporting and analytics. Generates reports on carrier performance, cost analysis, {{blank}} efficiency, and on-time delivery.\nEnables data-driven decision-making by analyzing freight spend, {{blank}} footprint, and shipment patterns.\nExample, a TMS dashboard might show that air freight costs rose 12% last {{blank}}, prompting management to explore multimodal transport.\nThree, how does a TMS work? Step-by-step process.\nLet's {{blank}} down how a transportation management system operates in a typical supply chain environment.\n{{blank}} one, data integration. The TMS connects with other enterprise systems such as ERP, enterprise resource planning for order and inventory data, WMS, warehouse management system for shipment readiness and loading, carrier systems for rate contracts and capacity availability.\nThis creates a unified data ecosystem where all shipment {{blank}} information flows seamlessly.\nStep two, planning and {{blank}}.\nOnce customer orders are received, the TMS consolidates shipments, chooses the best mode, e.g. truckload versus LTL, plans routes based on distance, delivery deadlines and {{blank}}, assigns carriers based on cost and performance.\nModern TMS systems use AI and machine learning to continuously refine planning accuracy and optimize route selection.\nStep three, execution. After {{blank}}, the system generates shipping orders and labels.\nCommunicates with carriers via EDI, {{blank}} data interchange or APIs.\nTracks shipments using GPS, RFID or IoT enabled sensors.\nSends real-time updates to customers on shipment status.\nStep four, freight {{blank}}. Once shipments are delivered, the TMS validates carrier invoices against contracts.\nApproves correct invoices for payment.\nAllocates transportation costs to relevant {{blank}} centers or orders.\nThis {{blank}} administrative effort and ensures billing accuracy.\nStep five, performance monitoring and reporting.\nTMS dashboards and {{blank}} tools measure KPIs such as on-time delivery rate (OTD), transportation cost per unit, carrier performance index, freight audit accuracy.\nThese insights help identify cost-saving opportunities and improve carrier relationships.\nFour, technologies behind TMS.\nModern TMS platforms leverage advanced technologies to enhance {{blank}}.\nAI and machine learning, predict delays, optimize carrier selection, forecast demand.\nIoT, internet of things, real-{{blank}} vehicle and shipment tracking.\nCloud computing, scalability, global accessibility, and reduced IT overhead.\nBlockchain, secure and transparent freight documentation and payment.\nBig data analytics, freight spend analysis and route performance insights.\nFive {{blank}} of a TMS.\nImplementing a TMS brings several strategic and operational benefits.\nCost reduction, {{blank}} routes, carrier selection and load consolidation, lower freight costs.\nEnhanced visibility, real-time tracking and predictive alerts, improve control.\nImproved {{blank}}, automation reduces manual effort and errors.\nCustomer satisfaction, accurate ETAs and faster deliveries enhance service levels.\nData-driven decisions, analytics improve planning, budgeting, and strategic sourcing.\nSix challenges in TMS implementation.\nDespite its benefits, organizations must manage certain challenges.\nHigh initial cost, enterprise-grade TMS solutions can {{blank}} substantial investment.\nIntegration complexity, requires seamless linking with ERP, WMS, and carrier systems.\nData quality issues, poor master data can lead to incorrect optimization.\nChange {{blank}}, employees need training to adapt to new digital workflows.\nSeven types of TMS deployment.\nOn-premise TMS, installed locally, high control but expensive, best for large enterprises.\n{{blank}}-based TMS, SaaS model, scalable and easy to deploy, best for SMEs and global logistics networks.\nHybrid TMS, combination of both models, best for firms needing flexibility and control.\nConclusion. The transportation management system TMS has evolved from a simple tracking {{blank}} into a powerful strategic platform.\nIt helps businesses balance cost, service, and sustainability while offering deep visibility and control over logistics {{blank}}.\nIn a world where transportation costs can make or break profitability, adopting a robust TMS is not just an option, it's a strategic necessity.\nWith the rise of cloud computing, AI, and IoT, the next generation of TMS platforms will enable predictive, {{blank}}, and fully integrated logistics ecosystems.\nThat's it for today. If this video helped you understand how TMS works, don't forget to hit like, share it with your team, and subscribe for more supply chain insights.\nAnd tell me in the comments, is your organization using a TMS? If yes, how has it changed your logistics performance?\nSee you in the next video.",
+          "timings": [
+            1,
+            7,
+            11,
+            18,
+            21,
+            23,
+            32,
+            40,
+            42,
+            44,
+            46,
+            51,
+            54,
+            59,
+            66,
+            72,
+            74,
+            83,
+            87,
+            93,
+            97,
+            105,
+            113,
+            117,
+            119,
+            127,
+            136,
+            141,
+            148,
+            153,
+            156,
+            175,
+            180,
+            180,
+            198,
+            204,
+            208,
+            213,
+            219,
+            221,
+            227,
+            229,
+            234,
+            238,
+            240,
+            253,
+            255,
+            260,
+            263,
+            268,
+            272,
+            276,
+            281,
+            287,
+            290,
+            292,
+            298,
+            302,
+            306,
+            312,
+            318,
+            320,
+            322,
+            328,
+            334,
+            340,
+            345,
+            348,
+            352,
+            359,
+            366,
+            373,
+            380,
+            388,
+            398,
+            408,
+            412
+          ],
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "questions": [
+          {
+            "question": "According to the video, what are the three critical questions a TMS answers?",
+            "options": [
+              {
+                "id": "q0o0",
+                "text": "How much does it cost, when does it arrive, who pays",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o1",
+                "text": "What is shipped, when is it shipped, where is it shipped",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o2",
+                "text": "How should we move our goods, who should move them, how well did we perform",
+                "isCorrect": true
+              },
+              {
+                "id": "q0o3",
+                "text": "Which carrier to use, which route to take, which vehicle to use",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "How should we move our goods, who should move them, how well did we perform"
+          },
+          {
+            "question": "What is the first step in the TMS operating process?",
+            "options": [
+              {
+                "id": "q1o0",
+                "text": "Execution",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o1",
+                "text": "Freight settlement",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o2",
+                "text": "Performance monitoring",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o3",
+                "text": "Data integration",
+                "isCorrect": true
+              }
+            ],
+            "correctAnswer": "Data integration"
+          },
+          {
+            "question": "Which enterprise systems does the TMS connect with during data integration?",
+            "options": [
+              {
+                "id": "q2o0",
+                "text": "Only accounting systems",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o1",
+                "text": "Only human resources systems",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o2",
+                "text": "Only marketing systems",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o3",
+                "text": "ERP, WMS, and carrier systems",
+                "isCorrect": true
+              }
+            ],
+            "correctAnswer": "ERP, WMS, and carrier systems"
+          },
+          {
+            "question": "Which of the following is NOT mentioned as a technology behind TMS?",
+            "options": [
+              {
+                "id": "q3o0",
+                "text": "Virtual reality",
+                "isCorrect": true
+              },
+              {
+                "id": "q3o1",
+                "text": "Artificial intelligence and machine learning",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o2",
+                "text": "Blockchain",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o3",
+                "text": "Internet of Things (IoT)",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Virtual reality"
+          },
+          {
+            "question": "According to the video, which of the following is a benefit of implementing a TMS?",
+            "options": [
+              {
+                "id": "q4o0",
+                "text": "Increased freight costs",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o1",
+                "text": "Cost reduction through optimized routes and load consolidation",
+                "isCorrect": true
+              },
+              {
+                "id": "q4o2",
+                "text": "Greater reliance on manual paperwork",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o3",
+                "text": "Lower customer satisfaction",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Cost reduction through optimized routes and load consolidation"
+          },
+          {
+            "question": "Which of the following is a challenge mentioned in TMS implementation?",
+            "options": [
+              {
+                "id": "q5o0",
+                "text": "Excessive visibility into operations",
+                "isCorrect": false
+              },
+              {
+                "id": "q5o1",
+                "text": "High initial cost",
+                "isCorrect": true
+              },
+              {
+                "id": "q5o2",
+                "text": "Reduced control over carriers",
+                "isCorrect": false
+              },
+              {
+                "id": "q5o3",
+                "text": "Decrease in data quality generated by the system",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "High initial cost"
+          }
+        ]
+      },
+      {
+        "type": "clip_language_focus",
+        "title": "Language Awareness — Passive Voice for Processes",
+        "content": "Notice how the article describes what a TMS does. Business and technical English relies heavily on the passive voice when the process matters more than who performs it.\n• is/are + past participle → describes what happens to goods\n• modal + be + past participle → describes capability (can be tracked, should be optimized)\n• have/has + been + past participle → describes changes and results (costs have been reduced)\nLook at the examples below and notice how the focus shifts from the actor to the action itself.",
+        "words": [
+          {
+            "word": "Shipments are monitored across every stage of the supply chain.",
+            "translation": "",
+            "example": "Pattern: is/are + past participle"
+          },
+          {
+            "word": "Routes can be optimized based on real-time traffic data.",
+            "translation": "",
+            "example": "Pattern: can be + past participle"
+          },
+          {
+            "word": "Delivery times have been reduced significantly since adopting a TMS.",
+            "translation": "",
+            "example": "Pattern: have been + past participle"
+          }
+        ]
+      },
+      {
+        "type": "clip_controlled_practice",
+        "title": "Controlled Practice",
+        "practiceItems": [
+          {
+            "type": "unscramble",
+            "prompt": "The company / uses / a TMS / to reduce / operating costs",
+            "answer": "The company uses a TMS to reduce operating costs"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "Real-time tracking / has / improved / customer satisfaction",
+            "answer": "Real-time tracking has improved customer satisfaction"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "Shipments / are / dispatched / from / a central warehouse",
+            "answer": "Shipments are dispatched from a central warehouse"
+          },
+          {
+            "type": "match_halves",
+            "prompt": "The main advantage of route optimization is",
+            "answer": "reducing fuel consumption and delivery time.",
+            "options": [
+              "reducing fuel consumption and delivery time.",
+              "making the supply chain longer.",
+              "increasing warehouse costs.",
+              "requiring more manual dispatching."
+            ]
+          },
+          {
+            "type": "match_halves",
+            "prompt": "A common bottleneck in international logistics is",
+            "answer": "customs clearance at borders.",
+            "options": [
+              "customs clearance at borders.",
+              "free real-time tracking.",
+              "short lead times.",
+              "low fuel prices."
+            ]
+          }
+        ]
+      },
+      {
+        "type": "clip_production",
+        "title": "Free Practice — Production",
+        "prompt": "Imagine you are the operations manager of a growing e-commerce company. Discuss:",
+        "content": "Would you invest in a TMS? What benefits would you expect first?\nWhich features would be non-negotiable for your business?\nDescribe a time when a delivery went wrong — what could technology have done differently?"
+      },
+      {
+        "type": "wrapup",
+        "title": "Let's Wrap Up",
+        "prompt": "Let's consolidate what we explored about Transportation Management Systems today.",
+        "content": "Which piece of vocabulary do you feel most confident using now?\nWhich grammar pattern do you want to keep practicing this week?\nHow could a TMS impact daily life for consumers like you?"
+      }
+    ]
+  }
+}
