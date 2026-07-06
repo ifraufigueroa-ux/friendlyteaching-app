@@ -720,14 +720,13 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
                     Comprehension questions ({questions.length}) · opcional
                   </label>
                   <p className="text-[11px] text-gray-400 mt-0.5">
-                    Aparecerán como una slide aparte después del juego. Recomendado: 3-5 preguntas.
+                    Aparecerán como una slide aparte después del juego. Recomendado: 3-6 preguntas (sin límite máximo).
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setQuestions(prev => prev.length >= 6 ? prev : [...prev, { question: '', options: ['', '', '', ''], correctIdx: 0 }])}
-                  disabled={questions.length >= 6}
-                  className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#E50914]/10 text-[#E50914] hover:bg-[#E50914]/20 border border-[#E50914]/30 disabled:opacity-40"
+                  onClick={() => setQuestions(prev => [...prev, { question: '', options: ['', '', '', ''], correctIdx: 0 }])}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#E50914]/10 text-[#E50914] hover:bg-[#E50914]/20 border border-[#E50914]/30"
                 >
                   + Add question
                 </button>

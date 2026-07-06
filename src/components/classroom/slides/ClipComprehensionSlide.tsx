@@ -5,9 +5,11 @@
 // student picks one → flips → reveals question + 4 options → answers
 // → feedback → next card → score summary.
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Slide, QuizQuestion } from '@/types/firebase';
 import SubtitleCover from '../SubtitleCover';
+
+const ANSWERED_STRIP_STORAGE_KEY = 'fcAnsweredStripCollapsed';
 
 interface Props { slide: Slide }
 
@@ -161,6 +163,25 @@ export default function ClipComprehensionSlide({ slide }: Props) {
   // would auto-jump to the results without letting the player see whether
   // their final answer was correct.
   const [summaryShown, setSummaryShown] = useState(false);
+  const [answeredStripCollapsed, setAnsweredStripCollapsed] = useState(false);
+
+  // Restore the collapsed state from a previous session so the panel stays
+  // out of the way for teachers who prefer more room for the current card.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = window.localStorage.getItem(ANSWERED_STRIP_STORAGE_KEY);
+      if (saved === '1') setAnsweredStripCollapsed(true);
+    } catch { /* localStorage unavailable — fall back to expanded */ }
+  }, []);
+
+  function toggleAnsweredStrip() {
+    setAnsweredStripCollapsed(prev => {
+      const next = !prev;
+      try { window.localStorage.setItem(ANSWERED_STRIP_STORAGE_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  }
 
   const backGradients = useMemo(
     () => questions.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
@@ -379,38 +400,60 @@ export default function ClipComprehensionSlide({ slide }: Props) {
 
       {/* ── Bottom strip: answered cards face-up ─────────────────────── */}
       {answeredByIdx.size > 0 && !summaryShown && (
-        <div className="flex-shrink-0 border-t border-white/15 bg-black/30 backdrop-blur px-5 py-3 overflow-x-auto">
-          <div className="flex items-end gap-4">
-            <div className="flex-shrink-0 pr-2 pb-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mb-1">Answered</p>
-              <p className="text-xl font-bold text-white leading-none">
-                {answeredByIdx.size}<span className="text-white/40 text-sm">/{total}</span>
-              </p>
+        <div className="flex-shrink-0 border-t border-white/15 bg-black/30 backdrop-blur">
+          {/* Header row (always visible) — clickable to toggle the strip.
+              At high browser zoom the answered strip used to overlap the
+              current question card, so teachers can minimise it here. */}
+          <button
+            type="button"
+            onClick={toggleAnsweredStrip}
+            title={answeredStripCollapsed ? 'Expandir respuestas' : 'Minimizar respuestas'}
+            aria-expanded={!answeredStripCollapsed}
+            className="w-full flex items-center justify-between px-5 py-2 hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-baseline gap-3">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-white/40">Answered</span>
+              <span className="text-sm font-bold text-white leading-none">
+                {answeredByIdx.size}<span className="text-white/40 text-xs">/{total}</span>
+              </span>
             </div>
-            {Array.from(answeredByIdx.entries())
-              .sort((a, b) => a[0] - b[0])
-              .map(([qIdx]) => (
-                <div
-                  key={qIdx}
-                  className="flex-shrink-0"
-                  style={{ animation: 'fcChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-                >
-                  <QuestionCard
-                    q={questions[qIdx]}
-                    flipped
-                    backGradient={backGradients[qIdx]}
-                    answered={answeredByIdx.get(qIdx)}
-                    small
-                  />
-                </div>
-              ))}
-          </div>
-          <style>{`
-            @keyframes fcChipIn {
-              from { opacity: 0; transform: translateY(28px) scale(0.85); }
-              to   { opacity: 1; transform: translateY(0)    scale(1);    }
-            }
-          `}</style>
+            <span
+              className="text-white/60 text-xs w-6 h-6 flex items-center justify-center rounded-full border border-white/15 bg-white/5"
+              aria-hidden
+            >
+              {answeredStripCollapsed ? '▲' : '▼'}
+            </span>
+          </button>
+
+          {!answeredStripCollapsed && (
+            <div className="px-5 pb-3 overflow-x-auto">
+              <div className="flex items-end gap-4">
+                {Array.from(answeredByIdx.entries())
+                  .sort((a, b) => a[0] - b[0])
+                  .map(([qIdx]) => (
+                    <div
+                      key={qIdx}
+                      className="flex-shrink-0"
+                      style={{ animation: 'fcChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+                    >
+                      <QuestionCard
+                        q={questions[qIdx]}
+                        flipped
+                        backGradient={backGradients[qIdx]}
+                        answered={answeredByIdx.get(qIdx)}
+                        small
+                      />
+                    </div>
+                  ))}
+              </div>
+              <style>{`
+                @keyframes fcChipIn {
+                  from { opacity: 0; transform: translateY(28px) scale(0.85); }
+                  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+                }
+              `}</style>
+            </div>
+          )}
         </div>
       )}
 
