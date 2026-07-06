@@ -9,9 +9,11 @@
 import type { QASimulation } from './types';
 import wellbeingNature from './wellbeing-nature.json';
 import gettingToKnowYouA1 from './getting-to-know-you-a1.json';
+import groundingKnowledge from './grounding-knowledge.json';
 
 export const QA_SIMULATIONS: QASimulation[] = [
   gettingToKnowYouA1 as QASimulation,
+  groundingKnowledge as QASimulation,
   wellbeingNature    as QASimulation,
 ];
 

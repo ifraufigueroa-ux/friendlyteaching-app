@@ -67,6 +67,12 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   'Likes':       { icon: '❤️', color: '#B91C1C', bg: '#FEE2E2' },
   'Free Time':   { icon: '🎨', color: '#047857', bg: '#D1FAE5' },
   'English':     { icon: '🇬🇧', color: '#5A3D7A', bg: '#F0E5FF' },
+  // Grounding Knowledge categories (A1 → B1 speaking review)
+  'Routines':    { icon: '🕐', color: '#7C2D12', bg: '#FED7AA' },
+  'Travel':      { icon: '✈️', color: '#0284C7', bg: '#E0F2FE' },
+  'Experiences': { icon: '🌍', color: '#0F766E', bg: '#CCFBF1' },
+  'Opinions':    { icon: '💭', color: '#4338CA', bg: '#E0E7FF' },
+  'Future':      { icon: '🚀', color: '#7E22CE', bg: '#F3E8FF' },
 };
 
 const DEFAULT_CATEGORY_META: CategoryMeta = { icon: '❓', color: '#374151', bg: '#F3F4F6' };
