@@ -21,12 +21,27 @@ const fs    = require('fs');
 const path  = require('path');
 
 const ADMIN_KEY_PATH = 'C:/Users/UsuarioPC/Downloads/friendly-scheduling-firebase-adminsdk-fbsvc-cb5f5ea061.json';
+const ENV_LOCAL_PATH = path.join(__dirname, '..', '.env.local');
 const SNAPSHOT_ROOT  = path.join(__dirname, 'lesson-snapshots');
+
+// Load the admin service account. Prefer the standalone JSON file (kept
+// for legacy scripts) and fall back to FIREBASE_SERVICE_ACCOUNT_JSON in
+// .env.local, which is the value the Vercel deployment already uses.
+function loadServiceAccount() {
+  if (fs.existsSync(ADMIN_KEY_PATH)) {
+    return JSON.parse(fs.readFileSync(ADMIN_KEY_PATH, 'utf8'));
+  }
+  if (fs.existsSync(ENV_LOCAL_PATH)) {
+    const raw = fs.readFileSync(ENV_LOCAL_PATH, 'utf8');
+    const line = raw.split('\n').find(l => l.startsWith('FIREBASE_SERVICE_ACCOUNT_JSON='));
+    if (line) return JSON.parse(line.slice('FIREBASE_SERVICE_ACCOUNT_JSON='.length));
+  }
+  throw new Error(`No admin credentials found. Missing both ${ADMIN_KEY_PATH} and FIREBASE_SERVICE_ACCOUNT_JSON in .env.local`);
+}
 
 function initAdmin() {
   if (getApps().length > 0) return;
-  const json = fs.readFileSync(ADMIN_KEY_PATH, 'utf8');
-  initializeApp({ credential: cert(JSON.parse(json)) });
+  initializeApp({ credential: cert(loadServiceAccount()) });
 }
 
 function slugifyNote(note) {
