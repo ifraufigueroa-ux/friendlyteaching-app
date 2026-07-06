@@ -19,7 +19,7 @@ const db = getFirestore();
     const title = (d.title || '').toLowerCase();
     const clipTitle = (d.clip?.title || '').toLowerCase();
     const q = (process.argv[2] || 'tms').toLowerCase();
-    if (title.includes(q) || clipTitle.includes(q)) {
+    if (q === '*' || title.includes(q) || clipTitle.includes(q)) {
       matches.push({ id: doc.id, data: d });
     }
   });
