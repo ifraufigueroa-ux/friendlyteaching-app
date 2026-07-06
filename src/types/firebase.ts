@@ -124,6 +124,7 @@ export type SlideType =
   | 'wrapup'
   | 'friendlyrics_end'
   // ── Friendlyflix® clip-based format ───────────────────────
+  | 'clip_cover'
   | 'clip_dialogue_game'
   | 'clip_comprehension'
   | 'clip_vocab_match'

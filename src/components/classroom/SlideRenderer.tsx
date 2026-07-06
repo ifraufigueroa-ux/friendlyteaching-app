@@ -17,6 +17,7 @@ import VideoSlide from './slides/VideoSlide';
 import ClozeSlide from './slides/ClozeSlide';
 import ImageHotspotSlide from './slides/ImageHotspotSlide';
 import SortingSlide from './slides/SortingSlide';
+import ClipCoverSlide from './slides/ClipCoverSlide';
 import ClipDialogueGameSlide from './slides/ClipDialogueGameSlide';
 import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
@@ -108,6 +109,8 @@ function renderSlide(
       return <ImageHotspotSlide slide={slide} />;
     case 'sorting':
       return <SortingSlide slide={slide} />;
+    case 'clip_cover':
+      return <ClipCoverSlide slide={slide} source={courseTitle} />;
     case 'clip_dialogue_game':
       return <ClipDialogueGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'clip_comprehension':

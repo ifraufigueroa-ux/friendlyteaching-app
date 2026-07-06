@@ -51,6 +51,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
 
   const SLIDE_LABEL: Record<string, string> = {
     cover:              'Cover',
+    clip_cover:         'Cover',
     vocabulary:         'Vocabulary',
     clip_vocab_match:   'Vocab match',
     predictions:        'Predictions',
