@@ -454,7 +454,7 @@ function SetupScreen({
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
           <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Cantidad de preguntas</h2>
           <div className="flex flex-wrap gap-2">
-            {[5, 10, 20, totalQuestionsInSim].map(n => {
+            {Array.from(new Set([5, 10, 20, 30, 40, totalQuestionsInSim])).sort((a, b) => a - b).map(n => {
               const isAll = n === totalQuestionsInSim;
               const active = isAll ? requestedQuestions >= poolCount : requestedQuestions === n;
               const disabled = n > poolCount && !isAll;
