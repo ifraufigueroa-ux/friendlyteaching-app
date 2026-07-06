@@ -52,13 +52,34 @@ export default function ClipCoverSlide({ slide, source }: Props) {
         style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,10,18,0.55) 100%)' }}
       />
 
-      {/* ── Top row: Friendlyflix bug + level pill ───────────────── */}
-      <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-6 sm:p-8 z-10">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.25em] bg-[#E50914] text-white px-3 py-1.5 rounded-sm shadow-lg shadow-red-900/50">
-            <span className="text-sm leading-none">▶</span>
-            Friendlyflix
-          </span>
+      {/* ── Top row: FriendlyTeaching logo + Friendlyflix bug · level pill ── */}
+      <div className="absolute top-0 left-0 right-0 flex items-start justify-between p-5 sm:p-7 z-10">
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Academy logo — parent brand, always present */}
+          <div
+            className="relative flex-shrink-0 rounded-full overflow-hidden ring-2 ring-white/80 shadow-[0_0_24px_rgba(255,255,255,0.35)] bg-white/10 backdrop-blur-sm"
+            style={{
+              width: 'clamp(48px, 6vw, 64px)',
+              height: 'clamp(48px, 6vw, 64px)',
+              animation: 'fcCoverFade 700ms ease-out both',
+            }}
+          >
+            <img
+              src="/logo-friendlyteaching.jpg"
+              alt="FriendlyTeaching Academy"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.3em] text-white/70 leading-none">
+              FriendlyTeaching
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.25em] bg-[#E50914] text-white px-3 py-1.5 rounded-sm shadow-lg shadow-red-900/50 w-fit">
+              <span className="text-sm leading-none">▶</span>
+              Friendlyflix
+            </span>
+          </div>
         </div>
         {level && (
           <span
