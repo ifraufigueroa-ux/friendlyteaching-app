@@ -442,6 +442,12 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
         pauseTimer();
         waitingRef.current = true;
         setWaiting(true);
+        // Snap cursor to the blank's line so the highlighted line matches
+        // the question being asked. Without this, POST_NEXT_PAD can push
+        // the pause 0.8 s into the next line — the previous line appears
+        // "skipped" even though its blank is still active.
+        const blankLine = blankLineIdx[bi];
+        if (blankLine != null) setCurrentLineIdx(blankLine);
         firePauseAndRetry();
       }
     }, 50);
