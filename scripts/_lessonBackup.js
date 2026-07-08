@@ -49,10 +49,12 @@ function slugifyNote(note) {
   return '--' + String(note).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 }
 
-async function backupLessonDoc(db, lessonId, note) {
-  const ref  = db.collection('movieLessons').doc(lessonId);
+// `collection` is optional and defaults to 'movieLessons' so existing
+// Friendlyflix scripts keep working. Pass 'musicLessons' for Friendlyrics.
+async function backupLessonDoc(db, lessonId, note, collection = 'movieLessons') {
+  const ref  = db.collection(collection).doc(lessonId);
   const snap = await ref.get();
-  if (!snap.exists) throw new Error(`Lesson ${lessonId} not found — nothing to back up`);
+  if (!snap.exists) throw new Error(`Lesson ${collection}/${lessonId} not found — nothing to back up`);
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const file  = `${stamp}${slugifyNote(note)}.json`;
@@ -62,6 +64,7 @@ async function backupLessonDoc(db, lessonId, note) {
   const out = path.join(dir, file);
   const payload = {
     lessonId,
+    collection,
     capturedAt: new Date().toISOString(),
     note: note || null,
     data: snap.data(),
@@ -108,12 +111,13 @@ async function restoreLessonDoc(db, lessonId, snapshotPath) {
   if (payload.lessonId !== lessonId) {
     throw new Error(`Snapshot lessonId "${payload.lessonId}" ≠ target "${lessonId}"`);
   }
+  const collection = payload.collection || 'movieLessons';
   // Belt-and-braces: snapshot the CURRENT state before clobbering it,
   // so a bad restore is still reversible.
-  await backupLessonDoc(db, lessonId, `pre-restore-from-${path.basename(snapshotPath).replace('.json', '')}`);
+  await backupLessonDoc(db, lessonId, `pre-restore-from-${path.basename(snapshotPath).replace('.json', '')}`, collection);
   const revived = reviveTimestamps(payload.data);
-  await db.collection('movieLessons').doc(lessonId).set(revived);
-  console.log(`✓ Restored movieLessons/${lessonId} from ${path.basename(snapshotPath)}`);
+  await db.collection(collection).doc(lessonId).set(revived);
+  console.log(`✓ Restored ${collection}/${lessonId} from ${path.basename(snapshotPath)}`);
 }
 
 module.exports = {
