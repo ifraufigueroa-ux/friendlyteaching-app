@@ -1,0 +1,584 @@
+{
+  "lessonId": "a69NE3OKQ9lfVl7KJnJq",
+  "collection": "musicLessons",
+  "capturedAt": "2026-07-08T22:05:05.527Z",
+  "note": "shift-timings-plus1s",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B1",
+    "title": "Kanye West – God Is",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1780419751,
+      "_nanoseconds": 548000000
+    },
+    "song": {
+      "title": "God Is",
+      "artist": "Kanye West",
+      "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/21/fd/d3/21fdd3d4-0c00-53ef-3903-d0569c49a812/19UMGIM89397.rgb.jpg/300x300bb.jpg",
+      "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/ff/bf/33/ffbf3380-802c-0885-34cc-18dd74f0880e/mzaf_11567994669567692153.plus.aac.p.m4a",
+      "youtubeUrl": "https://www.youtube.com/watch?v=G8u3P7Xqlvo&list=RDG8u3P7Xqlvo&start_radio=1&pp=ygUGZ29kIGlzoAcB0gcJCSgLAYcqIYzv",
+      "lyrics": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is"
+    },
+    "updatedAt": {
+      "_seconds": 1783548118,
+      "_nanoseconds": 400000000
+    },
+    "slides": [
+      {
+        "id": "song-cover",
+        "subtitle": "Let's learn English through music!",
+        "songData": {
+          "title": "God Is",
+          "artist": "Kanye West",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/21/fd/d3/21fdd3d4-0c00-53ef-3903-d0569c49a812/19UMGIM89397.rgb.jpg/300x300bb.jpg",
+          "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/ff/bf/33/ffbf3380-802c-0885-34cc-18dd74f0880e/mzaf_11567994669567692153.plus.aac.p.m4a",
+          "youtubeUrl": "https://www.youtube.com/watch?v=G8u3P7Xqlvo&list=RDG8u3P7Xqlvo&start_radio=1&pp=ygUGZ29kIGlzoAcB0gcJCSgLAYcqIYzv",
+          "lyrics": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is"
+        },
+        "type": "song_cover",
+        "title": "God Is by Kanye West",
+        "phase": "pre"
+      },
+      {
+        "words": [
+          {
+            "translation": "The state of being faithful",
+            "word": "faithfulness"
+          },
+          {
+            "word": "everything",
+            "pronunciation": "/ˈɛvɹiθɪŋ/",
+            "translation": "All the things under discussion.",
+            "example": "I checked the list again and everything is done."
+          },
+          {
+            "translation": "By supernatural or uncommon causes, e.g. by a god; that cannot be explained i…",
+            "pronunciation": "/məˈɹækjʊləs/",
+            "word": "miraculous"
+          },
+          {
+            "word": "revelation",
+            "pronunciation": "/ɹɛvəˈleɪʃən/",
+            "translation": "The act of revealing or disclosing."
+          },
+          {
+            "translation": "A political upheaval in a government or nation state characterized by great c…",
+            "word": "revolution",
+            "pronunciation": "/ˌɹɛvəˈl(j)uːʃən/"
+          },
+          {
+            "pronunciation": "/ˈɛvɹibɒdi/",
+            "word": "everybody",
+            "translation": "All people."
+          },
+          {
+            "pronunciation": "/əˈdɪkʃən/",
+            "word": "addiction",
+            "translation": "A state that is characterized by compulsive drug use or compulsive engagement…"
+          }
+        ],
+        "title": "Key Vocabulary",
+        "phase": "pre",
+        "id": "vocab-match",
+        "type": "vocab_match"
+      },
+      {
+        "type": "predictions",
+        "id": "predictions",
+        "prompt": "What do you think \"God Is\" by Kanye West is about?",
+        "phase": "pre",
+        "title": "Before You Listen...",
+        "content": "• What emotions do you think the song expresses?\n• Look at the title — what story might it tell?\n• Have you heard this song before? What do you remember?"
+      },
+      {
+        "type": "lyrics_game",
+        "title": "Fill in the Blanks!",
+        "phase": "while",
+        "content": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is",
+        "blanksData": [
+          {
+            "word": "darkness",
+            "options": [
+              "vision",
+              "darkness",
+              "kids",
+              "world"
+            ]
+          },
+          {
+            "word": "turn",
+            "options": [
+              "welcome",
+              "Sunday",
+              "turn",
+              "things"
+            ]
+          },
+          {
+            "word": "Everything",
+            "options": [
+              "filled",
+              "crib",
+              "Everything",
+              "God's"
+            ]
+          },
+          {
+            "word": "forget",
+            "options": [
+              "miraculous",
+              "filled",
+              "eternal",
+              "forget"
+            ]
+          },
+          {
+            "word": "faithfulness",
+            "options": [
+              "opened",
+              "faithfulness",
+              "saved",
+              "race"
+            ]
+          },
+          {
+            "word": "can't",
+            "options": [
+              "can't",
+              "idols",
+              "things",
+              "done"
+            ]
+          },
+          {
+            "word": "King",
+            "options": [
+              "hath",
+              "strength",
+              "King",
+              "shows"
+            ]
+          },
+          {
+            "word": "poor",
+            "options": [
+              "poor",
+              "Kings",
+              "Lord",
+              "filled"
+            ]
+          },
+          {
+            "word": "won't",
+            "options": [
+              "won't",
+              "name",
+              "Lords",
+              "He's"
+            ]
+          },
+          {
+            "word": "words",
+            "options": [
+              "religion",
+              "myself",
+              "words",
+              "Lord"
+            ]
+          },
+          {
+            "word": "know",
+            "options": [
+              "I'll",
+              "know",
+              "every",
+              "Lords"
+            ]
+          },
+          {
+            "word": "alive",
+            "options": [
+              "captives",
+              "alive",
+              "every",
+              "door"
+            ]
+          },
+          {
+            "word": "revelation",
+            "options": [
+              "revelation",
+              "saved",
+              "Listen",
+              "best"
+            ]
+          },
+          {
+            "word": "Jesus",
+            "options": [
+              "yeah",
+              "Jesus",
+              "right",
+              "force"
+            ]
+          },
+          {
+            "word": "Time",
+            "options": [
+              "yeah",
+              "prisons",
+              "Time",
+              "force"
+            ]
+          },
+          {
+            "word": "freedom",
+            "options": [
+              "fountain",
+              "revolution",
+              "freedom",
+              "light"
+            ]
+          },
+          {
+            "word": "roll",
+            "options": [
+              "Everybody",
+              "roll",
+              "praise",
+              "Worship"
+            ]
+          },
+          {
+            "word": "demons",
+            "options": [
+              "demons",
+              "Service",
+              "crib",
+              "right"
+            ]
+          }
+        ],
+        "songData": {
+          "title": "God Is",
+          "artist": "Kanye West",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/21/fd/d3/21fdd3d4-0c00-53ef-3903-d0569c49a812/19UMGIM89397.rgb.jpg/300x300bb.jpg",
+          "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/ff/bf/33/ffbf3380-802c-0885-34cc-18dd74f0880e/mzaf_11567994669567692153.plus.aac.p.m4a",
+          "youtubeUrl": "https://www.youtube.com/watch?v=G8u3P7Xqlvo&list=RDG8u3P7Xqlvo&start_radio=1&pp=ygUGZ29kIGlzoAcB0gcJCSgLAYcqIYzv",
+          "lyrics": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is"
+        },
+        "clipData": {
+          "title": "God Is",
+          "source": "Kanye West",
+          "youtubeUrl": "https://www.youtube.com/watch?v=G8u3P7Xqlvo&list=RDG8u3P7Xqlvo&start_radio=1&pp=ygUGZ29kIGlzoAcB0gcJCSgLAYcqIYzv",
+          "dialogue": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is",
+          "timings": [
+            3,
+            9,
+            18,
+            24,
+            35,
+            38,
+            41,
+            46,
+            51,
+            55,
+            59,
+            64,
+            68,
+            73,
+            75,
+            77,
+            79,
+            82,
+            85,
+            86,
+            89,
+            91,
+            96,
+            101,
+            104,
+            107,
+            109,
+            111,
+            114,
+            116,
+            118,
+            120,
+            123,
+            125,
+            127,
+            129,
+            132,
+            134,
+            136,
+            139,
+            141,
+            143,
+            146,
+            152,
+            157
+          ],
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "questions": [
+          {
+            "question": "What does the singer promise he will 'never' do?",
+            "options": [
+              {
+                "id": "q0o0",
+                "text": "Turn back",
+                "isCorrect": true
+              },
+              {
+                "id": "q0o1",
+                "text": "Sing this song again",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o2",
+                "text": "Forget his fans",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o3",
+                "text": "Return to church",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Turn back"
+          },
+          {
+            "question": "In the line 'He's the strength in this race that I run', what does 'this race' stand for?",
+            "options": [
+              {
+                "id": "q1o0",
+                "text": "A track competition",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o1",
+                "text": "The singer's life",
+                "isCorrect": true
+              },
+              {
+                "id": "q1o2",
+                "text": "A musical rivalry",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o3",
+                "text": "The Sunday Service tour",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "The singer's life"
+          },
+          {
+            "question": "Who does the song say is welcome 'through the door'?",
+            "options": [
+              {
+                "id": "q2o0",
+                "text": "Only the rich",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o1",
+                "text": "Only the poor",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o2",
+                "text": "From the rich to the poor",
+                "isCorrect": true
+              },
+              {
+                "id": "q2o3",
+                "text": "Only true believers",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "From the rich to the poor"
+          },
+          {
+            "question": "According to the lyrics, what happens 'when you call on Jesus' name'?",
+            "options": [
+              {
+                "id": "q3o0",
+                "text": "You will get rich",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o1",
+                "text": "You won't ever be the same",
+                "isCorrect": true
+              },
+              {
+                "id": "q3o2",
+                "text": "You will forget your past",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o3",
+                "text": "You will find a job",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "You won't ever be the same"
+          },
+          {
+            "question": "The line 'This ain't 'bout a dead religion, Jesus brought a revolution' contrasts religion with what?",
+            "options": [
+              {
+                "id": "q4o0",
+                "text": "A revolution",
+                "isCorrect": true
+              },
+              {
+                "id": "q4o1",
+                "text": "A war",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o2",
+                "text": "A book",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o3",
+                "text": "A tradition",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "A revolution"
+          }
+        ]
+      },
+      {
+        "type": "clip_language_focus",
+        "title": "Language Focus — Imagery, Repetition & Contractions",
+        "content": "Kanye writes his testimony using three tools you can hear all over \"God Is\". Spotting them will help you understand hip-hop, gospel and spoken English in general.\n• Metaphor — physical images stand for spiritual experiences (light = hope, race = life, fountain = renewal).\n• Anaphora — starting several lines with the same words (\"I know…\", \"This my…\") to build emotional weight.\n• Colloquial contractions — 'em (them), 'bout (about) and ain't (isn't / aren't) are common in songs and casual speech, not in formal writing.\nRead each example and notice what the writer really means, not just the literal words.",
+        "words": [
+          {
+            "word": "My light in darkness, oh",
+            "translation": "",
+            "example": "Metaphor: \"light\" = hope / God; \"darkness\" = fear or struggle. Not literal light."
+          },
+          {
+            "word": "He's the strength in this race that I run",
+            "translation": "",
+            "example": "Metaphor: life is compared to a long race — endurance, effort, a finish line."
+          },
+          {
+            "word": "I know God is the force that picked me up / I know Christ is the fountain that filled my cup",
+            "translation": "",
+            "example": "Anaphora: both lines start with \"I know\" for testimony emphasis. Also two metaphors: force lifting + fountain filling."
+          },
+          {
+            "word": "This my kids, this the crib, this my wife, this my life",
+            "translation": "",
+            "example": "Anaphora: \"This my…\" repeats four times. In casual/hip-hop English the verb \"is\" is often dropped (\"this [is] my life\")."
+          },
+          {
+            "word": "All my idols, let 'em go / All the demons, let 'em know",
+            "translation": "",
+            "example": "'em = them (colloquial contraction). Common in spoken English and songs — never in academic writing."
+          },
+          {
+            "word": "This ain't 'bout a dead religion",
+            "translation": "",
+            "example": "ain't = isn't / aren't; 'bout = about. Two contractions in five words — very informal, very typical of hip-hop."
+          }
+        ]
+      },
+      {
+        "type": "clip_controlled_practice",
+        "title": "Controlled Practice",
+        "practiceItems": [
+          {
+            "type": "unscramble",
+            "prompt": "My / light / in / darkness, / oh",
+            "answer": "My light in darkness, oh"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "God / is / the / force / that / picked / me / up",
+            "answer": "God is the force that picked me up"
+          },
+          {
+            "type": "unscramble",
+            "prompt": "You / won't / ever / be / the / same",
+            "answer": "You won't ever be the same"
+          },
+          {
+            "type": "match_halves",
+            "prompt": "King of Kings,",
+            "answer": "Lord of Lords",
+            "options": [
+              "Lord of Lords",
+              "strength of stones",
+              "end of days",
+              "light of the world"
+            ]
+          },
+          {
+            "type": "match_halves",
+            "prompt": "All my idols,",
+            "answer": "let 'em go",
+            "options": [
+              "let 'em go",
+              "call 'em back",
+              "hold them close",
+              "keep them safe"
+            ]
+          },
+          {
+            "type": "match_halves",
+            "prompt": "This a mission,",
+            "answer": "not a show",
+            "options": [
+              "not a show",
+              "not a game",
+              "not a chance",
+              "not a joke"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "clip_production",
+        "title": "Free Practice — Production",
+        "prompt": "Now it's your turn. Answer in your own words — take your time and be honest.",
+        "content": "Kanye repeats 'I know' many times. Is there something in your life you feel absolutely certain about? What is it, and why?\nThe song says 'You won't ever be the same when you call on Jesus' name'. Have you ever had an experience that changed you completely — spiritual, personal or something else?\nKanye lists what matters to him: \"This my kids, this the crib, this my wife, this my life\". If you had to write a similar line about YOUR life, what four things would you include?\nIn one sentence, what do you think Kanye is really saying in this song?"
+      },
+      {
+        "prompt": "How did the song \"God Is\" make you feel? Did it match your predictions?",
+        "title": "Wrap Up",
+        "phase": "post",
+        "content": "→ What was the most interesting expression you learned?\n→ Would you recommend this song to a friend? Why?\n→ How does the song connect to your own life?",
+        "type": "wrapup",
+        "id": "wrapup"
+      },
+      {
+        "id": "friendlyrics-end",
+        "type": "friendlyrics_end",
+        "songData": {
+          "title": "God Is",
+          "artist": "Kanye West",
+          "albumArt": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/21/fd/d3/21fdd3d4-0c00-53ef-3903-d0569c49a812/19UMGIM89397.rgb.jpg/300x300bb.jpg",
+          "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/ff/bf/33/ffbf3380-802c-0885-34cc-18dd74f0880e/mzaf_11567994669567692153.plus.aac.p.m4a",
+          "youtubeUrl": "https://www.youtube.com/watch?v=G8u3P7Xqlvo&list=RDG8u3P7Xqlvo&start_radio=1&pp=ygUGZ29kIGlzoAcB0gcJCSgLAYcqIYzv",
+          "lyrics": "God is\nMy light in {{blank}}, oh\nGod, God is\nHe, He is my all and all (and I'll never {{blank}} back)\nGod is\n{{blank}} that hath breath, praise the Lord\nWorship Christ with the best of your portions\nI know I won't {{blank}} all He's done\nHe's the strength in this race that I run\nEvery time I look up, I see God's {{blank}}\nAnd it shows just how much He is miraculous\nI can't keep it to myself, I {{blank}} sit here and be still\nEverybody, I will tell to the whole world, it's Him\n{{blank}} of Kings, Lord of Lords\nAll the things He has in store\nFrom the rich to the {{blank}}\nAll are welcome through the door\nYou {{blank}} ever be the same\nWhen you call on Jesus' name\nListen to the {{blank}} I'm saying\nJesus saved me, now I'm saying\nAnd I know, I {{blank}} God is the force that picked me up\nI know Christ is the fountain that filled my cup\nI know God is {{blank}}, yeah\nHe has opened up my vision\nGiving me a {{blank}}\nThis ain't 'bout a dead religion\n{{blank}} brought a revolution\nAll the captives are forgiven\n{{blank}} to break down all the prisons\nEvery man, every woman\nThere is {{blank}} from addiction\nJesus, You have my soul\nSunday Service on a {{blank}}\nAll my idols, let 'em go\nAll the {{blank}}, let 'em know\nThis a mission, not a show\nThis is my eternal soul\nThis my kids, this the crib\nThis my wife, this my life\nThis my God-given right\nThank you, Jesus, won the fight\nThat's what God is\nThat's what God is\nThat's what God is"
+        },
+        "phase": "post",
+        "title": "¡Lección completada!"
+      }
+    ]
+  }
+}

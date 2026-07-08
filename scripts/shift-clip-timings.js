@@ -7,16 +7,19 @@
 // given lesson.
 //
 // Usage:
-//   node scripts/shift-clip-timings.js <lessonId> <deltaSeconds> [--from N] [--to N] [--dry-run]
+//   node scripts/shift-clip-timings.js <lessonId> <deltaSeconds> [--from N] [--to N] [--collection C] [--dry-run]
 //
-// --from N   inclusive line index start (default 0)
-// --to N     inclusive line index end   (default last)
+// --from N        inclusive line index start (default 0)
+// --to N          inclusive line index end   (default last)
+// --collection C  'movieLessons' (default) or 'musicLessons' (Friendlyrics)
 //
 // Examples:
-//   Whole clip +2s:
+//   Whole movie clip +2s:
 //     node scripts/shift-clip-timings.js tZl9Y5N4BRiCnXRMPRoj 2
 //   Only lines 32 onward +1s (fix a drift from that point):
 //     node scripts/shift-clip-timings.js ehLwwdBg6XwBItvSaHqM 1 --from 32
+//   Music lesson +1s:
+//     node scripts/shift-clip-timings.js a69NE3OKQ9lfVl7KJnJq 1 --collection musicLessons
 
 const { getFirestore } = require('firebase-admin/firestore');
 const { initAdmin, backupLessonDoc } = require('./_lessonBackup');
@@ -31,17 +34,29 @@ function parseFlag(name) {
   return Number.isFinite(n) ? n : null;
 }
 
-const FROM = parseFlag('--from');
-const TO   = parseFlag('--to');
+function parseStringFlag(name) {
+  const i = process.argv.indexOf(name);
+  if (i < 0) return null;
+  return process.argv[i + 1] ?? null;
+}
+
+const FROM       = parseFlag('--from');
+const TO         = parseFlag('--to');
+const COLLECTION = parseStringFlag('--collection') || 'movieLessons';
 
 const positional = process.argv
   .slice(2)
-  .filter((a, i, arr) => !a.startsWith('--') && arr[i - 1] !== '--from' && arr[i - 1] !== '--to');
+  .filter((a, i, arr) =>
+    !a.startsWith('--') &&
+    arr[i - 1] !== '--from' &&
+    arr[i - 1] !== '--to' &&
+    arr[i - 1] !== '--collection'
+  );
 const LESSON_ID = positional[0];
 const DELTA     = Number(positional[1]);
 
 if (!LESSON_ID || !Number.isFinite(DELTA)) {
-  console.error('Usage: node scripts/shift-clip-timings.js <lessonId> <deltaSeconds> [--from N] [--to N] [--dry-run]');
+  console.error('Usage: node scripts/shift-clip-timings.js <lessonId> <deltaSeconds> [--from N] [--to N] [--collection C] [--dry-run]');
   process.exit(1);
 }
 
@@ -49,7 +64,7 @@ if (!LESSON_ID || !Number.isFinite(DELTA)) {
   initAdmin();
   const db = getFirestore();
 
-  const ref  = db.collection('movieLessons').doc(LESSON_ID);
+  const ref  = db.collection(COLLECTION).doc(LESSON_ID);
   const snap = await ref.get();
   if (!snap.exists) { console.error(`✗ ${LESSON_ID} not found`); process.exit(1); }
   const data = snap.data();
@@ -90,7 +105,7 @@ if (!LESSON_ID || !Number.isFinite(DELTA)) {
 
   const rangeTag = (FROM != null || TO != null) ? `-lines${FROM ?? 0}-${TO ?? 'end'}` : '';
   const noteTag  = `shift-timings-${DELTA > 0 ? 'plus' : 'minus'}${Math.abs(DELTA)}s${rangeTag}`;
-  await backupLessonDoc(db, LESSON_ID, noteTag);
+  await backupLessonDoc(db, LESSON_ID, noteTag, COLLECTION);
   await ref.update({ slides: nextSlides });
   console.log('✓ Timings shifted and saved.');
   process.exit(0);
