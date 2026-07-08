@@ -116,68 +116,105 @@ function isCandidate(w: string): boolean {
   return true;
 }
 
+// Spread `target` picks across `numLines` and never place blanks on
+// adjacent lines. Returns the chosen line indices in reading order.
+// When target is larger than what fits with gap ≥ 1, the result is capped.
+function pickBlankLines(candidateLines: number[], numLines: number, target: number): number[] {
+  if (candidateLines.length === 0 || target <= 0) return [];
+
+  // With gap ≥ 1 between blanked lines, the theoretical max is ceil(N/2).
+  const maxWithGap = Math.ceil(numLines / 2);
+  const effective  = Math.min(target, maxWithGap, candidateLines.length);
+
+  // Step is the target line spacing (2 = every other line, 3 = every third…).
+  const step = Math.max(2, Math.floor(numLines / effective));
+  const startOffset = Math.floor(Math.random() * step);
+
+  const candidateSet = new Set(candidateLines);
+  const picked = new Set<number>();
+
+  const isFree = (n: number) =>
+    n >= 0 && n < numLines &&
+    !picked.has(n) && !picked.has(n - 1) && !picked.has(n + 1) &&
+    candidateSet.has(n);
+
+  for (let k = 0; k < effective; k++) {
+    const ideal = startOffset + k * step;
+    let chosen = -1;
+    // Search outward from the ideal position until we find a candidate line
+    // that respects the gap-1 rule and hasn't been picked yet.
+    for (let d = 0; d < numLines && chosen === -1; d++) {
+      if (isFree(ideal + d))     chosen = ideal + d;
+      else if (d > 0 && isFree(ideal - d)) chosen = ideal - d;
+    }
+    if (chosen === -1) break;
+    picked.add(chosen);
+  }
+
+  return [...picked].sort((a, b) => a - b);
+}
+
 function pickRandomBlanks(
   text: string, target: number,
-): { newText: string; words: string[]; count: number } {
+): { newText: string; words: string[]; options: string[][]; count: number } {
   const lines = text.split('\n');
-  type Slot = { line: number; seg: number; word: string };
-  const slots: Slot[] = [];
   const perLine: Segment[][] = lines.map(l => tokenise(l));
 
+  // Collect candidate words per line.
+  const candidatesByLine = new Map<number, { seg: number; word: string }[]>();
   perLine.forEach((segs, i) => {
+    const cs: { seg: number; word: string }[] = [];
     segs.forEach((s, j) => {
-      if (s.isWord && isCandidate(s.text)) {
-        slots.push({ line: i, seg: j, word: s.text });
-      }
+      if (s.isWord && isCandidate(s.text)) cs.push({ seg: j, word: s.text });
     });
+    if (cs.length > 0) candidatesByLine.set(i, cs);
   });
 
-  if (slots.length === 0) return { newText: text, words: [], count: 0 };
+  if (candidatesByLine.size === 0) return { newText: text, words: [], options: [], count: 0 };
 
-  // Try to spread picks across lines: bucket slots by line, then round-robin
-  // pick from buckets until we reach the target (or run out).
-  const buckets = new Map<number, Slot[]>();
-  for (const s of slots) {
-    const arr = buckets.get(s.line) ?? [];
-    arr.push(s);
-    buckets.set(s.line, arr);
-  }
-  // Shuffle each bucket so within a line the pick is random.
-  for (const arr of buckets.values()) arr.sort(() => Math.random() - 0.5);
+  const candidateLines = [...candidatesByLine.keys()].sort((a, b) => a - b);
+  const chosenLines = pickBlankLines(candidateLines, lines.length, target);
 
-  const chosen: Slot[] = [];
-  const lineOrder = [...buckets.keys()].sort(() => Math.random() - 0.5);
-  let idx = 0;
-  while (chosen.length < target && buckets.size > 0) {
-    const line = lineOrder[idx % lineOrder.length];
-    const bucket = buckets.get(line);
-    if (!bucket || bucket.length === 0) {
-      buckets.delete(line);
-      const remainingLines = lineOrder.filter(l => buckets.has(l));
-      if (remainingLines.length === 0) break;
-      lineOrder.length = 0;
-      lineOrder.push(...remainingLines);
-      idx = 0;
-      continue;
-    }
-    chosen.push(bucket.shift()!);
-    idx++;
-  }
+  // For each chosen line, pick a random candidate word from that line.
+  const chosen = chosenLines.map(line => {
+    const cs = candidatesByLine.get(line)!;
+    const pick = cs[Math.floor(Math.random() * cs.length)];
+    return { line, seg: pick.seg, word: pick.word };
+  });
 
-  // Sort chosen slots by line + seg so replacements go in reading order —
-  // that way the blanksData array lines up with the {{blank}} markers.
-  chosen.sort((a, b) => a.line !== b.line ? a.line - b.line : a.seg - b.seg);
-
-  // Apply replacements to perLine segments.
   for (const s of chosen) {
     perLine[s.line][s.seg] = { text: '{{blank}}', isWord: false };
   }
+
+  // Build the distractor pool from all candidate words in the script,
+  // excluding words already used as correct answers so we don't confuse
+  // students by hinting at other blanks' solutions.
+  const chosenWordsLower = new Set(chosen.map(c => c.word.toLowerCase()));
+  const distractorPool = new Set<string>();
+  for (const cs of candidatesByLine.values()) {
+    for (const c of cs) {
+      if (!chosenWordsLower.has(c.word.toLowerCase())) distractorPool.add(c.word);
+    }
+  }
+  const pool = [...distractorPool];
+
+  const options = chosen.map(c => {
+    // Shuffle the pool per blank, take up to 3 distractors, mix with the
+    // correct word, shuffle again so the correct isn't in a fixed slot.
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
+    return [...shuffled, c.word].sort(() => Math.random() - 0.5);
+  });
 
   const newText = perLine
     .map(segs => segs.map(s => s.text).join(''))
     .join('\n');
 
-  return { newText, words: chosen.map(s => s.word), count: chosen.length };
+  return {
+    newText,
+    words: chosen.map(s => s.word),
+    options,
+    count: chosen.length,
+  };
 }
 
 // ─── Song helpers ──────────────────────────────────────────────────────
@@ -351,8 +388,15 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
     // Restore the stripped markers so any manually authored ones survive the
     // no-candidates case above; here they are just replaced with new picks.
     setDialogue(picked.newText.replace(/___STRIPPED___/g, ''));
-    setBlanks(picked.words.map(w => ({ word: w, options: '' })));
-    setError(null);
+    setBlanks(picked.words.map((w, i) => ({
+      word: w,
+      options: (picked.options[i] ?? [w]).join(', '),
+    })));
+    if (picked.count < target) {
+      setError(`Solo pude colocar ${picked.count} blank${picked.count !== 1 ? 's' : ''} respetando el gap mínimo de 1 línea. Agrega más líneas o baja el target.`);
+    } else {
+      setError(null);
+    }
   }
 
   async function handleSave() {
