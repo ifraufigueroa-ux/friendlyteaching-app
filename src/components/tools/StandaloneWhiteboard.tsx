@@ -12,6 +12,9 @@ interface TextEl  { id: string; type: 'text';  x: number; y: number; text: strin
 interface ImageEl { id: string; type: 'image'; x: number; y: number; w: number; h: number; src: string; }
 type El = PenEl | LineEl | RectEl | TextEl | ImageEl;
 
+type Handle = 'tl' | 'tr' | 'bl' | 'br';
+type BBox   = { x: number; y: number; w: number; h: number };
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const COLORS  = ['#1A1A1A','#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#A855F7','#FFFFFF'];
@@ -119,6 +122,101 @@ function drawSelectionBox(ctx: CanvasRenderingContext2D, el: El) {
   ctx.restore();
 }
 
+// ── Resize helpers ────────────────────────────────────────────────────────────
+
+// Raw geometry bbox (no visual padding, always normalized to non-negative w/h).
+function getRawBBox(el: El, ctx: CanvasRenderingContext2D): BBox {
+  switch (el.type) {
+    case 'image': return { x: el.x, y: el.y, w: el.w, h: el.h };
+    case 'pen': {
+      if (!el.points.length) return { x: 0, y: 0, w: 0, h: 0 };
+      const xs = el.points.map(q => q.x), ys = el.points.map(q => q.y);
+      const minX = Math.min(...xs), minY = Math.min(...ys);
+      return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY };
+    }
+    case 'line':
+      return { x: Math.min(el.x1, el.x2), y: Math.min(el.y1, el.y2), w: Math.abs(el.x2 - el.x1), h: Math.abs(el.y2 - el.y1) };
+    case 'rect': {
+      const x = Math.min(el.x, el.x + el.w);
+      const y = Math.min(el.y, el.y + el.h);
+      return { x, y, w: Math.abs(el.w), h: Math.abs(el.h) };
+    }
+    case 'text': {
+      ctx.font = `bold ${el.fontSize}px Arial, sans-serif`;
+      const tw = ctx.measureText(el.text).width;
+      // el.y is the baseline; visual box starts fontSize above and is ~1.3× tall.
+      return { x: el.x, y: el.y - el.fontSize, w: tw || 80, h: el.fontSize * 1.3 };
+    }
+  }
+}
+
+function getHandlePositions(el: El, ctx: CanvasRenderingContext2D): Record<Handle, { x: number; y: number }> {
+  const b = getBBox(el, ctx);
+  const pad = 4;
+  return {
+    tl: { x: b.x - pad,       y: b.y - pad },
+    tr: { x: b.x + b.w + pad, y: b.y - pad },
+    bl: { x: b.x - pad,       y: b.y + b.h + pad },
+    br: { x: b.x + b.w + pad, y: b.y + b.h + pad },
+  };
+}
+
+function hitHandle(el: El, px: number, py: number, ctx: CanvasRenderingContext2D): Handle | null {
+  const handles = getHandlePositions(el, ctx);
+  const r = 12; // generous hit radius — the visual dot is 4px, but easier to grab
+  for (const name of ['tl', 'tr', 'bl', 'br'] as Handle[]) {
+    const p = handles[name];
+    if (Math.hypot(px - p.x, py - p.y) < r) return name;
+  }
+  return null;
+}
+
+// Compute the new element after dragging `handle` to `curPt`. `origEl` and
+// `origBBox` are captured at resize start so the math stays stable across many
+// mousemove events.
+function applyResize(origEl: El, handle: Handle, origBBox: BBox, curPt: { x: number; y: number }): El {
+  const right  = origBBox.x + origBBox.w;
+  const bottom = origBBox.y + origBBox.h;
+
+  let newX = origBBox.x, newY = origBBox.y;
+  let newW = origBBox.w, newH = origBBox.h;
+
+  if (handle === 'br') { newW = curPt.x - origBBox.x;  newH = curPt.y - origBBox.y; }
+  if (handle === 'tr') { newW = curPt.x - origBBox.x;  newY = curPt.y; newH = bottom - curPt.y; }
+  if (handle === 'bl') { newX = curPt.x; newW = right - curPt.x; newH = curPt.y - origBBox.y; }
+  if (handle === 'tl') { newX = curPt.x; newY = curPt.y; newW = right - curPt.x; newH = bottom - curPt.y; }
+
+  const minSize = 8;
+  newW = Math.max(minSize, newW);
+  newH = Math.max(minSize, newH);
+
+  const sx = origBBox.w > 0 ? newW / origBBox.w : 1;
+  const sy = origBBox.h > 0 ? newH / origBBox.h : 1;
+  const tf = (p: { x: number; y: number }) => ({
+    x: (p.x - origBBox.x) * sx + newX,
+    y: (p.y - origBBox.y) * sy + newY,
+  });
+
+  switch (origEl.type) {
+    case 'image': return { ...origEl, x: newX, y: newY, w: newW, h: newH };
+    case 'rect':  return { ...origEl, x: newX, y: newY, w: newW, h: newH };
+    case 'line': {
+      const p1 = tf({ x: origEl.x1, y: origEl.y1 });
+      const p2 = tf({ x: origEl.x2, y: origEl.y2 });
+      return { ...origEl, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+    }
+    case 'pen':   return { ...origEl, points: origEl.points.map(tf) };
+    case 'text': {
+      // Uniform scale for text: pick the larger axis so dragging in either
+      // direction visibly grows the glyphs. Keep top-left anchored.
+      const scale       = Math.max(sx, sy);
+      const newFontSize = Math.max(8, Math.round(origEl.fontSize * scale));
+      const newBaseline = newY + newFontSize;
+      return { ...origEl, x: newX, y: newBaseline, fontSize: newFontSize };
+    }
+  }
+}
+
 // ── Toolbar sub-components ────────────────────────────────────────────────────
 
 function ToolBtn({ active, onClick, title, children, dark }: {
@@ -164,25 +262,35 @@ export default function StandaloneWhiteboard() {
   const [canUndo,    setCanUndo]    = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
-  const [textInput,  setTextInput]  = useState<{ x: number; y: number } | null>(null);
-  const [textVal,    setTextVal]    = useState('');
+  const [textInput,   setTextInput]   = useState<{ x: number; y: number } | null>(null);
+  const [textVal,     setTextVal]     = useState('');
+  const [hoverHandle, setHoverHandle] = useState<Handle | null>(null);
 
-  const undoStack     = useRef<El[][]>([]);
-  const isDrawing     = useRef(false);
-  const liveStroke    = useRef<El | null>(null);
-  const dragRef       = useRef<{ id: string; ox: number; oy: number; origEl: El } | null>(null);
-  const committingRef = useRef(false);
-  const elementsRef   = useRef<El[]>([]);
-  const selectedIdRef = useRef<string | null>(null);
-  const bgColorRef    = useRef('#FFFFFF');
-  const lastCursorRef = useRef<{ x: number; y: number } | null>(null);
-  const colorRef      = useRef('#1A1A1A');
-  const fontSizeRef   = useRef(28);
+  const undoStack       = useRef<El[][]>([]);
+  const isDrawing       = useRef(false);
+  const liveStroke      = useRef<El | null>(null);
+  const dragRef         = useRef<{ id: string; ox: number; oy: number; origEl: El } | null>(null);
+  const resizeRef       = useRef<{ id: string; handle: Handle; origEl: El; origBBox: BBox } | null>(null);
+  const committingRef   = useRef(false);
+  const elementsRef     = useRef<El[]>([]);
+  const selectedIdRef   = useRef<string | null>(null);
+  const bgColorRef      = useRef('#FFFFFF');
+  const lastCursorRef   = useRef<{ x: number; y: number } | null>(null);
+  const colorRef        = useRef('#1A1A1A');
+  const fontSizeRef     = useRef(28);
+  // Latest text-input state kept in refs so commitText() reads fresh values
+  // even when React batches a blur with a subsequent state reset (which would
+  // otherwise leave the closure staring at an empty textVal).
+  const textValRef      = useRef('');
+  const textInputPosRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => { elementsRef.current   = elements;  }, [elements]);
   useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
   useEffect(() => { colorRef.current = color; }, [color]);
   useEffect(() => { fontSizeRef.current = fontSize; }, [fontSize]);
+  useEffect(() => { textValRef.current = textVal; }, [textVal]);
+  useEffect(() => { textInputPosRef.current = textInput; }, [textInput]);
+  useEffect(() => { if (tool !== 'select') setHoverHandle(null); }, [tool]);
 
   // Chalkboard green for dark mode; clean off-white for whiteboard mode.
   const bgColor = bgDark ? '#0E3D2E' : '#FBFCFD';
@@ -485,6 +593,9 @@ export default function StandaloneWhiteboard() {
     const pt = getPos(e);
     if (tool === 'text') {
       e.preventDefault();
+      // Commit any in-flight text before opening a new box, so clicking a new
+      // spot never loses what the user just typed.
+      if (textInputPosRef.current && textValRef.current.trim()) commitText();
       setTextInput(pt);
       setTextVal('');
       requestAnimationFrame(() => textInputRef.current?.focus());
@@ -493,7 +604,28 @@ export default function StandaloneWhiteboard() {
     if (tool === 'select') {
       const ctx = canvasRef.current?.getContext('2d');
       if (!ctx) return;
-      const els = elementsRef.current;
+      const els   = elementsRef.current;
+      const selId = selectedIdRef.current;
+
+      // If something is already selected, check for a resize-handle hit first
+      // — handles sit at the corners of the current selection box.
+      if (selId) {
+        const selEl = els.find(el => el.id === selId);
+        if (selEl) {
+          const h = hitHandle(selEl, pt.x, pt.y, ctx);
+          if (h) {
+            pushUndo(els.map(cloneEl));
+            resizeRef.current = {
+              id: selId, handle: h,
+              origEl: cloneEl(selEl),
+              origBBox: getRawBBox(selEl, ctx),
+            };
+            setIsDragging(true);
+            return;
+          }
+        }
+      }
+
       let found: El | null = null;
       for (let i = els.length - 1; i >= 0; i--) {
         if (hitTest(els[i], pt.x, pt.y, ctx)) { found = els[i]; break; }
@@ -524,19 +656,37 @@ export default function StandaloneWhiteboard() {
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const pt = getPos(e);
     lastCursorRef.current = pt; // track for paste-at-cursor
-    if (tool === 'select' && dragRef.current) {
-      const { id, ox, oy, origEl } = dragRef.current;
-      const dx = pt.x - ox, dy = pt.y - oy;
-      setElements(prev => prev.map(el => {
-        if (el.id !== id) return el;
-        switch (origEl.type) {
-          case 'pen':   return { ...el, points: (origEl as PenEl).points.map(p => ({ x: p.x+dx, y: p.y+dy })) };
-          case 'line':  { const o = origEl as LineEl;  return { ...el, x1: o.x1+dx, y1: o.y1+dy, x2: o.x2+dx, y2: o.y2+dy }; }
-          case 'rect':  { const o = origEl as RectEl;  return { ...el, x: o.x+dx, y: o.y+dy }; }
-          case 'text':  { const o = origEl as TextEl;  return { ...el, x: o.x+dx, y: o.y+dy }; }
-          case 'image': { const o = origEl as ImageEl; return { ...el, x: o.x+dx, y: o.y+dy }; }
-        }
-      }));
+    if (tool === 'select') {
+      if (resizeRef.current) {
+        const { id, handle, origEl, origBBox } = resizeRef.current;
+        setElements(prev => prev.map(el => el.id === id ? applyResize(origEl, handle, origBBox, pt) : el));
+        return;
+      }
+      if (dragRef.current) {
+        const { id, ox, oy, origEl } = dragRef.current;
+        const dx = pt.x - ox, dy = pt.y - oy;
+        setElements(prev => prev.map(el => {
+          if (el.id !== id) return el;
+          switch (origEl.type) {
+            case 'pen':   return { ...el, points: (origEl as PenEl).points.map(p => ({ x: p.x+dx, y: p.y+dy })) };
+            case 'line':  { const o = origEl as LineEl;  return { ...el, x1: o.x1+dx, y1: o.y1+dy, x2: o.x2+dx, y2: o.y2+dy }; }
+            case 'rect':  { const o = origEl as RectEl;  return { ...el, x: o.x+dx, y: o.y+dy }; }
+            case 'text':  { const o = origEl as TextEl;  return { ...el, x: o.x+dx, y: o.y+dy }; }
+            case 'image': { const o = origEl as ImageEl; return { ...el, x: o.x+dx, y: o.y+dy }; }
+          }
+        }));
+        return;
+      }
+      // Idle hover over a selected element's handles — surface a resize cursor.
+      const ctx   = canvasRef.current?.getContext('2d');
+      const selId = selectedIdRef.current;
+      if (ctx && selId) {
+        const selEl = elementsRef.current.find(el => el.id === selId);
+        const h = selEl ? hitHandle(selEl, pt.x, pt.y, ctx) : null;
+        if (h !== hoverHandle) setHoverHandle(h);
+      } else if (hoverHandle) {
+        setHoverHandle(null);
+      }
       return;
     }
     if (!isDrawing.current || !liveStroke.current) return;
@@ -554,7 +704,8 @@ export default function StandaloneWhiteboard() {
 
   const handleMouseUp = useCallback(() => {
     if (tool === 'select') {
-      dragRef.current = null;
+      dragRef.current   = null;
+      resizeRef.current = null;
       setIsDragging(false);
       return;
     }
@@ -579,10 +730,20 @@ export default function StandaloneWhiteboard() {
 
   function commitText() {
     if (committingRef.current) return;
-    if (!textVal.trim() || !textInput) { setTextInput(null); return; }
+    // Read from refs — closure-captured state is stale during the React batch
+    // between blur and the next mousedown, so we ended up committing empty text.
+    const val = textValRef.current;
+    const pos = textInputPosRef.current;
+    if (!val.trim() || !pos) { setTextInput(null); setTextVal(''); return; }
     committingRef.current = true;
     pushUndo([...elementsRef.current]);
-    setElements(prev => [...prev, { id: mkId(), type: 'text', x: textInput.x, y: textInput.y, text: textVal, color, fontSize }]);
+    setElements(prev => [...prev, {
+      id: mkId(), type: 'text',
+      x: pos.x, y: pos.y,
+      text: val,
+      color:    colorRef.current,
+      fontSize: fontSizeRef.current,
+    }]);
     setTextInput(null);
     setTextVal('');
     requestAnimationFrame(() => { committingRef.current = false; });
@@ -590,11 +751,16 @@ export default function StandaloneWhiteboard() {
 
   // ── Cursor ────────────────────────────────────────────────────────────────
 
+  const handleCursor: string | null = hoverHandle
+    ? ({ tl: 'nwse-resize', br: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize' }[hoverHandle])
+    : null;
+
   const cursor =
-    tool === 'select'  ? (isDragging ? 'grabbing' : 'default') :
-    tool === 'pen'     ? 'crosshair' :
-    tool === 'eraser'  ? 'cell' :
-    tool === 'text'    ? 'text' :
+    handleCursor      ? handleCursor :
+    tool === 'select' ? (isDragging ? 'grabbing' : 'default') :
+    tool === 'pen'    ? 'crosshair' :
+    tool === 'eraser' ? 'cell' :
+    tool === 'text'   ? 'text' :
     'crosshair';
 
   // ── Render ────────────────────────────────────────────────────────────────
