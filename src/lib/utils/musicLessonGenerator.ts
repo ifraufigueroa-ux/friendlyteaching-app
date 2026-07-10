@@ -202,19 +202,30 @@ function buildListeningQuiz(lyrics: string, title: string, artist: string): Slid
     return { question: qText, options: opts, correctAnswer: correctLine };
   }
 
+  // Pick 6 anchor lines spread across the song so questions cover intro,
+  // verse, chorus and outro rather than clustering at the top.
+  const anchorAt = (frac: number) => lines[Math.max(0, Math.min(lines.length - 1, Math.floor(lines.length * frac)))] ?? lines[0] ?? '';
   const q1Line = lines[0] ?? `"${artist}" sings about love`;
-  const q2Line = lines[Math.floor(lines.length * 0.25)] ?? lines[0] ?? '';
-  const q3Line = lines[Math.floor(lines.length * 0.5)] ?? lines[0] ?? '';
-  const restLines = lines.filter(l => ![q1Line, q2Line, q3Line].includes(l));
-  const fakeLines = restLines.slice(0, 9);
+  const q2Line = anchorAt(0.20);
+  const q3Line = anchorAt(0.40);
+  const q4Line = anchorAt(0.60);
+  const q5Line = anchorAt(0.80);
+  const usedLines = new Set([q1Line, q2Line, q3Line, q4Line, q5Line]);
+  const fakeLines = lines.filter(l => !usedLines.has(l)).slice(0, 15);
 
+  // Algorithmic quiz can't truly "interpret" without an LLM, so we pick
+  // stems that lean interpretive (mood, message, what a line "suggests")
+  // and let the AI path deliver deeper reads when available.
+  const themeGuess = allWords.slice(0, 3).join(', ') || 'love and everyday life';
   const questions: QuizQuestion[] = [
-    makeQuestion(`Which line appears early in "${title}"?`, q1Line.trim(), fakeLines.slice(0, 3).map(l => l.trim())),
-    makeQuestion(`Complete this lyric: "${q2Line.trim().split(' ').slice(0, 4).join(' ')}..."`, q2Line.trim(), fakeLines.slice(3, 6).map(l => l.trim())),
-    makeQuestion(`Which of these is a lyric from "${title}"?`, q3Line.trim(), fakeLines.slice(6, 9).map(l => l.trim())),
-    makeQuestion(`The song "${title}" by ${artist} is mainly about:`,
-      allWords.slice(0, 3).join(', ') || 'everyday life',
-      ['nature and adventure', 'historical events', 'scientific discoveries'].filter(x => x !== allWords.slice(0, 3).join(', ')),
+    makeQuestion(`Which line best sets the mood at the beginning of "${title}"?`, q1Line.trim(), fakeLines.slice(0, 3).map(l => l.trim())),
+    makeQuestion(`Which lyric suggests what the narrator is feeling early on?`, q2Line.trim(), fakeLines.slice(3, 6).map(l => l.trim())),
+    makeQuestion(`Which line most likely captures the main idea of the song?`, q3Line.trim(), fakeLines.slice(6, 9).map(l => l.trim())),
+    makeQuestion(`Which lyric points to a turning point in the story?`, q4Line.trim(), fakeLines.slice(9, 12).map(l => l.trim())),
+    makeQuestion(`Which line best shows how the narrator feels by the end?`, q5Line.trim(), fakeLines.slice(12, 15).map(l => l.trim())),
+    makeQuestion(`Overall, "${title}" by ${artist} is mainly about:`,
+      themeGuess,
+      ['nature and adventure', 'historical events', 'scientific discoveries'].filter(x => x !== themeGuess),
     ),
   ];
 
@@ -467,8 +478,8 @@ export async function generateMusicLessonAlgorithmically(
     type: 'predictions',
     phase: 'pre',
     title: 'Before You Listen...',
-    prompt: `What do you think "${title}" by ${artist} is about?`,
-    content: `• What emotions do you think the song expresses?\n• Look at the title — what story might it tell?\n• Have you heard this song before? What do you remember?`,
+    prompt: `Before pressing play — what do you predict "${title}" by ${artist} will be about?`,
+    content: `• Based only on the title, what mood do you predict — happy, sad, angry, nostalgic? Why?\n• Have you heard this song (or other songs by ${artist}) before? What do you remember about the vibe?\n• Do you know a song in Spanish with a similar theme? How do you think this one will compare?`,
   };
 
   const lyricsGame = buildLyricsGame(lyrics, level);

@@ -25,7 +25,17 @@ SLIDE 2 — type: "vocab_match"
 Pick 6-8 meaningful words from the lyrics, adapted to the CEFR level.
 
 SLIDE 3 — type: "predictions"
-{ type, title: "Before You Listen...", phase: "pre", prompt: "engaging question about the song theme", content: "3 bullet points (use \\n• ) with guiding questions" }
+{ type, title: "Before You Listen...", phase: "pre",
+  prompt: "A hook question that invites the student to PREDICT what the song is about — mood, story, theme — BEFORE hearing it. Must be about prediction, not comprehension.",
+  content: "Exactly 3 bullet points (use \\n• ) that mix PREDICTIONS about the song and PRIOR EXPERIENCE. Aim for one of each of these categories:
+    • Prediction from the title/artist — e.g. 'Based only on the title, who or what do you think this song is about?', 'What mood do you predict — happy, sad, angry, nostalgic? Why?'
+    • Prior experience with the song or artist — e.g. 'Have you heard this song before? What do you remember about it?', 'Do you know other songs by {Artist}? How do they usually sound?'
+    • Personal / cultural connection — e.g. 'Do you know a song in Spanish with a similar title or theme?', 'Have you ever felt what you think this song might describe?'
+}
+HARD RULES for slide 3:
+- NEVER ask about vocabulary, grammar, or specific lines of the lyrics — the student has NOT heard the song yet.
+- Every bullet must be answerable WITHOUT having listened to the song.
+- Keep bullets short, one clear question each, phrased directly to the student ("you").
 
 SLIDE 4 — type: "lyrics_game"
 { type, title: "Fill in the Blanks!", phase: "while",
@@ -39,9 +49,23 @@ SLIDE 5 — type: "listening_quiz"
 { type, title: "Comprehension Check", phase: "while",
   questions: [
     { question: "...", options: [{id:"a",text:"...",isCorrect:false},{id:"b",text:"...",isCorrect:true},{id:"c",text:"...",isCorrect:false},{id:"d",text:"...",isCorrect:false}], correctAnswer: "the correct option text" },
-    ... 4 questions total ...
+    ... EXACTLY 6 questions total ...
   ]
 }
+HARD RULES for slide 5:
+- Focus on INTERPRETATION and UNDERSTANDING of what the lyrics MEAN — the message, the feelings, the metaphors, the narrator's perspective. Do NOT ask trivia about which word appears in which line.
+- Cover a variety of angles across the 6 questions. Good stems include:
+    · "What is the singer really saying when they sing '{brief quote from the lyrics}'?"
+    · "How does the narrator seem to feel in the {first verse / chorus / bridge}?"
+    · "Which statement best captures the main message of the song?"
+    · "The phrase '{metaphor from the lyrics}' most likely means:"
+    · "Who is the singer speaking to in this song?"
+    · "What does the narrator {regret / hope for / remember / imagine}?"
+    · "Which emotion best describes the mood of the {chorus / final verse}?"
+    · "Why do you think the singer repeats '{repeated line}'?"
+- Every question must be answerable from the lyrics provided — no outside knowledge required.
+- Each question has exactly 4 options with exactly one correct interpretation; the 3 distractors must be plausible readings that a real student could pick.
+- Adapt vocabulary of the questions and options to the student's CEFR level.
 
 SLIDE 6 — type: "language_focus"
 { type, title: "Language Focus: [a specific structure ACTUALLY PRESENT in the lyrics — e.g. 'Past simple', 'Phrasal verbs', 'First conditional', 'Present perfect', 'Idioms']", phase: "while",
