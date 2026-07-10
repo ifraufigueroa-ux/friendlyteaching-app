@@ -901,7 +901,7 @@ export default function StudentsPage() {
     .reduce((sum, slots) => sum + slots.length, 0);
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen">
       <TopBar
         title="Estudiantes"
         subtitle={`${students.length} aprobado${students.length !== 1 ? 's' : ''} · ${pendingStudents.length} pendiente${pendingStudents.length !== 1 ? 's' : ''}`}
@@ -928,6 +928,8 @@ export default function StudentsPage() {
           </div>
         }
       />
+
+      <div className="p-6">
 
       {/* Stats bar */}
       <div className="max-w-5xl mx-auto mb-6 grid grid-cols-3 gap-3">
@@ -1114,6 +1116,8 @@ export default function StudentsPage() {
             )}
           </section>
         )}
+
+      </div>
 
       </div>
 
