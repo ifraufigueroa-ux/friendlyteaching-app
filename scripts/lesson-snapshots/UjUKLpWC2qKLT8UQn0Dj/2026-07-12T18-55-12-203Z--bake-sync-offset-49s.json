@@ -1,0 +1,587 @@
+{
+  "lessonId": "UjUKLpWC2qKLT8UQn0Dj",
+  "collection": "musicLessons",
+  "capturedAt": "2026-07-12T18:55:12.203Z",
+  "note": "bake-sync-offset-49s",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B1",
+    "title": "Spice Girls – Wannabe",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1783824402,
+      "_nanoseconds": 439000000
+    },
+    "song": {
+      "title": "Wannabe",
+      "artist": "Spice Girls",
+      "albumArt": "",
+      "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+      "lyrics": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight"
+    },
+    "slides": [
+      {
+        "type": "song_cover",
+        "phase": "pre",
+        "id": "song-cover",
+        "title": "Wannabe by Spice Girls",
+        "songData": {
+          "title": "Wannabe",
+          "artist": "Spice Girls",
+          "albumArt": "",
+          "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+          "lyrics": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight"
+        },
+        "subtitle": "Let's learn English through music!"
+      },
+      {
+        "words": [
+          {
+            "translation": "Aromatic or pungent plant matter used to season or flavour food.",
+            "pronunciation": "/spaɪs/",
+            "word": "spice",
+            "example": "Wannabe / Spice Up Your Life - Spice Girls"
+          },
+          {
+            "example": "Yo, I'll tell you what I want, what I ___ really want,",
+            "translation": "In a way or manner that is real, not unreal.",
+            "pronunciation": "/ˈɹɪəli/",
+            "word": "really"
+          },
+          {
+            "example": "Shake It To The Right",
+            "pronunciation": "/ˈʃeɪk/",
+            "translation": "The act of shaking or being shaken; tremulous or back-and-forth motion.",
+            "word": "shake"
+          },
+          {
+            "example": "Colours Of The World",
+            "word": "world",
+            "pronunciation": "/wɝld/",
+            "translation": "Human collective existence; existence in general."
+          },
+          {
+            "example": "Shake It To The Right",
+            "word": "right",
+            "translation": "Straight, not bent."
+          },
+          {
+            "pronunciation": "/fɹʌnt/",
+            "translation": "The foremost side of something or the end that faces the direction it normally moves.",
+            "word": "front",
+            "example": "Chicas To The Front"
+          },
+          {
+            "example": "Chicas To The Front",
+            "word": "chicas",
+            "translation": "A Latin-American girl; a Latina."
+          }
+        ],
+        "phase": "pre",
+        "type": "vocab_match",
+        "id": "vocab-match",
+        "title": "Key Vocabulary"
+      },
+      {
+        "type": "predictions",
+        "content": "• Just from the title \"Wannabe\", picture two people at a turning point. Describe it in your own words — who is there and what has just happened?\n• Tell us about a song by Spice Girls — or a similar artist — that stayed in your head. What made it stick?\n• Think of a song in Spanish that seems to share the mood of \"Wannabe\" — how would you describe the link to someone who only speaks English?",
+        "phase": "pre",
+        "id": "predictions",
+        "title": "Before You Listen...",
+        "prompt": "Before you press play — who do you think \"Wannabe\" is really written for?"
+      },
+      {
+        "type": "lyrics_game",
+        "title": "Fill in the Blanks!",
+        "phase": "while",
+        "content": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight",
+        "blanksData": [
+          {
+            "word": "ends",
+            "options": [
+              "Feel",
+              "easy",
+              "ends",
+              "friends"
+            ]
+          },
+          {
+            "word": "ahhhh",
+            "options": [
+              "Smiling",
+              "Feelin'",
+              "friendship",
+              "ahhhh"
+            ]
+          },
+          {
+            "word": "Spice",
+            "options": [
+              "Spice",
+              "come",
+              "Hold",
+              "I'll"
+            ]
+          },
+          {
+            "word": "Round",
+            "options": [
+              "Feelin'",
+              "Round",
+              "around",
+              "Chicas"
+            ]
+          },
+          {
+            "word": "Ahaaa",
+            "options": [
+              "Ahaaa",
+              "Left",
+              "Tight",
+              "Everything"
+            ]
+          },
+          {
+            "word": "Life",
+            "options": [
+              "friends",
+              "Life",
+              "lady",
+              "I'll"
+            ]
+          },
+          {
+            "word": "You're",
+            "options": [
+              "Everything",
+              "You're",
+              "Free",
+              "CORO"
+            ]
+          },
+          {
+            "word": "Slam",
+            "options": [
+              "Good",
+              "Slam",
+              "Front",
+              "Flamenco"
+            ]
+          }
+        ],
+        "songData": {
+          "title": "Wannabe",
+          "artist": "Spice Girls",
+          "albumArt": "",
+          "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+          "lyrics": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight"
+        },
+        "clipData": {
+          "title": "Wannabe",
+          "source": "Spice Girls",
+          "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+          "dialogue": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight",
+          "timings": [
+            49,
+            52,
+            54,
+            56,
+            58,
+            61,
+            62,
+            63,
+            67,
+            72,
+            76,
+            81,
+            84,
+            85,
+            87,
+            90,
+            92,
+            94,
+            96,
+            106,
+            108,
+            109,
+            111,
+            115,
+            118,
+            122,
+            126,
+            130,
+            134,
+            138,
+            142,
+            146,
+            146,
+            147,
+            148,
+            149,
+            150,
+            151,
+            152,
+            153,
+            154,
+            155,
+            157,
+            158,
+            159,
+            160,
+            161,
+            163,
+            164,
+            165,
+            166,
+            167,
+            169,
+            173,
+            176,
+            178,
+            180,
+            192,
+            193,
+            196,
+            197,
+            200,
+            201,
+            204,
+            204,
+            208,
+            208,
+            210,
+            210,
+            211,
+            212,
+            213,
+            214,
+            215,
+            216,
+            217,
+            218,
+            219,
+            220,
+            223,
+            224,
+            225,
+            226,
+            227,
+            228,
+            229,
+            231,
+            232,
+            233,
+            234,
+            235,
+            235,
+            238,
+            239,
+            240,
+            241,
+            242,
+            243,
+            243,
+            246,
+            248,
+            250
+          ],
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "id": "listening-quiz",
+        "phase": "while",
+        "type": "listening_quiz",
+        "questions": [
+          {
+            "question": "Which line best sets the mood at the beginning of \"Wannabe\"?",
+            "options": [
+              {
+                "isCorrect": false,
+                "id": "a",
+                "text": "Yo, I'll tell you what I want, what I ___ really want,"
+              },
+              {
+                "text": "So tell me what you want, what you really really want,",
+                "id": "b",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": false,
+                "text": "I'll tell you what I want, what I really really want,",
+                "id": "c"
+              },
+              {
+                "isCorrect": true,
+                "text": "Wannabe / Spice Up Your Life - Spice Girls",
+                "id": "d"
+              }
+            ],
+            "correctAnswer": "Wannabe / Spice Up Your Life - Spice Girls"
+          },
+          {
+            "question": "Which lyric suggests what the narrator is feeling early on?",
+            "options": [
+              {
+                "text": "really really wanna ___ ha",
+                "id": "a",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": false,
+                "text": "I wanna, I wanna, I wanna, I wanna, I wanna really",
+                "id": "b"
+              },
+              {
+                "id": "c",
+                "text": "So tell me what you want, what you really really want,",
+                "isCorrect": false
+              },
+              {
+                "text": "If you wanna be my lover, you have got to give,",
+                "id": "d",
+                "isCorrect": true
+              }
+            ],
+            "correctAnswer": "If you wanna be my lover, you have got to give,"
+          },
+          {
+            "correctAnswer": "La La La La La La La La La",
+            "question": "Which line most likely captures the main idea of the song?",
+            "options": [
+              {
+                "text": "Taking is too easy, but ___ the way it is",
+                "id": "a",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": false,
+                "text": "If you wanna be my lover, you gotta get with my friends,",
+                "id": "b"
+              },
+              {
+                "id": "c",
+                "text": "La La La La La La La La La",
+                "isCorrect": true
+              },
+              {
+                "id": "d",
+                "text": "Make it last forever friendship never ends,",
+                "isCorrect": false
+              }
+            ]
+          },
+          {
+            "correctAnswer": "If You're Havin' A Good Time",
+            "options": [
+              {
+                "isCorrect": false,
+                "id": "a",
+                "text": "We got Em in the place who likes it in your face,"
+              },
+              {
+                "text": "So here's a story from A to Z, you wanna get with me",
+                "id": "b",
+                "isCorrect": false
+              },
+              {
+                "id": "c",
+                "text": "you gotta listen carefully,",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": true,
+                "id": "d",
+                "text": "If You're Havin' A Good Time"
+              }
+            ],
+            "question": "Which lyric points to a turning point in the story?"
+          },
+          {
+            "correctAnswer": "If You Know That You Feel Fine",
+            "options": [
+              {
+                "id": "a",
+                "text": "Easy V doesn't ___ for free, she's a real lady,",
+                "isCorrect": false
+              },
+              {
+                "id": "b",
+                "text": "we got G like MC who likes it on an",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": true,
+                "text": "If You Know That You Feel Fine",
+                "id": "c"
+              },
+              {
+                "id": "d",
+                "text": "and as for me..ah you'll see,",
+                "isCorrect": false
+              }
+            ],
+            "question": "Which line best shows how the narrator feels by the end?"
+          },
+          {
+            "question": "Overall, \"Wannabe\" by Spice Girls is mainly about:",
+            "options": [
+              {
+                "isCorrect": true,
+                "id": "a",
+                "text": "wannabe, spice, life"
+              },
+              {
+                "text": "historical events",
+                "id": "b",
+                "isCorrect": false
+              },
+              {
+                "text": "scientific discoveries",
+                "id": "c",
+                "isCorrect": false
+              },
+              {
+                "isCorrect": false,
+                "text": "nature and adventure",
+                "id": "d"
+              }
+            ],
+            "correctAnswer": "wannabe, spice, life"
+          }
+        ],
+        "title": "Comprehension Check"
+      },
+      {
+        "words": [
+          {
+            "example": "Pattern: got",
+            "translation": "Past simple (irregular verbs)",
+            "word": "If you wanna be my lover, you have got to give,"
+          },
+          {
+            "example": "Pattern: got",
+            "translation": "Past simple (irregular verbs)",
+            "word": "We got Em in the place who likes it in your face,"
+          }
+        ],
+        "phase": "while",
+        "content": "In \"Wannabe\", the singer leans on past simple (irregular verbs) to shape the story.\n\n• Past simple (irregular verbs) → The past simple describes completed actions in the past. Song lyrics are full of irregular verbs — memorise the ones you spot here.\n\nListen for this pattern across the verses and the chorus.",
+        "type": "language_focus",
+        "id": "lang-focus",
+        "title": "Language Focus: Past simple (irregular verbs)"
+      },
+      {
+        "content": "Complete the activities below using lines from the song.",
+        "type": "language_practice",
+        "practiceItems": [
+          {
+            "prompt": "Life / Up / Spice / Your / - / / / Spice / Girls / Wannabe",
+            "type": "unscramble",
+            "answer": "Wannabe / Spice Up Your Life - Spice Girls"
+          },
+          {
+            "type": "match_halves",
+            "prompt": "Make it last",
+            "options": [
+              "forever friendship never ends,",
+              "The Right",
+              "Hold ___",
+              "Hip Hop Is Harder"
+            ],
+            "answer": "forever friendship never ends,"
+          },
+          {
+            "prompt": "see, / for / as / you'll / me..ah / and",
+            "type": "unscramble",
+            "answer": "and as for me..ah you'll see,"
+          },
+          {
+            "options": [
+              "and wind it all around",
+              "I wanna, I wanna, I wanna really",
+              "friendship never ends,",
+              "and zigazig haaa."
+            ],
+            "prompt": "Slam your body down",
+            "type": "match_halves",
+            "answer": "and wind it all around"
+          }
+        ],
+        "phase": "while",
+        "id": "lang-practice",
+        "title": "Let's Practice!"
+      },
+      {
+        "content": "Wannabe / Spice Up Your Life - Spice {{blank}}\nYo, I'll tell you what I want, what I ___ {{blank}} want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI {{blank}}, I wanna, I wanna, I wanna, I wanna really",
+        "type": "translation_game",
+        "phase": "post",
+        "id": "translation-game",
+        "title": "Complete the Chorus",
+        "translationText": "Wannabe / Spice Up Your Life - Spice Girls\nYo, I'll tell you what I want, what I ___ really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really",
+        "blanksData": [
+          {
+            "options": [
+              "girls",
+              "polka",
+              "doesnt",
+              "lover"
+            ],
+            "word": "girls"
+          },
+          {
+            "word": "really",
+            "options": [
+              "coro",
+              "friends",
+              "really",
+              "colours"
+            ]
+          },
+          {
+            "options": [
+              "wanna",
+              "around",
+              "wind",
+              "gotta"
+            ],
+            "word": "wanna"
+          }
+        ],
+        "songData": {
+          "title": "Wannabe",
+          "artist": "Spice Girls",
+          "albumArt": "",
+          "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+          "lyrics": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight"
+        }
+      },
+      {
+        "title": "Wrap Up",
+        "prompt": "Now that \"Wannabe\" has finished — who were YOU thinking about while it played?",
+        "type": "wrapup",
+        "content": "→ Describe the moment in \"Wannabe\" that stayed with you — the line, the sound, the image — and why.\n→ Compare your prediction from the start with what \"Wannabe\" actually turned out to be. Where were you right, and where did it take you somewhere else?\n→ Pick one line from \"Wannabe\" you want to remember this week. Say it out loud and tell us why it earned that spot.",
+        "phase": "post",
+        "id": "wrapup"
+      },
+      {
+        "phase": "post",
+        "type": "friendlyrics_end",
+        "id": "friendlyrics-end",
+        "title": "¡Lección completada!",
+        "songData": {
+          "title": "Wannabe",
+          "artist": "Spice Girls",
+          "albumArt": "",
+          "youtubeUrl": "https://www.youtube.com/watch?v=gJLIiF15wjQ&list=RDgJLIiF15wjQ&start_radio=1",
+          "lyrics": "Yo, I'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI'll tell you what I want, what I really really want,\nSo tell me what you want, what you really really want,\nI wanna, I wanna, I wanna, I wanna, I wanna really\nreally really wanna zigazig ha\n(CORO)\nIf you wanna be my lover, you gotta get with my friends,\nMake it last forever friendship never {{blank}},\nIf you wanna be my lover, you have got to give,\nTaking is too easy, but that's the way it is\nSo here's a story from A to Z, you wanna get with me\nyou gotta listen carefully,\nWe got Em in the place who likes it in your face,\nwe got G like MC who likes it on an\nEasy V doesn't come for free, she's a real lady,\nand as for me..ah you'll see,\nSlam your body down and wind it all around\nSlam your body down and zigazig haaa.\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja {{blank}}...\nLa La La La La La La La La\nLa La La La La La La\nLa La La La La La La La La\nLa La La La La La La\nWhen You're Feelin' Sad And Low\nWe Will Take You Where You Gotta Go\nSmiling Dancing Everything Is Free\nAll You Need Is Positivity\nColours Of The World\n{{blank}} Up Your Life\nEvery Boy And Every Girl\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go {{blank}}\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nFlamenco Lambada But Hip Hop Is Harder\nWe Moonwalk The Foxtrot Then Polka The Salsa\nShake It Shake It Shake It Haka\nShake It Shake It Shake It Haka\nArribaaaaa {{blank}}.............\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nPeople Of The World\nSpice Up Your Life\nColours Of The World\nSpice Up Your Life\nEvery Boy And Every Girl\nSpice Up Your {{blank}}\nPeople Of The World\nSpice Up Your Life\nAahh\n(CORO)\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\nSlam It To The Left\nIf {{blank}} Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja Hold Tight\nSlam It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh And Go Round\n{{blank}} It To The Left\nIf You're Havin' A Good Time\nShake It To The Right\nIf You Know That You Feel Fine\nChicas To The Front\nHuh Huh\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja\nHi Ci Ja Hold Tight"
+        }
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1783826204,
+      "_nanoseconds": 550000000
+    }
+  }
+}

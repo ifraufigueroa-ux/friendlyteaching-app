@@ -1,6 +1,6 @@
-// FriendlyTeaching.cl — Slide 8: Translation Game with YouTube auto-sync
+// FriendlyTeaching.cl — Slide 8: Translation Game (karaoke line-by-line)
 'use client';
-import { useEffect, useRef, useState, Fragment } from 'react';
+import { useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import type { Slide, LyricsBlank } from '@/types/firebase';
 
 interface Props { slide: Slide; }
@@ -19,8 +19,6 @@ type YTPlayer = {
 export default function TranslationGameSlide({ slide }: Props) {
   const blanksData: LyricsBlank[] = slide.blanksData ?? [];
   const numBlanks = blanksData.length;
-  // content = Spanish text with {{blank}} markers
-  // translationText = original English text to show above
   const spanishText = slide.content ?? '';
   const englishText = slide.translationText ?? '';
   const videoId = slide.songData?.youtubeUrl ? extractVideoId(slide.songData.youtubeUrl) : null;
@@ -40,6 +38,33 @@ export default function TranslationGameSlide({ slide }: Props) {
   const blankTimingsRef = useRef<number[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const playerDivId = useRef(`yt-trans-${Math.random().toString(36).slice(2)}`);
+
+  // ─── Line-based structure: split ES/EN by \n and map blanks to lines ───
+  const lines = useMemo(() => {
+    const esLines = spanishText.split('\n');
+    const enLines = englishText.split('\n');
+    const out: {
+      english: string;
+      parts: string[];          // text parts around blanks (parts.length = blanks + 1)
+      blankIdxs: number[];       // global blank indexes contained in this line
+    }[] = [];
+    let running = 0;
+    for (let i = 0; i < esLines.length; i++) {
+      const raw = esLines[i] ?? '';
+      const parts = raw.split('{{blank}}');
+      const blankCount = parts.length - 1;
+      const blankIdxs: number[] = [];
+      for (let k = 0; k < blankCount; k++) blankIdxs.push(running + k);
+      running += blankCount;
+      out.push({ english: enLines[i] ?? '', parts, blankIdxs });
+    }
+    return out;
+  }, [spanishText, englishText]);
+
+  const currentLineIdx = useMemo(() => {
+    const idx = lines.findIndex(l => l.blankIdxs.includes(currentIdx));
+    return idx >= 0 ? idx : Math.max(0, lines.length - 1);
+  }, [lines, currentIdx]);
 
   function goToBlank(idx: number) {
     const c = Math.max(0, Math.min(numBlanks - 1, idx));
@@ -133,119 +158,164 @@ export default function TranslationGameSlide({ slide }: Props) {
 
   const allAnswered = numBlanks > 0 && answers.every(a => a !== null);
   const answeredCount = answers.filter(a => a !== null).length;
-  const parts = spanishText.split('{{blank}}');
+
+  // Render a single karaoke line (Spanish with inline blanks + English above)
+  function renderLine(
+    line: typeof lines[number],
+    lineIdx: number,
+    variant: 'current' | 'next' | 'past',
+  ) {
+    const isCurrent = variant === 'current';
+    const dimmed = variant !== 'current';
+
+    return (
+      <div
+        key={lineIdx}
+        className={`transition-all duration-300 ${
+          isCurrent ? 'opacity-100 scale-100' : 'opacity-40 scale-95'
+        }`}
+      >
+        {/* English hint */}
+        {line.english && (
+          <p
+            className={`text-center font-medium ${
+              isCurrent ? 'text-[#FFC857] text-base' : 'text-[#FFC857]/60 text-sm'
+            }`}
+          >
+            {line.english}
+          </p>
+        )}
+        {/* Spanish with inline blanks */}
+        <div
+          className={`text-center font-bold leading-tight ${
+            isCurrent ? 'text-2xl md:text-3xl mt-1' : 'text-lg md:text-xl mt-0.5'
+          }`}
+        >
+          {line.parts.map((part, i) => (
+            <Fragment key={i}>
+              <span className="whitespace-pre-wrap">{part}</span>
+              {i < line.parts.length - 1 && (() => {
+                const bIdx = line.blankIdxs[i];
+                const isActive = bIdx === currentIdx;
+                const filled = answers[bIdx];
+                if (filled !== null && answerStates[bIdx] === 'correct') {
+                  return (
+                    <span className="inline-block mx-1 px-2 text-emerald-300">
+                      {filled}
+                    </span>
+                  );
+                }
+                return (
+                  <span
+                    onClick={() => { if (!dimmed) goToBlank(bIdx); }}
+                    className={`inline-flex items-center justify-center align-middle mx-1 rounded-full transition-all
+                      ${isActive
+                        ? `bg-white/10 ring-2 ring-white/70 shadow-[0_0_20px_rgba(255,255,255,0.4)] w-9 h-9 ${wrongFlash ? 'ring-red-400 scale-110' : ''}`
+                        : dimmed
+                          ? 'bg-white/10 w-2.5 h-2.5'
+                          : 'bg-white/20 w-6 h-6 cursor-pointer hover:bg-white/30'
+                      }`}
+                  >
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-white/70" />
+                    )}
+                  </span>
+                );
+              })()}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Stat card component ──────────────────────────────────
+  const StatCard = ({ label, value }: { label: string; value: string | number }) => (
+    <div className="flex-1 min-w-[80px]">
+      <p className="text-white/80 font-bold text-sm mb-1">{label}</p>
+      <div className="bg-[#2A1650] rounded-xl px-4 py-3 text-center">
+        <span className="text-white font-black text-xl">{value}</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col min-h-[480px] bg-[#1E0F35] rounded-2xl text-white p-4">
-      {/* Score bar */}
-      <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-2 mb-3 text-xs font-bold gap-3 flex-wrap">
-        <span>🏆 {score} pts</span>
-        <span className="text-[#C8A8DC]">Huecos {answeredCount}/{numBlanks}</span>
-        <span className="text-green-400">✓ {correct}</span>
-        <span className="text-red-400">✗ {wrong}</span>
+    <div className="relative h-full min-h-[560px] bg-[#1E0F35] text-white overflow-hidden">
+      {/* Top stats + progress */}
+      <div className="px-6 pt-5 pb-3">
+        <div className="flex gap-3 mb-2">
+          <StatCard label="Puntos"  value={score} />
+          <StatCard label="Huecos"  value={`${answeredCount}/${numBlanks}`} />
+          <StatCard label="Aciertos" value={correct} />
+          <StatCard label="Fallos"   value={wrong} />
+        </div>
+        <div className="w-full h-1.5 bg-white/15 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-400 rounded-full transition-all duration-300"
+            style={{ width: `${Math.max(ytProgress * 100, (answeredCount / Math.max(numBlanks, 1)) * 100)}%` }}
+          />
+        </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="w-full h-1.5 bg-white/20 rounded-full mb-3 overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-300"
-          style={{ width: `${ytProgress * 100}%` }}
-        />
-      </div>
+      {/* Floating YouTube player */}
+      {videoId && (
+        <div className="absolute top-5 right-6 z-10">
+          <div id={playerDivId.current} className="rounded-lg overflow-hidden w-40 h-[90px] bg-black shadow-lg" />
+        </div>
+      )}
 
-      {/* Content + YouTube */}
-      <div className="flex gap-3 flex-1 overflow-hidden mb-3">
-        <div className="flex-1 overflow-auto pr-1 space-y-4">
-          {/* English original (small, gray) */}
-          {englishText && (
-            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1">English</p>
-              <p className="text-white/50 text-xs leading-relaxed whitespace-pre-wrap">{englishText}</p>
+      {/* Karaoke line stack */}
+      <div className="px-6 pt-4 pb-40 flex flex-col items-center gap-5">
+        {/* Past indicator */}
+        {currentLineIdx > 0 && (
+          <div className="flex flex-col items-center gap-1 opacity-40">
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
             </div>
-          )}
-
-          {/* Spanish with blanks (large, white) */}
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[#C8A8DC] mb-1">Español</p>
-            <div className="text-base leading-loose font-medium">
-              {parts.map((part, i) => (
-                <Fragment key={i}>
-                  <span className="text-white whitespace-pre-wrap">{part}</span>
-                  {i < numBlanks && (
-                    <span
-                      onClick={() => { if (answers[i] === null) goToBlank(i); }}
-                      className={`inline-block min-w-[72px] text-center px-2 py-0.5 mx-0.5 rounded font-bold text-sm transition-all
-                        ${answers[i] !== null
-                          ? answerStates[i] === 'correct'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-red-500 text-white'
-                          : i === currentIdx
-                            ? `bg-pink-300 text-[#1E0F35] ring-2 ring-pink-200 shadow-md ${wrongFlash ? 'scale-110' : ''}`
-                            : 'bg-white/15 text-white/40 cursor-pointer hover:bg-white/25'
-                        }`}
-                    >
-                      {answers[i] ?? '•••'}
-                    </span>
-                  )}
-                </Fragment>
-              ))}
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
             </div>
           </div>
+        )}
+
+        {/* Current line highlight card */}
+        <div className="w-full max-w-2xl bg-[#2A1650]/70 border border-white/10 rounded-2xl px-6 py-5">
+          {lines[currentLineIdx] && renderLine(lines[currentLineIdx], currentLineIdx, 'current')}
         </div>
 
-        {videoId && (
-          <div className="flex-shrink-0 self-start sticky top-0">
-            <div id={playerDivId.current} className="rounded-lg overflow-hidden w-40 h-[90px] bg-black" />
-            <p className="text-[10px] text-white/30 text-center mt-1">▲ Click play to sync</p>
-          </div>
+        {/* Next lines preview */}
+        {lines.slice(currentLineIdx + 1, currentLineIdx + 4).map((line, i) =>
+          renderLine(line, currentLineIdx + 1 + i, 'next'),
         )}
       </div>
 
-      {/* Answer buttons */}
+      {/* Bottom answer buttons */}
       {!allAnswered && blanksData[currentIdx] ? (
-        <div>
-          <p className="text-[10px] text-white/40 text-center mb-1.5">
-            Blank {currentIdx + 1} of {numBlanks}
-          </p>
-          <div className="grid grid-cols-2 gap-2 mb-2">
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-4 bg-gradient-to-t from-[#1E0F35] via-[#1E0F35] to-transparent">
+          <div className="flex gap-3 max-w-3xl mx-auto">
             {blanksData[currentIdx].options.map((opt, i) => (
               <button
                 key={i}
                 onClick={() => handleAnswer(opt)}
-                className={`py-2.5 px-3 rounded-xl text-sm font-semibold transition-all border
+                className={`flex-1 py-4 px-4 rounded-2xl text-lg font-bold transition-all
                   ${wrongFlash
-                    ? 'bg-red-900/30 border-red-700/40 text-white/70'
-                    : 'bg-white/10 hover:bg-pink-800/40 border-white/20 hover:border-pink-400/60 text-white active:scale-95'
+                    ? 'bg-red-800/40 text-white/80'
+                    : 'bg-[#6D3FBF] hover:bg-[#7E4FD5] text-white active:scale-95 shadow-md'
                   }`}
               >
-                {opt}
+                {opt.charAt(0).toUpperCase() + opt.slice(1)}
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => goToBlank(currentIdx - 1)}
-              disabled={currentIdx === 0}
-              className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 disabled:opacity-30"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={() => {
-                const next = answers.findIndex((a, i) => i > currentIdx && a === null);
-                goToBlank(next >= 0 ? next : currentIdx + 1);
-              }}
-              disabled={currentIdx >= numBlanks - 1}
-              className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-white/20 disabled:opacity-30"
-            >
-              Skip →
-            </button>
-          </div>
         </div>
       ) : allAnswered ? (
-        <div className="text-center py-3">
-          <p className="text-pink-400 font-bold text-lg">🎉 ¡Excelente!</p>
-          <p className="text-white/60 text-sm mt-1">{score} pts · {correct}/{numBlanks} correct</p>
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4 text-center bg-gradient-to-t from-[#1E0F35] to-transparent">
+          <p className="text-pink-400 font-black text-2xl">🎉 ¡Excelente!</p>
+          <p className="text-white/70 text-sm mt-1">{score} pts · {correct}/{numBlanks} correctos</p>
         </div>
       ) : null}
     </div>

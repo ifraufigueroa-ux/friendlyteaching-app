@@ -7,10 +7,12 @@
 // 🎼 cue, and a collapsible "re-listen" video panel so the student can
 // hear the song again while answering.
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Slide, QuizQuestion } from '@/types/firebase';
 
 interface Props { slide: Slide }
+
+const ANSWERED_STRIP_STORAGE_KEY = 'lqAnsweredStripCollapsed';
 
 function extractVideoId(url: string): string | null {
   const m = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -163,6 +165,23 @@ export default function ListeningQuizSlide({ slide }: Props) {
   const [pickedIdx, setPickedIdx] = useState<number | null>(null);
   const [answeredByIdx, setAnsweredByIdx] = useState<Map<number, AnsweredCard>>(new Map());
   const [summaryShown, setSummaryShown] = useState(false);
+  const [answeredStripCollapsed, setAnsweredStripCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = window.localStorage.getItem(ANSWERED_STRIP_STORAGE_KEY);
+      if (saved === '1') setAnsweredStripCollapsed(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  function toggleAnsweredStrip() {
+    setAnsweredStripCollapsed(prev => {
+      const next = !prev;
+      try { window.localStorage.setItem(ANSWERED_STRIP_STORAGE_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  }
 
   const backGradients = useMemo(
     () => questions.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
@@ -376,32 +395,43 @@ export default function ListeningQuizSlide({ slide }: Props) {
 
       {/* Bottom strip: answered cards face-up ────────────────────────── */}
       {answeredByIdx.size > 0 && !summaryShown && (
-        <div className="flex-shrink-0 border-t border-[#F472B6]/30 bg-white/70 backdrop-blur px-5 py-3 overflow-x-auto">
-          <div className="flex items-end gap-4">
-            <div className="flex-shrink-0 pr-2 pb-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70 mb-1">Answered</p>
-              <p className="text-xl font-bold text-[#EC4899] leading-none">
-                {answeredByIdx.size}<span className="text-[#EC4899]/40 text-sm">/{total}</span>
+        <div className={`flex-shrink-0 border-t border-[#F472B6]/30 bg-white/70 backdrop-blur ${answeredStripCollapsed ? 'px-5 py-2' : 'px-5 py-3'}`}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-baseline gap-2">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70">Answered</p>
+              <p className="text-sm font-bold text-[#EC4899] leading-none">
+                {answeredByIdx.size}<span className="text-[#EC4899]/40">/{total}</span>
               </p>
             </div>
-            {Array.from(answeredByIdx.entries())
-              .sort((a, b) => a[0] - b[0])
-              .map(([qIdx]) => (
-                <div
-                  key={qIdx}
-                  className="flex-shrink-0"
-                  style={{ animation: 'lqChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
-                >
-                  <QuestionCard
-                    q={questions[qIdx]}
-                    flipped
-                    backGradient={backGradients[qIdx]}
-                    answered={answeredByIdx.get(qIdx)}
-                    small
-                  />
-                </div>
-              ))}
+            <button
+              onClick={toggleAnsweredStrip}
+              title={answeredStripCollapsed ? 'Mostrar respuestas' : 'Ocultar respuestas'}
+              className="w-7 h-7 flex items-center justify-center text-sm font-bold text-[#EC4899]/70 hover:text-[#EC4899] rounded-full hover:bg-[#FFE8F0] transition-colors"
+            >
+              {answeredStripCollapsed ? '▲' : '▼'}
+            </button>
           </div>
+          {!answeredStripCollapsed && (
+            <div className="flex items-end gap-4 overflow-x-auto pt-1">
+              {Array.from(answeredByIdx.entries())
+                .sort((a, b) => a[0] - b[0])
+                .map(([qIdx]) => (
+                  <div
+                    key={qIdx}
+                    className="flex-shrink-0"
+                    style={{ animation: 'lqChipIn 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
+                  >
+                    <QuestionCard
+                      q={questions[qIdx]}
+                      flipped
+                      backGradient={backGradients[qIdx]}
+                      answered={answeredByIdx.get(qIdx)}
+                      small
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
           <style>{`
             @keyframes lqChipIn {
               from { opacity: 0; transform: translateY(28px) scale(0.85); }

@@ -500,22 +500,29 @@ export default function LyricsGameSlide({ slide, youtubeUrl: youtubeUrlProp }: P
 
   // Per-song sync offset persistence (localStorage). Teacher tunes once;
   // every subsequent run of the same song picks the same offset automatically.
-  // The `_v2` suffix invalidates offsets cached against the old (rushy)
-  // matching algorithm — those nudges no longer apply once the algorithm
-  // itself moved anchors closer to the singer's onset.
+  // The `_v3` suffix invalidates offsets cached before the per-lesson
+  // `songData.syncOffsetSeconds` baked default landed — old teacher nudges
+  // (often only a few seconds) would otherwise silently override the baked
+  // value on lessons like Wannabe where the cropped video needs +49s.
   const songOffsetKey = (() => {
     const t = slide.songData?.title?.trim();
     const a = slide.songData?.artist?.trim();
-    return t ? `ft_sync_offset_v2:${(a ?? '').toLowerCase()}::${t.toLowerCase()}` : null;
+    return t ? `ft_sync_offset_v3:${(a ?? '').toLowerCase()}::${t.toLowerCase()}` : null;
   })();
 
   useEffect(() => {
     if (!songOffsetKey || typeof window === 'undefined') return;
-    const raw = window.localStorage.getItem(songOffsetKey);
-    const n = raw != null ? parseInt(raw, 10) : NaN;
-    if (Number.isFinite(n) && n !== 0) {
-      syncOffsetRef.current = n;
-      setSyncOffset(n);
+    const raw   = window.localStorage.getItem(songOffsetKey);
+    const local = raw != null ? parseInt(raw, 10) : NaN;
+    const baked = Number(slide.songData?.syncOffsetSeconds ?? 0);
+    // localStorage nudges (non-zero) win; otherwise fall back to the baked
+    // per-song default so cropped videos work out-of-the-box for everyone.
+    const initial = Number.isFinite(local) && local !== 0
+      ? local
+      : (Number.isFinite(baked) ? baked : 0);
+    if (initial !== 0) {
+      syncOffsetRef.current = initial;
+      setSyncOffset(initial);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songOffsetKey]);
@@ -1020,9 +1027,14 @@ export default function LyricsGameSlide({ slide, youtubeUrl: youtubeUrlProp }: P
 
       // If next blank would fire immediately (trigger already past), give at
       // least 2 s of audio so the user can hear context before the next pause.
+      // `timings.current[i]` is in LRC-time (no offset); the polling triggers
+      // when `t >= timings[i] + off`. To ensure the *effective* trigger is 2 s
+      // from now, we subtract the sync offset when writing back. Also bumps
+      // NaN/undefined anchors so blanks with a missing LRC match still fire.
       if (next < numBlanks) {
-        const minNext = getCurrentPos() + 2.0;
-        if ((timings.current[next] ?? 0) < minNext) timings.current[next] = minNext;
+        const minNext = getCurrentPos() + 2.0 - syncOffsetRef.current;
+        const cur = timings.current[next];
+        if (!Number.isFinite(cur) || cur < minNext) timings.current[next] = minNext;
       }
 
       cooldownRef.current = true;
@@ -1175,7 +1187,7 @@ export default function LyricsGameSlide({ slide, youtubeUrl: youtubeUrlProp }: P
               <iframe
                 key={videoKey}
                 ref={iframeRef}
-                src={`https://www.youtube.com/embed/${videoId}?${videoAutoplay ? 'autoplay=1&' : ''}controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https://friendlyteaching.cl`}
+                src={`https://www.youtube.com/embed/${videoId}?${videoAutoplay ? 'autoplay=1&' : ''}controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(typeof window === 'undefined' ? 'https://friendlyteaching.cl' : window.location.origin)}`}
                 className="w-full h-full"
                 style={{ border: 'none', display: 'block', minHeight: 150 }}
                 allow="autoplay; encrypted-media; picture-in-picture"

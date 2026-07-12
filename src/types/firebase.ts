@@ -223,6 +223,11 @@ export interface SongData {
   previewUrl?: string;
   youtubeUrl?: string;
   lyrics: string;
+  // Baked default offset (seconds) applied on top of LRC/fallback timings.
+  // Used when the YouTube video is a cropped/re-encoded version whose vocals
+  // start later than the original song. Teacher localStorage nudges still
+  // override this at runtime.
+  syncOffsetSeconds?: number;
 }
 
 // ─── Friendlyflix® — series & movie clips ────────────────────

@@ -1,7 +1,7 @@
 // FriendlyTeaching.cl — Student Music Lesson Player
 'use client';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, type DocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -18,6 +18,22 @@ export default function MusicLessonPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      playerRef.current?.requestFullscreen().catch(() => { /* ignore */ });
+    } else {
+      document.exitFullscreen().catch(() => { /* ignore */ });
+    }
+  }
 
   useEffect(() => {
     if (isInitialized && !firebaseUser) router.replace('/auth/login');
@@ -88,8 +104,11 @@ export default function MusicLessonPlayerPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-[#F9F5FF] to-[#F0E8FF]">
-      <TopBar title={`🎵 ${lesson.song.title} – ${lesson.song.artist}`} />
+    <div
+      ref={playerRef}
+      className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-[#F9F5FF] to-[#F0E8FF]"
+    >
+      {!isFullscreen && <TopBar title={`🎵 ${lesson.song.title} – ${lesson.song.artist}`} />}
 
       {/* Progress bar */}
       <div className="w-full h-1.5 bg-[#F0E5FF] flex-shrink-0">
@@ -102,7 +121,16 @@ export default function MusicLessonPlayerPage() {
       {/* Slide counter */}
       <div className="flex items-center justify-between px-4 py-1 text-xs text-gray-400 flex-shrink-0">
         <span>{currentSlide + 1} / {slides.length}</span>
-        <span className="capitalize">{slide.type?.replace(/_/g, ' ')}</span>
+        <div className="flex items-center gap-2">
+          <span className="capitalize">{slide.type?.replace(/_/g, ' ')}</span>
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            className="px-2 py-0.5 rounded-md border border-[#E0D5FF] text-[#5A3D7A] hover:bg-[#F9F5FF] transition-colors text-[11px] font-semibold"
+          >
+            {isFullscreen ? '⊠ Salir' : '⛶ Full'}
+          </button>
+        </div>
       </div>
 
       {/* Slide content */}
