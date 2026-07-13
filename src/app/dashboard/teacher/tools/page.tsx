@@ -58,7 +58,7 @@ const EXTERNAL_TOOLS = [
     glow:        'shadow-amber-200/40',
   },
   {
-    href:        'https://ellii.com/login',
+    href:        'https://ellii.com',
     icon:        '🌐',
     title:       'Ellii',
     description: 'Plataforma interactiva de práctica de inglés para tus alumnos.',

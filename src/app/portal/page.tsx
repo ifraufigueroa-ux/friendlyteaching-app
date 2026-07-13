@@ -118,7 +118,7 @@ export default function PortalPage() {
 
             {/* Ellii */}
             <a
-              href="https://ellii.com/login"
+              href="https://ellii.com"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-5 bg-white rounded-2xl px-6 py-5 shadow-md border-2 border-transparent hover:border-[#A8D8EA] hover:shadow-xl transition-all duration-200"
