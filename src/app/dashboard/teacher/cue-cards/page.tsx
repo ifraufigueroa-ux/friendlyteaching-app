@@ -6,6 +6,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 import { IELTS_CUE_CARDS, type CueCard } from '@/lib/data/ieltsCueCards';
 import { IELTS_PART1_TOPICS, IELTS_PART1_CORE_TOPIC_IDS, type Part1Topic } from '@/lib/data/ieltsPart1Topics';
 import { IELTS_PART3_QUESTIONS, type IELTSBand, type Part3Question } from '@/lib/data/ieltsPart3Questions';
@@ -469,6 +470,7 @@ export default function IELTSSpeakingMocksPage() {
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
+      <FullscreenButton />
       <TopBar
         title="IELTS Speaking Mocks"
         subtitle="Full mock · 3 parts · ~11-14 minutes"

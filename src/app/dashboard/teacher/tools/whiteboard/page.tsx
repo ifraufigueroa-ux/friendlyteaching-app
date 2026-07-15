@@ -1,6 +1,7 @@
 'use client';
 import StandaloneWhiteboard from '@/components/tools/StandaloneWhiteboard';
 import Link from 'next/link';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 
 export default function WhiteboardPage() {
   return (
@@ -18,6 +19,9 @@ export default function WhiteboardPage() {
           <span className="w-5 h-5 rounded-md bg-white/15 flex items-center justify-center text-[11px]">🖊️</span>
           Pizarra
         </span>
+        <div className="ml-auto">
+          <FullscreenButton variant="inline" />
+        </div>
       </div>
 
       {/* Whiteboard fills remaining space */}

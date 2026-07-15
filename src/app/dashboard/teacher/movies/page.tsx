@@ -13,6 +13,7 @@ import {
 import SlideRenderer from '@/components/classroom/SlideRenderer';
 import TopBar from '@/components/layout/TopBar';
 import TranscriptClipEditor from '@/components/teacher/TranscriptClipEditor';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 import type { MovieLesson, LessonLevel } from '@/types/firebase';
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -108,6 +109,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
               </button>
             </>
           )}
+          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30" />
           <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none" title="Close">×</button>
         </div>
       </div>
@@ -204,6 +206,7 @@ export default function MoviesPage() {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
+      <FullscreenButton />
       <TopBar
         title="Friendlyflix — Clip lessons"
         subtitle={`${lessons.length} clip${lessons.length !== 1 ? 's' : ''} guardado${lessons.length !== 1 ? 's' : ''}`}
