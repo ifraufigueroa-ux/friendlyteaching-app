@@ -16,6 +16,7 @@ import {
   type QASimulation,
   type QAQuestion,
 } from '@/data/qa-simulations';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -391,6 +392,7 @@ function SetupScreen({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
+      <FullscreenButton />
       {/* ── Hero header ──────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] px-8 py-10">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
@@ -628,6 +630,7 @@ function PlayingScreen({
           <div className="flex items-center gap-3">
             <StatBadge label="Score" value={score} color="#5A3D7A" />
             <StatBadge label="Racha" value={streak} color={streak >= 3 ? '#B91C1C' : '#6B7280'} icon={streak >= 3 ? '🔥' : undefined} pulse={streakBurst > 0} />
+            <FullscreenButton variant="inline" />
           </div>
         </div>
       </div>
@@ -936,6 +939,7 @@ function FinishedScreen({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
+      <FullscreenButton />
       {/* ── Hero ───────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] px-8 py-12">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />

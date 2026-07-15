@@ -3,10 +3,12 @@
 
 import Link from 'next/link';
 import { QA_SIMULATIONS, categoriesInSimulation } from '@/data/qa-simulations';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 
 export default function QASimulatorIndexPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
+      <FullscreenButton />
 
       {/* ── Hero header ──────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] px-8 py-10">
