@@ -254,3 +254,6 @@ body {
   50%      { opacity: 0.5; transform: scale(1.5); }
 }
 .animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Fullscreen mode: hide layout chrome ── */
+:fullscreen [data-hide-in-fullscreen] { display: none !important; }

@@ -37,7 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar — always visible on md+ */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex" data-hide-in-fullscreen>
         <Sidebar onNavigate={() => setSidebarOpen(false)} />
       </div>
 
@@ -45,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 md:hidden"
+          data-hide-in-fullscreen
           onClick={() => setSidebarOpen(false)}
         >
           {/* Backdrop */}
@@ -62,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Mobile top bar with hamburger */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 flex-shrink-0 shadow-sm">
+        <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-100 flex-shrink-0 shadow-sm" data-hide-in-fullscreen>
           <button
             onClick={() => setSidebarOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-xl text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors"
