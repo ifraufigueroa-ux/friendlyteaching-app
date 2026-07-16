@@ -37,6 +37,16 @@ function extractVideoId(url: string): string | null {
   return m?.[1] ?? null;
 }
 
+// Read one axis (0 = X, 1 = Y) out of a "X% Y%" objectPosition string.
+// Returns null when the string is missing or malformed so the caller
+// can fall back to the 50% default.
+function parsePosterAxis(raw: string | undefined, axis: 0 | 1): number | null {
+  if (!raw) return null;
+  const parts = raw.trim().split(/\s+/);
+  const n = parseFloat(parts[axis] ?? '');
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+}
+
 export default function TextLessonEditor({ teacherId, initial, onClose }: Props) {
   const editing = Boolean(initial);
 
@@ -49,6 +59,12 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
   const [posterUploading, setPosterUploading] = useState(false);
   const [posterError, setPosterError] = useState<string | null>(null);
   const posterInputRef = useRef<HTMLInputElement | null>(null);
+  // objectPosition value ("X% Y%"). Kept as strings so we can pass it
+  // straight to the renderer without re-parsing.
+  const [posterPosX, setPosterPosX] = useState<number>(() => parsePosterAxis(initial?.text?.posterPosition, 0) ?? 50);
+  const [posterPosY, setPosterPosY] = useState<number>(() => parsePosterAxis(initial?.text?.posterPosition, 1) ?? 50);
+  const posterPreviewRef = useRef<HTMLDivElement | null>(null);
+  const posterDragRef = useRef<{ startX: number; startY: number; baseX: number; baseY: number; width: number; height: number } | null>(null);
 
   // ── Comprehension mode — drives audio requirements + slide presentation
   const [comprehensionMode, setComprehensionMode] = useState<ComprehensionMode>(
@@ -183,6 +199,45 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
     }
   }
 
+  // ── Poster drag-to-position ────────────────────────────────────
+  // Dragging the preview shifts the object-position values so the teacher
+  // can pick the crop by feel. Direction is inverted: dragging the image
+  // LEFT reveals content on the RIGHT (posX increases).
+  function onPosterDragStart(e: React.PointerEvent<HTMLDivElement>) {
+    if (!posterPreviewRef.current) return;
+    const rect = posterPreviewRef.current.getBoundingClientRect();
+    posterDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      baseX: posterPosX,
+      baseY: posterPosY,
+      width: rect.width,
+      height: rect.height,
+    };
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+
+  function onPosterDragMove(e: React.PointerEvent<HTMLDivElement>) {
+    const drag = posterDragRef.current;
+    if (!drag) return;
+    // A one-full-width drag maps to 100% shift, scaled by 1.5 for extra
+    // fine-grained control in the small preview.
+    const dx = ((e.clientX - drag.startX) / drag.width) * 100 * -1.5;
+    const dy = ((e.clientY - drag.startY) / drag.height) * 100 * -1.5;
+    setPosterPosX(Math.max(0, Math.min(100, drag.baseX + dx)));
+    setPosterPosY(Math.max(0, Math.min(100, drag.baseY + dy)));
+  }
+
+  function onPosterDragEnd(e: React.PointerEvent<HTMLDivElement>) {
+    posterDragRef.current = null;
+    if ((e.currentTarget as HTMLDivElement).hasPointerCapture(e.pointerId)) {
+      (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId);
+    }
+  }
+
+  const posterPosition = `${posterPosX.toFixed(0)}% ${posterPosY.toFixed(0)}%`;
+
   async function handlePosterFile(file: File) {
     setPosterError(null);
     const authUid = getAuth().currentUser?.uid || teacherId;
@@ -293,6 +348,9 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
       source: source.trim(),
       text: text.trim(),
       posterUrl: posterUrl.trim() || undefined,
+      // Only persist the position when the teacher moved away from the
+      // default center — keeps legacy documents clean.
+      posterPosition: posterUrl.trim() && (posterPosX !== 50 || posterPosY !== 50) ? posterPosition : undefined,
       youtubeUrl: effectiveAudioMode === 'youtube' ? youtubeUrl.trim() : undefined,
       audioUrl: finalAudioUrl || undefined,
       audioSource: effectiveAudioMode,
@@ -400,7 +458,47 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
                 </div>
                 {posterError && <p className="text-[10px] text-red-500 mt-1">{posterError}</p>}
                 {posterUrl && !posterError && (
-                  <p className="text-[10px] text-gray-400 mt-1 truncate">✓ {posterUrl.slice(0, 60)}{posterUrl.length > 60 ? '…' : ''}</p>
+                  <>
+                    {/* Draggable preview — arrastra la imagen para elegir el encuadre.
+                        Same aspect ratio as the slide's right column card so what you
+                        see here matches what the student sees. */}
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                          Encuadre — arrastra para ajustar
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => { setPosterPosX(50); setPosterPosY(50); }}
+                          className="text-[10px] font-semibold text-[#4B6A85] hover:text-[#1B2C3F]"
+                          title="Volver al centro"
+                        >
+                          ↺ Centrar
+                        </button>
+                      </div>
+                      <div
+                        ref={posterPreviewRef}
+                        onPointerDown={onPosterDragStart}
+                        onPointerMove={onPosterDragMove}
+                        onPointerUp={onPosterDragEnd}
+                        onPointerCancel={onPosterDragEnd}
+                        className="relative w-full aspect-[4/3] rounded-xl border border-gray-200 overflow-hidden bg-gray-50 cursor-grab active:cursor-grabbing select-none touch-none"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={posterUrl}
+                          alt="Poster preview"
+                          draggable={false}
+                          className="w-full h-full object-cover pointer-events-none"
+                          style={{ objectPosition: posterPosition }}
+                        />
+                        <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[9px] font-mono">
+                          {posterPosition}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1 truncate">✓ {posterUrl.slice(0, 60)}{posterUrl.length > 60 ? '…' : ''}</p>
+                  </>
                 )}
               </div>
             </div>

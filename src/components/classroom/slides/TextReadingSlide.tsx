@@ -348,6 +348,7 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
                   src={txt.posterUrl}
                   alt={txt.title ?? 'Reading illustration'}
                   className="w-full h-full object-cover"
+                  style={{ objectPosition: txt.posterPosition ?? 'center' }}
                 />
               ) : (
                 <div className="text-center px-6 py-8">

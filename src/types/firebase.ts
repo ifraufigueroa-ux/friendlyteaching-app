@@ -327,6 +327,9 @@ export interface TextData {
   // How the comprehension slide is presented: text only, audio only, or both.
   // Defaults to 'both' when absent so legacy lessons keep their current behavior.
   comprehensionMode?: ComprehensionMode;
+  // CSS object-position for the poster image (e.g. 'center', 'top', '50% 20%').
+  // Lets teachers pick which part of the poster survives object-cover cropping.
+  posterPosition?: string;
 }
 
 export interface TextLesson {
