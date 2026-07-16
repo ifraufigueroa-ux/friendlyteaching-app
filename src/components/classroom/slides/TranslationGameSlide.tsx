@@ -179,7 +179,7 @@ export default function TranslationGameSlide({ slide }: Props) {
         {line.english && (
           <p
             className={`text-center font-medium ${
-              isCurrent ? 'text-[#FFC857] text-base' : 'text-[#FFC857]/60 text-sm'
+              isCurrent ? 'text-[#FFC857] text-lg md:text-xl' : 'text-[#FFC857]/60 text-base md:text-lg'
             }`}
           >
             {line.english}

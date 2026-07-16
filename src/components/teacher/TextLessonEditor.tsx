@@ -130,6 +130,11 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
     }
 
     setGeneratingTts(true);
+    // Split the pipeline into three stages so the teacher sees WHICH step
+    // failed. Previously an upload error surfaced as "Error de red: Failed to
+    // fetch", which pointed at ElevenLabs when the real culprit was Firebase
+    // Storage (e.g. GCP billing account disabled → uploadBytes throws).
+    let blob: Blob;
     try {
       const res = await fetch('/api/tts/elevenlabs', {
         method: 'POST',
@@ -138,11 +143,18 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        setTtsError(data.error ?? `HTTP ${res.status}`);
+        setTtsError('ElevenLabs: ' + (data.error ?? `HTTP ${res.status}`));
+        setGeneratingTts(false);
         return;
       }
-      const blob = await res.blob();
-      // Upload to /audio/{authUid}-{ts}.mp3
+      blob = await res.blob();
+    } catch (err) {
+      setTtsError('ElevenLabs (red): ' + (err instanceof Error ? err.message : String(err)));
+      setGeneratingTts(false);
+      return;
+    }
+
+    try {
       const fileName = `friendlytext-${authUid}-${Date.now()}.mp3`;
       const path = `audio/${fileName}`;
       const ref = storageRef(storage, path);
@@ -150,7 +162,10 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
       const url = await getDownloadURL(ref);
       setTtsAudioUrl(url);
     } catch (err) {
-      setTtsError('Error de red: ' + (err instanceof Error ? err.message : String(err)));
+      // Common: Firebase Storage bucket disabled, GCP billing closed, or rules
+      // blocking the write. Surface the SDK code/message verbatim.
+      const msg = err instanceof Error ? err.message : String(err);
+      setTtsError('Firebase Storage: ' + msg);
     } finally {
       setGeneratingTts(false);
     }
