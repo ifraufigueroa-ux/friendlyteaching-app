@@ -14,6 +14,7 @@
 //
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase/config';
 import { createTextLesson, updateTextLesson } from '@/hooks/useTextLessons';
@@ -116,9 +117,13 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
 
   async function handleGenerateTts() {
     setTtsError(null);
+    // Read the uid straight from Firebase Auth — the zustand store can lag
+    // on hydration and leave teacherId prop empty even when the user is
+    // signed in (same trap useMovieLessons already sidesteps).
+    const authUid = getAuth().currentUser?.uid || teacherId;
     if (!text.trim()) { setTtsError('Pega primero el texto que quieres narrar.'); return; }
     if (!voiceId)      { setTtsError('Elige una voz.'); return; }
-    if (!teacherId)    { setTtsError('Sin sesión — refresca la página.'); return; }
+    if (!authUid)      { setTtsError('Sin sesión — refresca la página.'); return; }
     if (text.length > 5000) {
       setTtsError(`Texto muy largo (${text.length} chars). ElevenLabs va tope 5000 por request; recorta o divide.`);
       return;
@@ -137,8 +142,8 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
         return;
       }
       const blob = await res.blob();
-      // Upload to /audio/{teacherId}-{ts}.mp3
-      const fileName = `friendlytext-${teacherId}-${Date.now()}.mp3`;
+      // Upload to /audio/{authUid}-{ts}.mp3
+      const fileName = `friendlytext-${authUid}-${Date.now()}.mp3`;
       const path = `audio/${fileName}`;
       const ref = storageRef(storage, path);
       await uploadBytes(ref, blob, { contentType: 'audio/mpeg' });
@@ -236,7 +241,8 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
           title: `${textData.source} – ${textData.title}`,
         });
       } else {
-        await createTextLesson({ teacherId, text: textData, level, slides: enrichedSlides });
+        const authUid = getAuth().currentUser?.uid || teacherId;
+        await createTextLesson({ teacherId: authUid, text: textData, level, slides: enrichedSlides });
       }
       onClose();
     } catch (e) {
