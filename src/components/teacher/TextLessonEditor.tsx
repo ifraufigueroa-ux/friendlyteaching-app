@@ -82,6 +82,9 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
   const [hostedUrl,  setHostedUrl]  = useState<string>(
     initial?.text?.audioSource === 'hosted' ? (initial?.text?.audioUrl ?? '') : '',
   );
+  const [hostedUploading, setHostedUploading] = useState(false);
+  const [hostedError, setHostedError] = useState<string | null>(null);
+  const hostedInputRef = useRef<HTMLInputElement | null>(null);
 
   // TTS state
   const [voices, setVoices] = useState<Voice[]>([]);
@@ -237,6 +240,38 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
   }
 
   const posterPosition = `${posterPosX.toFixed(0)}% ${posterPosY.toFixed(0)}%`;
+
+  async function handleHostedAudioFile(file: File) {
+    setHostedError(null);
+    const authUid = getAuth().currentUser?.uid || teacherId;
+    if (!authUid) { setHostedError('Sin sesión — refresca la página.'); return; }
+    if (!file.type.startsWith('audio/')) {
+      setHostedError('El archivo debe ser un audio (mp3, m4a, wav, ogg…).');
+      return;
+    }
+    // Soft client-side cap. Firebase Storage rules on /audio/ are the
+    // real gate — the SDK error surfaces verbatim if we exceed them.
+    if (file.size > 25 * 1024 * 1024) {
+      setHostedError(`Muy grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo sugerido 25 MB.`);
+      return;
+    }
+
+    setHostedUploading(true);
+    try {
+      const ext = (file.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || '.mp3').toLowerCase();
+      const fileName = `friendlytext-upload-${authUid}-${Date.now()}${ext}`;
+      const ref = storageRef(storage, `audio/${fileName}`);
+      await uploadBytes(ref, file, { contentType: file.type });
+      const url = await getDownloadURL(ref);
+      setHostedUrl(url);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setHostedError('Firebase Storage: ' + msg);
+    } finally {
+      setHostedUploading(false);
+      if (hostedInputRef.current) hostedInputRef.current.value = '';
+    }
+  }
 
   async function handlePosterFile(file: File) {
     setPosterError(null);
@@ -590,7 +625,7 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
                         : 'bg-white text-[#4B6A85] border-gray-200 hover:border-[#4B6A85]'
                     }`}
                   >
-                    {m === 'none' ? '📖 Silent' : m === 'youtube' ? '▶ YouTube' : m === 'tts' ? '🎙 TTS' : '🔊 Hosted'}
+                    {m === 'none' ? '📖 Silent' : m === 'youtube' ? '▶ YouTube' : m === 'tts' ? '🎙 TTS' : '📁 Archivo'}
                   </button>
                 ))}
               </div>
@@ -654,15 +689,36 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
               {audioMode === 'hosted' && (
                 <div>
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                    URL directa del audio
+                    Audio — sube un archivo o pega una URL
                   </label>
-                  <input
-                    value={hostedUrl}
-                    onChange={e => setHostedUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:border-[#4B6A85]"
-                    placeholder="https://..."
-                  />
-                  {hostedUrl && <audio controls src={hostedUrl} className="mt-2 w-full h-10 accent-[#1B2C3F]" />}
+                  <div className="flex gap-1">
+                    <input
+                      value={hostedUrl}
+                      onChange={e => setHostedUrl(e.target.value)}
+                      className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:border-[#4B6A85]"
+                      placeholder="https:// o sube archivo →"
+                    />
+                    <input
+                      ref={hostedInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) handleHostedAudioFile(f); }}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => hostedInputRef.current?.click()}
+                      disabled={hostedUploading}
+                      className="shrink-0 px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-[#4B6A85] hover:border-[#4B6A85] disabled:opacity-50"
+                      title="Subir audio a Firebase Storage (25 MB max sugerido)"
+                    >
+                      {hostedUploading ? '…' : '📤'}
+                    </button>
+                  </div>
+                  {hostedError && <p className="text-[10px] text-red-500 mt-1">{hostedError}</p>}
+                  {hostedUrl && !hostedError && (
+                    <audio controls src={hostedUrl} className="mt-2 w-full h-10 accent-[#1B2C3F]" />
+                  )}
                 </div>
               )}
 
