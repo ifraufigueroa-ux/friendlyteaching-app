@@ -37,6 +37,10 @@ import PredictionsSlide from './slides/PredictionsSlide';
 import LanguageFocusSlide from './slides/LanguageFocusSlide';
 import LanguagePracticeSlide from './slides/LanguagePracticeSlide';
 import WrapupSlide from './slides/WrapupSlide';
+// Friendlytext (CLT text-based) slide types
+import TextCoverSlide from './slides/TextCoverSlide';
+import TextReadingSlide from './slides/TextReadingSlide';
+import FriendlytextEndSlide from './slides/FriendlytextEndSlide';
 import AudioPlayer from './AudioPlayer';
 
 interface Props {
@@ -149,6 +153,13 @@ function renderSlide(
       return <LanguagePracticeSlide slide={slide} />;
     case 'wrapup':
       return <WrapupSlide slide={slide} />;
+    // ─── Friendlytext (CLT text-based) ───────────────────────────
+    case 'text_cover':
+      return <TextCoverSlide slide={slide} />;
+    case 'text_reading':
+      return <TextReadingSlide slide={slide} youtubeUrl={youtubeUrl} />;
+    case 'friendlytext_end':
+      return <FriendlytextEndSlide slide={slide} />;
     default:
       return (
         <div className="flex items-center justify-center h-full text-gray-400">

@@ -132,7 +132,11 @@ export type SlideType =
   | 'clip_language_focus'
   | 'clip_controlled_practice'
   | 'clip_production'
-  | 'friendlyflix_end';
+  | 'friendlyflix_end'
+  // ── Friendlytext® CLT text-based format ───────────────────
+  | 'text_cover'
+  | 'text_reading'
+  | 'friendlytext_end';
 
 // ─── Friendlyrics® game types ────────────────────────────────
 
@@ -207,6 +211,8 @@ export interface Slide {
   songData?: SongData;
   // Clip slide (Friendlyflix — series/movie clips)
   clipData?: ClipData;
+  // Text slide (Friendlytext — CLT text-based lessons)
+  textData?: TextData;
   // Friendlyrics® game slides
   blanksData?: LyricsBlank[];
   translationText?: string;
@@ -273,6 +279,53 @@ export interface MusicLesson {
   title: string;
   level: LessonLevel;
   song: SongData;
+  slides: Slide[];
+  publishStatus: 'draft' | 'published';
+  assignedTo: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ─── Friendlytext® — CLT text-based lessons ──────────────────
+//
+// Source material is a piece of text (article, dialogue, story, script).
+// Audio is optional: a teacher can attach a YouTube link, upload a hosted
+// audio URL (typically ElevenLabs TTS pushed to Firebase Storage), or run
+// the lesson silent — all three combinations are supported downstream.
+
+export type TextAudioSource = 'youtube' | 'hosted' | 'tts' | 'none';
+
+export interface TextData {
+  title: string;            // e.g. "The Last Bookshop on Main Street"
+  source: string;           // author, publication or "Original TTS script"
+  posterUrl?: string;       // optional cover image
+  text: string;             // raw text, one paragraph or line per row
+  // Optional per-line timestamps in seconds (mirror of ClipData.timings).
+  // If present + audio available, the reading slide highlights lines as
+  // they play. If absent, playback is untimed.
+  timings?: number[];
+  // Optional YouTube URL — takes precedence over audioUrl when both exist.
+  youtubeUrl?: string;
+  startTime?: number;       // optional clip start (seconds)
+  endTime?: number;         // optional clip end (seconds)
+  // Direct audio URL (Firebase Storage download URL or any CDN link).
+  // Set when the teacher runs ElevenLabs TTS or uploads their own file.
+  audioUrl?: string;
+  // Which channel was used for the audio, for UI badging + analytics.
+  audioSource?: TextAudioSource;
+  // ElevenLabs voice + model kept alongside audioUrl so the teacher can
+  // re-generate later without re-picking. Optional.
+  ttsVoiceId?: string;
+  ttsModelId?: string;
+  syncOffsetSeconds?: number;  // teacher-baked timing nudge (mirrors SongData)
+}
+
+export interface TextLesson {
+  id?: string;
+  teacherId: string;
+  title: string;
+  level: LessonLevel;
+  text: TextData;
   slides: Slide[];
   publishStatus: 'draft' | 'published';
   assignedTo: string[];

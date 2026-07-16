@@ -52,6 +52,7 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'group', label: 'Aprendizaje' },
   { type: 'link', href: '/dashboard/student',             icon: '📚', label: 'Mis Lecciones',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/student/music',       icon: '🎵', label: 'Friendlyrics®',      iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
+  { type: 'link', href: '/dashboard/student/texts',       icon: '📖', label: 'Friendlytext®',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
   { type: 'group', label: 'Mis Clases' },
   { type: 'link', href: '/dashboard/student/schedule',    icon: '📅', label: 'Horario',            iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/student/book',        icon: '📆', label: 'Solicitar clase',    iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },

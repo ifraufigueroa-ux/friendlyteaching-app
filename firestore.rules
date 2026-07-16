@@ -274,6 +274,21 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // ── Text Lessons (Friendlytext® — CLT text-based) ────────────
+    // Same shared-library model as musicLessons / movieLessons.
+    match /textLessons/{lessonId} {
+      allow list: if isTeacher();
+      allow get:  if isTeacher() ||
+                    (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && (
+                      resource.data.teacherId == request.auth.uid ||
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['assignedTo', 'updatedAt'])
+                    );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // ── Evaluation Requests (landing page leads) ──────────────
     // Written server-side via Firebase Admin SDK (bypasses rules);
     // teachers list/read/update to manage lead status.

@@ -29,6 +29,15 @@ const INTERNAL_TOOLS = [
     badge:       'Beta',
   },
   {
+    href:        '/dashboard/teacher/texts',
+    icon:        '📖',
+    title:       'Friendlytext®',
+    description: 'Pega un texto (artículo, diálogo, script). Opcionalmente añade audio de YouTube o genera TTS con ElevenLabs. IA arma el deck CLT de 10 slides.',
+    gradient:    'from-[#1B2C3F] to-[#4B6A85]',
+    glow:        'shadow-slate-200/40',
+    badge:       'Beta',
+  },
+  {
     href:        '/dashboard/teacher/cue-cards',
     icon:        '🎤',
     title:       'IELTS Speaking Mocks',
