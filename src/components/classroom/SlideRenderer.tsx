@@ -156,7 +156,8 @@ function renderSlide(
     // ─── Friendlytext (CLT text-based) ───────────────────────────
     case 'text_cover':
       return <TextCoverSlide slide={slide} />;
-    case 'text_reading':
+    case 'text_comprehension':
+    case 'text_reading':  // legacy — pre-rename docs still land here
       return <TextReadingSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'friendlytext_end':
       return <FriendlytextEndSlide slide={slide} />;

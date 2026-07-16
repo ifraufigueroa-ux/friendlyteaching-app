@@ -64,6 +64,12 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
   const text = slide.content ?? txt?.text ?? '';
   const timings = txt?.timings;
 
+  // Presentation mode drives what shows up on screen:
+  //   'text'  → text pane + tools, no audio player, no highlight sync
+  //   'audio' → audio player only; text is hidden behind a "Reveal text" toggle
+  //   'both'  → current behavior (text + audio + timing highlights)
+  const mode = txt?.comprehensionMode ?? 'both';
+
   const lines = useMemo(() => text.split('\n'), [text]);
   const activeLineRef = useRef<HTMLDivElement | null>(null);
 
@@ -73,9 +79,13 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showTips, setShowTips] = useState(false);
+  const [textRevealed, setTextRevealed] = useState(mode !== 'audio');
 
-  const embedUrl = (youtubeUrl ?? txt?.youtubeUrl) ? toEmbedUrl(youtubeUrl ?? txt!.youtubeUrl!) : null;
-  const hostedAudioUrl = !embedUrl ? txt?.audioUrl : null;
+  const showAudio = mode !== 'text';
+  const showText  = mode !== 'audio' || textRevealed;
+
+  const embedUrl = showAudio && (youtubeUrl ?? txt?.youtubeUrl) ? toEmbedUrl(youtubeUrl ?? txt!.youtubeUrl!) : null;
+  const hostedAudioUrl = showAudio && !embedUrl ? txt?.audioUrl : null;
 
   // ── Tools state ────────────────────────────────────────────────
   const [activeTool, setActiveTool] = useState<ReadingTool>(null);
@@ -239,15 +249,41 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
           <div className="md:col-span-2 relative bg-white rounded-2xl border border-[#E8D9BE] shadow-md min-h-0 flex flex-col">
             <div aria-hidden className="absolute left-6 top-6 bottom-6 w-px bg-[#E8B547]/40 hidden md:block" />
             <div className="flex items-center justify-between px-5 md:px-8 pt-5 flex-shrink-0">
-              <p className="text-[10px] font-extrabold text-[#4B6A85] uppercase tracking-[0.25em]">Reading</p>
-              <button
-                onClick={() => setShowTips(v => !v)}
-                className="text-[11px] font-semibold text-[#4B6A85] hover:text-[#1B2C3F] transition-colors"
-              >
-                {showTips ? 'Ocultar tips ▲' : 'Reading tips ▼'}
-              </button>
+              <p className="text-[10px] font-extrabold text-[#4B6A85] uppercase tracking-[0.25em]">
+                {mode === 'audio' ? 'Listening' : mode === 'text' ? 'Reading' : 'Read + Listen'}
+              </p>
+              <div className="flex items-center gap-3">
+                {mode === 'audio' && (
+                  <button
+                    onClick={() => setTextRevealed(v => !v)}
+                    className="text-[11px] font-semibold text-[#4B6A85] hover:text-[#1B2C3F] transition-colors"
+                  >
+                    {textRevealed ? 'Ocultar texto 🙈' : 'Revelar texto 👀'}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowTips(v => !v)}
+                  className="text-[11px] font-semibold text-[#4B6A85] hover:text-[#1B2C3F] transition-colors"
+                >
+                  {showTips ? 'Ocultar tips ▲' : 'Tips ▼'}
+                </button>
+              </div>
             </div>
             <div className="px-5 md:px-8 pb-8 pt-4 overflow-y-auto flex-1">
+              {!showText && (
+                <div className="h-full flex flex-col items-center justify-center text-center gap-3 py-12">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F5EFE1] border border-[#E8D9BE] flex items-center justify-center text-2xl">
+                    🎧
+                  </div>
+                  <p className="text-[13px] font-semibold text-[#1B2C3F]">Listen without reading.</p>
+                  <p className="text-[11px] text-[#4B6A85] max-w-xs">
+                    Este modo entrena la comprensión auditiva pura. Cuando estés listo, presiona
+                    <span className="mx-1 font-semibold text-[#1B2C3F]">Revelar texto</span>
+                    para chequear.
+                  </p>
+                </div>
+              )}
+              {showText && (
               <div className={[
                 'font-serif text-[17px] md:text-[19px] text-[#1F2937] leading-[1.85] whitespace-pre-wrap',
                 wordCursor ? 'select-none' : '',
@@ -289,6 +325,7 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
                   );
                 })}
               </div>
+              )}
 
               {showTips && (
                 <div className="mt-6 p-4 rounded-xl bg-[#F5EFE1] border border-[#E8D9BE] text-[13px] text-[#4B6A85] leading-relaxed">

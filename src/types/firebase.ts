@@ -135,8 +135,14 @@ export type SlideType =
   | 'friendlyflix_end'
   // ── Friendlytext® CLT text-based format ───────────────────
   | 'text_cover'
-  | 'text_reading'
+  | 'text_comprehension'
+  | 'text_reading'  // legacy alias — pre-rename docs still load; renderer treats it as text_comprehension
   | 'friendlytext_end';
+
+// Presentation mode for the comprehension slide — text only, audio only, or both.
+// Also gates what the creation flow requires (audio-only lessons demand an audio source;
+// text-only lessons ignore audio configuration entirely).
+export type ComprehensionMode = 'text' | 'audio' | 'both';
 
 // ─── Friendlyrics® game types ────────────────────────────────
 
@@ -318,6 +324,9 @@ export interface TextData {
   ttsVoiceId?: string;
   ttsModelId?: string;
   syncOffsetSeconds?: number;  // teacher-baked timing nudge (mirrors SongData)
+  // How the comprehension slide is presented: text only, audio only, or both.
+  // Defaults to 'both' when absent so legacy lessons keep their current behavior.
+  comprehensionMode?: ComprehensionMode;
 }
 
 export interface TextLesson {

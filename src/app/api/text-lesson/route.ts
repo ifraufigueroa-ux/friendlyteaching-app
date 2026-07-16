@@ -6,7 +6,8 @@
 // naively. If ANTHROPIC_API_KEY is missing the route returns 503 and the
 // teacher can still save a minimal 2-slide deck client-side.
 import { NextRequest, NextResponse } from 'next/server';
-import type { Slide, LessonLevel } from '@/types/firebase';
+import type { Slide, LessonLevel, ComprehensionMode } from '@/types/firebase';
+import { generateTextLessonAlgorithmically } from '@/lib/utils/textLessonGenerator';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? '';
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL ?? 'claude-sonnet-4-6';
@@ -17,6 +18,8 @@ export interface TextLessonRequest {
   text: string;         // raw text (multi-line ok)
   level: LessonLevel;
   hasAudio?: boolean;   // if true, we mention "before you listen / read"; else "before you read"
+  comprehensionMode?: ComprehensionMode;  // shapes cues in the deck (text-only / audio-only / both)
+  useAI?: boolean;      // false → skip Claude and run the algorithmic generator (text-only)
 }
 
 const SYSTEM_PROMPT = `You are an expert English teacher creating Friendlytext® CLT text-based lessons. Generate exactly 10 slides in this order.
@@ -54,12 +57,13 @@ HARD RULES for slide 3:
 - Weave {Title} and {Source} into at least two bullets so it never feels generic.
 - Adapt vocab to CEFR level. Keep each bullet under 25 words.
 
-SLIDE 4 — type: "text_reading"
-{ type, title: "Read the Text", phase: "while",
+SLIDE 4 — type: "text_comprehension"
+{ type, title: "{{comprehensionTitle}}", phase: "while",
   content: "The FULL text COPIED VERBATIM (preserve line breaks and paragraph structure). Do NOT edit, summarise, or omit any part."
 }
 HARD RULES for slide 4:
-- content MUST be the verbatim text. Nothing added, nothing removed.
+- content MUST be the verbatim text. Nothing added, nothing removed. Even when the lesson is audio-only, we still store the text here so the renderer can decide whether to reveal it.
+- title adapts to comprehensionMode: 'text' → "Read the Text"; 'audio' → "Listen to the Text"; 'both' → "Read + Listen".
 
 SLIDE 5 — type: "listening_quiz"
 { type, title: "Comprehension Check", phase: "while",
@@ -155,12 +159,19 @@ async function generateWithAI(
   text: string,
   level: LessonLevel,
   hasAudio: boolean,
+  comprehensionMode: ComprehensionMode,
 ): Promise<GenerateResult> {
   if (!ANTHROPIC_API_KEY) return { error: 'ANTHROPIC_API_KEY not configured', status: 503 };
+
+  const modeTitle =
+    comprehensionMode === 'audio' ? 'Listen to the Text'
+    : comprehensionMode === 'text' ? 'Read the Text'
+    : 'Read + Listen';
 
   const userPrompt = `Text title: "${title}" (source: ${source})
 Level: ${level}
 Audio available: ${hasAudio ? 'yes' : 'no'}
+Comprehension mode: ${comprehensionMode} → slide 4 title MUST be "${modeTitle}".
 
 Text:
 ${text.slice(0, 4000)}
@@ -218,9 +229,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { title, source, text, level, hasAudio } = body;
+  const { title, source, text, level, hasAudio, comprehensionMode, useAI } = body;
   if (!title || !source || !text) {
     return NextResponse.json({ error: 'title, source and text required' }, { status: 400 });
+  }
+
+  const mode: ComprehensionMode = comprehensionMode ?? 'both';
+
+  // Algorithmic path — teacher opted out of AI, or the algorithmic path is
+  // the only text-only option available on this deployment.
+  if (useAI === false) {
+    try {
+      const slides = await generateTextLessonAlgorithmically(title, source, text, level, mode);
+      return NextResponse.json({ slides, source: 'algorithmic' });
+    } catch (err) {
+      console.error('[text-lesson] Algorithmic generation failed:', err);
+      return NextResponse.json({ error: 'Algorithmic generation failed' }, { status: 500 });
+    }
   }
 
   if (!ANTHROPIC_API_KEY) {
@@ -230,7 +255,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const result = await generateWithAI(title, source, text, level, hasAudio ?? false);
+  const result = await generateWithAI(title, source, text, level, hasAudio ?? false, mode);
   if (!result.slides) {
     return NextResponse.json({ error: result.error ?? 'AI generation failed' }, { status: result.status ?? 502 });
   }

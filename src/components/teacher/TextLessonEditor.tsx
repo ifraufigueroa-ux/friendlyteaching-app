@@ -13,13 +13,13 @@
 //  · hosted    → teacher provides an already-uploaded direct URL.
 //
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase/config';
 import { createTextLesson, updateTextLesson } from '@/hooks/useTextLessons';
 import type {
-  TextLesson, Slide, LessonLevel, TextData, TextAudioSource,
+  TextLesson, Slide, LessonLevel, TextData, TextAudioSource, ComprehensionMode,
 } from '@/types/firebase';
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -46,6 +46,14 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
   const [level,  setLevel]  = useState<LessonLevel>(initial?.level ?? 'B1');
   const [text,   setText]   = useState<string>(initial?.text?.text ?? '');
   const [posterUrl, setPosterUrl] = useState<string>(initial?.text?.posterUrl ?? '');
+  const [posterUploading, setPosterUploading] = useState(false);
+  const [posterError, setPosterError] = useState<string | null>(null);
+  const posterInputRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Comprehension mode — drives audio requirements + slide presentation
+  const [comprehensionMode, setComprehensionMode] = useState<ComprehensionMode>(
+    initial?.text?.comprehensionMode ?? 'both',
+  );
 
   // ── Audio ──────────────────────────────────────────────────────────
   const initialAudioSource: TextAudioSource =
@@ -77,7 +85,11 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
   // ── Slides (generated) ─────────────────────────────────────────────
   const [slides, setSlides] = useState<Slide[]>(initial?.slides ?? []);
   const [generating, setGenerating] = useState(false);
+  const [generatingAlgo, setGeneratingAlgo] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationSource, setGenerationSource] = useState<'ai' | 'algorithmic' | null>(
+    initial?.slides?.length ? null : null,
+  );
 
   // ── Save state ─────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
@@ -171,14 +183,56 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
     }
   }
 
-  async function handleGenerate() {
+  async function handlePosterFile(file: File) {
+    setPosterError(null);
+    const authUid = getAuth().currentUser?.uid || teacherId;
+    if (!authUid) { setPosterError('Sin sesión — refresca la página.'); return; }
+    if (!file.type.startsWith('image/')) {
+      setPosterError('El archivo debe ser una imagen.');
+      return;
+    }
+    // Storage rules cap /images/ writes at 5 MB — check client-side too so
+    // the teacher gets a friendly message before the round-trip.
+    if (file.size > 5 * 1024 * 1024) {
+      setPosterError(`Muy grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo 5 MB.`);
+      return;
+    }
+
+    setPosterUploading(true);
+    try {
+      const ext = (file.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || '.jpg').toLowerCase();
+      const fileName = `friendlytext-poster-${authUid}-${Date.now()}${ext}`;
+      const ref = storageRef(storage, `images/${fileName}`);
+      await uploadBytes(ref, file, { contentType: file.type });
+      const url = await getDownloadURL(ref);
+      setPosterUrl(url);
+    } catch (err) {
+      // Same failure modes as TTS upload — bucket disabled, GCP billing
+      // closed, rules blocking. Surface the SDK message verbatim.
+      const msg = err instanceof Error ? err.message : String(err);
+      setPosterError('Firebase Storage: ' + msg);
+    } finally {
+      setPosterUploading(false);
+      // Reset the input so selecting the same file twice re-triggers change.
+      if (posterInputRef.current) posterInputRef.current.value = '';
+    }
+  }
+
+  async function runGeneration(useAI: boolean) {
     setGenerationError(null);
     if (!title.trim() || !source.trim() || !text.trim()) {
       setGenerationError('Completa título, fuente y texto antes de generar.');
       return;
     }
+    // Audio-only lessons need an audio source — otherwise the comprehension
+    // slide has nothing to play. Text-only lessons ignore the audio picker.
+    if (comprehensionMode === 'audio' && !activeAudioUrl && !youtubeUrl) {
+      setGenerationError('Modo audio-only: agrega un audio (TTS, YouTube o URL) antes de generar.');
+      return;
+    }
 
-    setGenerating(true);
+    const setter = useAI ? setGenerating : setGeneratingAlgo;
+    setter(true);
     try {
       const res = await fetch('/api/text-lesson', {
         method: 'POST',
@@ -189,6 +243,8 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
           text: text.trim(),
           level,
           hasAudio: Boolean(activeAudioUrl || youtubeUrl),
+          comprehensionMode,
+          useAI,
         }),
       });
       if (!res.ok) {
@@ -196,14 +252,18 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
         setGenerationError(data.error ?? `HTTP ${res.status}`);
         return;
       }
-      const data: { slides: Slide[] } = await res.json();
+      const data: { slides: Slide[]; source?: 'ai' | 'algorithmic' } = await res.json();
       setSlides(data.slides ?? []);
+      setGenerationSource(data.source ?? (useAI ? 'ai' : 'algorithmic'));
     } catch (err) {
       setGenerationError('Error de red: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
-      setGenerating(false);
+      setter(false);
     }
   }
+
+  const handleGenerate = () => runGeneration(true);
+  const handleGenerateAlgo = () => runGeneration(false);
 
   async function handleSave() {
     setError(null);
@@ -218,10 +278,14 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
       setError('URL de YouTube inválida'); return;
     }
 
+    // Text-only lessons don't carry audio at all — force it off so we
+    // don't persist a dangling audioUrl the teacher can't hear from the UI.
+    const effectiveAudioMode: TextAudioSource = comprehensionMode === 'text' ? 'none' : audioMode;
+
     const finalAudioUrl =
-      audioMode === 'youtube' ? undefined :
-      audioMode === 'tts'     ? ttsAudioUrl :
-      audioMode === 'hosted'  ? hostedUrl :
+      effectiveAudioMode === 'youtube' ? undefined :
+      effectiveAudioMode === 'tts'     ? ttsAudioUrl :
+      effectiveAudioMode === 'hosted'  ? hostedUrl :
       undefined;
 
     const textData: TextData = {
@@ -229,18 +293,20 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
       source: source.trim(),
       text: text.trim(),
       posterUrl: posterUrl.trim() || undefined,
-      youtubeUrl: audioMode === 'youtube' ? youtubeUrl.trim() : undefined,
+      youtubeUrl: effectiveAudioMode === 'youtube' ? youtubeUrl.trim() : undefined,
       audioUrl: finalAudioUrl || undefined,
-      audioSource: audioMode,
-      ttsVoiceId: audioMode === 'tts' ? voiceId : undefined,
+      audioSource: effectiveAudioMode,
+      ttsVoiceId: effectiveAudioMode === 'tts' ? voiceId : undefined,
       timings: timingsValid ? timings : undefined,
+      comprehensionMode,
     };
 
     // Enrich all slides so the reading/cover slides can access textData.
     const enrichedSlides: Slide[] = slides.map(s => {
       const needsTextData =
         s.type === 'text_cover' ||
-        s.type === 'text_reading' ||
+        s.type === 'text_comprehension' ||
+        s.type === 'text_reading' ||  // legacy
         s.type === 'friendlytext_end';
       return needsTextData ? { ...s, textData } : s;
     });
@@ -307,8 +373,35 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Poster URL (opcional)</label>
-                <input value={posterUrl} onChange={e => setPosterUrl(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#4B6A85] font-mono" placeholder="https://..." />
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Poster (opcional)</label>
+                <div className="flex gap-1">
+                  <input
+                    value={posterUrl}
+                    onChange={e => setPosterUrl(e.target.value)}
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#4B6A85] font-mono"
+                    placeholder="https:// o sube archivo →"
+                  />
+                  <input
+                    ref={posterInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handlePosterFile(f); }}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => posterInputRef.current?.click()}
+                    disabled={posterUploading}
+                    className="shrink-0 px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-[#4B6A85] hover:border-[#4B6A85] disabled:opacity-50"
+                    title="Subir imagen a Firebase Storage (5 MB max)"
+                  >
+                    {posterUploading ? '…' : '📤'}
+                  </button>
+                </div>
+                {posterError && <p className="text-[10px] text-red-500 mt-1">{posterError}</p>}
+                {posterUrl && !posterError && (
+                  <p className="text-[10px] text-gray-400 mt-1 truncate">✓ {posterUrl.slice(0, 60)}{posterUrl.length > 60 ? '…' : ''}</p>
+                )}
               </div>
             </div>
 
@@ -350,8 +443,44 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
 
           {/* Right column — audio + generation */}
           <div className="space-y-3">
-            <div className="bg-[#F5F9FC] border border-[#D9E6F0] rounded-2xl p-4">
-              <p className="text-[10px] font-bold text-[#4B6A85] uppercase tracking-widest mb-2">Audio</p>
+
+            {/* Comprehension mode — decides how slide 4 is presented and what audio the deck needs */}
+            <div className="bg-[#FFF8EC] border border-[#F0E1BE] rounded-2xl p-4">
+              <p className="text-[10px] font-bold text-[#8A6D2A] uppercase tracking-widest mb-2">
+                Modo de comprensión
+              </p>
+              <div className="grid grid-cols-3 gap-1 mb-2">
+                {(['text','audio','both'] as ComprehensionMode[]).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => {
+                      setComprehensionMode(m);
+                      // Auto-align audio picker with the mode so teachers don't
+                      // have to remember to switch it manually.
+                      if (m === 'text' && audioMode !== 'none') setAudioMode('none');
+                      if (m === 'audio' && audioMode === 'none') setAudioMode(ttsConfigured ? 'tts' : 'youtube');
+                    }}
+                    className={`py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-colors ${
+                      comprehensionMode === m
+                        ? 'bg-[#8A6D2A] text-white border-[#8A6D2A]'
+                        : 'bg-white text-[#8A6D2A] border-[#E8D9BE] hover:border-[#8A6D2A]'
+                    }`}
+                  >
+                    {m === 'text' ? '📖 Solo texto' : m === 'audio' ? '🎧 Solo audio' : '📖🎧 Ambos'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-[#8A6D2A]/80">
+                {comprehensionMode === 'text' && 'La clase se dicta con solo texto — sin audio player.'}
+                {comprehensionMode === 'audio' && 'La clase se dicta con solo audio — el texto queda oculto tras un botón.'}
+                {comprehensionMode === 'both' && 'La clase muestra texto y audio en paralelo con highlight sincronizado.'}
+              </p>
+            </div>
+
+            <div className={`bg-[#F5F9FC] border border-[#D9E6F0] rounded-2xl p-4 ${comprehensionMode === 'text' ? 'opacity-50 pointer-events-none' : ''}`}>
+              <p className="text-[10px] font-bold text-[#4B6A85] uppercase tracking-widest mb-2">
+                Audio{comprehensionMode === 'text' && ' (deshabilitado — modo solo texto)'}
+              </p>
               <div className="grid grid-cols-4 gap-1 mb-3">
                 {(['none','youtube','tts','hosted'] as TextAudioSource[]).map(m => (
                   <button
@@ -446,26 +575,39 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
               )}
             </div>
 
-            {/* AI generation section */}
+            {/* Generation section — two paths: AI (Claude) or algorithmic (no LLM) */}
             <div className="bg-gradient-to-br from-[#1B2C3F] to-[#4B6A85] rounded-2xl p-4 text-white">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1">CLT deck con IA</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1">CLT deck</p>
               <p className="text-xs text-white/70 mb-3">
-                Genera las 10 slides Friendlytext® — cover, vocab, predictions, reading,
-                comprehension, language focus, practice, translation, wrap-up, end.
+                Genera las 10 slides Friendlytext® — cover, vocab, predictions, comprehension,
+                check, language focus, practice, translation, wrap-up, end.
               </p>
-              <button
-                onClick={handleGenerate}
-                disabled={generating || !text.trim() || !title.trim()}
-                className="w-full py-2 bg-white text-[#1B2C3F] rounded-full text-xs font-bold disabled:opacity-50 hover:bg-white/90"
-              >
-                {generating ? 'Generando con Claude…' : (slides.length > 0 ? '↺ Regenerar deck' : '✨ Generar deck CLT')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating || generatingAlgo || !text.trim() || !title.trim()}
+                  className="flex-1 py-2 bg-white text-[#1B2C3F] rounded-full text-xs font-bold disabled:opacity-50 hover:bg-white/90"
+                >
+                  {generating ? 'Generando con Claude…' : (slides.length > 0 ? '↺ Regenerar con IA' : '✨ Generar con IA')}
+                </button>
+                <button
+                  onClick={handleGenerateAlgo}
+                  disabled={generating || generatingAlgo || !text.trim() || !title.trim()}
+                  className="flex-1 py-2 bg-transparent border border-white/40 text-white rounded-full text-xs font-bold disabled:opacity-50 hover:bg-white/10"
+                  title="Genera el deck con heurísticas (sin llamada a Claude). Ideal para modo solo-texto o cuando el API está caído."
+                >
+                  {generatingAlgo ? 'Generando sin IA…' : '⚙ Sin IA'}
+                </button>
+              </div>
               {generationError && (
                 <p className="text-[10px] text-red-200 mt-2">{generationError}</p>
               )}
               {slides.length > 0 && (
                 <p className="text-[10px] text-white/70 mt-2">
-                  ✓ {slides.length} slides listas — verifica y guarda.
+                  ✓ {slides.length} slides listas
+                  {generationSource === 'algorithmic' && <span className="ml-1 px-1.5 py-0.5 rounded bg-white/15 uppercase tracking-wider font-bold text-[9px]">algoritmo</span>}
+                  {generationSource === 'ai' && <span className="ml-1 px-1.5 py-0.5 rounded bg-white/15 uppercase tracking-wider font-bold text-[9px]">ai</span>}
+                  {' '}— verifica y guarda.
                 </p>
               )}
             </div>
