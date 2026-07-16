@@ -95,13 +95,23 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
   const dictLookup = useWordLookup();
   const ipaLookup  = useWordLookup();
 
-  const handleWordClick = useCallback((word: string, evt: React.MouseEvent) => {
+  // Pen mode — session-only underlines. Key = `${lineIdx}:${wordIdx}` so
+  // the same word repeated across lines can be underlined independently.
+  const [penMarks, setPenMarks] = useState<Set<string>>(() => new Set());
+
+  const handleWordClick = useCallback((word: string, evt: React.MouseEvent, markKey: string) => {
     if (activeTool === 'dictionary') {
       dictLookup.lookup(word);
       setDictOpen(true);
     } else if (activeTool === 'ipa') {
       ipaLookup.lookup(word);
       setIpaAnchor({ x: evt.clientX, y: evt.clientY });
+    } else if (activeTool === 'pen') {
+      setPenMarks(prev => {
+        const next = new Set(prev);
+        if (next.has(markKey)) next.delete(markKey); else next.add(markKey);
+        return next;
+      });
     }
   }, [activeTool, dictLookup, ipaLookup]);
 
@@ -163,7 +173,7 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
   const totalLabel = duration ? fmtTime(duration) : '';
   const progressPct = duration ? (progress / duration) * 100 : 0;
 
-  const wordCursor = activeTool === 'dictionary' || activeTool === 'ipa';
+  const wordCursor = activeTool === 'dictionary' || activeTool === 'ipa' || activeTool === 'pen';
 
   return (
     <div className="relative flex flex-col h-full overflow-hidden bg-[#F5EFE1]">
@@ -304,23 +314,35 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
                           : wasActive ? 'text-[#4B6A85]/85' : '',
                       ].join(' ')}
                     >
-                      {isBlank ? ' ' : tokenise(line).map((tok, j) => (
-                        tok.isWord && wordCursor ? (
+                      {isBlank ? ' ' : tokenise(line).map((tok, j) => {
+                        if (!tok.isWord) return <span key={j}>{tok.text}</span>;
+                        const markKey = `${i}:${j}`;
+                        const marked  = penMarks.has(markKey);
+                        // Always wrap penned words so the underline survives
+                        // even when the pen tool is toggled off.
+                        if (!wordCursor && !marked) return <span key={j}>{tok.text}</span>;
+                        const hoverClass =
+                          activeTool === 'dictionary' ? 'hover:bg-[#EEF3F8] hover:text-[#1B2C3F]'
+                          : activeTool === 'ipa'       ? 'hover:bg-[#F1E7F7] hover:text-[#5A3D7A]'
+                          : activeTool === 'pen'       ? 'hover:bg-yellow-100 hover:text-[#7A5A00]'
+                          : '';
+                        const markClass = marked
+                          ? 'bg-yellow-200/80 rounded px-0.5 shadow-[inset_0_-2px_0_#EAB308]'
+                          : '';
+                        return (
                           <span
                             key={j}
-                            onClick={(e) => handleWordClick(tok.text, e)}
-                            className={
-                              activeTool === 'dictionary'
-                                ? 'cursor-pointer rounded transition-colors hover:bg-[#EEF3F8] hover:text-[#1B2C3F]'
-                                : 'cursor-pointer rounded transition-colors hover:bg-[#F1E7F7] hover:text-[#5A3D7A]'
-                            }
+                            onClick={wordCursor ? (e) => handleWordClick(tok.text, e, markKey) : undefined}
+                            className={[
+                              wordCursor ? 'cursor-pointer rounded transition-colors' : '',
+                              hoverClass,
+                              markClass,
+                            ].filter(Boolean).join(' ')}
                           >
                             {tok.text}
                           </span>
-                        ) : (
-                          <span key={j}>{tok.text}</span>
-                        )
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })}
@@ -378,8 +400,19 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
                   setIpaAnchor(null);
                   ipaLookup.clear();
                 }}
+                onSelectPen={() => {
+                  setActiveTool(t => (t === 'pen' ? null : 'pen'));
+                }}
                 onOpenWhiteboard={() => setWhiteboardOpen(true)}
               />
+              {penMarks.size > 0 && (
+                <button
+                  onClick={() => setPenMarks(new Set())}
+                  className="mt-2 w-full text-[10px] font-semibold text-[#B91C1C] hover:text-[#7F1D1D] py-1"
+                >
+                  🧽 Borrar {penMarks.size} subrayado{penMarks.size === 1 ? '' : 's'}
+                </button>
+              )}
             </div>
           </div>
         </div>

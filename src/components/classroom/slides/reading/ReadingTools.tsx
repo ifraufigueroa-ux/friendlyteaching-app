@@ -1,18 +1,20 @@
 // Friendlytext reading slide — Tools panel (right column, below image).
-// Three modes:
+// Four modes:
 //   · dictionary  → click a word to look it up (EN↔ES + EN↔EN)
 //   · ipa         → click a word to see IPA transcription
+//   · pen         → click a word to underline / un-underline it (per-session)
 //   · whiteboard  → opens the standalone whiteboard overlay
-// Dictionary and IPA are "activation" toggles that flip a mode on/off; the
-// parent decides what to do when a word is clicked while the mode is active.
+// Dictionary, IPA and Pen are "activation" toggles that flip a mode on/off;
+// the parent decides what to do when a word is clicked while the mode is active.
 'use client';
 
-export type ReadingTool = 'dictionary' | 'ipa' | 'whiteboard' | null;
+export type ReadingTool = 'dictionary' | 'ipa' | 'pen' | 'whiteboard' | null;
 
 interface Props {
   active: ReadingTool;
   onSelectDictionary: () => void;
   onSelectIPA: () => void;
+  onSelectPen: () => void;
   onOpenWhiteboard: () => void;
 }
 
@@ -63,6 +65,7 @@ export default function ReadingTools({
   active,
   onSelectDictionary,
   onSelectIPA,
+  onSelectPen,
   onOpenWhiteboard,
 }: Props) {
   return (
@@ -88,6 +91,14 @@ export default function ReadingTools({
           accent="bg-gradient-to-r from-[#5A3D7A] to-[#7B5EA7]"
         />
         <ToolButton
+          icon="✏️"
+          label="Pen"
+          sublabel="Click any word → subrayar / borrar"
+          active={active === 'pen'}
+          onClick={onSelectPen}
+          accent="bg-gradient-to-r from-[#B91C1C] to-[#EF4444]"
+        />
+        <ToolButton
           icon="🖊️"
           label="Whiteboard"
           sublabel="Open a full-screen pizarra"
@@ -96,11 +107,11 @@ export default function ReadingTools({
           accent="bg-gradient-to-r from-[#B45309] to-[#E8B547]"
         />
       </div>
-      {(active === 'dictionary' || active === 'ipa') && (
+      {(active === 'dictionary' || active === 'ipa' || active === 'pen') && (
         <p className="mt-2 px-1 text-[10px] text-[#4B6A85] italic">
-          {active === 'dictionary'
-            ? 'Haz clic en una palabra del texto para buscarla.'
-            : 'Haz clic en una palabra del texto para ver su IPA.'}
+          {active === 'dictionary' && 'Haz clic en una palabra del texto para buscarla.'}
+          {active === 'ipa'        && 'Haz clic en una palabra del texto para ver su IPA.'}
+          {active === 'pen'        && 'Haz clic en cualquier palabra para subrayarla. Vuelve a hacer clic para borrar.'}
         </p>
       )}
     </div>
