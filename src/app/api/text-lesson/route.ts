@@ -143,14 +143,20 @@ GENERAL RULES:
 - Return ONLY valid JSON: { "slides": [...] } — no markdown, no explanation.
 - All 10 slides must be present.`;
 
+interface GenerateResult {
+  slides?: Slide[];
+  error?: string;      // human-facing error to bubble up
+  status?: number;     // status to bubble up (401 → invalid key, 429 → rate/credit, etc.)
+}
+
 async function generateWithAI(
   title: string,
   source: string,
   text: string,
   level: LessonLevel,
   hasAudio: boolean,
-): Promise<Slide[] | null> {
-  if (!ANTHROPIC_API_KEY) return null;
+): Promise<GenerateResult> {
+  if (!ANTHROPIC_API_KEY) return { error: 'ANTHROPIC_API_KEY not configured', status: 503 };
 
   const userPrompt = `Text title: "${title}" (source: ${source})
 Level: ${level}
@@ -178,20 +184,29 @@ Generate the 10-slide Friendlytext® CLT lesson JSON now.`;
     });
 
     if (!response.ok) {
-      console.error('[text-lesson] Claude API', response.status, await response.text().catch(() => ''));
-      return null;
+      const bodyText = await response.text().catch(() => '');
+      console.error('[text-lesson] Claude API', response.status, bodyText);
+      // Pass Anthropic's own error message through so the teacher sees
+      // *why* it failed (credit balance, invalid key, rate limit, etc.)
+      // instead of a generic "AI generation failed".
+      let humanMsg = `Claude API ${response.status}`;
+      try {
+        const parsed = JSON.parse(bodyText);
+        humanMsg = parsed?.error?.message ?? humanMsg;
+      } catch { /* keep default */ }
+      return { error: humanMsg, status: 502 };
     }
 
     const data = await response.json();
     const respText: string = data?.content?.[0]?.text ?? '';
     const jsonMatch = respText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) return { error: 'AI response did not contain valid JSON', status: 500 };
 
     const parsed: { slides: Slide[] } = JSON.parse(jsonMatch[0]);
-    return parsed.slides.map((s, i) => ({ phase: 'pre' as const, ...s, id: `ai-slide-${i}` }));
+    return { slides: parsed.slides.map((s, i) => ({ phase: 'pre' as const, ...s, id: `ai-slide-${i}` })) };
   } catch (err) {
     console.error('[text-lesson] Generation error:', err);
-    return null;
+    return { error: err instanceof Error ? err.message : String(err), status: 500 };
   }
 }
 
@@ -215,10 +230,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const aiSlides = await generateWithAI(title, source, text, level, hasAudio ?? false);
-  if (!aiSlides) {
-    return NextResponse.json({ error: 'AI generation failed' }, { status: 502 });
+  const result = await generateWithAI(title, source, text, level, hasAudio ?? false);
+  if (!result.slides) {
+    return NextResponse.json({ error: result.error ?? 'AI generation failed' }, { status: result.status ?? 502 });
   }
 
-  return NextResponse.json({ slides: aiSlides, source: 'ai' });
+  return NextResponse.json({ slides: result.slides, source: 'ai' });
 }
