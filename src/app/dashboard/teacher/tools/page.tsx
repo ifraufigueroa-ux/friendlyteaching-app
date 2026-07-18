@@ -20,7 +20,7 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
-    href:        '/dashboard/teacher/movies',
+    href:        '/dashboard/teacher/friendlyflix',
     icon:        '🎬',
     title:       'Friendlyflix®',
     description: 'Crea lecciones con clips de series y películas en YouTube. Diálogo con huecos sincronizado con el video.',

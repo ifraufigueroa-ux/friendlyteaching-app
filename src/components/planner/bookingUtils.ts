@@ -66,22 +66,17 @@ export function dedupeBookingsForWeek(bookings: Booking[], weekStartMs: number):
 
   const out: Booking[] = [];
   for (const arr of groups.values()) {
-    // 1. Cancelled this week wins — student explicitly cancelled this
-    // week's instance, so the slot should NOT appear on the planner.
-    const cancelledThisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs && b.status === 'cancelled');
-    if (cancelledThisWeek) continue;
-
-    // 2. Prefer the instance whose weekStart is exactly this week.
-    const thisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs && b.status !== 'cancelled');
-    if (thisWeek) { out.push(thisWeek); continue; }
-
-    // 3. Fall back to the recurring template.
-    const template = arr.find(b => b.isRecurring && b.status !== 'cancelled');
-    if (template) { out.push(template); continue; }
-
-    // 4. Last resort: first non-cancelled booking in the group.
-    const first = arr.find(b => b.status !== 'cancelled');
-    if (first) out.push(first);
+    // A slot is only "active this week" if there is a Firestore doc
+    // whose weekStart is exactly this week. Recurring classes materialise
+    // 52 weekly docs on creation, so an active student always has an
+    // instance for the current week. When no such doc exists we treat the
+    // student as no longer scheduled — this drops old completed classes
+    // from students who left the platform (Constanza, Abdón, etc.),
+    // instead of resurrecting them as "templates".
+    const thisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs);
+    if (!thisWeek) continue;
+    if (thisWeek.status === 'cancelled') continue;
+    out.push(thisWeek);
   }
   return out;
 }

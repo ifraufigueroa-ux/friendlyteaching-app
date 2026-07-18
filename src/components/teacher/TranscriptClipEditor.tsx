@@ -1,6 +1,6 @@
 // FriendlyTeaching.cl — Shared transcript-based clip lesson editor
 //
-// Used by both /dashboard/teacher/movies (Friendlyflix) and
+// Used by both /dashboard/teacher/friendlyflix (Friendlyflix®) and
 // /dashboard/teacher/music (Friendlyrics · Manual con transcript) so the
 // two flows share the same YouTube URL + transcript + {{blank}} + timings
 // authoring workflow.

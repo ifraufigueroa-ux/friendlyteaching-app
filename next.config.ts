@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/login', destination: '/auth/login', permanent: true },
+      // Friendlyflix — legacy /movies URLs still point to the same page.
+      { source: '/dashboard/teacher/movies',      destination: '/dashboard/teacher/friendlyflix',      permanent: true },
+      { source: '/dashboard/teacher/movies/:path*', destination: '/dashboard/teacher/friendlyflix/:path*', permanent: true },
     ];
   },
   async rewrites() {
