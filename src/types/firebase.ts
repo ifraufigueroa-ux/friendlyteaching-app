@@ -73,6 +73,11 @@ export interface Booking {
   attendance?: AttendanceStatus;
   sessionNotes?: string;
   cancellationReason?: string;
+  // Per-class content metadata registered from the Planner. Optional so
+  // legacy bookings and new classes without a topic yet still load fine.
+  topic?: string;              // "Present simple be — questions"
+  materialUrl?: string;        // link to off2class / ellii / drive / etc.
+  materialType?: string;       // short label so the planner can badge it: 'off2class' | 'ellii' | 'friendlytext' | 'other'
   createdAt: Timestamp;
   confirmedAt?: Timestamp;
   cancelledAt?: Timestamp;
