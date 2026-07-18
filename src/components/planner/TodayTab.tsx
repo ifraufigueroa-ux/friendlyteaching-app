@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useBookings } from '@/hooks/useBookings';
 import ClassRow from './ClassRow';
+import { dedupeBookingsForWeek } from './bookingUtils';
 import type { Booking } from '@/types/firebase';
 
 // Monday of the week containing `date`, matches getMonday() in scheduleStore.
@@ -26,10 +27,11 @@ export default function TodayTab({ teacherId }: { teacherId: string }) {
   const { bookings, loading } = useBookings(teacherId, weekStart);
 
   const todaysClasses = useMemo(() => {
-    return bookings
-      .filter((b: Booking) => b.dayOfWeek === todayDow && b.status !== 'cancelled')
+    const weekMs = weekStart.getTime();
+    return dedupeBookingsForWeek(bookings, weekMs)
+      .filter((b: Booking) => b.dayOfWeek === todayDow)
       .sort((a, b) => (a.hour * 60 + (a.minute ?? 0)) - (b.hour * 60 + (b.minute ?? 0)));
-  }, [bookings, todayDow]);
+  }, [bookings, todayDow, weekStart]);
 
   if (loading) {
     return (

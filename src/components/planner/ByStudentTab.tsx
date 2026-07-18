@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useBookings } from '@/hooks/useBookings';
 import { useStudents } from '@/hooks/useStudents';
 import ClassRow from './ClassRow';
+import { dedupeBookingsForWeek } from './bookingUtils';
 import type { Booking, FTUser } from '@/types/firebase';
 
 function mondayOf(date: Date): Date {
@@ -34,11 +35,12 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   // Group bookings by studentId (falling back to studentName when studentId
-  // is missing on legacy bookings).
+  // is missing on legacy bookings). Dedup first so a recurring class shows
+  // up ONCE, not 52 times.
   const bookingsByStudent = useMemo(() => {
+    const weekMs = weekStart.getTime();
     const groups: Record<string, Booking[]> = {};
-    for (const b of bookings) {
-      if (b.status === 'cancelled') continue;
+    for (const b of dedupeBookingsForWeek(bookings, weekMs)) {
       const key = b.studentId || `name:${b.studentName}`;
       (groups[key] ??= []).push(b);
     }
@@ -46,7 +48,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
       arr.sort((a, b) => (a.dayOfWeek - b.dayOfWeek) || ((a.hour * 60 + (a.minute ?? 0)) - (b.hour * 60 + (b.minute ?? 0))));
     }
     return groups;
-  }, [bookings]);
+  }, [bookings, weekStart]);
 
   // Build the list of student entries — merge Users collection with any
   // bookings that don't map to a registered student.

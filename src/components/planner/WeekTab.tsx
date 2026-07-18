@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useBookings } from '@/hooks/useBookings';
 import ClassRow from './ClassRow';
+import { dedupeBookingsForWeek } from './bookingUtils';
 import type { Booking } from '@/types/firebase';
 
 function mondayOf(date: Date): Date {
@@ -33,16 +34,16 @@ export default function WeekTab({ teacherId }: { teacherId: string }) {
   const { bookings, loading } = useBookings(teacherId, weekStart);
 
   const byDay = useMemo(() => {
+    const weekMs = weekStart.getTime();
     const groups: Record<number, Booking[]> = {};
-    for (const b of bookings) {
-      if (b.status === 'cancelled') continue;
+    for (const b of dedupeBookingsForWeek(bookings, weekMs)) {
       (groups[b.dayOfWeek] ??= []).push(b);
     }
     for (const k of Object.keys(groups)) {
       groups[Number(k)].sort((a, b) => (a.hour * 60 + (a.minute ?? 0)) - (b.hour * 60 + (b.minute ?? 0)));
     }
     return groups;
-  }, [bookings]);
+  }, [bookings, weekStart]);
 
   // Compute the concrete date of each day this week for the little date chips.
   const dateFor = (dow: number) => {
