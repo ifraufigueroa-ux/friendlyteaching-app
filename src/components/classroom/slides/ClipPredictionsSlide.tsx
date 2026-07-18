@@ -7,6 +7,7 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Slide } from '@/types/firebase';
+import { pickClipTheme } from './reflection/reflectionThemes';
 
 interface Props { slide: Slide }
 
@@ -22,6 +23,10 @@ export default function ClipPredictionsSlide({ slide }: Props) {
       .filter(Boolean),
     [slide.content],
   );
+
+  // Rotate through 3 Friendlyflix themes by clip title so a series of
+  // clip lessons never all look the same.
+  const theme = pickClipTheme(slide.clipData?.title ?? slide.title ?? '');
 
   const promptText = slide.prompt ?? 'What do you think this clip is about?';
   const titleText  = slide.title  ?? 'Before you watch';
@@ -50,7 +55,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
   const wordCount = prediction.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E]">
+    <div className={`relative h-full overflow-y-auto ${theme.bgWrapper} ${theme.textColor}`}>
       <style>{`
         @keyframes fpCardIn {
           from { opacity: 0; transform: translateY(18px) scale(0.96); }
@@ -70,25 +75,40 @@ export default function ClipPredictionsSlide({ slide }: Props) {
       <div className="max-w-5xl mx-auto px-[2cm] py-[3cm] flex flex-col items-center text-center gap-8">
 
         {/* ── Top eyebrow + hero ───────────────────────────────── */}
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#5A3D7A]/60 bg-white/60 border border-[#C8A8DC]/40 px-3 py-1 rounded-full backdrop-blur">
-            Friendlyflix · {titleText}
+        <div className="relative flex flex-col items-center gap-3">
+          <span className={`text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full backdrop-blur border ${theme.eyebrowText} ${theme.eyebrowBg} ${theme.eyebrowBorder}`}>
+            {theme.brandLabel} · {titleText}
           </span>
-          <span
-            className="text-7xl"
-            style={{ animation: 'fpFloat 4s ease-in-out infinite' }}
-          >
-            🔮
-          </span>
+          <div className="relative">
+            <span
+              className="text-7xl inline-block"
+              style={{ animation: 'fpFloat 4s ease-in-out infinite' }}
+            >
+              {theme.heroPredictions}
+            </span>
+            {theme.floaters.map((n, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className={`absolute text-2xl select-none pointer-events-none ${theme.floaterColor}`}
+                style={{
+                  left: `${30 + i * 18}%`,
+                  top: '60%',
+                }}
+              >
+                {n}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* ── Hero prompt — large, serif, centred ──────────────── */}
-        <h1 className="font-serif font-bold text-[#2D1B4E] text-4xl md:text-5xl leading-tight max-w-3xl">
+        <h1 className={`font-serif font-bold text-4xl md:text-5xl leading-tight max-w-3xl ${theme.headingColor}`}>
           {promptText}
         </h1>
 
         {questions.length > 0 && (
-          <p className="text-sm text-[#5A3D7A]/70 font-medium uppercase tracking-widest">
+          <p className={`text-sm font-medium uppercase tracking-widest ${theme.mutedText}`}>
             Think about these {questions.length} questions
           </p>
         )}
@@ -99,16 +119,16 @@ export default function ClipPredictionsSlide({ slide }: Props) {
             {questions.map((q, i) => (
               <div
                 key={i}
-                className="relative bg-white rounded-3xl shadow-xl shadow-[#C8A8DC]/20 border border-white p-7 flex flex-col items-center text-center gap-3 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                className={`relative bg-white rounded-3xl shadow-xl border border-white p-7 flex flex-col items-center text-center gap-3 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${theme.cardShadow}`}
                 style={{
                   animation: `fpCardIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both`,
                   animationDelay: `${i * 120}ms`,
                 }}
               >
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white font-bold text-base flex items-center justify-center shadow-lg">
+                <span className={`absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full text-white font-bold text-base flex items-center justify-center shadow-lg ${theme.badgeGradient}`}>
                   {i + 1}
                 </span>
-                <p className="text-[#2D1B4E] font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm">
+                <p className={`font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm ${theme.headingColor}`}>
                   {q}
                 </p>
                 {submitted && (
@@ -129,7 +149,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
           <div className="w-full max-w-3xl mt-4 space-y-3">
             <button
               onClick={focusTextarea}
-              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#5A3D7A]/70 hover:text-[#5A3D7A] transition-colors"
+              className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors ${theme.mutedText} ${theme.mutedHover}`}
             >
               ✏ Write your prediction
             </button>
@@ -139,7 +159,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
               onChange={e => setPrediction(e.target.value)}
               rows={5}
               placeholder="I think this scene is about…"
-              className="w-full p-5 rounded-3xl border-2 border-white bg-white/80 backdrop-blur shadow-xl shadow-[#C8A8DC]/15 focus:outline-none focus:border-[#9B7CB8] focus:bg-white text-base md:text-lg resize-none leading-relaxed placeholder:text-gray-400"
+              className={`w-full p-5 rounded-3xl border-2 border-white bg-white/80 backdrop-blur shadow-xl focus:outline-none focus:bg-white text-base md:text-lg resize-none leading-relaxed placeholder:text-gray-400 ${theme.cardShadow} ${theme.focusBorder}`}
             />
             <div className="flex items-center justify-between gap-3">
               <span className={`text-xs font-bold uppercase tracking-widest ${wordCount >= 20 ? 'text-green-600' : 'text-gray-400'}`}>
@@ -148,7 +168,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={!prediction.trim()}
-                className="px-7 py-3 rounded-full bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white font-bold text-sm shadow-lg shadow-[#5A3D7A]/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0"
+                className={`px-7 py-3 rounded-full text-white font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0 ${theme.ctaGradient} ${theme.ctaShadow}`}
               >
                 Submit prediction ✓
               </button>
@@ -168,7 +188,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
                 ✎ Edit
               </button>
             </div>
-            <p className="text-lg md:text-xl text-[#2D1B4E] leading-relaxed italic">&ldquo;{prediction}&rdquo;</p>
+            <p className={`text-lg md:text-xl leading-relaxed italic ${theme.headingColor}`}>&ldquo;{prediction}&rdquo;</p>
             <p className="text-sm font-medium text-green-700 pt-1 border-t border-green-200">
               🎬 Now watch the clip and see how close you were!
             </p>
