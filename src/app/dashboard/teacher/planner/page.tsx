@@ -9,9 +9,9 @@
 // El tab activo se persiste en la URL (?tab=…) para que un F5 mantenga contexto
 // y para poder linkear directo a un tab específico desde otros lados de la app.
 'use client';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TopBar from '@/components/layout/TopBar';
 import TodayTab       from '@/components/planner/TodayTab';
 import WeekTab        from '@/components/planner/WeekTab';
@@ -28,23 +28,44 @@ const TABS = [
 type TabId = typeof TABS[number]['id'];
 
 export default function PlannerPage() {
-  const { profile } = useAuthStore();
-  const teacherId = profile?.uid ?? '';
+  // Read UID straight from Firebase Auth — the zustand store lags on hydration
+  // and can leave profile.uid empty even when the user IS signed in, which
+  // trapped the whole planner in a spinner loop (authStore hydration bug).
+  const [teacherId, setTeacherId] = useState<string>('');
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth.currentUser) {
+      setTeacherId(auth.currentUser.uid);
+      setAuthReady(true);
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, user => {
+      setTeacherId(user?.uid ?? '');
+      setAuthReady(true);
+    });
+    return () => unsub();
+  }, []);
+
   const router = useRouter();
   const params = useSearchParams();
 
   const activeTab: TabId = useMemo(() => {
-    const raw = params.get('tab');
+    const raw = params?.get('tab') ?? null;
     return (TABS.find(t => t.id === raw)?.id ?? 'hoy') as TabId;
   }, [params]);
 
   function setTab(id: TabId) {
-    const next = new URLSearchParams(params.toString());
+    const next = new URLSearchParams(params?.toString() ?? '');
     next.set('tab', id);
     router.replace(`/dashboard/teacher/planner?${next.toString()}`, { scroll: false });
   }
 
-  if (!teacherId) {
+  // Only show the full-page spinner while Firebase Auth is resolving. Once
+  // auth resolves — with or without a user — render the tabs. Child tabs
+  // handle empty teacherId gracefully (no subscription, empty state).
+  if (!authReady) {
     return (
       <div className="min-h-screen bg-[#FFFCF7] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
