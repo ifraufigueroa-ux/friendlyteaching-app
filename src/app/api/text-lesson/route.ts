@@ -54,7 +54,11 @@ HARD RULES for slide 3:
 - NEVER ask about vocab or specific lines — the student has NOT read the text yet.
 - NO yes/no stems. Ban 'Do you…?', 'Have you…?', 'Is it…?'.
 - Every bullet must push OUTPUT (opinion, memory, description, story).
-- Weave {Title} and {Source} into at least two bullets so it never feels generic.
+- Weave {Title} into at least two bullets so it never feels generic.
+- Do NOT reference {Source} in the bullets. The source is often our own platform
+  ("FriendlyTeaching", "Original", "CLT script"); asking the student about it
+  turns the slide into a platform survey. Ignore {Source} entirely and pull
+  bullets from the TITLE + the reader's OWN life.
 - Adapt vocab to CEFR level. Keep each bullet under 25 words.
 
 SLIDE 4 — type: "text_comprehension"
@@ -136,6 +140,7 @@ HARD RULES for slide 9:
 - One bullet MUST reference the predictions the student made at the start.
 - One bullet MUST push the student to reuse language from the text.
 - Weave "{Title}" into at least two bullets. Under 25 words each.
+- Do NOT reference {Source} — same reason as slide 3. Focus on the title and the student's life.
 
 SLIDE 10 — type: "friendlytext_end"
 { type, title: "¡Lección completada!", phase: "post" }

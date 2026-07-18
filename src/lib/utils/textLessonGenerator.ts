@@ -203,9 +203,19 @@ function detectSignals(title: string, text: string): PredictionsSignals {
   };
 }
 
+// Match sources that are FriendlyTeaching's own labels — teachers set the
+// "source" field to things like "Original", "FriendlyTeaching CL",
+// "Friendly Teaching — Original", "CLT script". None of these are real
+// external authors/publications, so we mustn't ask students "do you know
+// FriendlyTeaching CL?" — that turns the slide into a platform survey.
+function isInternalSource(source: string): boolean {
+  return /(friendly[\s-]?teaching|friendlytext|friendlyrics|friendlyflix|original|clt|internal|own)/i.test(source);
+}
+
 function buildPredictionsSlide(title: string, source: string, text: string, level: LessonLevel, mode: ComprehensionMode): Slide {
   const sig = detectSignals(title, text);
   const cueVerb = mode === 'audio' ? 'listen' : mode === 'text' ? 'read' : 'read / listen';
+  const internal = isInternalSource(source);
 
   const hookByMood: Record<string, string> = {
     romantic:      `Before you ${cueVerb} — who do you think "${title}" is really about?`,
@@ -217,7 +227,7 @@ function buildPredictionsSlide(title: string, source: string, text: string, leve
     nostalgic:     `Before you ${cueVerb} — what memory do you think "${title}" is trying to hold on to?`,
     analytical:    `Before you ${cueVerb} — what claim or discovery do you predict "${title}" will make?`,
     reportage:     `Before you ${cueVerb} — what event do you think "${title}" is going to report?`,
-    unspecified:   `Before you ${cueVerb} — what do you predict "${title}" (${source}) will be about?`,
+    unspecified:   `Before you ${cueVerb} — what do you predict "${title}" will be about?`,
   };
 
   const simple = ['A0','A1'].includes(level);
@@ -226,14 +236,21 @@ function buildPredictionsSlide(title: string, source: string, text: string, leve
     ? `Picture "${title}". Who do you see, and where are they?`
     : `Just from the title "${title}", picture ${sig.sceneHint}. Describe it in your own words — who is there and what has just happened?`;
 
-  const bullet2 = simple
-    ? `Do you know "${source}"? Tell us one thing you expect from a text with that source.`
-    : sig.isPersonal
-      ? `"${title}" reads personally. Tell us about a text (a book, article, or story) that felt like it was written for you.`
-      : `Tell us about a text by "${source}" — or a similar author/outlet — that stayed with you. What made it stick?`;
+  // Bullet 2 — prior experience. When source is our own platform we
+  // pivot to the reader's own life (never ask them about FriendlyTeaching
+  // itself); otherwise we can reference a real external author/outlet.
+  const bullet2 = internal
+    ? (simple
+        ? `Tell us about a time you were in a similar situation to "${title}".`
+        : `Tell us about a moment in your own life that a text called "${title}" might describe.`)
+    : (simple
+        ? `Do you know "${source}"? Tell us one thing you expect from a text with that source.`
+        : sig.isPersonal
+          ? `"${title}" reads personally. Tell us about a text (a book, article, or story) that felt like it was written for you.`
+          : `Tell us about a text by "${source}" — or a similar author/outlet — that stayed with you. What made it stick?`);
 
   const bullet3 = simple
-    ? `Do you know a text in Spanish with a similar theme to "${title}"? Tell us about it.`
+    ? `Do you know a story or text in Spanish with a similar theme to "${title}"? Tell us about it.`
     : sig.asksQuestions
       ? `"${title}" seems to raise questions. Tell us about a question you have carried around for a while — the kind a text like this could answer.`
       : `Think of a text in Spanish that shares the theme of "${title}" — how would you describe the link to someone who only speaks English?`;
@@ -710,8 +727,9 @@ function buildWrapupSlide(title: string, source: string, text: string, level: Le
     nostalgic:     `Now that you have ${cueVerb} "${title}" — what memory did it bring back?`,
     analytical:    `Now that you have ${cueVerb} "${title}" — which claim convinced you the most, and why?`,
     reportage:     `Now that you have ${cueVerb} "${title}" — what was the ONE detail you can't stop thinking about?`,
-    unspecified:   `Now that you have ${cueVerb} "${title}" (${source}) — what stayed with you?`,
+    unspecified:   `Now that you have ${cueVerb} "${title}" — what stayed with you?`,
   };
+  void source; // preserved for signature but no longer surfaced to the reader
 
   const simple = ['A0','A1'].includes(level);
 

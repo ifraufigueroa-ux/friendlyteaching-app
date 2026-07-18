@@ -8,6 +8,7 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
 import type { Slide } from '@/types/firebase';
+import { pickTextTheme } from './reflection/textThemes';
 
 interface Props { slide: Slide }
 
@@ -24,7 +25,12 @@ export default function WrapupSlide({ slide }: Props) {
     [slide.content],
   );
 
-  const promptText = slide.prompt ?? 'What stayed with you from this song?';
+  // Same theming pattern as PredictionsSlide — text lessons get 1 of 3
+  // themes picked from the title; music lessons keep the purple look.
+  const isText = Boolean(slide.textData);
+  const theme  = pickTextTheme(slide.textData?.title ?? slide.title ?? '');
+
+  const promptText = slide.prompt ?? (isText ? 'What stayed with you from this text?' : 'What stayed with you from this song?');
   const titleText  = slide.title  ?? 'Wrap Up';
 
   function focusTextarea() {
@@ -44,8 +50,11 @@ export default function WrapupSlide({ slide }: Props) {
 
   const wordCount = reflection.trim().split(/\s+/).filter(Boolean).length;
 
+  const wrapperBg   = isText ? theme.bgWrapper : 'bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0]';
+  const wrapperText = isText ? theme.textColor : 'text-[#2D1B4E]';
+
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E]">
+    <div className={`relative h-full overflow-y-auto ${wrapperBg} ${wrapperText}`}>
       <style>{`
         @keyframes fwuCardIn {
           from { opacity: 0; transform: translateY(18px) scale(0.96); }
@@ -71,22 +80,26 @@ export default function WrapupSlide({ slide }: Props) {
 
         {/* ── Eyebrow + floating hero ─────────────────────────────── */}
         <div className="relative flex flex-col items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#5A3D7A]/60 bg-white/60 border border-[#C8A8DC]/40 px-3 py-1 rounded-full backdrop-blur">
-            Friendlyrics · {titleText}
+          <span className={`text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full backdrop-blur border ${
+            isText
+              ? `${theme.eyebrowText} ${theme.eyebrowBg} ${theme.eyebrowBorder}`
+              : 'text-[#5A3D7A]/60 bg-white/60 border-[#C8A8DC]/40'
+          }`}>
+            {isText ? `${theme.brandLabel} · ${titleText}` : `Friendlyrics · ${titleText}`}
           </span>
-          {/* Floating hearts behind the hero emoji */}
+          {/* Floaters behind the hero emoji — theme-driven for text lessons */}
           <div className="relative">
             <span
               className="text-7xl inline-block"
               style={{ animation: 'fwuFloat 4s ease-in-out infinite' }}
             >
-              💬
+              {isText ? theme.heroWrapup : '💬'}
             </span>
-            {(['♥', '✧', '♥'] as const).map((n, i) => (
+            {(isText ? theme.floaters : (['♥', '✧', '♥'] as const)).map((n, i) => (
               <span
                 key={i}
                 aria-hidden
-                className="absolute text-2xl text-[#F472B6]/40 select-none pointer-events-none"
+                className={`absolute text-2xl select-none pointer-events-none ${isText ? theme.floaterColor : 'text-[#F472B6]/40'}`}
                 style={{
                   left: `${30 + i * 18}%`,
                   top: '60%',
@@ -102,12 +115,12 @@ export default function WrapupSlide({ slide }: Props) {
         </div>
 
         {/* ── Hero prompt ─────────────────────────────────────────── */}
-        <h1 className="font-serif font-bold text-[#2D1B4E] text-4xl md:text-5xl leading-tight max-w-3xl">
+        <h1 className={`font-serif font-bold text-4xl md:text-5xl leading-tight max-w-3xl ${isText ? theme.headingColor : 'text-[#2D1B4E]'}`}>
           {promptText}
         </h1>
 
         {questions.length > 0 && (
-          <p className="text-sm text-[#5A3D7A]/70 font-medium uppercase tracking-widest">
+          <p className={`text-sm font-medium uppercase tracking-widest ${isText ? theme.mutedText : 'text-[#5A3D7A]/70'}`}>
             Reflect on these {questions.length} questions
           </p>
         )}
@@ -118,16 +131,20 @@ export default function WrapupSlide({ slide }: Props) {
             {questions.map((q, i) => (
               <div
                 key={i}
-                className="relative bg-white rounded-3xl shadow-xl shadow-[#C8A8DC]/20 border border-white p-7 flex flex-col items-center text-center gap-3 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                className={`relative bg-white rounded-3xl shadow-xl border border-white p-7 flex flex-col items-center text-center gap-3 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${
+                  isText ? theme.cardShadow : 'shadow-[#C8A8DC]/20'
+                }`}
                 style={{
                   animation: `fwuCardIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both`,
                   animationDelay: `${i * 120}ms`,
                 }}
               >
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-[#5A3D7A] to-[#F472B6] text-white font-bold text-base flex items-center justify-center shadow-lg">
+                <span className={`absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full text-white font-bold text-base flex items-center justify-center shadow-lg ${
+                  isText ? theme.badgeGradient : 'bg-gradient-to-br from-[#5A3D7A] to-[#F472B6]'
+                }`}>
                   {i + 1}
                 </span>
-                <p className="text-[#2D1B4E] font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm">
+                <p className={`font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm ${isText ? theme.headingColor : 'text-[#2D1B4E]'}`}>
                   {q}
                 </p>
                 {submitted && (
@@ -148,7 +165,9 @@ export default function WrapupSlide({ slide }: Props) {
           <div className="w-full max-w-3xl mt-4 space-y-3">
             <button
               onClick={focusTextarea}
-              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#5A3D7A]/70 hover:text-[#5A3D7A] transition-colors"
+              className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors ${
+                isText ? `${theme.mutedText} ${theme.mutedHover}` : 'text-[#5A3D7A]/70 hover:text-[#5A3D7A]'
+              }`}
             >
               ✏ Write your reflection
             </button>
@@ -157,8 +176,10 @@ export default function WrapupSlide({ slide }: Props) {
               value={reflection}
               onChange={e => setReflection(e.target.value)}
               rows={5}
-              placeholder="After listening, I felt…"
-              className="w-full p-5 rounded-3xl border-2 border-white bg-white/80 backdrop-blur shadow-xl shadow-[#C8A8DC]/15 focus:outline-none focus:border-[#F472B6] focus:bg-white text-base md:text-lg resize-none leading-relaxed placeholder:text-gray-400"
+              placeholder={isText ? 'After reading, I felt…' : 'After listening, I felt…'}
+              className={`w-full p-5 rounded-3xl border-2 border-white bg-white/80 backdrop-blur shadow-xl focus:outline-none focus:bg-white text-base md:text-lg resize-none leading-relaxed placeholder:text-gray-400 ${
+                isText ? `${theme.cardShadow} ${theme.focusBorder}` : 'shadow-[#C8A8DC]/15 focus:border-[#F472B6]'
+              }`}
             />
             <div className="flex items-center justify-between gap-3">
               <span className={`text-xs font-bold uppercase tracking-widest ${wordCount >= 20 ? 'text-green-600' : 'text-gray-400'}`}>
@@ -167,7 +188,9 @@ export default function WrapupSlide({ slide }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={!reflection.trim()}
-                className="px-7 py-3 rounded-full bg-gradient-to-r from-[#5A3D7A] to-[#F472B6] text-white font-bold text-sm shadow-lg shadow-[#5A3D7A]/30 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0"
+                className={`px-7 py-3 rounded-full text-white font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0 ${
+                  isText ? `${theme.ctaGradient} ${theme.ctaShadow}` : 'bg-gradient-to-r from-[#5A3D7A] to-[#F472B6] shadow-[#5A3D7A]/30'
+                }`}
               >
                 Save reflection ✓
               </button>
@@ -187,9 +210,11 @@ export default function WrapupSlide({ slide }: Props) {
                 ✎ Edit
               </button>
             </div>
-            <p className="text-lg md:text-xl text-[#2D1B4E] leading-relaxed italic">&ldquo;{reflection}&rdquo;</p>
+            <p className={`text-lg md:text-xl leading-relaxed italic ${isText ? theme.headingColor : 'text-[#2D1B4E]'}`}>
+              &ldquo;{reflection}&rdquo;
+            </p>
             <p className="text-sm font-medium text-green-700 pt-1 border-t border-green-200">
-              🎵 Beautifully done — carry this one with you.
+              {isText ? '📖 Beautifully done — carry this one with you.' : '🎵 Beautifully done — carry this one with you.'}
             </p>
           </div>
         )}
