@@ -24,10 +24,14 @@ function toMs(ts: unknown): number | null {
 
 // A slot is uniquely identified by (student, dayOfWeek, hour, minute).
 // Prefer studentId; fall back to studentName so legacy bookings without
-// a student link still dedupe correctly.
+// a student link still dedupe correctly. Normalise both so subtle
+// differences (trailing whitespace, casing) don't defeat the collapse.
 function slotKey(b: Booking): string {
-  const who = b.studentId || `name:${b.studentName || 'unknown'}`;
-  return `${who}|${b.dayOfWeek}|${b.hour}|${b.minute ?? 0}`;
+  const rawWho = (b.studentId || b.studentName || 'unknown').toString().trim().toLowerCase();
+  const dow = Number(b.dayOfWeek) || 0;
+  const hour = Number(b.hour) || 0;
+  const minute = Number(b.minute ?? 0) || 0;
+  return `${rawWho}|${dow}|${hour}|${minute}`;
 }
 
 /**
@@ -45,22 +49,37 @@ export function dedupeBookingsForWeek(bookings: Booking[], weekStartMs: number):
     if (arr) arr.push(b); else groups.set(slotKey(b), [b]);
   }
 
+  // One-shot sanity log so we can see in the console whether the dedup
+  // is actually collapsing anything or if the raw data is genuinely that
+  // large. Only fires when there's a suspicious ratio.
+  if (typeof window !== 'undefined' && bookings.length > 40 && groups.size >= bookings.length * 0.9) {
+    // eslint-disable-next-line no-console
+    console.warn('[planner dedup] key not collapsing:', {
+      total: bookings.length,
+      unique: groups.size,
+      sample: bookings.slice(0, 3).map(b => ({
+        id: b.id, studentId: b.studentId, studentName: b.studentName,
+        dayOfWeek: b.dayOfWeek, hour: b.hour, minute: b.minute,
+      })),
+    });
+  }
+
   const out: Booking[] = [];
   for (const arr of groups.values()) {
-    // 1. Prefer the instance whose weekStart is exactly this week.
-    const thisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs);
-    if (thisWeek) {
-      // If this-week instance is cancelled, drop it (student explicitly
-      // cancelled the class this week).
-      if (thisWeek.status !== 'cancelled') out.push(thisWeek);
-      continue;
-    }
+    // 1. Cancelled this week wins — student explicitly cancelled this
+    // week's instance, so the slot should NOT appear on the planner.
+    const cancelledThisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs && b.status === 'cancelled');
+    if (cancelledThisWeek) continue;
 
-    // 2. Fall back to the recurring template.
+    // 2. Prefer the instance whose weekStart is exactly this week.
+    const thisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs && b.status !== 'cancelled');
+    if (thisWeek) { out.push(thisWeek); continue; }
+
+    // 3. Fall back to the recurring template.
     const template = arr.find(b => b.isRecurring && b.status !== 'cancelled');
     if (template) { out.push(template); continue; }
 
-    // 3. Last resort: first non-cancelled booking in the group.
+    // 4. Last resort: first non-cancelled booking in the group.
     const first = arr.find(b => b.status !== 'cancelled');
     if (first) out.push(first);
   }
