@@ -475,7 +475,7 @@ export default function TeacherDashboardPage() {
 
         {/* ── Stats grid ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon="👥" label="Estudiantes activos" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pendiente${pendingStudents > 1 ? 's' : ''}` : 'Al día'} color="#C8A8DC" href="/dashboard/teacher/students" />
+          <StatCard icon="👥" label="Estudiantes activos" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pendiente${pendingStudents > 1 ? 's' : ''}` : 'Semanalmente'} color="#C8A8DC" href="/dashboard/teacher/students" />
           <StatCard icon="📚" label="Lecciones publicadas" value={publishedLessons} sub={`de ${lessons.length} total`} color="#A8E6A1" href="/dashboard/teacher/lessons" />
           <StatCard icon="📝" label="Tareas por revisar" value={pendingHomework} sub={pendingHomework > 0 ? 'Requieren atención' : 'Todo al día'} color="#FFE8A8" href="/dashboard/teacher/homework" />
           <StatCard icon="⭐" label="Puntuación promedio" value={avgScore ?? '—'} sub={avgScore ? 'escala 1–7' : 'Sin datos aún'} color="#FFC0CB" href="/dashboard/teacher/progress" />
