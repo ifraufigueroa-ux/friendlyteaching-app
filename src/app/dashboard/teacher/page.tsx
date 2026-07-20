@@ -15,6 +15,7 @@ import HistoryModal from '@/components/schedule/HistoryModal';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import SchedulingGrid from '@/components/schedule/SchedulingGrid';
+import { detectMaterialType } from '@/components/planner/bookingUtils';
 import type { Booking } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import {
@@ -494,6 +495,11 @@ export default function TeacherDashboardPage() {
                         <p className="text-white/50 text-xs mt-0.5">
                           {carouselCurrent.isRecurring ? '↻ Recurrente' : '• Una vez'}
                         </p>
+                        {carouselCurrent.topic && (
+                          <p className="text-white/85 text-xs mt-1 truncate font-medium">
+                            📌 {carouselCurrent.topic}
+                          </p>
+                        )}
                         {carouselCurrent.lessonId && (() => {
                           const l = lessons.find(x => x.id === carouselCurrent.lessonId);
                           return l ? <p className="text-white/60 text-xs mt-1 truncate">📚 {l.code} · {l.title}</p> : null;
@@ -539,6 +545,26 @@ export default function TeacherDashboardPage() {
                         Abrir →
                       </Link>
                     )}
+                    {/* Material link — the URL registered in the planner. Same
+                        light-on-purple pill as "Abrir" so it belongs in this
+                        action row; opens in a new tab so the teacher can jump
+                        to Off2Class / Ellii / Drive without losing the dashboard. */}
+                    {carouselCurrent.materialUrl && (() => {
+                      const material = detectMaterialType(carouselCurrent.materialUrl);
+                      return (
+                        <a
+                          href={carouselCurrent.materialUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-full text-xs font-bold transition-colors shrink-0 inline-flex items-center gap-1"
+                          title={carouselCurrent.materialUrl}
+                        >
+                          <span>{material.icon}</span>
+                          <span>{material.label}</span>
+                          <span className="opacity-70">↗</span>
+                        </a>
+                      );
+                    })()}
                   </div>
 
                   {/* Dot indicators */}
