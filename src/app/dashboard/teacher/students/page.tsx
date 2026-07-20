@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent } from '@/hooks/useStudents';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useRecurringBookings, linkBookingsByName, type ScheduleSlot } from '@/hooks/useRecurringBookings';
+import { useClassHistory } from '@/hooks/useClassHistory';
 import { updateDoc, doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { FTUser, LessonLevel } from '@/types/firebase';
@@ -663,6 +664,79 @@ function StudentRow({
   );
 }
 
+// ─── Schedule-only row (student in the grid but no registered account) ──────
+// Compact row used for names that appear in the recurring schedule but don't
+// have a matching FTUser yet. Same visual language as StudentRow but with
+// only the essentials + a "Crear cuenta" CTA to promote them.
+function ScheduleOnlyRow({
+  name,
+  slots,
+  onCreate,
+}: {
+  name: string;
+  slots: ScheduleSlot[];
+  onCreate: (prefillName: string) => void;
+}) {
+  const sortedSlots = useMemo(
+    () => [...slots].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour),
+    [slots],
+  );
+  return (
+    <div className="bg-white border border-dashed border-[#E0C8F0] rounded-2xl px-4 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
+      <div className="w-10 h-10 rounded-full bg-[#FDFAFF] border border-[#F0E5FF] flex items-center justify-center text-[#9B7CB8] font-bold text-sm flex-shrink-0">
+        {initials(name)}
+      </div>
+      <div className="min-w-0 w-40 flex-shrink-0">
+        <p className="font-semibold text-gray-700 text-sm truncate">{name}</p>
+        <p className="text-[10px] text-gray-400 italic">Sin cuenta registrada</p>
+      </div>
+      <div className="flex-shrink-0 w-20">
+        <span className="text-xs text-gray-300">—</span>
+      </div>
+      <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
+        {sortedSlots.map((s, i) => (
+          <span
+            key={i}
+            className="px-2 py-0.5 bg-[#F0E5FF] text-[#5A3D7A] text-xs font-semibold rounded-full whitespace-nowrap"
+          >
+            {formatSlot(s)}
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2 flex-shrink-0">
+        <button
+          onClick={() => onCreate(name)}
+          className="px-3 py-1.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-bold transition-colors"
+          title="Crear cuenta para este estudiante"
+        >
+          ＋ Crear cuenta
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat chip (mirrors the one from the class-history page) ────────────────
+function StatChip({ icon, label, value, sub, color }: {
+  icon: string; label: string; value: number | string; sub?: string; color: string;
+}) {
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+        style={{ background: `${color}33` }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-2xl font-extrabold text-gray-800 leading-none">{value}</p>
+        <p className="text-[11px] text-gray-500 mt-0.5">{label}</p>
+        {sub && <p className="text-[10px] text-gray-400">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
 // ─── Create Student Modal ─────────────────────────────────────────────────────
 
 function CreateStudentModal({ onClose }: { onClose: () => void }) {
@@ -847,21 +921,62 @@ export default function StudentsPage() {
   const { students, pendingStudents, archivedStudents, loading, error } = useStudents();
   const { requests: bookingRequests, approveRequest, rejectRequest } = useBookingRequests();
   const { byStudentId, byStudentName } = useRecurringBookings(teacherId);
+  const { history: classHistory } = useClassHistory(teacherId, 30);
 
   const [search, setSearch]             = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [showCreate, setShowCreate]     = useState(false);
 
+  // ── Active-student derivation ────────────────────────────────────────────
+  // "Active" = has at least one recurring slot in the schedule. We check both
+  // maps because bookings can be linked (byStudentId) or matched by name only
+  // (byStudentName) — legacy bookings without studentId still count.
+  function isActive(s: FTUser): boolean {
+    return (byStudentId[s.uid]?.length ?? 0) > 0
+        || (byStudentName[s.fullName]?.length ?? 0) > 0;
+  }
+
+  const activeRegistered = useMemo(
+    () => students.filter(isActive),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [students, byStudentId, byStudentName],
+  );
+
+  // Names that appear in the recurring schedule but don't match any
+  // registered student — surface them so the teacher can create the account.
+  const scheduleOnlyNames = useMemo(() => {
+    const known = new Set(students.map((s) => s.fullName.trim().toLowerCase()));
+    const out: { name: string; slots: ScheduleSlot[] }[] = [];
+    for (const [name, slots] of Object.entries(byStudentName)) {
+      if (!known.has(name.trim().toLowerCase()) && slots.length > 0) {
+        out.push({ name, slots });
+      }
+    }
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  }, [students, byStudentName]);
+
+  // Total active roster = registered active + schedule-only names.
+  const totalActive = activeRegistered.length + scheduleOnlyNames.length;
+
+  // Attendance stats over the last 30 days (same shape as the history page).
+  const attendanceStats = useMemo(() => {
+    const total = classHistory.length;
+    const attended = classHistory.filter((e) => e.attended).length;
+    const absent = total - attended;
+    const pct = total > 0 ? Math.round((attended / total) * 100) : 0;
+    return { total, attended, absent, pct };
+  }, [classHistory]);
+
   const filteredStudents = useMemo(() => {
-    if (!search.trim()) return students;
+    if (!search.trim()) return activeRegistered;
     const q = search.toLowerCase();
-    return students.filter(
+    return activeRegistered.filter(
       (s) =>
         s.fullName.toLowerCase().includes(q) ||
         s.email.toLowerCase().includes(q) ||
         (s.phone ?? '').includes(q),
     );
-  }, [students, search]);
+  }, [activeRegistered, search]);
 
   // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
@@ -904,7 +1019,7 @@ export default function StudentsPage() {
     <div className="min-h-screen">
       <TopBar
         title="Estudiantes"
-        subtitle={`${students.length} aprobado${students.length !== 1 ? 's' : ''} · ${pendingStudents.length} pendiente${pendingStudents.length !== 1 ? 's' : ''}`}
+        subtitle={`${totalActive} activo${totalActive !== 1 ? 's' : ''}${pendingStudents.length ? ` · ${pendingStudents.length} pendiente${pendingStudents.length !== 1 ? 's' : ''}` : ''}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Estudiantes' },
@@ -931,18 +1046,36 @@ export default function StudentsPage() {
 
       <div className="p-6">
 
-      {/* Stats bar */}
-      <div className="max-w-5xl mx-auto mb-6 grid grid-cols-3 gap-3">
-        {[
-          { label: 'Aprobados', value: students.length, color: 'text-green-600' },
-          { label: 'Pendientes', value: pendingStudents.length, color: 'text-amber-600' },
-          { label: 'Clases/semana', value: totalWeeklyHours, color: 'text-[#5A3D7A]' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-            <p className={`text-2xl font-bold ${color}`}>{value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{label}</p>
-          </div>
-        ))}
+      {/* Stats bar — total roster + attendance from the last 30 days */}
+      <div className="max-w-5xl mx-auto mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatChip
+          icon="👥"
+          label="Estudiantes activos"
+          value={totalActive}
+          sub={`${activeRegistered.length} registrados${scheduleOnlyNames.length ? ` · ${scheduleOnlyNames.length} en horario` : ''}`}
+          color="#C8A8DC"
+        />
+        <StatChip
+          icon="✅"
+          label="Realizadas"
+          value={attendanceStats.attended}
+          sub="últimos 30 días"
+          color="#A8E6A1"
+        />
+        <StatChip
+          icon="❌"
+          label="Ausencias"
+          value={attendanceStats.absent}
+          sub="últimos 30 días"
+          color="#FFAAAA"
+        />
+        <StatChip
+          icon="📊"
+          label="% asistencia"
+          value={attendanceStats.total > 0 ? `${attendanceStats.pct}%` : '—'}
+          sub={attendanceStats.total > 0 ? `${attendanceStats.total} clases` : 'sin datos aún'}
+          color="#FFE8A8"
+        />
       </div>
 
       <div className="max-w-5xl mx-auto space-y-8">
@@ -1014,7 +1147,7 @@ export default function StudentsPage() {
         <section>
           <div className="flex items-center justify-between mb-3 gap-3">
             <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider flex-shrink-0">
-              Estudiantes aprobados ({filteredStudents.length})
+              Estudiantes activos ({filteredStudents.length})
             </h2>
             {students.length > 0 && (
               <input
@@ -1026,23 +1159,22 @@ export default function StudentsPage() {
             )}
           </div>
 
-          {students.length === 0 ? (
+          {activeRegistered.length === 0 && scheduleOnlyNames.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
               <p className="text-4xl mb-3">👥</p>
-              <p className="text-gray-500 text-sm">No hay estudiantes aprobados aún.</p>
-              {pendingStudents.length === 0 && bookingRequests.length === 0 ? (
-                <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">
-                  Comparte el enlace de <strong>/book</strong> o pide a tus estudiantes que se registren en la app. Aparecerán aquí en cuanto soliciten acceso.
-                </p>
-              ) : (
-                <p className="text-xs text-gray-400 mt-1">
-                  Aprueba las solicitudes pendientes para que aparezcan aquí.
-                </p>
-              )}
+              <p className="text-gray-500 text-sm">No tienes estudiantes activos en el horario aún.</p>
+              <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">
+                Agenda una clase recurrente en el <strong>Planner</strong> o crea la cuenta desde aquí. Los estudiantes aparecerán en esta lista automáticamente.
+              </p>
             </div>
-          ) : filteredStudents.length === 0 ? (
+          ) : filteredStudents.length === 0 && search.trim() ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <p className="text-gray-400 text-sm">No hay coincidencias para &ldquo;{search}&rdquo;</p>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-dashed border-[#E0C8F0]">
+              <p className="text-gray-500 text-sm">Todos tus estudiantes activos aparecen abajo como &ldquo;en horario sin registrar&rdquo;.</p>
+              <p className="text-xs text-gray-400 mt-1">Crea sus cuentas para verlos aquí.</p>
             </div>
           ) : (
             <>
@@ -1069,6 +1201,25 @@ export default function StudentsPage() {
             </>
           )}
         </section>
+
+        {/* ── Schedule-only names (no registered account yet) ────── */}
+        {scheduleOnlyNames.length > 0 && (
+          <section>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">
+              En horario sin registrar ({scheduleOnlyNames.length})
+            </h2>
+            <div className="space-y-2">
+              {scheduleOnlyNames.map(({ name, slots }) => (
+                <ScheduleOnlyRow
+                  key={name}
+                  name={name}
+                  slots={slots}
+                  onCreate={() => setShowCreate(true)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Archived students ────────────────────────────────── */}
         {archivedStudents.length > 0 && (
