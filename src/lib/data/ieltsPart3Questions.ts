@@ -117,4 +117,29 @@ export const IELTS_PART3_QUESTIONS: Part3Question[] = [
   { band: 9, emoji: '✈️', topic: 'Travel & tourism',        question: 'To what extent does the modern travel industry commodify experiences that were once considered transformative?' },
   { band: 9, emoji: '👫', topic: 'Friendship & community',  question: 'How might the increasing mediation of relationships through technology reshape human notions of intimacy and trust?' },
   { band: 9, emoji: '🗣️', topic: 'Languages',               question: 'How do linguistic shifts mirror deeper changes in how societies understand power, identity and belonging?' },
+
+  // ─── Extra topical clusters (2026 refresh) ────────────────────────
+  // Money & finance
+  { band: 6, emoji: '💰', topic: 'Money & finance',          question: 'Do young people in your country tend to save money?' },
+  { band: 7, emoji: '💰', topic: 'Money & finance',          question: 'Why do you think some people find it hard to manage their money?' },
+  { band: 8, emoji: '💰', topic: 'Money & finance',          question: 'How does financial insecurity shape the choices people make about work and family?' },
+  { band: 9, emoji: '💰', topic: 'Money & finance',          question: 'To what extent do prevailing attitudes toward wealth reveal a society\'s underlying values?' },
+
+  // Health & wellbeing
+  { band: 6, emoji: '🏥', topic: 'Health & wellbeing',       question: 'What do people in your country do to stay healthy?' },
+  { band: 7, emoji: '🏥', topic: 'Health & wellbeing',       question: 'Why do you think mental health is discussed more openly today than in the past?' },
+  { band: 8, emoji: '🏥', topic: 'Health & wellbeing',       question: 'How do modern lifestyles contribute to the rise of chronic health problems?' },
+  { band: 9, emoji: '🏥', topic: 'Health & wellbeing',       question: 'To what extent should healthcare be treated as a public responsibility rather than an individual one?' },
+
+  // Family & generations
+  { band: 6, emoji: '👨‍👩‍👧', topic: 'Family & generations',    question: 'Do families in your country spend a lot of time together?' },
+  { band: 7, emoji: '👨‍👩‍👧', topic: 'Family & generations',    question: 'How is family life today different from family life in your parents\' generation?' },
+  { band: 8, emoji: '👨‍👩‍👧', topic: 'Family & generations',    question: 'What social forces are reshaping the traditional family unit in most countries?' },
+  { band: 9, emoji: '👨‍👩‍👧', topic: 'Family & generations',    question: 'How might shifting family structures redefine what people expect from private life and public policy?' },
+
+  // Government, laws & citizenship
+  { band: 6, emoji: '🏛️', topic: 'Government & laws',        question: 'What are some rules that everyone in your country has to follow?' },
+  { band: 7, emoji: '🏛️', topic: 'Government & laws',        question: 'Why is it important for citizens to be involved in their community?' },
+  { band: 8, emoji: '🏛️', topic: 'Government & laws',        question: 'How much responsibility should governments take for shaping citizens\' behaviour, and where should that stop?' },
+  { band: 9, emoji: '🏛️', topic: 'Government & laws',        question: 'To what extent can democratic institutions still hold power accountable in an era of concentrated economic influence?' },
 ];

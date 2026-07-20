@@ -487,4 +487,138 @@ export const IELTS_PART1_TOPICS: Part1Topic[] = [
       'Do you think men and women use bags differently?',
     ],
   },
+
+  // ── Curveballs 2024/25 (real Part 1 hot topics) ──────────────────
+  {
+    id: 'colours',
+    emoji: '🎨',
+    name: 'Colours',
+    questions: [
+      'What is your favourite colour?',
+      'Are there any colours you don\'t like?',
+      'Do you think colours can affect how people feel?',
+      'Are there any colours that are important in your culture?',
+    ],
+  },
+  {
+    id: 'numbers',
+    emoji: '🔢',
+    name: 'Numbers',
+    questions: [
+      'Are you good with numbers?',
+      'Do you use numbers a lot in your daily life?',
+      'Do you have a favourite or lucky number?',
+      'Do you think it is important for children to learn math from a young age?',
+    ],
+  },
+  {
+    id: 'names',
+    emoji: '🏷️',
+    name: 'Names',
+    questions: [
+      'Do you like your name? Why or why not?',
+      'Who chose your name?',
+      'Is there a story behind your name?',
+      'Do people in your country often change their names?',
+    ],
+  },
+  {
+    id: 'chocolate',
+    emoji: '🍫',
+    name: 'Chocolate',
+    questions: [
+      'Do you like chocolate?',
+      'How often do you eat chocolate?',
+      'Is chocolate popular in your country?',
+      'Did you eat a lot of chocolate as a child?',
+    ],
+  },
+  {
+    id: 'wild-animals',
+    emoji: '🦁',
+    name: 'Wild animals',
+    questions: [
+      'Have you ever seen a wild animal in real life?',
+      'Do you enjoy watching documentaries about wild animals?',
+      'Are wild animals popular as attractions in your country?',
+      'Do you think zoos are a good way to see wild animals?',
+    ],
+  },
+  {
+    id: 'countryside',
+    emoji: '🏞️',
+    name: 'The countryside',
+    questions: [
+      'Do you enjoy spending time in the countryside?',
+      'How often do you visit rural areas?',
+      'What do people typically do when they go to the countryside?',
+      'Would you prefer to live in the city or the countryside?',
+    ],
+  },
+  {
+    id: 'perfume',
+    emoji: '🌸',
+    name: 'Perfume',
+    questions: [
+      'Do you wear perfume or cologne?',
+      'When did you first start using perfume?',
+      'How do you choose which perfume to buy?',
+      'Do you think perfume makes a good gift?',
+    ],
+  },
+  {
+    id: 'old-buildings',
+    emoji: '🏛️',
+    name: 'Old buildings',
+    questions: [
+      'Are there any old buildings in your hometown?',
+      'Do you enjoy visiting historical buildings?',
+      'Do you think old buildings should be preserved?',
+      'Would you like to live in an old building? Why or why not?',
+    ],
+  },
+  {
+    id: 'rain',
+    emoji: '🌧️',
+    name: 'Rain',
+    questions: [
+      'Do you like rainy days?',
+      'Does it rain a lot in your city?',
+      'What do you usually do when it rains?',
+      'Do you think rain affects people\'s moods?',
+    ],
+  },
+  {
+    id: 'small-businesses',
+    emoji: '🏪',
+    name: 'Small businesses',
+    questions: [
+      'Are there many small shops in your neighbourhood?',
+      'Do you prefer buying from small shops or big supermarkets?',
+      'Would you like to run your own small business one day?',
+      'Do you think small businesses are important for a community?',
+    ],
+  },
+  {
+    id: 'uniforms',
+    emoji: '👔',
+    name: 'Uniforms',
+    questions: [
+      'Did you wear a uniform at school?',
+      'Do you think school uniforms are a good idea?',
+      'Are there jobs in your country where people have to wear uniforms?',
+      'What are the advantages of wearing a uniform at work?',
+    ],
+  },
+  {
+    id: 'boredom',
+    emoji: '😐',
+    name: 'Boredom',
+    questions: [
+      'How often do you feel bored?',
+      'What do you usually do when you are bored?',
+      'Do you think children today get bored more easily than in the past?',
+      'Do you think being bored is always a bad thing?',
+    ],
+  },
 ];
