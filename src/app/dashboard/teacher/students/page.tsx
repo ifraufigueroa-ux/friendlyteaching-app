@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — Students Management Page (rebuilt)
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent } from '@/hooks/useStudents';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
@@ -914,8 +915,18 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function StudentsPage() {
+  // Read UID straight from Firebase Auth — useAuthStore.profile can stay
+  // null on hydration (documented bug), which left every teacherId-scoped
+  // hook (useRecurringBookings, useClassHistory) returning empty and the
+  // "Estudiantes activos" cards stuck at 0 even with a full schedule.
   const { profile } = useAuthStore();
-  const teacherId   = profile?.uid ?? '';
+  const [teacherId, setTeacherId] = useState<string>(() => profile?.uid ?? '');
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth.currentUser) { setTeacherId(auth.currentUser.uid); return; }
+    const unsub = onAuthStateChanged(auth, (user) => setTeacherId(user?.uid ?? ''));
+    return () => unsub();
+  }, []);
   const teacherName = profile?.fullName ?? 'Tu profesor';
 
   const { students, pendingStudents, archivedStudents, loading, error } = useStudents();
