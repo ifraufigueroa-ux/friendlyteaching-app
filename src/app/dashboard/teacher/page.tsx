@@ -15,7 +15,7 @@ import HistoryModal from '@/components/schedule/HistoryModal';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import SchedulingGrid from '@/components/schedule/SchedulingGrid';
-import { detectMaterialType } from '@/components/planner/bookingUtils';
+import { detectMaterialType, dedupeBookingsForWeek } from '@/components/planner/bookingUtils';
 import type { Booking } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import {
@@ -397,13 +397,34 @@ export default function TeacherDashboardPage() {
   // Total = all canonical slots for today
   const todayTotalClasses = todayCanonicalBookings.length;
 
-  // Active students — from Firestore or fallback count
-  const studentsThisWeek = hasFirestoreBookings
-    ? new Set(bookings.filter((b) => b.studentId).map((b) => b.studentId)).size
-    : SCHEDULE_STUDENT_COUNT;
+  // Active students — derived from the ACTUAL schedule (recurring bookings
+  // with an instance for this week), not the users collection. Two rules:
+  //   1. Only count students whose recurring class has a doc for THIS week
+  //      (via dedupeBookingsForWeek). That drops old completed slots from
+  //      students who left the platform (same logic as the planner).
+  //   2. Dedupe by studentId; fall back to a normalised studentName when
+  //      the ID is missing so the count doesn't inflate on legacy bookings.
+  // Interviews are excluded — they're one-off leads, not active students.
+  const activeStudentsSet = useMemo(() => {
+    const set = new Set<string>();
+    const weekStartMs = currentWeekStart.getTime();
+    for (const b of dedupeBookingsForWeek(bookings, weekStartMs)) {
+      if (b.bookingType === 'interview') continue;
+      if (!b.isRecurring) continue;  // one-off classes aren't part of the active roster
+      const key = (b.studentId || b.studentName || '').trim().toLowerCase();
+      if (key) set.add(key);
+    }
+    return set;
+  }, [bookings, currentWeekStart]);
 
-  // Active students stat card: prefer Firestore student count, fallback to schedule count
-  const activeStudentCount = approvedStudents > 0 ? approvedStudents : SCHEDULE_STUDENT_COUNT;
+  const studentsThisWeek = activeStudentsSet.size;
+
+  // Active students stat card: prefer the schedule-derived count (matches the
+  // grid the teacher can actually see), fall back to the static roster only
+  // when Firestore has zero bookings yet.
+  const activeStudentCount = studentsThisWeek > 0
+    ? studentsThisWeek
+    : (approvedStudents > 0 ? approvedStudents : SCHEDULE_STUDENT_COUNT);
 
   // Average score from progress
   const avgScore = useMemo(() => {
