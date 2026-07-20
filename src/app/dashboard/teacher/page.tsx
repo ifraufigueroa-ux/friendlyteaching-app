@@ -397,34 +397,45 @@ export default function TeacherDashboardPage() {
   // Total = all canonical slots for today
   const todayTotalClasses = todayCanonicalBookings.length;
 
-  // Active students — derived from the ACTUAL schedule (recurring bookings
-  // with an instance for this week), not the users collection. Two rules:
-  //   1. Only count students whose recurring class has a doc for THIS week
-  //      (via dedupeBookingsForWeek). That drops old completed slots from
-  //      students who left the platform (same logic as the planner).
-  //   2. Dedupe by studentId; fall back to a normalised studentName when
-  //      the ID is missing so the count doesn't inflate on legacy bookings.
-  // Interviews are excluded — they're one-off leads, not active students.
+  // Active students — union of TWO sources so newly registered students AND
+  // one-off classes both show up:
+  //   1. From bookings: every non-cancelled class scheduled for THIS week
+  //      (recurring OR one-off), deduped by (studentId || studentName) so
+  //      the same student across multiple weekly slots counts once.
+  //   2. From users: every approved student in the roster — covers freshly
+  //      registered students who don't have any bookings yet.
+  // Interviews are excluded (they're leads, not enrolled students).
   const activeStudentsSet = useMemo(() => {
     const set = new Set<string>();
     const weekStartMs = currentWeekStart.getTime();
+
+    // Bookings this week (recurring + one-off).
     for (const b of dedupeBookingsForWeek(bookings, weekStartMs)) {
       if (b.bookingType === 'interview') continue;
-      if (!b.isRecurring) continue;  // one-off classes aren't part of the active roster
-      const key = (b.studentId || b.studentName || '').trim().toLowerCase();
-      if (key) set.add(key);
+      const key = b.studentId
+        ? `uid:${b.studentId}`
+        : `name:${(b.studentName || '').trim().toLowerCase()}`;
+      if (key !== 'name:') set.add(key);
     }
+
+    // Approved users — new sign-ups without bookings still count.
+    for (const s of students) {
+      if (s.status !== 'approved') continue;
+      const key = s.uid
+        ? `uid:${s.uid}`
+        : `name:${(s.fullName || '').trim().toLowerCase()}`;
+      if (key !== 'name:') set.add(key);
+    }
+
     return set;
-  }, [bookings, currentWeekStart]);
+  }, [bookings, currentWeekStart, students]);
 
   const studentsThisWeek = activeStudentsSet.size;
 
-  // Active students stat card: prefer the schedule-derived count (matches the
-  // grid the teacher can actually see), fall back to the static roster only
-  // when Firestore has zero bookings yet.
-  const activeStudentCount = studentsThisWeek > 0
-    ? studentsThisWeek
-    : (approvedStudents > 0 ? approvedStudents : SCHEDULE_STUDENT_COUNT);
+  // Active students stat card: prefer the union count (matches what the
+  // teacher can actually see in the schedule + students list). Fall back
+  // to the static schedule count only when we have zero data.
+  const activeStudentCount = studentsThisWeek > 0 ? studentsThisWeek : SCHEDULE_STUDENT_COUNT;
 
   // Average score from progress
   const avgScore = useMemo(() => {
