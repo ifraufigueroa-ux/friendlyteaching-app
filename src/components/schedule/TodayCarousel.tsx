@@ -3,6 +3,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { completeBooking, updateBooking } from '@/hooks/useBookings';
+import { detectMaterialType } from '@/components/planner/bookingUtils';
 import type { Booking } from '@/types/firebase';
 
 interface Props {
@@ -159,25 +160,52 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
                 </span>
               )}
             </div>
-            {current.notes && (
+            {current.topic && (
+              <p className="text-xs text-[#5A3D7A]/80 mt-1 truncate font-medium">
+                📌 {current.topic}
+              </p>
+            )}
+            {current.notes && !current.topic && (
               <p className="text-xs text-gray-400 mt-0.5 truncate">📝 {current.notes}</p>
             )}
           </div>
 
-          {/* Prev / Next navigation */}
-          <div className="flex gap-1 shrink-0 mt-0.5">
-            <button
-              onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
-              disabled={safeIdx === 0}
-              aria-label="Anterior"
-              className="w-6 h-6 flex items-center justify-center rounded-lg bg-[#F0E5FF] text-[#5A3D7A] text-base leading-none disabled:opacity-30 hover:bg-[#E0CCFF] transition-colors"
-            >‹</button>
-            <button
-              onClick={() => setCurrentIdx((p) => Math.min(total - 1, p + 1))}
-              disabled={safeIdx === total - 1}
-              aria-label="Siguiente"
-              className="w-6 h-6 flex items-center justify-center rounded-lg bg-[#F0E5FF] text-[#5A3D7A] text-base leading-none disabled:opacity-30 hover:bg-[#E0CCFF] transition-colors"
-            >›</button>
+          {/* Right column — material button + prev/next navigation */}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            {/* Material link — reuses the planner ClassRow pill style. Opens
+                in a new tab so the teacher can jump straight to Off2Class /
+                Ellii / Drive / etc. without leaving the dashboard. */}
+            {current.materialUrl && (() => {
+              const material = detectMaterialType(current.materialUrl);
+              return (
+                <a
+                  href={current.materialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] text-[11px] font-bold border border-[#D9C2EE] transition-colors"
+                  title={current.materialUrl}
+                >
+                  <span>{material.icon}</span>
+                  <span>{material.label}</span>
+                  <span className="opacity-60">↗</span>
+                </a>
+              );
+            })()}
+            <div className="flex gap-1">
+              <button
+                onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
+                disabled={safeIdx === 0}
+                aria-label="Anterior"
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-[#F0E5FF] text-[#5A3D7A] text-base leading-none disabled:opacity-30 hover:bg-[#E0CCFF] transition-colors"
+              >‹</button>
+              <button
+                onClick={() => setCurrentIdx((p) => Math.min(total - 1, p + 1))}
+                disabled={safeIdx === total - 1}
+                aria-label="Siguiente"
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-[#F0E5FF] text-[#5A3D7A] text-base leading-none disabled:opacity-30 hover:bg-[#E0CCFF] transition-colors"
+              >›</button>
+            </div>
           </div>
         </div>
       </div>

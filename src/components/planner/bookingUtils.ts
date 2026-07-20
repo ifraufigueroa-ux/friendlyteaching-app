@@ -13,6 +13,30 @@
 
 import type { Booking } from '@/types/firebase';
 
+// ─── Material URL detection (shared by planner + dashboard carousel) ──
+// Recognise common LMS URLs so the UI can badge the source without the
+// teacher typing the label by hand. Falls back to 'other' → 🔗.
+export interface MaterialTypeInfo {
+  type: string;
+  label: string;
+  icon: string;
+}
+
+export function detectMaterialType(url: string | undefined | null): MaterialTypeInfo {
+  if (!url) return { type: 'none', label: '', icon: '' };
+  const u = url.toLowerCase();
+  if (u.includes('off2class'))                    return { type: 'off2class',    label: 'Off2Class',    icon: '🧩' };
+  if (u.includes('ellii'))                        return { type: 'ellii',        label: 'Ellii',        icon: '🌐' };
+  if (u.includes('friendlyteaching') || u.includes('/lessons/'))
+                                                  return { type: 'friendlytext', label: 'Friendly',     icon: '📖' };
+  if (u.includes('canva.com'))                    return { type: 'canva',        label: 'Canva',        icon: '🎨' };
+  if (u.includes('docs.google.com') || u.includes('drive.google.com'))
+                                                  return { type: 'gdrive',       label: 'Drive',        icon: '📁' };
+  if (u.includes('youtube.com') || u.includes('youtu.be'))
+                                                  return { type: 'youtube',      label: 'YouTube',      icon: '▶️' };
+  return { type: 'other', label: 'Link', icon: '🔗' };
+}
+
 // Read the ms-since-epoch out of a Firestore Timestamp-ish field.
 function toMs(ts: unknown): number | null {
   const t = ts as { toDate?: () => Date; seconds?: number } | null | undefined;

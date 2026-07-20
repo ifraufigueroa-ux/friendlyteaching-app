@@ -6,24 +6,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { detectMaterialType } from './bookingUtils';
 import type { Booking } from '@/types/firebase';
-
-// Recognise common LMS URLs so we can badge the source without the
-// teacher typing the label by hand. Falls back to 'other' → shown as 🔗.
-function detectMaterialType(url: string | undefined): { type: string; label: string; icon: string } {
-  if (!url) return { type: 'none', label: '', icon: '' };
-  const u = url.toLowerCase();
-  if (u.includes('off2class'))                    return { type: 'off2class',    label: 'Off2Class',    icon: '🧩' };
-  if (u.includes('ellii'))                        return { type: 'ellii',        label: 'Ellii',        icon: '🌐' };
-  if (u.includes('friendlyteaching') || u.includes('/lessons/'))
-                                                  return { type: 'friendlytext', label: 'Friendly',     icon: '📖' };
-  if (u.includes('canva.com'))                    return { type: 'canva',        label: 'Canva',        icon: '🎨' };
-  if (u.includes('docs.google.com') || u.includes('drive.google.com'))
-                                                  return { type: 'gdrive',       label: 'Drive',        icon: '📁' };
-  if (u.includes('youtube.com') || u.includes('youtu.be'))
-                                                  return { type: 'youtube',      label: 'YouTube',      icon: '▶️' };
-  return { type: 'other', label: 'Link', icon: '🔗' };
-}
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   confirmed:  { label: 'Confirmada', className: 'bg-green-50 text-green-700 border-green-200' },
