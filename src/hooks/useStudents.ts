@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
-  collection, query, onSnapshot,
+  collection, query, where, getDocs, writeBatch,
+  onSnapshot,
   doc, updateDoc, serverTimestamp, runTransaction, Transaction,
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
   type FirestoreError,
@@ -264,4 +265,66 @@ export async function restoreStudent(uid: string) {
     status: 'approved',
     updatedAt: serverTimestamp(),
   });
+}
+
+/**
+ * Archive a student everywhere in one shot:
+ *   1. If uid is given, flip users/{uid}.status → 'archived'.
+ *   2. Cancel every non-cancelled booking owned by teacherId where
+ *      studentId === uid OR studentName (case-insensitive) === name.
+ *      Cancellations use the same status='cancelled' pattern as
+ *      cancelBooking so they disappear from the schedule grid and the
+ *      planner immediately but the docs stay for audit/history.
+ *
+ * Returns the number of bookings cancelled so the UI can confirm.
+ */
+export async function archiveStudentEverywhere(opts: {
+  teacherId: string;
+  uid?: string;
+  name?: string;
+}): Promise<{ userArchived: boolean; bookingsCancelled: number }> {
+  const { teacherId, uid, name } = opts;
+  let userArchived = false;
+
+  if (uid) {
+    await updateDoc(doc(db, 'users', uid), {
+      status: 'archived',
+      updatedAt: serverTimestamp(),
+    });
+    userArchived = true;
+  }
+
+  // Pull every booking for this teacher and filter client-side — the
+  // schema doesn't guarantee a compound index on (teacherId,studentId)
+  // and we need OR-matching anyway (uid vs. legacy name-only bookings).
+  const snap = await getDocs(
+    query(collection(db, 'bookings'), where('teacherId', '==', teacherId)),
+  );
+  const nameLower = (name ?? '').trim().toLowerCase();
+  const targets = snap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => {
+    const b = d.data();
+    if (b.status === 'cancelled') return false;
+    if (uid && b.studentId === uid) return true;
+    if (nameLower && typeof b.studentName === 'string'
+        && b.studentName.trim().toLowerCase() === nameLower) return true;
+    return false;
+  });
+
+  // Firestore batch limit is 500 writes — chunk to stay safe on students
+  // with many recurring instances (52 weekly docs × N slots).
+  const CHUNK = 400;
+  for (let i = 0; i < targets.length; i += CHUNK) {
+    const batch = writeBatch(db);
+    for (const d of targets.slice(i, i + CHUNK)) {
+      batch.update(d.ref, {
+        status: 'cancelled',
+        cancellationReason: 'student archived',
+        cancelledAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+  }
+
+  return { userArchived, bookingsCancelled: targets.length };
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuthStore } from '@/store/authStore';
-import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent } from '@/hooks/useStudents';
+import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent, archiveStudentEverywhere } from '@/hooks/useStudents';
 import { useBookingRequests } from '@/hooks/useBookingRequests';
 import { useRecurringBookings, linkBookingsByName, type ScheduleSlot } from '@/hooks/useRecurringBookings';
 import { useClassHistory } from '@/hooks/useClassHistory';
@@ -537,10 +537,29 @@ function StudentRow({
   );
 
   async function handleArchive() {
-    if (!confirm(`¿Mover a ${student.fullName} a la papelera?\nSus datos se conservarán y podrás restaurarlo cuando quieras.`)) return;
+    if (!confirm(
+      `¿Archivar a ${student.fullName}?\n\n` +
+      `Se moverá a la papelera y se cancelarán todas sus clases recurrentes en el horario. ` +
+      `Los datos se conservan y podrás restaurarlo cuando quieras (las clases se cancelan, no se borran).`
+    )) return;
     setArchiving(true);
-    try { await archiveStudent(student.uid); }
-    finally { setArchiving(false); }
+    try {
+      const res = await archiveStudentEverywhere({
+        teacherId,
+        uid: student.uid,
+        name: student.fullName,
+      });
+      if (res.bookingsCancelled > 0) {
+        alert(`✓ ${student.fullName} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+      }
+    } catch (e) {
+      alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
+      // Fallback to plain archive if the batch failed but the user is
+      // already flipped — keeps the row from getting stuck.
+      try { await archiveStudent(student.uid); } catch { /* noop */ }
+    } finally {
+      setArchiving(false);
+    }
   }
 
   return (
@@ -672,16 +691,37 @@ function StudentRow({
 function ScheduleOnlyRow({
   name,
   slots,
+  teacherId,
   onCreate,
 }: {
   name: string;
   slots: ScheduleSlot[];
+  teacherId: string;
   onCreate: (prefillName: string) => void;
 }) {
+  const [archiving, setArchiving] = useState(false);
   const sortedSlots = useMemo(
     () => [...slots].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour),
     [slots],
   );
+
+  async function handleArchive() {
+    if (!confirm(
+      `¿Archivar a ${name}?\n\n` +
+      `Se cancelarán todas sus clases recurrentes en el horario. ` +
+      `Como no tiene cuenta registrada, esto solo afecta al horario (los datos de las clases se conservan cancelados).`
+    )) return;
+    setArchiving(true);
+    try {
+      const res = await archiveStudentEverywhere({ teacherId, name });
+      alert(`✓ ${name} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+    } catch (e) {
+      alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setArchiving(false);
+    }
+  }
+
   return (
     <div className="bg-white border border-dashed border-[#E0C8F0] rounded-2xl px-4 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
       <div className="w-10 h-10 rounded-full bg-[#FDFAFF] border border-[#F0E5FF] flex items-center justify-center text-[#9B7CB8] font-bold text-sm flex-shrink-0">
@@ -711,6 +751,14 @@ function ScheduleOnlyRow({
           title="Crear cuenta para este estudiante"
         >
           ＋ Crear cuenta
+        </button>
+        <button
+          onClick={handleArchive}
+          disabled={archiving}
+          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40"
+          title="Archivar y cancelar clases del horario"
+        >
+          🗑
         </button>
       </div>
     </div>
@@ -1225,6 +1273,7 @@ export default function StudentsPage() {
                   key={name}
                   name={name}
                   slots={slots}
+                  teacherId={teacherId}
                   onCreate={() => setShowCreate(true)}
                 />
               ))}
