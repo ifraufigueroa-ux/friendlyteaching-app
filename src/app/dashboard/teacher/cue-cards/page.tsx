@@ -186,14 +186,14 @@ function TimedPartPanel({
 }) {
   const progressPct = phase === 'running' ? ((durationSec - timeLeft) / durationSec) * 100 : phase === 'done' ? 100 : 0;
   return (
-    <div className="w-full max-w-xl bg-[#1B2C3F]/80 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/40 border border-[#E8B547]/20 p-6 space-y-4">
-      <p className="text-[10px] text-[#E8B547] uppercase tracking-[0.3em] text-center font-black">{label}</p>
+    <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 space-y-4">
+      <p className="text-[10px] text-[#5A3D7A] uppercase tracking-[0.3em] text-center font-black">{label}</p>
       <p className={`text-6xl font-black font-mono text-center tabular-nums ${accentClass}`}>
         {fmt(phase === 'idle' ? durationSec : timeLeft)}
       </p>
-      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-[width] bg-gradient-to-r from-[#E8B547] to-[#C89234]`}
+          className={`h-full rounded-full transition-[width] bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]`}
           style={{ width: `${progressPct}%` }}
         />
       </div>
@@ -201,7 +201,7 @@ function TimedPartPanel({
         {phase === 'idle' && (
           <button
             onClick={onStart}
-            className="px-6 py-2.5 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow-lg shadow-[#E8B547]/20 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
+            className="px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
           >
             ▶ Start timer
           </button>
@@ -216,7 +216,7 @@ function TimedPartPanel({
             </button>
             <button
               onClick={onReset}
-              className="px-3 py-2 text-xs font-semibold text-[#F5EFE1]/60 hover:text-[#F5EFE1]"
+              className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
             >
               Cancel
             </button>
@@ -225,7 +225,7 @@ function TimedPartPanel({
         {phase === 'done' && (
           <button
             onClick={onReset}
-            className="px-5 py-2.5 bg-white/10 border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95"
+            className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
           >
             ↻ Reset
           </button>
@@ -475,15 +475,15 @@ export default function IELTSSpeakingMocksPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#0E1526] text-[#F5EFE1]">
-      {/* ── Ambient background (grid + spotlight + noise) ─────────── */}
+    <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
+      {/* ── Ambient background (Friendly Teaching — warm cream + soft purple/gold glows) ── */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.04]"
+        className="absolute inset-0 pointer-events-none opacity-[0.05]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(245,239,225,1) 1px, transparent 1px),' +
-            'linear-gradient(90deg, rgba(245,239,225,1) 1px, transparent 1px)',
+            'linear-gradient(rgba(90,61,122,1) 1px, transparent 1px),' +
+            'linear-gradient(90deg, rgba(90,61,122,1) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
           maskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
           WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
@@ -494,9 +494,9 @@ export default function IELTSSpeakingMocksPage() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(60rem 40rem at 50% -10%, rgba(232,181,71,0.12) 0%, transparent 60%),' +
-            'radial-gradient(45rem 30rem at 10% 90%, rgba(155,124,184,0.10) 0%, transparent 60%),' +
-            'radial-gradient(45rem 30rem at 95% 15%, rgba(126,184,216,0.08) 0%, transparent 60%)',
+            'radial-gradient(60rem 40rem at 50% -10%, rgba(200,168,220,0.35) 0%, transparent 60%),' +
+            'radial-gradient(45rem 30rem at 10% 90%, rgba(232,181,71,0.15) 0%, transparent 60%),' +
+            'radial-gradient(45rem 30rem at 95% 15%, rgba(155,124,184,0.20) 0%, transparent 60%)',
         }}
       />
 
@@ -511,8 +511,8 @@ export default function IELTSSpeakingMocksPage() {
             { label: 'IELTS Speaking Mocks' },
           ]}
           actions={
-            <span className="text-xs text-[#E8B547] hidden sm:inline">
-              Cards practised: <strong className="text-[#F5EFE1]">{cardsPracticed}</strong>
+            <span className="text-xs text-gray-500 hidden sm:inline">
+              Cards practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong>
             </span>
           }
         />
@@ -521,14 +521,14 @@ export default function IELTSSpeakingMocksPage() {
 
           {/* ── Exam hero ────────────────────────────────────────────── */}
           <div className="text-center mb-8 space-y-3">
-            <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#E8B547] bg-[#E8B547]/10 border border-[#E8B547]/30 px-3 py-1.5 rounded-full backdrop-blur">
+            <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#E8B547] animate-pulse" />
               Mock Exam · Speaking
             </span>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#F5EFE1] leading-tight tracking-tight">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#2D1B4E] leading-tight tracking-tight">
               IELTS<span className="text-[#E8B547]">®</span> Speaking Simulator
             </h1>
-            <p className="text-sm text-[#F5EFE1]/60 max-w-lg mx-auto">
+            <p className="text-sm text-[#5A3D7A]/70 max-w-lg mx-auto">
               Rehearse the three examiner-graded sections under real timing.
               Draw cards, roll topics, ladder up through the bands.
             </p>
@@ -545,25 +545,25 @@ export default function IELTSSpeakingMocksPage() {
                   onClick={() => setPart(p)}
                   className={`relative group text-left rounded-2xl p-4 border transition-all overflow-hidden ${
                     active
-                      ? 'bg-gradient-to-br from-[#1B2C3F] to-[#2C4159] border-[#E8B547]/50 shadow-xl shadow-black/30'
-                      : 'bg-white/[0.03] border-white/10 hover:border-[#E8B547]/30 hover:bg-white/[0.06]'
+                      ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] border-transparent text-white shadow-lg shadow-[#5A3D7A]/25'
+                      : 'bg-white border-[#E8D5F0] hover:border-[#C8A8DC] hover:shadow-md text-[#5A3D7A]'
                   }`}
                 >
                   {active && (
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#E8B547]/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#E8B547]/20 rounded-full blur-2xl pointer-events-none" />
                   )}
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-[10px] font-black tracking-[0.3em] ${active ? 'text-[#E8B547]' : 'text-[#F5EFE1]/40'}`}>
+                    <span className={`text-[10px] font-black tracking-[0.3em] ${active ? 'text-[#E8B547]' : 'text-[#9B7CB8]'}`}>
                       SECTION {String(p).padStart(2, '0')}
                     </span>
-                    <span className={`text-[10px] font-semibold ${active ? 'text-[#F5EFE1]/70' : 'text-[#F5EFE1]/35'}`}>
+                    <span className={`text-[10px] font-semibold ${active ? 'text-white/80' : 'text-gray-400'}`}>
                       {meta.minutes}
                     </span>
                   </div>
-                  <p className={`font-serif text-lg font-bold leading-tight ${active ? 'text-[#F5EFE1]' : 'text-[#F5EFE1]/70'}`}>
+                  <p className={`font-serif text-lg font-bold leading-tight ${active ? 'text-white' : 'text-[#2D1B4E]'}`}>
                     {meta.name}
                   </p>
-                  <p className={`text-[11px] mt-0.5 ${active ? 'text-[#F5EFE1]/70' : 'text-[#F5EFE1]/45'}`}>
+                  <p className={`text-[11px] mt-0.5 ${active ? 'text-white/70' : 'text-gray-500'}`}>
                     {meta.sub}
                   </p>
                 </button>
@@ -592,41 +592,41 @@ export default function IELTSSpeakingMocksPage() {
               }
             `}</style>
 
-            <div className="w-full max-w-xl bg-gradient-to-br from-[#FBF6E9] to-[#F5EFE1] rounded-2xl shadow-xl shadow-black/30 border border-[#E8B547]/20 p-6 space-y-3 text-[#1B2C3F]">
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 space-y-3 text-[#1B2C3F]">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[10px] font-black text-[#B45309] uppercase tracking-[0.25em]">Section 01 · Introduction & interview</p>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Section 01 · Introduction & interview</p>
                 <TipsButton onClick={() => setTipsOpen(1)} />
               </div>
-              <h2 className="font-serif text-2xl font-bold text-[#1B2C3F]">Familiar topics about you</h2>
-              <p className="text-sm text-[#4B6A85] leading-relaxed">
-                The examiner asks general questions about familiar topics. Duration: <strong className="text-[#1B2C3F]">4-5 minutes</strong>.
+              <h2 className="font-serif text-2xl font-bold text-[#2D1B4E]">Familiar topics about you</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                The examiner asks general questions about familiar topics. Duration: <strong className="text-[#5A3D7A]">4-5 minutes</strong>.
                 Use the random picker for a topic and four follow-up questions to develop the conversation.
               </p>
             </div>
 
             {/* ── Random topic picker ──────────────────────────────────── */}
             {!p1Topic ? (
-              <div className="w-full max-w-xl bg-[#1B2C3F]/70 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/40 border border-[#E8B547]/25 p-7 text-center space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#E8B547]">Choose how to start</p>
-                <p className="text-[#F5EFE1] text-base font-serif">
+              <div className="w-full max-w-xl bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] rounded-2xl shadow-md shadow-[#C8A8DC]/25 border border-[#E8D5F0] p-7 text-center space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5A3D7A]/70">Choose how to start</p>
+                <p className="text-[#2D1B4E] text-base font-serif">
                   {IELTS_PART1_TOPICS.length} topics in the bank · 4 questions each
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-1">
                   <button
                     onClick={startP1Mock}
-                    className="px-6 py-3 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow-lg shadow-[#E8B547]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all inline-flex items-center gap-2 justify-center"
+                    className="px-6 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all inline-flex items-center gap-2 justify-center"
                   >
                     📋 Start full mock (3 topics)
                   </button>
                   <button
                     onClick={rollP1Topic}
-                    className="px-6 py-3 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95 inline-flex items-center gap-2 justify-center"
+                    className="px-6 py-3 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95 inline-flex items-center gap-2 justify-center"
                   >
                     <span style={{ display: 'inline-block', animation: 'p1DiceSpin 600ms ease-in-out' }} key={p1RollKey}>🎲</span>
                     Free practice — random topic
                   </button>
                 </div>
-                <p className="text-[11px] text-[#F5EFE1]/50">
+                <p className="text-[11px] text-[#5A3D7A]/50">
                   Mock follows real IELTS pacing: Work/Studies → Hometown → 1 curveball. Timer auto-starts.
                 </p>
               </div>
@@ -668,22 +668,22 @@ export default function IELTSSpeakingMocksPage() {
                 </div>
 
                 {/* Development questions */}
-                <div className="bg-gradient-to-br from-[#FBF6E9] to-[#F5EFE1] rounded-2xl shadow-xl shadow-black/30 border border-[#E8B547]/20 p-5 space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B45309]">Questions to develop</p>
+                <div className="bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-5 space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5A3D7A]/70">Questions to develop</p>
                   <div className="space-y-2">
                     {p1Topic.questions.map((q, i) => (
                       <div
                         key={i}
-                        className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-white/60 border border-[#E8B547]/25"
+                        className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[#F9F5FF]/60 border border-[#E8D5F0]"
                         style={{
                           animation: `p1QuestionIn 350ms ease-out both`,
                           animationDelay: `${250 + i * 90}ms`,
                         }}
                       >
-                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-[#1B2C3F] to-[#4B6A85] text-[#E8B547] text-xs font-bold flex items-center justify-center">
+                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white text-xs font-bold flex items-center justify-center">
                           {i + 1}
                         </span>
-                        <p className="text-sm md:text-base text-[#1B2C3F] leading-snug pt-0.5 font-serif">{q}</p>
+                        <p className="text-sm md:text-base text-[#2D1B4E] leading-snug pt-0.5">{q}</p>
                       </div>
                     ))}
                   </div>
@@ -695,7 +695,7 @@ export default function IELTSSpeakingMocksPage() {
                     p1MockIdx < p1MockQueue.length - 1 ? (
                       <button
                         onClick={nextP1MockTopic}
-                        className="px-5 py-2 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow-lg shadow-[#E8B547]/20 hover:shadow-xl active:scale-95"
+                        className="px-5 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl active:scale-95"
                       >
                         Next topic →
                       </button>
@@ -710,14 +710,14 @@ export default function IELTSSpeakingMocksPage() {
                   ) : (
                     <button
                       onClick={rollP1Topic}
-                      className="px-5 py-2 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95"
+                      className="px-5 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
                     >
                       🔀 New topic
                     </button>
                   )}
                   <button
                     onClick={clearP1}
-                    className="px-3 py-2 text-xs font-semibold text-[#F5EFE1]/50 hover:text-[#F5EFE1]"
+                    className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
                   >
                     {p1MockQueue ? 'Abort mock' : 'Clear'}
                   </button>
@@ -741,26 +741,26 @@ export default function IELTSSpeakingMocksPage() {
         {/* ── Part 2 (existing cue cards) ─────────────────────────── */}
         {part === 2 && p2Phase === 'idle' && (
           <div className="space-y-6">
-            <div className="w-full max-w-2xl mx-auto bg-gradient-to-br from-[#FBF6E9] to-[#F5EFE1] rounded-2xl shadow-xl shadow-black/30 border border-[#E8B547]/20 p-5 space-y-2 text-[#1B2C3F]">
+            <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-5 space-y-2 text-[#1B2C3F]">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[10px] font-black text-[#B45309] uppercase tracking-[0.25em]">Section 02 · Long turn</p>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Section 02 · Long turn</p>
                 <TipsButton onClick={() => setTipsOpen(2)} />
               </div>
-              <p className="text-sm text-[#4B6A85] leading-relaxed">
-                Pick a cue card. You have <strong className="text-[#1B2C3F]">1 minute</strong> to prepare and <strong className="text-[#1B2C3F]">1-2 minutes</strong> to speak without interruption.
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Pick a cue card. You have <strong className="text-[#5A3D7A]">1 minute</strong> to prepare and <strong className="text-[#5A3D7A]">1-2 minutes</strong> to speak without interruption.
               </p>
             </div>
 
             <div className="text-center">
-              <p className="text-[#E8B547] font-serif font-bold text-xl mb-1">Pick a cue card</p>
-              <p className="text-[#F5EFE1]/60 text-sm">Click any card, or let luck decide.</p>
+              <p className="text-[#5A3D7A] font-serif font-bold text-xl mb-1">Pick a cue card</p>
+              <p className="text-gray-500 text-sm">Click any card, or let luck decide.</p>
             </div>
 
             <div className="flex justify-center gap-3">
-              <button onClick={pickRandom} className="px-5 py-2.5 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow-lg shadow-[#E8B547]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
+              <button onClick={pickRandom} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
                 🎲 Pick random
               </button>
-              <button onClick={shuffleDeck} className="px-5 py-2.5 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95">
+              <button onClick={shuffleDeck} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
                 🔀 Shuffle
               </button>
             </div>
@@ -789,18 +789,18 @@ export default function IELTSSpeakingMocksPage() {
           <div className="flex flex-col items-center gap-6">
             <CueCardView card={pickedCard} flipped backGradient={backGradients[pickedIdx!]} />
 
-            <div className="w-full max-w-xl bg-[#1B2C3F]/80 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/40 border border-[#E8B547]/20 p-5 space-y-4">
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/25 border border-[#E8D5F0] p-5 space-y-4">
 
               {p2Phase === 'revealed' && (
                 <div className="text-center space-y-3">
-                  <p className="text-sm text-[#E8B547] font-semibold">
+                  <p className="text-sm text-[#5A3D7A] font-semibold">
                     🕐 1 minute to prepare · then 1-2 minutes to speak
                   </p>
                   <div className="flex gap-2 justify-center pt-1">
-                    <button onClick={startPrep} className="px-5 py-2.5 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow-lg shadow-[#E8B547]/20 active:scale-95">
+                    <button onClick={startPrep} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 active:scale-95">
                       ⏱ Start prep (1 min)
                     </button>
-                    <button onClick={startSpeaking} className="px-5 py-2.5 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95">
+                    <button onClick={startSpeaking} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
                       Skip → Speak (2 min)
                     </button>
                   </div>
@@ -809,21 +809,21 @@ export default function IELTSSpeakingMocksPage() {
 
               {(p2Phase === 'prep' || p2Phase === 'speaking') && (
                 <div className="text-center space-y-3">
-                  <p className="text-[10px] text-[#E8B547] uppercase tracking-[0.3em] font-black">
+                  <p className="text-[10px] text-[#5A3D7A] uppercase tracking-[0.3em] font-black">
                     {p2Phase === 'prep' ? 'Preparation' : 'Speaking'}
                   </p>
-                  <p className={`text-5xl font-black font-mono tabular-nums ${p2Phase === 'prep' ? 'text-[#E8B547]' : 'text-[#F5EFE1]'}`}>
+                  <p className={`text-5xl font-black font-mono tabular-nums ${p2Phase === 'prep' ? 'text-[#9B7CB8]' : 'text-[#5A3D7A]'}`}>
                     {fmt(p2Time)}
                   </p>
-                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-[width] ${p2Phase === 'prep' ? 'bg-[#E8B547]' : 'bg-gradient-to-r from-[#E8B547] to-[#C89234]'}`}
+                      className={`h-full rounded-full transition-[width] ${p2Phase === 'prep' ? 'bg-[#9B7CB8]' : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]'}`}
                       style={{ width: `${p2Progress}%` }}
                     />
                   </div>
                   <div className="flex gap-2 justify-center pt-1">
                     {p2Phase === 'prep' ? (
-                      <button onClick={startSpeaking} className="px-5 py-2.5 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow active:scale-95">
+                      <button onClick={startSpeaking} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
                         ▶ Start speaking
                       </button>
                     ) : (
@@ -831,7 +831,7 @@ export default function IELTSSpeakingMocksPage() {
                         ✓ Done
                       </button>
                     )}
-                    <button onClick={resetP2} className="px-3 py-2 text-xs font-semibold text-[#F5EFE1]/60 hover:text-[#F5EFE1]">
+                    <button onClick={resetP2} className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600">
                       Cancel
                     </button>
                   </div>
@@ -841,13 +841,13 @@ export default function IELTSSpeakingMocksPage() {
               {p2Phase === 'done' && (
                 <div className="text-center space-y-3">
                   <p className="text-3xl">🎉</p>
-                  <p className="text-[#E8B547] font-serif font-bold text-lg">Great job!</p>
-                  <p className="text-sm text-[#F5EFE1]/60">Total practised: <strong className="text-[#F5EFE1]">{cardsPracticed}</strong></p>
+                  <p className="text-[#5A3D7A] font-serif font-bold text-lg">Great job!</p>
+                  <p className="text-sm text-gray-500">Total practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong></p>
                   <div className="flex gap-2 justify-center pt-1">
-                    <button onClick={nextCard} className="px-5 py-2.5 bg-gradient-to-r from-[#E8B547] to-[#C89234] text-[#1B2C3F] rounded-full text-sm font-bold shadow active:scale-95">
+                    <button onClick={nextCard} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
                       🎴 Next cue card
                     </button>
-                    <button onClick={() => setPart(3)} className="px-5 py-2.5 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95">
+                    <button onClick={() => setPart(3)} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
                       → Continue to Part 3
                     </button>
                   </div>
@@ -868,16 +868,16 @@ export default function IELTSSpeakingMocksPage() {
               }
             `}</style>
 
-            <div className="w-full max-w-xl bg-gradient-to-br from-[#FBF6E9] to-[#F5EFE1] rounded-2xl shadow-xl shadow-black/30 border border-[#E8B547]/20 p-6 space-y-3 text-[#1B2C3F]">
+            <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 space-y-3 text-[#1B2C3F]">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[10px] font-black text-[#B45309] uppercase tracking-[0.25em]">Section 03 · Discussion</p>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Section 03 · Discussion</p>
                 <TipsButton onClick={() => setTipsOpen(3)} />
               </div>
-              <h2 className="font-serif text-2xl font-bold text-[#1B2C3F]">Two-way abstract discussion</h2>
-              <p className="text-sm text-[#4B6A85] leading-relaxed">
+              <h2 className="font-serif text-2xl font-bold text-[#2D1B4E]">Two-way abstract discussion</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
                 Tap a band to draw a real Part 3 question at that difficulty. Higher bands
                 push the student into more abstract, hypothetical territory.
-                Duration: <strong className="text-[#1B2C3F]">4-5 minutes</strong>.
+                Duration: <strong className="text-[#5A3D7A]">4-5 minutes</strong>.
               </p>
             </div>
 
@@ -900,9 +900,9 @@ export default function IELTSSpeakingMocksPage() {
                   );
                 })}
               </div>
-              <p className="text-center text-[11px] text-[#F5EFE1]/50 mt-3">
+              <p className="text-center text-[11px] text-gray-500 mt-3">
                 {IELTS_PART3_QUESTIONS.length} questions in the bank
-                {p3Streak > 0 && <> · drawn this session: <strong className="text-[#E8B547]">{p3Streak}</strong></>}
+                {p3Streak > 0 && <> · drawn this session: <strong className="text-[#5A3D7A]">{p3Streak}</strong></>}
               </p>
             </div>
 
@@ -930,13 +930,13 @@ export default function IELTSSpeakingMocksPage() {
                 <div className="flex gap-2 justify-center flex-wrap">
                   <button
                     onClick={() => pickP3Question(p3Question.band)}
-                    className="px-4 py-2 bg-white/[0.06] border border-[#E8B547]/40 text-[#F5EFE1] rounded-full text-sm font-bold hover:bg-[#E8B547]/10 active:scale-95"
+                    className="px-4 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
                   >
                     🔀 Another Band {p3Question.band}
                   </button>
                   <button
                     onClick={clearP3Question}
-                    className="px-3 py-2 text-xs font-semibold text-[#F5EFE1]/50 hover:text-[#F5EFE1]"
+                    className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
                   >
                     Clear
                   </button>
