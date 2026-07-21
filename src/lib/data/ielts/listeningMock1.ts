@@ -176,8 +176,8 @@ const section1: ListeningSection = {
   title: 'Enrollment call — Riverside Sports Club',
   scenario: 'A prospective member phones the club to enrol. The receptionist takes personal details, discusses sports options, membership tiers and required ID.',
   speakers: [
-    { id: 'receptionist', displayName: 'Emma (receptionist)', accent: 'UK', gender: 'f', suggestedVoice: { name: 'Charlotte', note: 'ElevenLabs · warm UK female — good for admin roles' } },
-    { id: 'caller',       displayName: 'Daniel (caller)',      accent: 'UK', gender: 'm', suggestedVoice: { name: 'Josh',      note: 'ElevenLabs · natural UK male, mid-30s' } },
+    { id: 'receptionist', displayName: 'Emma (receptionist)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', note: 'ElevenLabs · warm Swedish-EN female — reads well as admin' } },
+    { id: 'caller',       displayName: 'Daniel (caller)',      accent: 'UK', gender: 'm', suggestedVoice: { voiceId: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',    note: 'ElevenLabs · natural UK male, mid-30s' } },
   ],
   instructions: 'Questions 1-10. Listen and complete the enrolment form. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer.',
   targetDurationSec: 300,
@@ -376,7 +376,7 @@ const section2: ListeningSection = {
   title: 'Guided tour — Cape Wilson Lighthouse',
   scenario: 'The tour guide welcomes visitors, gives the history of the lighthouse, then previews the five stops of the tour and practical rules.',
   speakers: [
-    { id: 'guide', displayName: 'Hannah (tour guide)', accent: 'AU', gender: 'f', suggestedVoice: { name: 'Sarah', note: 'ElevenLabs · Australian female — friendly, well-paced' } },
+    { id: 'guide', displayName: 'Hannah (tour guide)', accent: 'AU', gender: 'f', suggestedVoice: { voiceId: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', note: 'ElevenLabs · US female — clearest option for AU tour guide (catalog has no AU voice)' } },
   ],
   instructions: 'Questions 11-20. Listen and answer each question. Word limits are marked per question.',
   targetDurationSec: 270,
@@ -571,9 +571,9 @@ const section3: ListeningSection = {
   title: 'Tutorial — sustainable packaging research project',
   scenario: 'Dr Reid meets two students, Priya and Kai, to check progress on their group project. They discuss materials studied, companies contacted, presentation format and bibliography rules.',
   speakers: [
-    { id: 'tutor',   displayName: 'Dr Reid (tutor)', accent: 'UK', gender: 'm', suggestedVoice: { name: 'Adam',     note: 'ElevenLabs · authoritative UK male' } },
-    { id: 'priya',   displayName: 'Priya (student)',  accent: 'UK', gender: 'f', suggestedVoice: { name: 'Emily',    note: 'ElevenLabs · younger UK female' } },
-    { id: 'kai',     displayName: 'Kai (student)',    accent: 'NZ', gender: 'm', suggestedVoice: { name: 'Ryan',     note: 'ElevenLabs · casual NZ / Australian male — helps distinguish from Adam' } },
+    { id: 'tutor', displayName: 'Dr Reid (tutor)', accent: 'UK', gender: 'm', suggestedVoice: { voiceId: 'JBFqnCBsd6RMkjVDRZzb', name: 'George',  note: 'ElevenLabs · authoritative UK male' } },
+    { id: 'priya', displayName: 'Priya (student)',  accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', note: 'ElevenLabs · younger UK female' } },
+    { id: 'kai',   displayName: 'Kai (student)',    accent: 'NZ', gender: 'm', suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam',    note: 'ElevenLabs · US male, distinguishes clearly from George' } },
   ],
   instructions: 'Questions 21-30. Match each observation to the speaker (Q21-24), then answer multiple choice (Q25-28) and sentence completion (Q29-30).',
   targetDurationSec: 300,
@@ -765,7 +765,7 @@ const section4: ListeningSection = {
   title: 'Lecture — Urban beekeeping and bee resilience in cities',
   scenario: 'A university lecturer explains why urban bee populations often outperform rural ones, then covers challenges (overcrowding, disease) and practical steps for city gardeners.',
   speakers: [
-    { id: 'lecturer', displayName: 'Dr Chen (lecturer)', accent: 'UK', gender: 'f', suggestedVoice: { name: 'Rachel', note: 'ElevenLabs · academic UK female — measured pace' } },
+    { id: 'lecturer', displayName: 'Dr Chen (lecturer)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', note: 'ElevenLabs · UK female — measured academic pace' } },
   ],
   instructions: 'Questions 31-40. Complete the notes below. Write NO MORE THAN ONE WORD AND/OR A NUMBER for each answer.',
   targetDurationSec: 340,

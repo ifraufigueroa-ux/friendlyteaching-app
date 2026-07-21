@@ -190,6 +190,9 @@ function AudioPanel({
   const [manualUrl, setManualUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generateProgress, setGenerateProgress] = useState<string>('');
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   async function handleFile(file: File) {
@@ -218,6 +221,54 @@ function AudioPanel({
     }
   }
 
+  // Generate the full section audio in one shot: builds the segments array
+  // from the script + speaker voice IDs, hits our proxy endpoint (which
+  // generates each line and stitches them), then uploads the resulting
+  // MP3 to Firebase Storage so it's stable across reloads.
+  async function handleGenerateDialogue() {
+    setGenerateError(null);
+    setGenerateProgress('Preparing segments…');
+
+    const speakerMap = new Map(section.speakers.map((s) => [s.id, s]));
+    const segments = section.script.map((line) => {
+      const spk = speakerMap.get(line.speakerId);
+      return { voiceId: spk?.suggestedVoice.voiceId ?? '', text: line.text };
+    });
+    const missing = segments.find((s) => !s.voiceId);
+    if (missing) {
+      setGenerateError('Algún speaker no tiene voiceId configurado en el mock.');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      setGenerateProgress(`Generando con ElevenLabs (${segments.length} líneas · puede tomar 30-60s)…`);
+      const res = await fetch('/api/tts/elevenlabs-dialogue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ segments }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        setGenerateError('ElevenLabs: ' + (data.error ?? `HTTP ${res.status}`));
+        return;
+      }
+      const blob = await res.blob();
+
+      setGenerateProgress('Subiendo a Firebase Storage…');
+      const path = `audio/ielts-${section.number}-dialogue-${teacherId}-${Date.now()}.mp3`;
+      const ref = storageRef(storage, path);
+      await uploadBytes(ref, blob, { contentType: 'audio/mpeg' });
+      const url = await getDownloadURL(ref);
+      onAudioReady(url);
+      setGenerateProgress('');
+    } catch (err) {
+      setGenerateError((err instanceof Error ? err.message : String(err)));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   if (section.audioUrl) {
     return (
       <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-2xl p-4 text-white shadow-md">
@@ -238,45 +289,71 @@ function AudioPanel({
     );
   }
 
-  // No audio yet — teacher can paste URL or upload
+  // No audio yet — teacher can generate via ElevenLabs (primary), paste
+  // an existing URL, or upload an MP3 they made elsewhere.
+  const isDialogue = section.speakers.length > 1;
   return (
     <div className="bg-white rounded-2xl border-2 border-dashed border-[#C8A8DC] p-4 space-y-3">
       <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest">
         Audio Section {section.number} — sin cargar
       </p>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        Genera el audio en ElevenLabs con el script de abajo y luego pégalo o súbelo aquí para que tus estudiantes puedan escucharlo.
-      </p>
-      <div className="flex gap-2">
-        <input
-          value={manualUrl}
-          onChange={(e) => setManualUrl(e.target.value)}
-          placeholder="https:// (URL del MP3)"
-          className="flex-1 min-w-0 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:border-[#9B7CB8]"
-        />
+
+      {/* Primary CTA: one-click generation via ElevenLabs using the pre-mapped voice IDs. */}
+      <div className="bg-gradient-to-br from-[#F9F5FF] to-[#F0E5FF] border border-[#C8A8DC] rounded-xl p-3 space-y-2">
+        <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
+          🎙 Vía ElevenLabs (recomendado)
+        </p>
+        <p className="text-[11px] text-[#5A3D7A]/80 leading-snug">
+          {isDialogue
+            ? `Genera el diálogo completo (${section.script.length} líneas · ${section.speakers.length} voces) en un solo click. Cada línea sale con la voz del speaker correspondiente y se stitchean server-side.`
+            : `Genera el audio del monólogo (${section.script.length} líneas · voz ${section.speakers[0]?.suggestedVoice.name}).`}
+        </p>
         <button
-          onClick={() => manualUrl.trim() && onAudioReady(manualUrl.trim())}
-          disabled={!manualUrl.trim()}
-          className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] rounded-lg text-xs font-bold disabled:opacity-50"
+          onClick={handleGenerateDialogue}
+          disabled={generating}
+          className="w-full py-2 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-xs font-bold shadow hover:shadow-lg disabled:opacity-50 transition-all"
         >
-          Usar URL
+          {generating
+            ? (generateProgress || 'Generando…')
+            : `🎙 Generar ${isDialogue ? 'diálogo' : 'audio'} con ElevenLabs`}
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="audio/*"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-        />
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="px-3 py-1.5 border border-[#C8A8DC] text-[#5A3D7A] rounded-lg text-xs font-bold hover:bg-[#F0E5FF] disabled:opacity-50"
-        >
-          {uploading ? '…' : '📤 Subir'}
-        </button>
+        {generateError && <p className="text-[10px] text-red-500">{generateError}</p>}
       </div>
-      {uploadError && <p className="text-[10px] text-red-500">{uploadError}</p>}
+
+      {/* Fallback: paste URL or upload from disk. */}
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">O alternativamente:</p>
+        <div className="flex gap-2">
+          <input
+            value={manualUrl}
+            onChange={(e) => setManualUrl(e.target.value)}
+            placeholder="https:// (URL del MP3)"
+            className="flex-1 min-w-0 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:border-[#9B7CB8]"
+          />
+          <button
+            onClick={() => manualUrl.trim() && onAudioReady(manualUrl.trim())}
+            disabled={!manualUrl.trim()}
+            className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] rounded-lg text-xs font-bold disabled:opacity-50"
+          >
+            Usar URL
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="px-3 py-1.5 border border-[#C8A8DC] text-[#5A3D7A] rounded-lg text-xs font-bold hover:bg-[#F0E5FF] disabled:opacity-50"
+          >
+            {uploading ? '…' : '📤 Subir'}
+          </button>
+        </div>
+        {uploadError && <p className="text-[10px] text-red-500 mt-1">{uploadError}</p>}
+      </div>
     </div>
   );
 }

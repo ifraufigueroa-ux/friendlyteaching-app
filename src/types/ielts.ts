@@ -115,8 +115,9 @@ export interface ListeningSpeaker {
   displayName: string;          // shown in transcript
   accent: 'UK' | 'US' | 'AU' | 'NZ' | 'IE' | 'ZA';
   gender: 'f' | 'm';
-  // Suggested ElevenLabs voice ID + name so the teacher can pick fast
-  suggestedVoice: { name: string; note?: string };
+  // Suggested ElevenLabs voice — the ID is what the dialogue-generation
+  // endpoint actually consumes; name/note are for the teacher preview.
+  suggestedVoice: { voiceId: string; name: string; note?: string };
 }
 
 export interface ListeningScriptLine {
