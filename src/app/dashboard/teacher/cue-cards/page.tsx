@@ -168,6 +168,7 @@ function CueCardView({
 function TimedPartPanel({
   durationSec,
   label,
+  sectionLabel,
   accentClass,
   phase,
   timeLeft,
@@ -176,7 +177,8 @@ function TimedPartPanel({
   onReset,
 }: {
   durationSec: number;
-  label: string;
+  label: string;              // full descriptive label — shown in idle card
+  sectionLabel: string;       // compact label — shown in floating running bar
   accentClass: string;
   phase: SimplePhase;
   timeLeft: number;
@@ -185,47 +187,73 @@ function TimedPartPanel({
   onReset: () => void;
 }) {
   const progressPct = phase === 'running' ? ((durationSec - timeLeft) / durationSec) * 100 : phase === 'done' ? 100 : 0;
-  return (
-    <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 space-y-4">
-      <p className="text-[10px] text-[#5A3D7A] uppercase tracking-[0.3em] text-center font-black">{label}</p>
-      <p className={`text-6xl font-black font-mono text-center tabular-nums ${accentClass}`}>
-        {fmt(phase === 'idle' ? durationSec : timeLeft)}
-      </p>
-      <div className="w-full h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-[width] bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]`}
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
-      <div className="flex gap-2 justify-center pt-1">
-        {phase === 'idle' && (
+
+  // While the mock is idle, render the tall "▶ Start timer" card in the
+  // normal flow so the teacher notices it before starting. Once running
+  // or done, pop it out as a fixed floating bar at the bottom of the
+  // viewport so the countdown stays visible while she scrolls through
+  // topic cards, cue cards or Part-3 questions.
+  if (phase === 'idle') {
+    return (
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 space-y-4">
+        <p className="text-[10px] text-[#5A3D7A] uppercase tracking-[0.3em] text-center font-black">{label}</p>
+        <p className={`text-6xl font-black font-mono text-center tabular-nums ${accentClass}`}>
+          {fmt(durationSec)}
+        </p>
+        <div className="w-full h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]" style={{ width: '0%' }} />
+        </div>
+        <div className="flex justify-center pt-1">
           <button
             onClick={onStart}
             className="px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
           >
             ▶ Start timer
           </button>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  // Floating compact bar — pinned to the bottom of the viewport.
+  return (
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-2xl">
+      <div className="bg-white/95 backdrop-blur-md rounded-full shadow-2xl shadow-[#5A3D7A]/30 border border-[#E8D5F0] pl-5 pr-3 py-2.5 flex items-center gap-3">
+        <div className="flex flex-col min-w-0">
+          <span className="text-[9px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] leading-none">
+            {sectionLabel}
+          </span>
+          <span className={`text-lg font-black font-mono tabular-nums leading-tight ${accentClass}`}>
+            {fmt(timeLeft)}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0 h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-[width] bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
         {phase === 'running' && (
           <>
             <button
               onClick={onStop}
-              className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-bold shadow active:scale-95"
+              className="shrink-0 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-bold shadow active:scale-95"
             >
               ✓ Done
             </button>
             <button
               onClick={onReset}
-              className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
+              className="shrink-0 w-7 h-7 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-lg leading-none flex items-center justify-center"
+              title="Cancel"
             >
-              Cancel
+              ×
             </button>
           </>
         )}
         {phase === 'done' && (
           <button
             onClick={onReset}
-            className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+            className="shrink-0 px-4 py-1.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-xs font-bold hover:bg-[#F0E5FF] active:scale-95"
           >
             ↻ Reset
           </button>
@@ -290,7 +318,7 @@ function TipsButton({ onClick }: { onClick: () => void }) {
 // ─── Page ─────────────────────────────────────────────────────────────
 
 export default function IELTSSpeakingMocksPage() {
-  const [part, setPart] = useState<Part>(2);
+  const [part, setPart] = useState<Part>(1);
   const [tipsOpen, setTipsOpen] = useState<Part | null>(null);
 
   // Per-part timer state (independent so switching tabs doesn't reset).
@@ -474,6 +502,14 @@ export default function IELTSSpeakingMocksPage() {
     3: { name: 'Discussion', sub: 'Two-way abstract exchange',   minutes: '4-5 min' },
   };
 
+  // Timer floats fixed to the viewport bottom while active, so the page
+  // needs extra bottom room to prevent the last content block from being
+  // hidden behind the floating bar.
+  const timerFloating =
+    (part === 1 && p1Phase !== 'idle') ||
+    (part === 2 && (p2Phase === 'prep' || p2Phase === 'speaking')) ||
+    (part === 3 && p3Phase !== 'idle');
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
       {/* ── Ambient background (Friendly Teaching — warm cream + soft purple/gold glows) ── */}
@@ -517,7 +553,7 @@ export default function IELTSSpeakingMocksPage() {
           }
         />
 
-        <div className="max-w-6xl mx-auto mt-8">
+        <div className={`max-w-6xl mx-auto mt-8 ${timerFloating ? 'pb-28' : ''}`}>
 
           {/* ── Exam hero ────────────────────────────────────────────── */}
           <div className="text-center mb-8 space-y-3">
@@ -728,6 +764,7 @@ export default function IELTSSpeakingMocksPage() {
             <TimedPartPanel
               durationSec={PART1_SECONDS}
               label="Part 1 timer (5 min)"
+              sectionLabel="Section 01 · Interview"
               accentClass="text-[#5A3D7A]"
               phase={p1Phase}
               timeLeft={p1Time}
@@ -789,71 +826,91 @@ export default function IELTSSpeakingMocksPage() {
           <div className="flex flex-col items-center gap-6">
             <CueCardView card={pickedCard} flipped backGradient={backGradients[pickedIdx!]} />
 
-            <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/25 border border-[#E8D5F0] p-5 space-y-4">
-
-              {p2Phase === 'revealed' && (
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-[#5A3D7A] font-semibold">
-                    🕐 1 minute to prepare · then 1-2 minutes to speak
-                  </p>
-                  <div className="flex gap-2 justify-center pt-1">
-                    <button onClick={startPrep} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 active:scale-95">
-                      ⏱ Start prep (1 min)
-                    </button>
-                    <button onClick={startSpeaking} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
-                      Skip → Speak (2 min)
-                    </button>
+            {/* Static inline card — shown only during 'revealed' and 'done'.
+                While the mock is actively counting (prep / speaking), the
+                timer pops out as a floating bar below (fixed to viewport)
+                so the countdown stays visible while the teacher walks the
+                student through the cue card. */}
+            {(p2Phase === 'revealed' || p2Phase === 'done') && (
+              <div className="w-full max-w-xl bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/25 border border-[#E8D5F0] p-5 space-y-4">
+                {p2Phase === 'revealed' && (
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-[#5A3D7A] font-semibold">
+                      🕐 1 minute to prepare · then 1-2 minutes to speak
+                    </p>
+                    <div className="flex gap-2 justify-center pt-1">
+                      <button onClick={startPrep} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 active:scale-95">
+                        ⏱ Start prep (1 min)
+                      </button>
+                      <button onClick={startSpeaking} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
+                        Skip → Speak (2 min)
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {(p2Phase === 'prep' || p2Phase === 'speaking') && (
-                <div className="text-center space-y-3">
-                  <p className="text-[10px] text-[#5A3D7A] uppercase tracking-[0.3em] font-black">
-                    {p2Phase === 'prep' ? 'Preparation' : 'Speaking'}
-                  </p>
-                  <p className={`text-5xl font-black font-mono tabular-nums ${p2Phase === 'prep' ? 'text-[#9B7CB8]' : 'text-[#5A3D7A]'}`}>
-                    {fmt(p2Time)}
-                  </p>
-                  <div className="w-full h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
+                {p2Phase === 'done' && (
+                  <div className="text-center space-y-3">
+                    <p className="text-3xl">🎉</p>
+                    <p className="text-[#5A3D7A] font-serif font-bold text-lg">Great job!</p>
+                    <p className="text-sm text-gray-500">Total practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong></p>
+                    <div className="flex gap-2 justify-center pt-1">
+                      <button onClick={nextCard} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
+                        🎴 Next cue card
+                      </button>
+                      <button onClick={() => setPart(3)} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
+                        → Continue to Part 3
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Floating timer bar — same visual language as TimedPartPanel's
+                running state so Part 2 feels consistent with Parts 1 & 3. */}
+            {(p2Phase === 'prep' || p2Phase === 'speaking') && (
+              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-2xl">
+                <div className="bg-white/95 backdrop-blur-md rounded-full shadow-2xl shadow-[#5A3D7A]/30 border border-[#E8D5F0] pl-5 pr-3 py-2.5 flex items-center gap-3">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] leading-none">
+                      Section 02 · {p2Phase === 'prep' ? 'Preparation' : 'Speaking'}
+                    </span>
+                    <span className={`text-lg font-black font-mono tabular-nums leading-tight ${p2Phase === 'prep' ? 'text-[#9B7CB8]' : 'text-[#5A3D7A]'}`}>
+                      {fmt(p2Time)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0 h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-[width] ${p2Phase === 'prep' ? 'bg-[#9B7CB8]' : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]'}`}
                       style={{ width: `${p2Progress}%` }}
                     />
                   </div>
-                  <div className="flex gap-2 justify-center pt-1">
-                    {p2Phase === 'prep' ? (
-                      <button onClick={startSpeaking} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
-                        ▶ Start speaking
-                      </button>
-                    ) : (
-                      <button onClick={finishCard} className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-bold shadow active:scale-95">
-                        ✓ Done
-                      </button>
-                    )}
-                    <button onClick={resetP2} className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600">
-                      Cancel
+                  {p2Phase === 'prep' ? (
+                    <button
+                      onClick={startSpeaking}
+                      className="shrink-0 px-4 py-1.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-xs font-bold shadow active:scale-95"
+                    >
+                      ▶ Start speaking
                     </button>
-                  </div>
+                  ) : (
+                    <button
+                      onClick={finishCard}
+                      className="shrink-0 px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-bold shadow active:scale-95"
+                    >
+                      ✓ Done
+                    </button>
+                  )}
+                  <button
+                    onClick={resetP2}
+                    className="shrink-0 w-7 h-7 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-lg leading-none flex items-center justify-center"
+                    title="Cancel"
+                  >
+                    ×
+                  </button>
                 </div>
-              )}
-
-              {p2Phase === 'done' && (
-                <div className="text-center space-y-3">
-                  <p className="text-3xl">🎉</p>
-                  <p className="text-[#5A3D7A] font-serif font-bold text-lg">Great job!</p>
-                  <p className="text-sm text-gray-500">Total practised: <strong className="text-[#5A3D7A]">{cardsPracticed}</strong></p>
-                  <div className="flex gap-2 justify-center pt-1">
-                    <button onClick={nextCard} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95">
-                      🎴 Next cue card
-                    </button>
-                    <button onClick={() => setPart(3)} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
-                      → Continue to Part 3
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -947,6 +1004,7 @@ export default function IELTSSpeakingMocksPage() {
             <TimedPartPanel
               durationSec={PART3_SECONDS}
               label="Part 3 timer (5 min)"
+              sectionLabel="Section 03 · Discussion"
               accentClass="text-[#5A3D7A]"
               phase={p3Phase}
               timeLeft={p3Time}
