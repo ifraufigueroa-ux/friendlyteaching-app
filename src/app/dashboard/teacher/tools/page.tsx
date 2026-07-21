@@ -47,6 +47,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts/listening',
+    icon:        '🎧',
+    title:       'IELTS Listening Mocks',
+    description: 'Mock completo de 40 preguntas × 4 secciones con audio, timer flotante y diagnóstico por band + tipo de pregunta + carga cognitiva.',
+    gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
+    glow:        'shadow-[#C8A8DC]/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/tools/qa-simulator',
     icon:        '🎯',
     title:       'Q&A Simulator',
