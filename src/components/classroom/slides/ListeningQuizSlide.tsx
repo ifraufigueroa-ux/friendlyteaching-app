@@ -10,7 +10,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Slide, QuizQuestion } from '@/types/firebase';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
 const ANSWERED_STRIP_STORAGE_KEY = 'lqAnsweredStripCollapsed';
 
@@ -43,6 +46,7 @@ function QuestionCard({
   onAnswer,
   cardNumber,
   totalCards,
+  brand,
 }: {
   q: QuizQuestion;
   flipped: boolean;
@@ -53,6 +57,7 @@ function QuestionCard({
   onAnswer?: (option: string) => void;
   cardNumber?: number;
   totalCards?: number;
+  brand: string;
 }) {
   const interactive = !!onClick && !flipped;
   return (
@@ -81,7 +86,7 @@ function QuestionCard({
           <div className="absolute inset-10 rounded-full border border-white/10" />
           <div className="absolute inset-14 rounded-full border border-white/5" />
           <div className="absolute inset-3 border-2 border-white/15 rounded-xl" />
-          <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest text-white/50">Friendlyrics®</div>
+          <div className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest text-white/50">{brand}®</div>
           <div className="absolute bottom-3 right-3 text-[10px] font-bold uppercase tracking-widest text-white/50">Comprehension</div>
           <div className={`${small ? 'text-5xl' : 'text-7xl'} mb-3 drop-shadow-lg`}>🎼</div>
           <p className={`${small ? 'text-xs' : 'text-sm'} font-semibold uppercase tracking-widest text-white/80`}>Question</p>
@@ -94,7 +99,7 @@ function QuestionCard({
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', pointerEvents: flipped ? 'auto' : 'none' }}
         >
           <div className={`absolute top-2 left-3 ${small ? 'text-[8px]' : 'text-[10px]'} font-bold uppercase tracking-widest text-[#EC4899]/70`}>
-            {small ? 'Answered' : 'Friendlyrics · Comprehension'}
+            {small ? 'Answered' : `${brand} · Comprehension`}
           </div>
           {cardNumber != null && totalCards != null && !small && (
             <div className="absolute top-3 right-4 text-[10px] font-bold uppercase tracking-widest text-[#EC4899]/70">
@@ -152,7 +157,7 @@ function QuestionCard({
 
 // ─── Slide ─────────────────────────────────────────────────────────────
 
-export default function ListeningQuizSlide({ slide }: Props) {
+export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Props) {
   const questions: QuizQuestion[] = useMemo(() => slide.questions ?? [], [slide.questions]);
   const total = questions.length;
 
@@ -251,7 +256,7 @@ export default function ListeningQuizSlide({ slide }: Props) {
       {/* Header ─────────────────────────────────────────────────────── */}
       <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b border-[#F472B6]/30 bg-white/50 backdrop-blur flex items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]">Friendlyrics · Comprehension</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]">{brand} · Comprehension</p>
           <h2 className="text-base font-bold text-[#2D1B4E]">
             {answeredByIdx.size} / {total} answered · {correctCount} correct
           </h2>
@@ -342,6 +347,7 @@ export default function ListeningQuizSlide({ slide }: Props) {
               onAnswer={answer}
               cardNumber={answeredByIdx.size + (answeredByIdx.has(pickedIdx) ? 0 : 1)}
               totalCards={total}
+              brand={brand}
             />
             {answeredByIdx.has(pickedIdx) && (
               <div className="flex flex-col items-center gap-3">
@@ -385,6 +391,7 @@ export default function ListeningQuizSlide({ slide }: Props) {
                       onClick={() => pickCard(deckOrder.indexOf(qIdx))}
                       backGradient={backGradients[qIdx]}
                       small
+                      brand={brand}
                     />
                   </div>
                 ))}
@@ -427,6 +434,7 @@ export default function ListeningQuizSlide({ slide }: Props) {
                       backGradient={backGradients[qIdx]}
                       answered={answeredByIdx.get(qIdx)}
                       small
+                      brand={brand}
                     />
                   </div>
                 ))}

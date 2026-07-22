@@ -15,7 +15,10 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Slide, PracticeItem } from '@/types/firebase';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
 const BASE_PTS      = 10;
 const STREAK_STEP   = 5;
@@ -66,15 +69,45 @@ function ConfettiBurst({ x, y, onDone }: { x: number; y: number; onDone: () => v
 
 // ─── Unscramble card ───────────────────────────────────────────────────
 
+// Brand-scoped copy — labels/hints match the lesson type so a text lesson
+// never talks about "lyrics" and a music lesson never talks about "scripts".
+function copyFor(brand: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix') {
+  if (brand === 'FriendlyTales') {
+    return {
+      unscrambleLabel: 'Unscramble the sentence',
+      finishLabel:     'Finish the sentence',
+      quoteGlyph:      '📖',
+      wrongHint:       'Hint: read the sentence aloud — the rhythm usually tells you the word order.',
+    };
+  }
+  if (brand === 'Friendlyflix') {
+    return {
+      unscrambleLabel: 'Unscramble the line',
+      finishLabel:     'Finish the line',
+      quoteGlyph:      '🎬',
+      wrongHint:       'Hint: hear the actor say the line — the delivery hints at the word order.',
+    };
+  }
+  return {
+    unscrambleLabel: 'Unscramble the lyric',
+    finishLabel:     'Finish the lyric',
+    quoteGlyph:      '🎵',
+    wrongHint:       'Hint: sing the line in your head — the melody usually tells you the word order.',
+  };
+}
+
 function UnscrambleCard({
   item,
   index,
   onResult,
+  brand,
 }: {
   item: PracticeItem;
   index: number;
   onResult: (correct: boolean, x: number, y: number) => void;
+  brand: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
 }) {
+  const copy = copyFor(brand);
   // Words are split on "/" in the prompt and shuffled once for stability.
   const shuffled = useMemo(() =>
     item.prompt.split('/').map(w => w.trim()).filter(Boolean).sort(() => Math.random() - 0.5),
@@ -82,6 +115,7 @@ function UnscrambleCard({
 
   const [placed, setPlaced]   = useState<number[]>([]);
   const [checked, setChecked] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   const available = shuffled.map((_, i) => i).filter(i => !placed.includes(i));
@@ -137,7 +171,7 @@ function UnscrambleCard({
 
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#EC4899]/80">
-          Exercise {index + 1} · Unscramble the lyric
+          Exercise {index + 1} · {copy.unscrambleLabel}
         </span>
         {checked && (
           <span className={`text-xs font-bold uppercase ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
@@ -145,6 +179,14 @@ function UnscrambleCard({
           </span>
         )}
       </div>
+
+      {/* Revealed answer (does not affect score — study aid only) */}
+      {revealed && !isCorrect && (
+        <div className="rounded-xl border-2 border-dashed border-[#EC4899]/50 bg-[#FFF0F7] px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]/80 mb-0.5">Answer</p>
+          <p className="text-sm font-semibold text-[#2D1B4E]">{item.answer}</p>
+        </div>
+      )}
 
       {/* Sentence builder — where placed words go */}
       <div className={`min-h-14 rounded-2xl border-2 border-dashed p-3 flex flex-wrap gap-1.5 items-center transition-colors
@@ -198,29 +240,39 @@ function UnscrambleCard({
         <span className="text-[11px] text-[#EC4899]/60">
           {placed.length}/{shuffled.length} placed
         </span>
-        {checked ? (
-          isCorrect ? null : (
+        <div className="flex items-center gap-2">
+          {!isCorrect && (
             <button
-              onClick={retry}
-              className="px-4 py-2 rounded-full text-xs font-bold bg-white border-2 border-[#EC4899] text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
+              onClick={() => setRevealed(r => !r)}
+              className="px-3 py-2 rounded-full text-[11px] font-bold bg-white border-2 border-[#EC4899]/40 text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
             >
-              ↻ Try again
+              {revealed ? '🙈 Hide' : '👁️ Answer'}
             </button>
-          )
-        ) : (
-          <button
-            onClick={check}
-            disabled={placed.length === 0}
-            className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow disabled:opacity-40 active:scale-95"
-          >
-            ✓ Check
-          </button>
-        )}
+          )}
+          {checked ? (
+            isCorrect ? null : (
+              <button
+                onClick={retry}
+                className="px-4 py-2 rounded-full text-xs font-bold bg-white border-2 border-[#EC4899] text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
+              >
+                ↻ Try again
+              </button>
+            )
+          ) : (
+            <button
+              onClick={check}
+              disabled={placed.length === 0}
+              className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow disabled:opacity-40 active:scale-95"
+            >
+              ✓ Check
+            </button>
+          )}
+        </div>
       </div>
 
       {checked && !isCorrect && (
         <p className="text-[11px] text-red-600 leading-snug pt-1">
-          Hint: sing the line in your head — the melody usually tells you the word order.
+          {copy.wrongHint}
         </p>
       )}
     </div>
@@ -233,16 +285,20 @@ function MatchHalvesCard({
   item,
   index,
   onResult,
+  brand,
 }: {
   item: PracticeItem;
   index: number;
   onResult: (correct: boolean, x: number, y: number) => void;
+  brand: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
 }) {
+  const copy = copyFor(brand);
   const options = useMemo(() => {
     const opts = item.options ?? [];
     return [...opts].sort(() => Math.random() - 0.5);
   }, [item.options]);
   const [chosen, setChosen] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const correct = chosen != null && chosen.toLowerCase().replace(/[.,'"]/g, '') === item.answer.toLowerCase().replace(/[.,'"]/g, '');
 
@@ -269,7 +325,7 @@ function MatchHalvesCard({
     >
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#EC4899]/80">
-          Exercise {index + 1} · Finish the lyric
+          Exercise {index + 1} · {copy.finishLabel}
         </span>
         {chosen && (
           <span className={`text-xs font-bold uppercase ${correct ? 'text-green-600' : 'text-red-600'}`}>
@@ -278,8 +334,28 @@ function MatchHalvesCard({
         )}
       </div>
       <p className="text-base md:text-lg font-serif italic text-[#2D1B4E] leading-relaxed">
-        🎵 &ldquo;{item.prompt}&rdquo; …
+        {copy.quoteGlyph} &ldquo;{item.prompt}&rdquo; …
       </p>
+
+      {/* Revealed answer (does not affect score — study aid only) */}
+      {revealed && !correct && (
+        <div className="rounded-xl border-2 border-dashed border-[#EC4899]/50 bg-[#FFF0F7] px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]/80 mb-0.5">Answer</p>
+          <p className="text-sm font-semibold text-[#2D1B4E]">{item.answer}</p>
+        </div>
+      )}
+
+      {/* Reveal toggle — student can peek without picking */}
+      {!correct && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setRevealed(r => !r)}
+            className="px-3 py-1.5 rounded-full text-[11px] font-bold bg-white border-2 border-[#EC4899]/40 text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
+          >
+            {revealed ? '🙈 Hide answer' : '👁️ Reveal answer'}
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {options.map((opt, i) => {
           const isPicked = chosen === opt;
@@ -317,7 +393,7 @@ function MatchHalvesCard({
 
 interface FloatPts { id: number; x: number; y: number; pts: number }
 
-export default function LanguagePracticeSlide({ slide }: Props) {
+export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }: Props) {
   const items: PracticeItem[] = slide.practiceItems ?? [];
   const [results, setResults] = useState<Map<number, boolean>>(new Map());
   const [score, setScore]     = useState(0);
@@ -378,7 +454,9 @@ export default function LanguagePracticeSlide({ slide }: Props) {
         <div className="text-center max-w-md p-8">
           <p className="text-5xl mb-3">🎯</p>
           <p className="text-lg font-bold text-[#EC4899] mb-1">No practice configured</p>
-          <p className="text-sm text-[#EC4899]/70">The teacher has not added practice items to this song yet.</p>
+          <p className="text-sm text-[#EC4899]/70">
+            The teacher has not added practice items to this {brand === 'FriendlyTales' ? 'text' : brand === 'Friendlyflix' ? 'clip' : 'song'} yet.
+          </p>
         </div>
       </div>
     );
@@ -400,7 +478,7 @@ export default function LanguagePracticeSlide({ slide }: Props) {
         {/* Eyebrow + hero icon */}
         <div className="flex flex-col items-center gap-3">
           <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#EC4899]/80 bg-white/70 border border-[#F472B6]/40 px-3 py-1 rounded-full backdrop-blur">
-            Friendlyrics · Practice
+            {brand} · Practice
           </span>
           <span className="text-6xl">🎯</span>
         </div>
@@ -447,6 +525,7 @@ export default function LanguagePracticeSlide({ slide }: Props) {
                 item={item}
                 index={i}
                 onResult={(ok, x, y) => handleResult(i, ok, x, y)}
+                brand={brand}
               />
             ) : item.type === 'match_halves' ? (
               <MatchHalvesCard
@@ -454,6 +533,7 @@ export default function LanguagePracticeSlide({ slide }: Props) {
                 item={item}
                 index={i}
                 onResult={(ok, x, y) => handleResult(i, ok, x, y)}
+                brand={brand}
               />
             ) : null
           ))}

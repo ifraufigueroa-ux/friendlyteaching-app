@@ -49,7 +49,7 @@ export default function TextLessonPlayerPage() {
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
-        <TopBar title="📖 Friendlytext®" />
+        <TopBar title="📖 FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-10 h-10 border-4 border-[#D9E6F0] border-t-[#1B2C3F] rounded-full animate-spin" />
         </div>
@@ -60,7 +60,7 @@ export default function TextLessonPlayerPage() {
   if (!lesson) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
-        <TopBar title="📖 Friendlytext®" />
+        <TopBar title="📖 FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center text-gray-400">
           <div className="text-center">
             <p className="text-4xl mb-2">📖</p>
@@ -79,7 +79,7 @@ export default function TextLessonPlayerPage() {
   if (completed) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
-        <TopBar title="📖 Friendlytext®" />
+        <TopBar title="📖 FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-3xl shadow-lg p-8 max-w-sm w-full text-center border border-[#D9E6F0]">
             <p className="text-3xl mb-2">🎉</p>
@@ -90,7 +90,7 @@ export default function TextLessonPlayerPage() {
               onClick={() => router.push('/dashboard/student/texts')}
               className="w-full py-3 rounded-xl bg-[#1B2C3F] text-white font-semibold hover:bg-[#0D1A29] transition-colors"
             >
-              Volver a Friendlytext®
+              Volver a FriendlyTales®
             </button>
           </div>
         </div>
@@ -133,6 +133,7 @@ export default function TextLessonPlayerPage() {
             isTeacher={false}
             slideIndex={currentSlide}
             youtubeUrl={lesson.text?.youtubeUrl}
+            brand="FriendlyTales"
           />
         </div>
       </div>

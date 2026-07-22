@@ -114,7 +114,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
         </div>
       </div>
       <div className="flex-1 min-h-0 relative z-0 overflow-y-auto bg-white">
-        <SlideRenderer slide={slide} youtubeUrl={lesson.clip?.youtubeUrl} />
+        <SlideRenderer slide={slide} youtubeUrl={lesson.clip?.youtubeUrl} brand="Friendlyflix" />
       </div>
     </div>
   );

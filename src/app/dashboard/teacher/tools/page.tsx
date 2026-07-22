@@ -31,7 +31,7 @@ const INTERNAL_TOOLS = [
   {
     href:        '/dashboard/teacher/texts',
     icon:        '📖',
-    title:       'Friendlytext®',
+    title:       'FriendlyTales®',
     description: 'Pega un texto (artículo, diálogo, script). Opcionalmente añade audio de YouTube o genera TTS con ElevenLabs. IA arma el deck CLT de 10 slides.',
     gradient:    'from-[#1B2C3F] to-[#4B6A85]',
     glow:        'shadow-slate-200/40',

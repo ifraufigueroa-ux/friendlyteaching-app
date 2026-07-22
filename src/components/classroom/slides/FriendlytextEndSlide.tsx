@@ -80,7 +80,7 @@ export default function FriendlytextEndSlide({ slide }: Props) {
           <div className="text-left">
             <p className="text-[10px] text-white/55 uppercase tracking-[0.25em]">Powered by</p>
             <p className="font-extrabold text-lg text-white tracking-tight">
-              Friendlytext<sup className="text-xs">®</sup>
+              FriendlyTales<sup className="text-xs">®</sup>
             </p>
           </div>
         </div>

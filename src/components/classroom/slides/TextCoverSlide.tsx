@@ -88,7 +88,7 @@ export default function TextCoverSlide({ slide }: Props) {
             </span>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.25em] bg-[#E8B547] text-[#3A2A0F] px-3 py-1.5 rounded-sm shadow-lg shadow-amber-900/40 w-fit">
               <span className="text-sm leading-none">📖</span>
-              Friendlytext
+              FriendlyTales
             </span>
           </div>
         </div>
@@ -120,14 +120,6 @@ export default function TextCoverSlide({ slide }: Props) {
         >
           {title}
         </h1>
-        {slide.subtitle && slide.subtitle !== source && (
-          <p
-            className="text-base sm:text-lg md:text-xl text-white/85 max-w-2xl leading-relaxed drop-shadow-lg italic"
-            style={{ animation: 'ftcCoverRise 900ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both' }}
-          >
-            {slide.subtitle}
-          </p>
-        )}
       </div>
 
       {/* ── Footer: Read & Learn CTA ─────────────────────────────── */}
@@ -137,7 +129,7 @@ export default function TextCoverSlide({ slide }: Props) {
           style={{ animation: 'ftcCoverPulse 2.6s ease-in-out infinite' }}
         >
           <span className="w-2 h-2 rounded-full bg-[#E8B547] shadow-[0_0_12px_rgba(232,181,71,0.9)]" />
-          Read &amp; Learn
+          Comprehension made easy
         </span>
       </div>
 

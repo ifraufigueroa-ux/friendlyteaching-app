@@ -9,7 +9,10 @@
 import { useMemo, useState } from 'react';
 import type { Slide } from '@/types/firebase';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
 function splitContent(raw: string): { intro: string; bullets: string[]; outro: string } {
   if (!raw) return { intro: '', bullets: [], outro: '' };
@@ -67,7 +70,7 @@ function highlightInQuote(quote: string, pattern: string | null): Array<{ text: 
   ];
 }
 
-export default function LanguageFocusSlide({ slide }: Props) {
+export default function LanguageFocusSlide({ slide, brand = 'Friendlyrics' }: Props) {
   const { intro, bullets, outro } = useMemo(() => splitContent(slide.content ?? ''), [slide.content]);
   const examples = slide.words ?? [];
   const [openExample, setOpenExample] = useState<number | null>(null);
@@ -96,7 +99,7 @@ export default function LanguageFocusSlide({ slide }: Props) {
 
         <div className="flex flex-col items-center gap-3">
           <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#EC4899]/80 bg-white/70 border border-[#F472B6]/40 px-3 py-1 rounded-full backdrop-blur">
-            Friendlyrics · {titleText}
+            {brand} · {titleText}
           </span>
           <span
             className="text-6xl"

@@ -30,7 +30,8 @@ CONTEXT
 - The lesson follows the same CLT arc as Friendlyrics: pre / while / post.
 
 SLIDE 1 — type: "text_cover"
-{ type, title: "{Title}", subtitle: "A CLT text lesson — {Source}", phase: "pre" }
+{ type, title: "{Title}", phase: "pre" }
+- Do NOT include a subtitle field on the cover — the source is already shown separately.
 
 SLIDE 2 — type: "vocab_match"
 { type, title: "Key Vocabulary", phase: "pre", words: [ {word, translation: "English definition (NOT Spanish)", pronunciation: "/ˈIPA/", example: "sentence from the text"} ] }
@@ -158,6 +159,38 @@ interface GenerateResult {
   status?: number;     // status to bubble up (401 → invalid key, 429 → rate/credit, etc.)
 }
 
+// Post-process AI output before we hand it back — Claude occasionally drifts
+// on two rules that break the translation game at render time:
+//   1. It writes the answer word inside the braces (`{{encontrar}}`) instead
+//      of the canonical marker (`{{blank}}`). The player splits on the exact
+//      token, so drift produces literal `{{encontrar}}` on-screen.
+//   2. It ships an options array that doesn't contain the correct answer, so
+//      no button can ever resolve the blank.
+// Both are recoverable server-side without a re-roll, so we do it here.
+function normalizeSlides(slides: Slide[]): Slide[] {
+  return slides.map((s) => {
+    if (s.type !== 'translation_game') return s;
+    const content = typeof s.content === 'string'
+      ? s.content.replace(/\{\{[^}]+\}\}/g, '{{blank}}')
+      : s.content;
+    const blanksData = (s.blanksData ?? []).map((b) => {
+      const opts = b.options ?? [];
+      const answer = b.word ?? '';
+      const hasAnswer = opts.some(
+        (o) => o.toLowerCase().trim() === answer.toLowerCase().trim(),
+      );
+      if (hasAnswer || !answer) return b;
+      // Preserve list length — swap a distractor slot for the correct answer.
+      if (opts.length === 0) return { ...b, options: [answer] };
+      const slot = Math.floor(Math.random() * opts.length);
+      const patched = [...opts];
+      patched[slot] = answer;
+      return { ...b, options: patched };
+    });
+    return { ...s, content, blanksData };
+  });
+}
+
 async function generateWithAI(
   title: string,
   source: string,
@@ -219,7 +252,8 @@ Generate the 10-slide Friendlytext® CLT lesson JSON now.`;
     if (!jsonMatch) return { error: 'AI response did not contain valid JSON', status: 500 };
 
     const parsed: { slides: Slide[] } = JSON.parse(jsonMatch[0]);
-    return { slides: parsed.slides.map((s, i) => ({ phase: 'pre' as const, ...s, id: `ai-slide-${i}` })) };
+    const normalized = parsed.slides.map((s, i) => ({ phase: 'pre' as const, ...s, id: `ai-slide-${i}` }));
+    return { slides: normalizeSlides(normalized) };
   } catch (err) {
     console.error('[text-lesson] Generation error:', err);
     return { error: err instanceof Error ? err.message : String(err), status: 500 };

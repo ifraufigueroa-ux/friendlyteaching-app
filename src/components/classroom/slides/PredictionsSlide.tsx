@@ -11,9 +11,15 @@ import { useMemo, useRef, useState } from 'react';
 import type { Slide } from '@/types/firebase';
 import { pickTextTheme, pickMusicTheme } from './reflection/reflectionThemes';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  // When passed, forces the brand-aware theme picker (SlideRenderer sets this
+  // from the parent lesson type). Falls back to slide-payload sniffing —
+  // Friendlytext carries textData, Friendlyrics carries songData.
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
-export default function PredictionsSlide({ slide }: Props) {
+export default function PredictionsSlide({ slide, brand }: Props) {
   const [prediction, setPrediction] = useState('');
   const [submitted, setSubmitted]   = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -29,7 +35,10 @@ export default function PredictionsSlide({ slide }: Props) {
   // Friendlytext carries textData, Friendlyrics carries songData. Each
   // brand has its own set of 3 rotating themes, picked from the title so
   // a series of lessons cycles through the variants deterministically.
-  const isText = Boolean(slide.textData);
+  // Explicit `brand` prop wins — it is set by mount points that know the
+  // parent lesson type, so it stays right even on shared slides that lack
+  // any brand-specific payload.
+  const isText = brand ? brand === 'FriendlyTales' : Boolean(slide.textData);
   const seed   = (isText ? slide.textData?.title : slide.songData?.title) ?? slide.title ?? '';
   const theme  = isText ? pickTextTheme(seed) : pickMusicTheme(seed);
 

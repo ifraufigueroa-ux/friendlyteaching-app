@@ -733,7 +733,7 @@ export default function TextLessonEditor({ teacherId, initial, onClose }: Props)
             <div className="bg-gradient-to-br from-[#1B2C3F] to-[#4B6A85] rounded-2xl p-4 text-white">
               <p className="text-[10px] font-bold uppercase tracking-widest mb-1">CLT deck</p>
               <p className="text-xs text-white/70 mb-3">
-                Genera las 10 slides Friendlytext® — cover, vocab, predictions, comprehension,
+                Genera las 10 slides FriendlyTales® — cover, vocab, predictions, comprehension,
                 check, language focus, practice, translation, wrap-up, end.
               </p>
               <div className="flex gap-2">

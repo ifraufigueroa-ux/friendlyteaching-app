@@ -27,7 +27,7 @@ const TYPE_LABELS: Record<SlideType, string> = {
   language_practice: 'Práctica lingüística', translation_game: 'Juego de traducción',
   wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
   clip_cover: 'Portada (clip)', clip_dialogue_game: 'Juego de diálogo (clip)', clip_comprehension: 'Comprensión (clip)', clip_vocab_match: 'Vocab match (clip)', clip_predictions: 'Predicciones (clip)', clip_language_focus: 'Foco lingüístico (clip)', clip_controlled_practice: 'Práctica controlada (clip)', clip_production: 'Producción libre (clip)', friendlyflix_end: 'Fin Friendlyflix®',
-  text_cover: 'Portada (texto)', text_comprehension: 'Comprensión', text_reading: 'Lectura (legacy)', friendlytext_end: 'Fin Friendlytext®',
+  text_cover: 'Portada (texto)', text_comprehension: 'Comprensión', text_reading: 'Lectura (legacy)', friendlytext_end: 'Fin FriendlyTales®',
 };
 
 const PHASE_DOT: Record<string, string> = {

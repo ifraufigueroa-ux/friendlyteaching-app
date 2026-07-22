@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import type { Slide, LyricsBlank } from '@/types/firebase';
 
-interface Props { slide: Slide; }
+interface Props {
+  slide: Slide;
+  // Not rendered yet — accepted so mount points can thread the parent
+  // lesson brand uniformly across all shared slides.
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
 function extractVideoId(url: string): string | null {
   const m = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -17,9 +22,34 @@ type YTPlayer = {
 };
 
 export default function TranslationGameSlide({ slide }: Props) {
-  const blanksData: LyricsBlank[] = slide.blanksData ?? [];
+  // AI-generated Friendlytext lessons occasionally ship malformed blanksData:
+  // options list that doesn't contain the correct word, so no button can ever
+  // resolve the blank. Patch it here — swap the last distractor for the answer
+  // when the answer is missing, so the game is always winnable.
+  const blanksData: LyricsBlank[] = useMemo(() => {
+    const raw = slide.blanksData ?? [];
+    return raw.map((b) => {
+      const opts = b.options ?? [];
+      const answer = b.word ?? '';
+      const hasAnswer = opts.some(
+        (o) => o.toLowerCase().trim() === answer.toLowerCase().trim(),
+      );
+      if (hasAnswer || !answer) return b;
+      const fixed = [...opts];
+      if (fixed.length === 0) return { ...b, options: [answer] };
+      // Replace a random slot so the answer position isn't always predictable.
+      const slot = Math.floor(Math.random() * fixed.length);
+      fixed[slot] = answer;
+      return { ...b, options: fixed };
+    });
+  }, [slide.blanksData]);
   const numBlanks = blanksData.length;
-  const spanishText = slide.content ?? '';
+  // Normalise every `{{…}}` marker down to the canonical `{{blank}}` token
+  // BEFORE anything downstream touches it. AI-generated Friendlytext lessons
+  // often ship with the answer word inside the braces (`{{investigaba}}`)
+  // instead of the marker, so a literal `.split('{{blank}}')` would never
+  // find them. Doing the replace here means every consumer sees clean data.
+  const spanishText = (slide.content ?? '').replace(/\{\{[^}]+\}\}/g, '{{blank}}');
   const englishText = slide.translationText ?? '';
   const videoId = slide.songData?.youtubeUrl ? extractVideoId(slide.songData.youtubeUrl) : null;
 
@@ -40,6 +70,8 @@ export default function TranslationGameSlide({ slide }: Props) {
   const playerDivId = useRef(`yt-trans-${Math.random().toString(36).slice(2)}`);
 
   // ─── Line-based structure: split ES/EN by \n and map blanks to lines ───
+  // `spanishText` is already normalised above, so every marker is the
+  // canonical `{{blank}}` token here.
   const lines = useMemo(() => {
     const esLines = spanishText.split('\n');
     const enLines = englishText.split('\n');

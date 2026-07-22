@@ -9,7 +9,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Slide } from '@/types/firebase';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
 const MATCH_BASE_PTS     = 10;
 const SPEED_BONUS_MAX    = 10;
@@ -92,7 +95,7 @@ function NoteBurst({ x, y, onDone }: { x: number; y: number; onDone: () => void 
 
 interface FloatScore { id: number; pts: number; x: number; y: number }
 
-export default function VocabMatchSlide({ slide }: Props) {
+export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props) {
   const words = slide.words ?? [];
   const shuffledDefs = useMemo(() => [...words].sort(() => Math.random() - 0.5), [words]);
 
@@ -256,7 +259,7 @@ export default function VocabMatchSlide({ slide }: Props) {
       {/* ── Header ───────────────────────────────────────────────── */}
       <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b border-[#C8A8DC]/30 bg-white/40 backdrop-blur flex items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#9B5DE5]">Friendlyrics · Vocabulary match</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#9B5DE5]">{brand} · Vocabulary match</p>
           <h2 className="text-base font-bold text-[#2D1B4E]">{slide.title ?? 'Key Vocabulary'}</h2>
         </div>
         <div className="flex items-center gap-2">

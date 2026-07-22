@@ -43,6 +43,12 @@ import TextReadingSlide from './slides/TextReadingSlide';
 import FriendlytextEndSlide from './slides/FriendlytextEndSlide';
 import AudioPlayer from './AudioPlayer';
 
+// Brand label shown in shared CLT slides (vocab match, listening quiz, etc.).
+// These components live in the Friendlyrics-branded folder but are reused by
+// Friendlytext and Friendlyflix — mount points pass their own brand so the
+// eyebrow chip and card labels match the lesson type.
+export type LessonBrand = 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+
 interface Props {
   slide: Slide;
   courseTitle?: string;
@@ -50,10 +56,11 @@ interface Props {
   slideIndex?: number;
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void;
   youtubeUrl?: string;
+  brand?: LessonBrand;
 }
 
-export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl }: Props) {
-  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl);
+export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand }: Props) {
+  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand);
 
   // Wrap with audio player if the slide has an audioUrl
   if (slide.audioUrl) {
@@ -77,6 +84,7 @@ function renderSlide(
   slideIndex?: number,
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void,
   youtubeUrl?: string,
+  brand?: LessonBrand,
 ) {
   switch (slide.type) {
     case 'cover':
@@ -137,22 +145,22 @@ function renderSlide(
     case 'lyrics_game':
       return <LyricsGameSlide slide={slide} youtubeUrl={youtubeUrl} />;
     case 'vocab_match':
-      return <VocabMatchSlide slide={slide} />;
+      return <VocabMatchSlide slide={slide} brand={brand} />;
     case 'translation_game':
-      return <TranslationGameSlide slide={slide} />;
+      return <TranslationGameSlide slide={slide} brand={brand} />;
     case 'listening_quiz':
-      return <ListeningQuizSlide slide={slide} />;
+      return <ListeningQuizSlide slide={slide} brand={brand} />;
     case 'friendlyrics_end':
       return <FriendlyricsEndSlide slide={slide} />;
     // ─── CLT curriculum slides (shared) ──────────────────────────
     case 'predictions':
-      return <PredictionsSlide slide={slide} />;
+      return <PredictionsSlide slide={slide} brand={brand} />;
     case 'language_focus':
-      return <LanguageFocusSlide slide={slide} />;
+      return <LanguageFocusSlide slide={slide} brand={brand} />;
     case 'language_practice':
-      return <LanguagePracticeSlide slide={slide} />;
+      return <LanguagePracticeSlide slide={slide} brand={brand} />;
     case 'wrapup':
-      return <WrapupSlide slide={slide} />;
+      return <WrapupSlide slide={slide} brand={brand} />;
     // ─── Friendlytext (CLT text-based) ───────────────────────────
     case 'text_cover':
       return <TextCoverSlide slide={slide} />;

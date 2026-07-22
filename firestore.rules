@@ -299,6 +299,18 @@ service cloud.firestore {
       allow delete: if isTeacher();
     }
 
+    // ── IELTS Listening audio bindings ────────────────────────
+    // Persists the (teacher, mock, section) → audioUrl mapping so ElevenLabs
+    // generations survive reloads. Doc ID is `${teacherId}_${mockId}_${section}`,
+    // and every doc carries a teacherId field the teacher owns.
+    match /ieltsListeningAudios/{bindingId} {
+      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow list:   if isTeacher();
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // ── Placement Sessions ─────────────────────────────────────
     // Public: anyone (including unauthenticated visitors) can CREATE a session
     // (to take the placement test without logging in).

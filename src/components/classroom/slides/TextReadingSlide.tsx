@@ -203,7 +203,7 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
             </div>
           </div>
           <span className="flex-shrink-0 text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#3A2A0F] bg-[#E8B547] border border-[#C89234] px-3 py-1.5 rounded-full shadow-sm">
-            Friendlytext®
+            FriendlyTales®
           </span>
         </div>
 

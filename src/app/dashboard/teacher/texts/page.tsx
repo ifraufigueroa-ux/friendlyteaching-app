@@ -2,6 +2,7 @@
 // List + create + edit + play text-based CLT lessons.
 'use client';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
 import {
@@ -10,7 +11,6 @@ import {
   assignTextLesson,
   deleteTextLesson,
 } from '@/hooks/useTextLessons';
-import SlideRenderer from '@/components/classroom/SlideRenderer';
 import TopBar from '@/components/layout/TopBar';
 import TextLessonEditor from '@/components/teacher/TextLessonEditor';
 import FullscreenButton from '@/components/ui/FullscreenButton';
@@ -34,82 +34,6 @@ function extractVideoId(url: string): string | null {
 function ytThumbnail(url: string): string | null {
   const id = extractVideoId(url);
   return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
-}
-
-// ─── Play modal ─────────────────────────────────────────────────────────
-
-function PlayModal({ lesson, onClose }: { lesson: TextLesson; onClose: () => void }) {
-  const slides = lesson.slides ?? [];
-  const [slideIdx, setSlideIdx] = useState(0);
-  const slide = slides[slideIdx];
-  if (!slide) return null;
-
-  const canPrev = slideIdx > 0;
-  const canNext = slideIdx < slides.length - 1;
-
-  const SLIDE_LABEL: Record<string, string> = {
-    text_cover:         'Cover',
-    vocab_match:        'Vocab match',
-    predictions:        'Predictions',
-    text_comprehension: 'Comprehension',
-    text_reading:       'Comprehension',
-    listening_quiz:     'Check',
-    language_focus:     'Language focus',
-    language_practice:  'Practice',
-    translation_game:   'Translation',
-    wrapup:             'Wrap-up',
-    friendlytext_end:   'End',
-  };
-
-  const multi = slides.length > 1;
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/95">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#7EC8E3] flex-shrink-0">
-            {SLIDE_LABEL[slide.type] ?? slide.type}{multi ? ` · ${slideIdx + 1}/${slides.length}` : ''}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {multi && (
-            <>
-              <button
-                onClick={() => setSlideIdx(i => Math.max(0, i - 1))}
-                disabled={!canPrev}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                  canPrev
-                    ? 'bg-white/8 hover:bg-white/15 text-white/80 border-white/10 cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
-                }`}
-                title="Previous slide"
-              >
-                ← Prev
-              </button>
-              <button
-                onClick={() => setSlideIdx(i => Math.min(slides.length - 1, i + 1))}
-                disabled={!canNext}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                  canNext
-                    ? 'bg-gradient-to-r from-[#1B2C3F] to-[#4B6A85] hover:opacity-90 text-white border-[#4B6A85] cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
-                }`}
-                title="Next slide"
-              >
-                Next →
-              </button>
-            </>
-          )}
-          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30" />
-          <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none" title="Close">×</button>
-        </div>
-      </div>
-      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto bg-white">
-        <SlideRenderer slide={slide} youtubeUrl={lesson.text?.youtubeUrl} />
-      </div>
-    </div>
-  );
 }
 
 // ─── Assign modal ───────────────────────────────────────────────────────
@@ -172,6 +96,7 @@ function AssignModal({
 // ─── Page ──────────────────────────────────────────────────────────────
 
 export default function TextsPage() {
+  const router = useRouter();
   const { profile } = useAuthStore();
   const teacherId = profile?.uid ?? '';
   const { lessons, loading } = useTextLessons(teacherId);
@@ -179,8 +104,12 @@ export default function TextsPage() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<TextLesson | null>(null);
-  const [playing, setPlaying] = useState<TextLesson | null>(null);
   const [assigning, setAssigning] = useState<TextLesson | null>(null);
+
+  function openLesson(lesson: TextLesson) {
+    if (!lesson.id) return;
+    router.push(`/dashboard/teacher/texts/${lesson.id}`);
+  }
 
   const studentList = useMemo(
     () => students.map(s => ({ uid: s.uid, fullName: s.fullName })),
@@ -200,11 +129,11 @@ export default function TextsPage() {
     <div className="min-h-screen p-6 bg-gray-50">
       <FullscreenButton />
       <TopBar
-        title="Friendlytext — CLT text lessons"
+        title="FriendlyTales — CLT text lessons"
         subtitle={`${lessons.length} texto${lessons.length !== 1 ? 's' : ''} guardado${lessons.length !== 1 ? 's' : ''}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Friendlytext' },
+          { label: 'FriendlyTales' },
         ]}
         actions={
           <button
@@ -247,7 +176,7 @@ export default function TextsPage() {
               return (
                 <div key={lesson.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col">
                   <button
-                    onClick={() => setPlaying(lesson)}
+                    onClick={() => openLesson(lesson)}
                     className="relative w-full aspect-video bg-gradient-to-br from-[#1B2C3F] to-[#4B6A85] overflow-hidden group"
                   >
                     {thumb ? (
@@ -280,7 +209,7 @@ export default function TextsPage() {
                       {hasAudio ? null : <span className="bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">sin audio</span>}
                     </div>
                     <div className="mt-auto flex flex-wrap gap-1.5">
-                      <button onClick={() => setPlaying(lesson)} className="flex-1 py-1.5 px-2 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-full text-[11px] font-bold">▶ Probar</button>
+                      <button onClick={() => openLesson(lesson)} className="flex-1 py-1.5 px-2 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-full text-[11px] font-bold">▶ Probar</button>
                       <button onClick={() => setEditing(lesson)} className="py-1.5 px-2.5 border border-gray-200 hover:bg-gray-50 rounded-full text-[11px] font-semibold text-gray-600">✎</button>
                       <button onClick={() => setAssigning(lesson)} className="py-1.5 px-2.5 border border-gray-200 hover:bg-gray-50 rounded-full text-[11px] font-semibold text-gray-600" title="Asignar">👥</button>
                       <button onClick={() => togglePublish(lesson)} className={`py-1.5 px-2.5 rounded-full text-[11px] font-bold ${isPub ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
@@ -303,7 +232,6 @@ export default function TextsPage() {
           onClose={() => { setShowCreate(false); setEditing(null); }}
         />
       )}
-      {playing && <PlayModal lesson={playing} onClose={() => setPlaying(null)} />}
       {assigning && (
         <AssignModal
           lesson={assigning}

@@ -209,7 +209,7 @@ function detectSignals(title: string, text: string): PredictionsSignals {
 // external authors/publications, so we mustn't ask students "do you know
 // FriendlyTeaching CL?" — that turns the slide into a platform survey.
 function isInternalSource(source: string): boolean {
-  return /(friendly[\s-]?teaching|friendlytext|friendlyrics|friendlyflix|original|clt|internal|own)/i.test(source);
+  return /(friendly[\s-]?teaching|friendlytext|friendlytales|friendlyrics|friendlyflix|original|clt|internal|own)/i.test(source);
 }
 
 function buildPredictionsSlide(title: string, source: string, text: string, level: LessonLevel, mode: ComprehensionMode): Slide {
@@ -780,7 +780,6 @@ export async function generateTextLessonAlgorithmically(
     type: 'text_cover',
     phase: 'pre',
     title,
-    subtitle: `A CLT text lesson — ${source}`,
     textData: previewTextData,
   };
 

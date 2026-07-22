@@ -10,9 +10,12 @@ import { useMemo, useRef, useState } from 'react';
 import type { Slide } from '@/types/firebase';
 import { pickTextTheme, pickMusicTheme } from './reflection/reflectionThemes';
 
-interface Props { slide: Slide }
+interface Props {
+  slide: Slide;
+  brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix';
+}
 
-export default function WrapupSlide({ slide }: Props) {
+export default function WrapupSlide({ slide, brand }: Props) {
   const [reflection, setReflection] = useState('');
   const [submitted, setSubmitted]   = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -28,7 +31,7 @@ export default function WrapupSlide({ slide }: Props) {
   // Same theming approach as PredictionsSlide: text lessons pick from
   // TEXT_THEMES, music lessons pick from MUSIC_THEMES. Both cycle through
   // 3 variants deterministically by title hash.
-  const isText = Boolean(slide.textData);
+  const isText = brand ? brand === 'FriendlyTales' : Boolean(slide.textData);
   const seed   = (isText ? slide.textData?.title : slide.songData?.title) ?? slide.title ?? '';
   const theme  = isText ? pickTextTheme(seed) : pickMusicTheme(seed);
 
