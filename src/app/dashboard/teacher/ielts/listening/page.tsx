@@ -17,6 +17,7 @@ import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import { listeningMock1 } from '@/lib/data/ielts/listeningMock1';
 import { gradeAnswers } from '@/lib/ielts/scoreListening';
+import { loadMockAudioBindings, saveAudioBinding, deleteAudioBinding, type AudioSource } from '@/lib/ielts/audioStore';
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
   ListeningSessionMode, GradeResult,
@@ -184,7 +185,10 @@ function AudioPanel({
 }: {
   section: ListeningSection;
   mode: ListeningSessionMode;
-  onAudioReady: (url: string) => void;
+  // Signature widened so the panel reports back HOW the audio was produced
+  // — the page uses that tag when persisting the binding to Firestore so we
+  // can later distinguish "regenerated" from "manually uploaded" audios.
+  onAudioReady: (url: string, source: AudioSource) => void;
   teacherId: string;
 }) {
   const [manualUrl, setManualUrl] = useState('');
@@ -212,7 +216,7 @@ function AudioPanel({
       const ref = storageRef(storage, path);
       await uploadBytes(ref, file, { contentType: file.type });
       const url = await getDownloadURL(ref);
-      onAudioReady(url);
+      onAudioReady(url, 'uploaded');
     } catch (err) {
       setUploadError('Firebase Storage: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
@@ -260,7 +264,7 @@ function AudioPanel({
       const ref = storageRef(storage, path);
       await uploadBytes(ref, blob, { contentType: 'audio/mpeg' });
       const url = await getDownloadURL(ref);
-      onAudioReady(url);
+      onAudioReady(url, 'generated');
       setGenerateProgress('');
     } catch (err) {
       setGenerateError((err instanceof Error ? err.message : String(err)));
@@ -331,7 +335,7 @@ function AudioPanel({
             className="flex-1 min-w-0 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:border-[#9B7CB8]"
           />
           <button
-            onClick={() => manualUrl.trim() && onAudioReady(manualUrl.trim())}
+            onClick={() => manualUrl.trim() && onAudioReady(manualUrl.trim(), 'url')}
             disabled={!manualUrl.trim()}
             className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] rounded-lg text-xs font-bold disabled:opacity-50"
           >
@@ -554,9 +558,55 @@ export default function IELTSListeningPage() {
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [result, setResult] = useState<GradeResult | null>(null);
 
-  // Session-scoped audio URLs per section (overrides the mock's audioUrl if
-  // the teacher uploaded one live).
+  // Persisted audio URLs per section (hydrated from Firestore on mount, saved
+  // on every generate/upload/url-set). Once written, the same URL survives
+  // reloads and future sessions — no more paying ElevenLabs twice for the
+  // same audio.
   const [sessionAudioUrls, setSessionAudioUrls] = useState<Record<number, string>>({});
+  const [audiosLoading, setAudiosLoading] = useState(true);
+
+  useEffect(() => {
+    if (!teacherId) return;
+    let alive = true;
+    (async () => {
+      try {
+        const bindings = await loadMockAudioBindings(teacherId, mock.id);
+        if (!alive) return;
+        setSessionAudioUrls(bindings as Record<number, string>);
+      } catch (err) {
+        console.error('[ielts-listening] failed to hydrate audio bindings:', err);
+      } finally {
+        if (alive) setAudiosLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [teacherId, mock.id]);
+
+  async function persistAudioBinding(sectionNumber: 1 | 2 | 3 | 4, url: string, source: AudioSource) {
+    setSessionAudioUrls((prev) => ({ ...prev, [sectionNumber]: url }));
+    if (!teacherId) return;
+    try {
+      await saveAudioBinding({ teacherId, mockId: mock.id, sectionNumber, audioUrl: url, source });
+    } catch (err) {
+      console.error('[ielts-listening] failed to save audio binding:', err);
+      // Non-blocking — the audio still works this session; next session it
+      // just won't hydrate. Better than failing the whole flow.
+    }
+  }
+
+  async function clearAudioBinding(sectionNumber: 1 | 2 | 3 | 4) {
+    setSessionAudioUrls((prev) => {
+      const next = { ...prev };
+      delete next[sectionNumber];
+      return next;
+    });
+    if (!teacherId) return;
+    try {
+      await deleteAudioBinding(teacherId, mock.id, sectionNumber);
+    } catch (err) {
+      console.error('[ielts-listening] failed to clear audio binding:', err);
+    }
+  }
 
   // Timer per section — 6 min default, floating bar during running.
   const SECTION_SEC = 360;
@@ -606,7 +656,6 @@ export default function IELTSListeningPage() {
   }
 
   const activeSection = mock.sections[currentSection];
-  const audioUrl = sessionAudioUrls[activeSection.number] ?? activeSection.audioUrl;
 
   function fmt(s: number): string {
     const m = Math.floor(s / 60);
@@ -780,19 +829,30 @@ export default function IELTSListeningPage() {
                 <p className="text-xs text-[#5A3D7A] leading-relaxed">{activeSection.instructions}</p>
               </div>
 
-              {/* Audio */}
-              <AudioPanel
-                section={activeSection}
-                mode={mode}
-                onAudioReady={(url) => setSessionAudioUrls((prev) => ({ ...prev, [activeSection.number]: url }))}
-                teacherId={teacherId}
-              />
-              {/* Update inline for the panel to reflect uploaded URL */}
-              {sessionAudioUrls[activeSection.number] && !activeSection.audioUrl && (
-                <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-2xl p-4 text-white shadow-md">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70 mb-2">
-                    Section {activeSection.number} audio (sesión)
-                  </p>
+              {/* Audio — either shows the persisted URL directly, or the
+                  upload/generate panel when none exists yet. */}
+              {audiosLoading ? (
+                <div className="bg-white rounded-2xl border border-[#E8D5F0] p-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                  <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
+                  Cargando audios guardados…
+                </div>
+              ) : sessionAudioUrls[activeSection.number] ? (
+                <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-2xl p-4 text-white shadow-md space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70">
+                      Section {activeSection.number} audio
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (confirm('¿Borrar este audio y generar uno nuevo? Consumirá tokens de ElevenLabs otra vez.')) {
+                          clearAudioBinding(activeSection.number);
+                        }
+                      }}
+                      className="text-[10px] font-semibold text-white/70 hover:text-white underline decoration-white/40"
+                    >
+                      🔄 Regenerar
+                    </button>
+                  </div>
                   <audio
                     src={sessionAudioUrls[activeSection.number]}
                     controls={mode !== 'exam'}
@@ -801,9 +861,16 @@ export default function IELTSListeningPage() {
                     autoPlay={mode === 'exam'}
                   />
                   {mode === 'exam' && (
-                    <p className="text-[10px] text-white/60 mt-2 italic">Exam mode: audio plays once, no pause.</p>
+                    <p className="text-[10px] text-white/60 italic">Exam mode: audio plays once, no pause.</p>
                   )}
                 </div>
+              ) : (
+                <AudioPanel
+                  section={activeSection}
+                  mode={mode}
+                  onAudioReady={(url, source) => persistAudioBinding(activeSection.number, url, source)}
+                  teacherId={teacherId}
+                />
               )}
 
               {/* Script preview (helpful when teacher hasn't generated audio yet) */}
