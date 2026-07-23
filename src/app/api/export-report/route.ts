@@ -9,6 +9,8 @@ import { PLACEMENT_QUESTIONS, TOPIC_LABELS, LEVEL_SECTIONS } from '@/data/placem
 import type { PlacementAnswer, SectionScore, WeakArea, LearningProgram } from '@/types/placement';
 import type { LessonLevel } from '@/types/firebase';
 import type { WritingGradeResult, IELTSVersion } from '@/types/ielts-writing';
+import type { ComponentId, ComponentResult } from '@/types/placement-suite';
+import { VOCAB_TOPIC_LABELS, READING_TYPE_LABELS, COMPONENT_META } from '@/types/placement-suite';
 
 export interface ProgressReportData {
   type: 'progress';
@@ -46,6 +48,21 @@ export interface InvoiceData {
   notes?: string;
 }
 
+export interface PlacementSuiteReportData {
+  type:            'placement-suite';
+  studentName:     string;
+  studentEmail?:   string;
+  studentPhone?:   string;
+  components:      ComponentId[];
+  results:         Partial<Record<ComponentId, ComponentResult>>;
+  perSkillLevel?:  Partial<Record<ComponentId, LessonLevel>>;
+  overallLevel?:   LessonLevel;
+  weakAreas?:      WeakArea[];
+  learningProgram?: LearningProgram;
+  completedAt?:    string;   // ISO date
+  mode:            'student-self' | 'teacher-led';
+}
+
 export interface WritingFeedbackReportData {
   type:            'writing-feedback';
   studentName?:    string;
@@ -76,7 +93,7 @@ export interface PlacementReportData {
   learningProgram?: LearningProgram;
 }
 
-type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData;
+type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData | PlacementSuiteReportData;
 
 // ── PDF generation using pure HTML → PDF conversion ──────────
 
@@ -690,6 +707,229 @@ function generateWritingFeedbackHTML(data: WritingFeedbackReportData, logoUrl: s
 </html>`;
 }
 
+// ── Placement Suite PDF (multi-component: grammar + vocab + reading) ───────
+
+function componentLabel(cid: ComponentId): string {
+  return COMPONENT_META[cid]?.label ?? cid;
+}
+function componentIcon(cid: ComponentId): string {
+  return COMPONENT_META[cid]?.icon ?? '❓';
+}
+
+function suiteWeakAreaLabel(topic: string): string {
+  return (TOPIC_LABELS[topic] as string)
+      ?? (VOCAB_TOPIC_LABELS[topic as keyof typeof VOCAB_TOPIC_LABELS] as string)
+      ?? (READING_TYPE_LABELS[topic as keyof typeof READING_TYPE_LABELS] as string)
+      ?? topic;
+}
+
+function generatePlacementSuiteHTML(data: PlacementSuiteReportData, logoUrl: string): string {
+  const dateStr = data.completedAt
+    ? new Date(data.completedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const overallLevel = data.overallLevel ?? 'A0';
+  const overallStyle = LEVEL_BADGE_STYLE[overallLevel] ?? 'background:#F3F0FF;color:#5A3D7A';
+
+  // Per-skill rows
+  const skillRows = data.components.map((cid) => {
+    const res = data.results[cid];
+    const lvl = data.perSkillLevel?.[cid] ?? res?.placedLevel ?? '—';
+    const barColor = LEVEL_BAR_COLOR[lvl] ?? '#C8A8DC';
+    const badgeStyle = LEVEL_BADGE_STYLE[lvl] ?? 'background:#F3F0FF;color:#5A3D7A';
+    const answered = res?.totalAnswered ?? 0;
+    const correct = res?.totalCorrect ?? 0;
+    const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+    return `
+    <tr>
+      <td style="padding:12px;vertical-align:middle;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">${componentIcon(cid)}</span>
+          <div>
+            <p style="font-size:13px;font-weight:700;color:#1F2937;margin:0;">${componentLabel(cid)}</p>
+            <p style="font-size:10px;color:#9B7CB8;margin:2px 0 0;">${answered} question${answered !== 1 ? 's' : ''} · ${pct}% accuracy</p>
+          </div>
+        </div>
+      </td>
+      <td style="padding:12px;vertical-align:middle;width:180px;">
+        <div style="height:8px;background:#F0E5FF;border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;"></div>
+        </div>
+      </td>
+      <td style="padding:12px;text-align:center;width:80px;vertical-align:middle;">
+        <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:800;${badgeStyle}">${lvl}</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Per-component details (adaptive path for grammar; section scores for others)
+  const componentDetails = data.components.map((cid) => {
+    const res = data.results[cid];
+    if (!res) return '';
+    const badgeStyle = LEVEL_BADGE_STYLE[res.placedLevel] ?? 'background:#F3F0FF;color:#5A3D7A';
+
+    // Section score rows per level
+    const sectionRows = (res.sectionScores ?? [])
+      .filter(s => s.total > 0)
+      .map((s) => {
+        const bar = s.total < 4 ? '#E0D5FF' : s.passed ? (LEVEL_BAR_COLOR[s.level] ?? '#4ADE80') : '#FCA5A5';
+        const badge = LEVEL_BADGE_STYLE[s.level] ?? 'background:#F3F0FF;color:#5A3D7A';
+        const statusColor = s.total < 4 ? '#9B7CB8' : s.passed ? '#15803D' : '#DC2626';
+        return `
+        <tr>
+          <td style="padding:6px 10px;vertical-align:middle;">
+            <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${badge}">${s.level}</span>
+          </td>
+          <td style="padding:6px 10px;vertical-align:middle;">
+            <div style="height:6px;background:#F0E5FF;border-radius:3px;overflow:hidden;min-width:100px;">
+              <div style="height:100%;width:${s.pct}%;background:${bar};border-radius:3px;"></div>
+            </div>
+          </td>
+          <td style="padding:6px 10px;text-align:center;font-size:11px;font-weight:700;color:${statusColor};">${s.pct}%</td>
+          <td style="padding:6px 10px;text-align:center;font-size:11px;color:#5A3D7A;">${s.correct}/${s.total}</td>
+        </tr>`;
+      }).join('');
+
+    // Weak areas chips (top 6)
+    const weakChips = (res.weakAreas ?? []).slice(0, 6).map((w) => {
+      const bg = w.pct === 0 ? '#FEE2E2' : '#FEF3C7';
+      const color = w.pct === 0 ? '#991B1B' : '#92400E';
+      return `<span style="display:inline-block;background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;margin:2px;">${suiteWeakAreaLabel(w.topic)} ${w.pct}%</span>`;
+    }).join('');
+
+    return `
+    <div style="margin-bottom:24px;page-break-inside:avoid;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:22px;">${componentIcon(cid)}</span>
+        <div style="flex:1;">
+          <p style="font-size:14px;font-weight:800;color:#5A3D7A;margin:0;">${componentLabel(cid)}</p>
+          <p style="font-size:10px;color:#9B7CB8;margin:2px 0 0;">
+            ${res.totalCorrect}/${res.totalAnswered} correct
+            ${res.stopped ? ' · auto-stopped' : ''}
+            ${cid === 'grammar' ? ' · adaptive path' : ''}
+          </p>
+        </div>
+        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800;${badgeStyle}">${res.placedLevel}</span>
+      </div>
+      ${sectionRows ? `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+        <thead>
+          <tr style="background:#F0E5FF;">
+            <th style="padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#9B7CB8;width:60px;">Level</th>
+            <th style="padding:6px 10px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#9B7CB8;">Progress</th>
+            <th style="padding:6px 10px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#9B7CB8;width:60px;">Score</th>
+            <th style="padding:6px 10px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#9B7CB8;width:70px;">Q's</th>
+          </tr>
+        </thead>
+        <tbody>${sectionRows}</tbody>
+      </table>` : ''}
+      ${weakChips ? `<div style="line-height:2;">${weakChips}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Merged weak areas (across all components)
+  const mergedWeakChips = (data.weakAreas ?? []).slice(0, 12).map((w) => {
+    const bg = w.pct === 0 ? '#FEE2E2' : w.pct < 40 ? '#FED7AA' : '#FEF3C7';
+    const color = w.pct === 0 ? '#991B1B' : w.pct < 40 ? '#7C2D12' : '#92400E';
+    return `<span style="display:inline-block;background:${bg};color:${color};padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin:2px;">${suiteWeakAreaLabel(w.topic)} ${w.pct}%</span>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Placement Suite Report — ${data.studentName}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1F2937; background: white; font-size: 13px; line-height: 1.5; }
+  @media print {
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 40px; }
+  .hero { background: linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%); border-radius: 16px; padding: 28px; margin-bottom: 28px; color: white; position: relative; overflow: hidden; }
+  .hero-bg1 { position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08); }
+  .hero-bg2 { position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06); }
+  .brand-row { display:flex;align-items:center;gap:10px;margin-bottom:20px; }
+  .brand-logo { width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.15); }
+  .brand-name { font-size:16px;font-weight:800;letter-spacing:-0.3px; }
+  .brand-tld { font-size:11px;opacity:0.6; }
+  .hero-main { display:flex;justify-content:space-between;align-items:flex-end;gap:20px; }
+  .student-name { font-size:22px;font-weight:800;letter-spacing:-0.5px; }
+  .student-sub { font-size:12px;opacity:0.75;margin-top:4px; }
+  .level-pill { background:rgba(255,255,255,0.25);border-radius:14px;padding:14px 22px;text-align:center;flex-shrink:0; }
+  .level-value { font-size:32px;font-weight:900;line-height:1; }
+  .level-label { font-size:9px;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-top:4px; }
+  .section-title { font-size:12px;font-weight:800;color:#5A3D7A;padding-bottom:8px;border-bottom:2px solid #F0E5FF;margin-bottom:14px;margin-top:28px;text-transform:uppercase;letter-spacing:0.6px; }
+  .print-btn { position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#6B4F8A,#5A3D7A);color:white;border:none;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(90,61,122,0.35); }
+  .footer { margin-top:36px;padding-top:16px;border-top:2px solid #F0E5FF;font-size:10px;color:#C8A8DC;text-align:center; }
+  .mode-tag { display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,0.2);color:white;margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-bg1"></div>
+    <div class="hero-bg2"></div>
+    <div class="brand-row">
+      <div class="brand-logo">
+        <img src="${logoUrl}" alt="FT" style="width:36px;height:36px;object-fit:cover;" onerror="this.style.display='none'"/>
+      </div>
+      <div>
+        <div class="brand-name">FriendlyTeaching</div>
+        <div class="brand-tld">.cl · Complete Placement Test</div>
+      </div>
+    </div>
+    <div class="hero-main">
+      <div>
+        <div class="student-name">${data.studentName}</div>
+        <div class="student-sub">
+          ${data.studentEmail ?? ''}${data.studentPhone ? ' · ' + data.studentPhone : ''}
+        </div>
+        <div style="font-size:11px;opacity:0.6;margin-top:6px;">${dateStr}</div>
+        <span class="mode-tag">${data.mode === 'teacher-led' ? '👤 Live session' : '🎓 Self-assessment'}</span>
+      </div>
+      <div class="level-pill">
+        <div class="level-value">${overallLevel}</div>
+        <div class="level-label">Overall CEFR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-skill overview -->
+  <div class="section-title" style="margin-top:0;">Nivel por habilidad</div>
+  <p style="font-size:11px;color:#9B7CB8;margin-bottom:14px;font-style:italic;">
+    Nivel global = mínimo entre habilidades (regla estándar CEFR).
+  </p>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #F0E5FF;border-radius:12px;overflow:hidden;">
+    <tbody>${skillRows}</tbody>
+  </table>
+
+  <!-- Merged weak areas -->
+  ${mergedWeakChips ? `
+  <div class="section-title">Áreas para reforzar</div>
+  <div style="line-height:2;">${mergedWeakChips}</div>` : ''}
+
+  <!-- Per-component detail -->
+  <div class="section-title page-break">Detalle por componente</div>
+  ${componentDetails}
+
+  <!-- Learning program -->
+  ${data.learningProgram ? generateLearningProgramHTML(data.learningProgram) : ''}
+
+  <div class="footer">
+    Generated by FriendlyTeaching.cl · ${new Date().toLocaleDateString('es-CL')} · Complete Placement Test Report
+  </div>
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</body>
+</html>`;
+}
+
 export async function POST(request: NextRequest) {
   let body: ExportRequest;
   try {
@@ -721,6 +961,12 @@ export async function POST(request: NextRequest) {
     html = generateWritingFeedbackHTML(d, logoUrl);
     const slug = (d.studentName ?? d.taskTitle).replace(/\s+/g, '_');
     filename = `IELTS_Writing_${slug}.html`;
+  } else if (body.type === 'placement-suite') {
+    const d = body as PlacementSuiteReportData;
+    const origin = request.nextUrl.origin;
+    const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
+    html = generatePlacementSuiteHTML(d, logoUrl);
+    filename = `PlacementSuite_${d.studentName.replace(/\s+/g, '_')}.html`;
   } else {
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   }

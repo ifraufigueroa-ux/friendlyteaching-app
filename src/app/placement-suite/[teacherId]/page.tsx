@@ -609,6 +609,184 @@ function ReadingRunner({
   );
 }
 
+// ── Results screen ─────────────────────────────────────────────────────────
+
+function ResultsScreen({
+  studentName, studentEmail, studentPhone, mode, components, results, saveError,
+}: {
+  studentName:   string;
+  studentEmail:  string;
+  studentPhone:  string;
+  mode:          SuiteMode;
+  components:    ComponentId[];
+  results:       Partial<Record<ComponentId, ComponentResult>>;
+  saveError:     boolean;
+}) {
+  const agg = useMemo(() => aggregateSuite(results), [results]);
+  const [downloading, setDownloading] = useState(false);
+  const [showProgram, setShowProgram] = useState(false);
+
+  async function handleDownloadPdf() {
+    setDownloading(true);
+    try {
+      const res = await fetch('/api/export-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:            'placement-suite',
+          studentName,
+          studentEmail:    studentEmail || undefined,
+          studentPhone:    studentPhone || undefined,
+          components,
+          results,
+          perSkillLevel:   agg.perSkillLevel,
+          overallLevel:    agg.overallLevel,
+          weakAreas:       agg.mergedWeakAreas,
+          learningProgram: agg.learningProgram,
+          completedAt:     new Date().toISOString(),
+          mode,
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <div className="w-full max-w-2xl space-y-4">
+      <div className="rounded-3xl overflow-hidden" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
+        {/* Hero */}
+        <div className="px-8 py-8 text-white text-center relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%)' }}>
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
+          <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/5" />
+          <div className="relative">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-70">Overall CEFR</p>
+            <p className="text-6xl font-black mt-1 tabular-nums">{agg.overallLevel}</p>
+            <p className="text-sm mt-2 opacity-80">{studentName}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 space-y-5">
+          {/* Per-skill breakdown */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
+              Nivel por habilidad
+            </p>
+            <div className="space-y-2">
+              {components.map((cid) => {
+                const lvl = agg.perSkillLevel[cid];
+                const meta = COMPONENT_META[cid];
+                const res = results[cid];
+                const answered = res?.totalAnswered ?? 0;
+                const correct = res?.totalCorrect ?? 0;
+                const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+                return (
+                  <div key={cid} className="flex items-center gap-3 p-2.5 rounded-xl border"
+                    style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
+                    <span className="text-xl">{meta.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold" style={{ color: B.purple }}>{meta.label}</p>
+                      <p className="text-[10px]" style={{ color: B.purpleMed }}>
+                        {correct}/{answered} correct · {pct}%
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-black" style={{ background: B.lavender, color: B.purple }}>
+                      {lvl ?? '—'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {agg.mergedWeakAreas.length > 0 && (
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
+                Áreas para reforzar
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {agg.mergedWeakAreas.slice(0, 10).map((w) => (
+                  <span key={w.topic} className="text-[10px] font-semibold px-2 py-1 rounded-full"
+                    style={{ background: w.pct === 0 ? '#FEE2E2' : '#FEF3C7', color: w.pct === 0 ? '#991B1B' : '#92400E' }}>
+                    {w.topic} · {w.pct}%
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Learning program preview */}
+          {agg.learningProgram && (
+            <div className="rounded-2xl border" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
+              <button
+                onClick={() => setShowProgram(s => !s)}
+                className="w-full flex items-center justify-between p-3 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🗓️</span>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest" style={{ color: B.purple }}>
+                      Plan de 12 semanas
+                    </p>
+                    <p className="text-[10px]" style={{ color: B.purpleMed }}>
+                      Personalizado para nivel {agg.overallLevel}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold" style={{ color: B.purple }}>
+                  {showProgram ? '▲ Ocultar' : '▼ Ver plan'}
+                </span>
+              </button>
+              {showProgram && (
+                <div className="border-t p-3 space-y-1.5 max-h-96 overflow-y-auto" style={{ borderColor: B.lavenderDark }}>
+                  {agg.learningProgram.weeks.map((week) => (
+                    <div key={week.week} className="flex gap-2 p-2 rounded-lg bg-white border" style={{ borderColor: B.lavender }}>
+                      <div className="w-8 h-8 rounded-lg text-white font-black text-[10px] flex items-center justify-center shrink-0"
+                        style={{ background: B.purple }}>W{week.week}</div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold" style={{ color: B.purple }}>{week.focus}</p>
+                        <p className="text-[10px]" style={{ color: B.purpleMed }}>{week.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {saveError && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              ⚠️ Hubo un error guardando los resultados. Los resultados que ves acá son válidos, pero puede que no queden persistidos.
+            </p>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: B.purple }}
+            >
+              {downloading ? '⏳ Generando…' : '⬇ Descargar PDF completo'}
+            </button>
+          </div>
+
+          <div className="text-center text-xs text-gray-500 pt-1">
+            El PDF incluye el detalle por componente, áreas para reforzar y el plan de 12 semanas.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────
 
 type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading';
@@ -1065,67 +1243,17 @@ export default function PlacementSuitePage() {
   }
 
   if (phase === 'results') {
-    const agg = aggregateSuite(results);
     return (
       <PageBg>
-        <div className="w-full max-w-2xl space-y-4">
-          <div className="rounded-3xl overflow-hidden" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
-            <div className="px-8 py-8 text-white text-center" style={{ background: 'linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%)' }}>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-70">Overall level</p>
-              <p className="text-6xl font-black mt-1">{agg.overallLevel}</p>
-              <p className="text-sm mt-2 opacity-80">Nivel global (mínimo entre habilidades)</p>
-            </div>
-
-            <div className="bg-white p-6 space-y-5">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
-                  Nivel por habilidad
-                </p>
-                <div className="space-y-2">
-                  {ordered.map((cid) => {
-                    const lvl = agg.perSkillLevel[cid];
-                    const meta = COMPONENT_META[cid];
-                    return (
-                      <div key={cid} className="flex items-center gap-3 p-2.5 rounded-xl border" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
-                        <span className="text-xl">{meta.icon}</span>
-                        <p className="text-sm font-bold flex-1" style={{ color: B.purple }}>{meta.label}</p>
-                        <span className="px-3 py-1 rounded-full text-xs font-black" style={{ background: B.lavender, color: B.purple }}>
-                          {lvl ?? '—'}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {agg.mergedWeakAreas.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
-                    Áreas para reforzar
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {agg.mergedWeakAreas.slice(0, 10).map((w) => (
-                      <span key={w.topic} className="text-[10px] font-semibold px-2 py-1 rounded-full"
-                        style={{ background: w.pct === 0 ? '#FEE2E2' : '#FEF3C7', color: w.pct === 0 ? '#991B1B' : '#92400E' }}>
-                        {w.topic} · {w.pct}%
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {saveError && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                  ⚠️ Hubo un error guardando los resultados. Los resultados que ves acá son válidos, pero puede que no queden persistidos.
-                </p>
-              )}
-
-              <div className="text-center text-xs text-gray-500 pt-2">
-                El docente va a recibir el detalle completo con el programa de estudio sugerido.
-              </div>
-            </div>
-          </div>
-        </div>
+        <ResultsScreen
+          studentName={name}
+          studentEmail={email}
+          studentPhone={phone}
+          mode={config.mode}
+          components={ordered}
+          results={results}
+          saveError={saveError}
+        />
       </PageBg>
     );
   }

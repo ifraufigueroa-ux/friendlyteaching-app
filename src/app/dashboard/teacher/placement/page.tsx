@@ -429,6 +429,251 @@ function SessionModal({
 }
 
 // ── Assign test modal ─────────────────────────────────────────
+// ── Suite session view modal (teacher) ─────────────────────────────────────
+
+function SuiteSessionModal({
+  session, onClose,
+}: {
+  session: PlacementSuiteSession;
+  onClose: () => void;
+}) {
+  const [downloading, setDownloading] = useState(false);
+  const [tab, setTab] = useState<'results' | 'program'>('results');
+
+  async function handleDownloadPdf() {
+    setDownloading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedAtRaw = session.completedAt as any;
+      const completedAt = completedAtRaw
+        ? typeof completedAtRaw.toDate === 'function'
+          ? completedAtRaw.toDate().toISOString()
+          : new Date((completedAtRaw.seconds ?? 0) * 1000).toISOString()
+        : new Date().toISOString();
+
+      // Merge weak areas from all completed components (mirrors aggregateSuite)
+      const byTopic: Record<string, { total: number; correct: number }> = {};
+      for (const res of Object.values(session.results ?? {})) {
+        if (!res) continue;
+        for (const w of res.weakAreas ?? []) {
+          if (!byTopic[w.topic]) byTopic[w.topic] = { total: 0, correct: 0 };
+          byTopic[w.topic].total += w.total;
+          byTopic[w.topic].correct += w.correct;
+        }
+      }
+      const mergedWeakAreas = Object.entries(byTopic).map(([topic, b]) => ({
+        topic, total: b.total, correct: b.correct,
+        pct: b.total > 0 ? Math.round((b.correct / b.total) * 100) : 0,
+      })).sort((a, b) => a.pct - b.pct);
+
+      const res = await fetch('/api/export-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'placement-suite',
+          studentName:  session.studentName,
+          studentEmail: session.studentEmail,
+          studentPhone: session.studentPhone,
+          components:   session.components,
+          results:      session.results ?? {},
+          perSkillLevel: session.perSkillLevel,
+          overallLevel: session.overallLevel,
+          weakAreas:    mergedWeakAreas,
+          learningProgram: session.learningProgram,
+          completedAt,
+          mode:         session.mode,
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl shadow-2xl bg-white my-8"
+        style={{ boxShadow: '0 24px 60px -8px rgba(90,61,122,0.35)' }}>
+
+        {/* Hero */}
+        <div className="relative p-6 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%)' }}>
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5" />
+          <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/5" />
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-white/25 shrink-0"
+                style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+                <Image src="/logo-friendlyteaching.jpg" alt="FT" width={48} height={48} className="object-cover w-full h-full" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-white font-black leading-tight">{session.studentName}</p>
+                <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {session.studentEmail ?? '—'} · {formatDate(session.createdAt)}
+                </p>
+                <span className="inline-block text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mt-1"
+                  style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                  {session.mode === 'teacher-led' ? '👤 Live' : '🎓 Self'} · {session.components.length} componente{session.components.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              {session.overallLevel && (
+                <div className="text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.6)' }}>Overall</p>
+                  <span className="text-2xl font-black text-white px-4 py-1.5 rounded-xl block mt-1"
+                    style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    {session.overallLevel}
+                  </span>
+                </div>
+              )}
+              <button onClick={onClose} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b" style={{ borderColor: B.lavenderDark }}>
+          {(['results', 'program'] as const).map((t) => {
+            const active = tab === t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`flex-1 py-3 text-xs font-black uppercase tracking-widest transition-colors ${
+                  active ? '' : 'text-gray-400 hover:text-[#5A3D7A]'
+                }`}
+                style={active ? { color: B.purple, borderBottom: `2px solid ${B.purple}` } : {}}
+              >
+                {t === 'results' ? 'Resultados' : 'Programa 12 semanas'}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          {tab === 'results' && (
+            <>
+              {/* Per-skill */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
+                  Nivel por habilidad
+                </p>
+                <div className="space-y-2">
+                  {session.components.map((cid) => {
+                    const res = session.results?.[cid];
+                    const lvl = session.perSkillLevel?.[cid] ?? res?.placedLevel;
+                    const meta = COMPONENT_META[cid];
+                    if (!meta) return null;
+                    const answered = res?.totalAnswered ?? 0;
+                    const correct = res?.totalCorrect ?? 0;
+                    const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+                    return (
+                      <div key={cid} className="flex items-center gap-3 p-2.5 rounded-xl border"
+                        style={{ borderColor: B.lavenderDark, background: B.bg }}>
+                        <span className="text-xl">{meta.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold" style={{ color: B.purple }}>{meta.label}</p>
+                          <p className="text-[10px]" style={{ color: B.purpleMed }}>
+                            {correct}/{answered} correct · {pct}%
+                            {res?.stopped ? ' · auto-stopped' : ''}
+                          </p>
+                        </div>
+                        {lvl
+                          ? <LevelBadge level={lvl} />
+                          : <span className="text-xs" style={{ color: B.purpleLight }}>—</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Per-component section score bars */}
+              {session.components.map((cid) => {
+                const res = session.results?.[cid];
+                if (!res?.sectionScores?.length) return null;
+                const meta = COMPONENT_META[cid];
+                const visible = res.sectionScores.filter(s => s.total > 0);
+                if (visible.length === 0) return null;
+                return (
+                  <div key={`sec-${cid}`}>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
+                      {meta.icon} {meta.label} · desglose por nivel
+                    </p>
+                    <div className="space-y-1.5">
+                      {visible.map((s) => (
+                        <SectionBar key={`${cid}-${s.level}`} section={s} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {tab === 'program' && session.learningProgram && (
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
+                Plan personalizado — nivel {session.learningProgram.placedLevel}
+              </p>
+              <p className="text-[11px] mb-3" style={{ color: B.purpleMed }}>
+                12 semanas con foco en los {session.learningProgram.weakAreas.length} weak areas detectadas.
+              </p>
+              <div className="space-y-1.5">
+                {session.learningProgram.weeks.map((week) => {
+                  const phase = week.week <= 4 ? 0 : week.week <= 8 ? 1 : 2;
+                  const phaseAccent = phase === 0 ? '#5A3D7A' : phase === 1 ? '#0369A1' : '#047857';
+                  const phaseBg     = phase === 0 ? '#F0E5FF' : phase === 1 ? '#E0F2FE' : '#ECFDF5';
+                  return (
+                    <div key={week.week} className="flex gap-2 p-2.5 rounded-xl" style={{ background: phaseBg }}>
+                      <div className="w-9 h-9 rounded-lg text-white font-black text-[11px] flex items-center justify-center shrink-0"
+                        style={{ background: phaseAccent }}>W{week.week}</div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold" style={{ color: phaseAccent }}>{week.focus}</p>
+                        <p className="text-[10px] leading-snug" style={{ color: '#4B5563' }}>{week.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {tab === 'program' && !session.learningProgram && (
+            <p className="text-xs text-gray-500 text-center py-8">
+              Este test aún no tiene programa generado (probablemente no completó Grammar).
+            </p>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-2 pt-2 border-t" style={{ borderColor: B.lavenderDark }}>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: B.purple }}
+            >
+              {downloading ? '⏳ Generando…' : '⬇ Descargar PDF completo'}
+            </button>
+            <button
+              onClick={onClose}
+              className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Shared component + budget picker ──────────────────────────────────────
 //
 // Used by both the "assign to student" modal (step 2) and the "start live
@@ -818,6 +1063,7 @@ export default function PlacementDashboardPage() {
   const [selectedSession, setSelected] = useState<PlacementSession | null>(null);
   const [showAssignModal, setShowAssign] = useState(false);
   const [showLiveModal, setShowLive]     = useState(false);
+  const [selectedSuite, setSelectedSuite] = useState<PlacementSuiteSession | null>(null);
 
   const approvedStudents = (students ?? [])
     .filter(s => s.status === 'approved')
@@ -1059,7 +1305,11 @@ export default function PlacementDashboardPage() {
               <tbody>
                 {suiteSessions.map((s: PlacementSuiteSession, idx) => (
                   <tr key={s.id}
-                    style={{ background: idx % 2 === 0 ? 'white' : B.bg, borderTop: `1px solid ${B.lavender}` }}>
+                    onClick={() => setSelectedSuite(s)}
+                    className="cursor-pointer transition-colors"
+                    style={{ background: idx % 2 === 0 ? 'white' : B.bg, borderTop: `1px solid ${B.lavender}` }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = B.lavender)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 0 ? 'white' : B.bg)}>
                     <td className="px-4 py-3">
                       <p className="font-semibold" style={{ color: B.purple }}>{s.studentName}</p>
                       {s.studentEmail && <p className="text-xs" style={{ color: B.purpleMed }}>{s.studentEmail}</p>}
@@ -1120,6 +1370,13 @@ export default function PlacementDashboardPage() {
         <LiveTestSetupModal
           teacherId={uid}
           onClose={() => setShowLive(false)}
+        />
+      )}
+
+      {selectedSuite && (
+        <SuiteSessionModal
+          session={selectedSuite}
+          onClose={() => setSelectedSuite(null)}
         />
       )}
     </div>
