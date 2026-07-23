@@ -108,7 +108,7 @@ function Header({ subtitle }: { subtitle: string }) {
 // ── MCQ card (shared by Grammar / Vocabulary / Reading) ────────────────────
 
 function MCQCard({
-  prompt, options, selected, onSelect, confirmed, correctIdx, teacherLed,
+  prompt, options, selected, onSelect, confirmed, correctIdx,
 }: {
   prompt:     string;
   options:    readonly string[];
@@ -116,8 +116,10 @@ function MCQCard({
   onSelect:   (idx: number) => void;
   confirmed:  boolean;
   correctIdx: number;
-  teacherLed: boolean;
 }) {
+  // The correct answer is NEVER revealed before the student confirms — this
+  // holds in both student-self and teacher-led modes. Teacher-led only
+  // changes what the teacher sees AFTER confirmation (explanation panel).
   return (
     <div className="space-y-3">
       <p className="text-lg font-semibold leading-snug" style={{ color: B.purpleDark }}>
@@ -127,7 +129,6 @@ function MCQCard({
         {options.map((opt, idx) => {
           const isSelected = selected === idx;
           const isCorrect  = idx === correctIdx;
-          const revealCorrect = confirmed || teacherLed;
 
           let cls = 'w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ';
           if (confirmed) {
@@ -135,10 +136,6 @@ function MCQCard({
             else if (isSelected && !isCorrect) cls += 'bg-red-50 border-red-500 text-red-800';
             else if (isCorrect)                cls += 'bg-emerald-50 border-emerald-300 text-emerald-700';
             else                               cls += 'bg-white border-gray-200 text-gray-500';
-          } else if (teacherLed && isCorrect) {
-            cls += isSelected
-              ? 'bg-emerald-50 border-emerald-500 text-emerald-800 ring-2 ring-emerald-200'
-              : 'bg-emerald-50/60 border-emerald-300 text-emerald-800 ring-1 ring-emerald-200';
           } else if (isSelected) {
             cls += 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A] font-semibold';
           } else {
@@ -158,7 +155,7 @@ function MCQCard({
                 {String.fromCharCode(65 + idx)}
               </span>
               <span className="flex-1">{opt}</span>
-              {revealCorrect && isCorrect && (
+              {confirmed && isCorrect && (
                 <span className="text-emerald-600 text-lg">✓</span>
               )}
             </button>
@@ -280,10 +277,9 @@ function MCQRunner({
           onSelect={setSelected}
           confirmed={confirmed}
           correctIdx={q.correct}
-          teacherLed={teacherLed}
         />
 
-        {teacherLed && q.explanation && (
+        {teacherLed && confirmed && q.explanation && (
           <p className="mt-3 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <strong>Explanation:</strong> {q.explanation}
           </p>
@@ -420,10 +416,9 @@ function ReadingRunner({
             onSelect={setSelected}
             confirmed={confirmed}
             correctIdx={q.correct}
-            teacherLed={teacherLed}
           />
 
-          {teacherLed && q.explanation && (
+          {teacherLed && confirmed && q.explanation && (
             <p className="mt-3 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               <strong>Explanation:</strong> {q.explanation}
             </p>
