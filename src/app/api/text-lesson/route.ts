@@ -115,18 +115,19 @@ HARD RULES for slide 7:
 
 SLIDE 8 — type: "translation_game"
 { type, title: "Translate It!", phase: "post",
-  translationText: "One key passage from the text (2-6 sentences, COPIED VERBATIM)",
-  content: "La TRADUCCIÓN al ESPAÑOL del mismo pasaje — mismo número de oraciones, mismo orden. Reemplaza 5-7 palabras significativas con {{blank}}.",
+  translationText: "The COMPLETE English text COPIED VERBATIM (every line, every paragraph — do not trim).",
+  content: "La TRADUCCIÓN al ESPAÑOL del texto COMPLETO — mismo número de líneas, mismo orden de párrafos. Reemplaza aprox. 2 palabras significativas cada 3-4 líneas con {{blank}}, distribuidas por todo el texto (NO agrupadas al inicio).",
   blanksData: [ {word: "palabra_española_reemplazada", options: ["correcta", "distractor1_es", "distractor2_es", "distractor3_es"]} ]
 }
 HARD RULES for slide 8:
 - Translate into IDIOMATIC Latin American Spanish — not word-for-word.
-- translationText MUST be verbatim English from the text.
-- content MUST have the same number of lines as translationText, same order.
+- translationText MUST be the FULL English text, verbatim (every paragraph and line). Do NOT summarise or extract a passage.
+- content MUST have the same number of lines as translationText, same order, matching paragraph breaks.
+- Blank density: about 2 blanks every 3-4 lines. For a 20-line text expect ~12 blanks; for 30 lines expect ~17; for 40 lines expect ~23. Spread them across the whole text, never cluster at the start.
 - Blanks GUESSABLE from context — content words (nouns, verbs, adjectives) that a learner can infer.
 - Every option MUST be a real Spanish word. NEVER include English words.
-- Distractors same POS as correct, within ±2 letters length.
-- CEFR: A0/A1 → 5 blanks; A2/B1 → 5-6; B1+/B2 → 6-7; C1 → 7.
+- The correct answer MUST appear in the options array. Distractors same POS as correct, within ±2 letters length.
+- blanksData items must appear in the SAME ORDER as the {{blank}} markers in content.
 
 SLIDE 9 — type: "wrapup"
 { type, title: "Wrap Up", phase: "post",
@@ -226,7 +227,10 @@ Generate the 10-slide Friendlytext® CLT lesson JSON now.`;
       },
       body: JSON.stringify({
         model: CLAUDE_MODEL,
-        max_tokens: 6000,
+        // Bumped from 6000 because slide 8 now carries the FULL text
+        // translated to Spanish (previously just a 2-6 sentence passage),
+        // so the total JSON payload nearly doubles for longer texts.
+        max_tokens: 10000,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userPrompt }],
       }),

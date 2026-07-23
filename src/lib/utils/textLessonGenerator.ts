@@ -614,55 +614,116 @@ async function translateWithMyMemory(text: string): Promise<string | null> {
   }
 }
 
-const LEVEL_TRANSLATION_BLANKS: Record<string, number> = {
-  'A0': 5, 'A1': 5, 'A2': 6, 'B1': 6, 'B1+': 6, 'B2': 7, 'C1': 7,
+// MyMemory caps each query around 500 chars for anon usage — a full CLT
+// text (paragraphs of prose) blows past that. Translate paragraph-by-paragraph
+// and re-join, so the translation covers the whole text without ever hitting
+// the per-query limit.
+async function translateFullText(text: string): Promise<string | null> {
+  const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+  if (paragraphs.length === 0) return null;
+  const translated: string[] = [];
+  for (const p of paragraphs) {
+    // Split further if the paragraph itself is long — MyMemory is happier
+    // with chunks under ~450 chars.
+    const chunks = p.length > 450 ? p.match(/[^.!?]+[.!?]+|\S+$/g) ?? [p] : [p];
+    const merged: string[] = [];
+    for (const chunk of chunks) {
+      const es = await translateWithMyMemory(chunk.trim());
+      if (!es) return null;
+      merged.push(es);
+    }
+    translated.push(merged.join(' '));
+  }
+  return translated.join('\n\n');
+}
+
+// Roughly 2 blanks per 3-4 lines of translated Spanish, floored by CEFR.
+// Cap ceiling so absurdly long articles don't explode the slide.
+const LEVEL_TRANSLATION_MIN_BLANKS: Record<string, number> = {
+  'A0': 4, 'A1': 5, 'A2': 6, 'B1': 6, 'B1+': 7, 'B2': 8, 'C1': 8,
 };
 
 const ES_STOP = new Set(['de','la','el','los','las','un','una','y','a','que','en','por','con','no','sí','mi','tu','su','me','te','se','lo','le','del','para','pero','como','más','muy','sin','ni','tan','ya']);
 
-// Pick blank-worthy Spanish content words: ≥4 letters, not a stopword.
-function chooseSpanishBlanks(spanish: string, target: number): string[] {
+// Pick blank-worthy words distributed across the whole text — 2 blanks per
+// every 3-4 lines, spread evenly instead of clustered at the top. Returns
+// the words in the order they appear so downstream replaces preserve order.
+function chooseBlanksDistributed(
+  fullText: string,
+  minBlanks: number,
+  isSpanish: boolean,
+): string[] {
+  const stop = isSpanish
+    ? ES_STOP
+    : STOPWORDS;
+  const wordRe = isSpanish ? /[a-záéíóúñü']+/gi : /[a-z']+/gi;
+
+  const lines = fullText.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+
+  // Group lines into windows of ~3-4 lines, pick up to 2 blanks per window.
+  const WINDOW = 3;
+  const perWindow = 2;
   const seen = new Set<string>();
-  const candidates = (spanish.toLowerCase().match(/[a-záéíóúñü']+/g) ?? [])
-    .filter(w => w.length >= 4 && !ES_STOP.has(w));
   const picks: string[] = [];
-  for (const w of candidates) {
-    if (picks.length >= target) break;
-    if (seen.has(w)) continue;
-    seen.add(w);
-    picks.push(w);
+
+  for (let i = 0; i < lines.length; i += WINDOW) {
+    const chunk = lines.slice(i, i + WINDOW).join(' ');
+    const cands = (chunk.toLowerCase().match(wordRe) ?? [])
+      .filter(w => w.length >= 4 && !stop.has(w) && !seen.has(w));
+    // Sample deterministically-ish by spacing: first & middle candidate.
+    const sampled: string[] = [];
+    if (cands[0]) sampled.push(cands[0]);
+    if (cands.length > 3 && cands[Math.floor(cands.length / 2)]) {
+      const mid = cands[Math.floor(cands.length / 2)];
+      if (mid !== sampled[0]) sampled.push(mid);
+    } else if (cands[1] && cands[1] !== sampled[0]) {
+      sampled.push(cands[1]);
+    }
+    for (const w of sampled.slice(0, perWindow)) {
+      if (!seen.has(w)) { seen.add(w); picks.push(w); }
+    }
   }
+
+  // Level-floor: if the text is short, top up with any additional content
+  // words so we hit the CEFR minimum.
+  if (picks.length < minBlanks) {
+    const allCands = (fullText.toLowerCase().match(wordRe) ?? [])
+      .filter(w => w.length >= 4 && !stop.has(w) && !seen.has(w));
+    for (const w of allCands) {
+      if (picks.length >= minBlanks) break;
+      if (!seen.has(w)) { seen.add(w); picks.push(w); }
+    }
+  }
+
   return picks;
 }
 
-async function buildTranslationGame(passage: string, text: string, level: LessonLevel): Promise<Slide> {
-  const englishPassage = passage.split('\n').filter(l => l.trim()).join('\n');
-  const targetBlanks   = LEVEL_TRANSLATION_BLANKS[level] ?? 6;
+// Case-insensitive whole-word replace of ONE occurrence, preserving the
+// rest of the string. Used to swap chosen content words for {{blank}}.
+function replaceFirstWord(input: string, word: string): string {
+  return input.replace(new RegExp(`\\b${word}\\b`, 'i'), '{{blank}}');
+}
 
-  const spanish = await translateWithMyMemory(englishPassage);
+async function buildTranslationGame(text: string, level: LessonLevel): Promise<Slide> {
+  // The whole text goes into the game now — not just findKeyPassage() —
+  // so students see and translate every paragraph they read.
+  const englishFull = text.split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+  const numLines    = englishFull.split('\n').length;
+  const minBlanks   = LEVEL_TRANSLATION_MIN_BLANKS[level] ?? 6;
+  // 2 blanks per 3 lines, floored by CEFR minimum, capped to keep the UI sane.
+  const targetBlanks = Math.max(minBlanks, Math.min(40, Math.round(numLines * 2 / 3)));
+
+  const spanish = await translateFullText(englishFull);
 
   // Degraded path: no usable Spanish → honest English cloze so we never
   // mislabel English as Spanish.
   if (!spanish) {
-    const allWords = Array.from(new Set(getContentWords(text)));
-    const passageLines = englishPassage.split('\n');
-    const wordsToBlank: string[] = [];
-    const seenEn = new Set<string>();
-    for (const line of passageLines) {
-      if (wordsToBlank.length >= targetBlanks) break;
-      for (const w of shuffle(getContentWords(line))) {
-        if (!seenEn.has(w) && wordsToBlank.length < targetBlanks) {
-          wordsToBlank.push(w);
-          seenEn.add(w);
-          break;
-        }
-      }
-    }
-    let blankedEn = englishPassage;
-    for (const w of wordsToBlank) {
-      blankedEn = blankedEn.replace(new RegExp(`\\b${w}\\b`, 'i'), '{{blank}}');
-    }
-    const distractorPoolEn = allWords.filter(w => !seenEn.has(w));
+    const wordsToBlank = chooseBlanksDistributed(englishFull, targetBlanks, false);
+    let blankedEn = englishFull;
+    for (const w of wordsToBlank) blankedEn = replaceFirstWord(blankedEn, w);
+    const distractorPoolEn = Array.from(new Set(getContentWords(text)))
+      .filter(w => !wordsToBlank.includes(w));
     const blanksData: LyricsBlank[] = wordsToBlank.map(w => {
       const d = shuffle(distractorPoolEn.filter(x => x !== w)).slice(0, 3);
       return { word: w, options: shuffle([w, ...d]) };
@@ -671,22 +732,20 @@ async function buildTranslationGame(passage: string, text: string, level: Lesson
       id: 'translation-game',
       type: 'translation_game',
       phase: 'post',
-      title: 'Complete the Passage',
-      translationText: englishPassage,
+      title: 'Complete the Text',
+      translationText: englishFull,
       content: blankedEn,
       blanksData,
     };
   }
 
-  // Good path: pick Spanish blanks + Spanish-word distractors from the translation.
-  const blanks = chooseSpanishBlanks(spanish, targetBlanks);
+  // Good path: pick Spanish blanks distributed across the translation.
+  const blanks = chooseBlanksDistributed(spanish, targetBlanks, true);
   const spanishPool = Array.from(new Set((spanish.toLowerCase().match(/[a-záéíóúñü']+/g) ?? [])
     .filter(w => w.length >= 4 && !ES_STOP.has(w) && !blanks.includes(w))));
 
   let blankedEs = spanish;
-  for (const w of blanks) {
-    blankedEs = blankedEs.replace(new RegExp(`\\b${w}\\b`, 'i'), '{{blank}}');
-  }
+  for (const w of blanks) blankedEs = replaceFirstWord(blankedEs, w);
 
   const blanksData: LyricsBlank[] = blanks.map(w => {
     // Length-similar distractors from the same passage — real Spanish words the
@@ -704,8 +763,8 @@ async function buildTranslationGame(passage: string, text: string, level: Lesson
     id: 'translation-game',
     type: 'translation_game',
     phase: 'post',
-    title: '¡Traduce el pasaje!',
-    translationText: englishPassage,
+    title: '¡Traduce el texto!',
+    translationText: englishFull,
     content: blankedEs,
     blanksData,
   };
@@ -766,8 +825,6 @@ export async function generateTextLessonAlgorithmically(
   level: LessonLevel,
   comprehensionMode: ComprehensionMode = 'both',
 ): Promise<Slide[]> {
-  const passage = findKeyPassage(text);
-
   // Slide 4 needs textData at render time; the editor already re-enriches
   // every text_* slide with the full TextData object before saving, so we
   // only need to seed a minimal TextData here for previews.
@@ -789,7 +846,7 @@ export async function generateTextLessonAlgorithmically(
   const comprehensionQuiz  = buildComprehensionQuiz(text, title);
   const langFocus          = buildLanguageFocus(text, level, title);
   const langPractice       = buildLanguagePractice(text, level);
-  const translationGame    = await buildTranslationGame(passage, text, level);
+  const translationGame    = await buildTranslationGame(text, level);
   const wrapupSlide        = buildWrapupSlide(title, source, text, level, comprehensionMode);
 
   const endSlide: Slide = {
