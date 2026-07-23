@@ -429,6 +429,233 @@ function SessionModal({
 }
 
 // ── Assign test modal ─────────────────────────────────────────
+// ── Shared component + budget picker ──────────────────────────────────────
+//
+// Used by both the "assign to student" modal (step 2) and the "start live
+// test" modal. Owns the presets / component toggles / budget sliders and
+// reports the currently-selected config through onChange.
+
+function SuiteConfigForm({
+  value, onChange,
+}: {
+  value: { components: ComponentId[]; budgets: Budgets; presetId: string };
+  onChange: (v: { components: ComponentId[]; budgets: Budgets; presetId: string }) => void;
+}) {
+  const { components, budgets, presetId } = value;
+
+  function applyPreset(preset: Preset) {
+    onChange({ components: preset.components, budgets: preset.budgets, presetId: preset.id });
+  }
+  function toggleComponent(id: ComponentId) {
+    onChange({
+      ...value,
+      components: components.includes(id) ? components.filter(c => c !== id) : [...components, id],
+      presetId: 'custom',
+    });
+  }
+  function setBudget(k: keyof Budgets, v: number) {
+    onChange({ ...value, budgets: { ...budgets, [k]: v }, presetId: 'custom' });
+  }
+
+  return (
+    <>
+      {/* Presets */}
+      <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+        Preset
+      </label>
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {PRESETS.map((p) => {
+          const active = presetId === p.id;
+          return (
+            <button
+              key={p.id}
+              onClick={() => applyPreset(p)}
+              className={`text-left rounded-xl p-3 border-2 transition-all ${
+                active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+              }`}
+            >
+              <p className="text-sm font-bold text-[#5A3D7A]">{p.label}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">{p.description}</p>
+            </button>
+          );
+        })}
+        <button
+          onClick={() => onChange({ ...value, presetId: 'custom' })}
+          className={`text-left rounded-xl p-3 border-2 transition-all col-span-2 ${
+            presetId === 'custom' ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-dashed border-gray-300 bg-white hover:border-[#C8A8DC]'
+          }`}
+        >
+          <p className="text-sm font-bold text-[#5A3D7A]">✨ Custom</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Elegí exactamente qué evaluar.</p>
+        </button>
+      </div>
+
+      {/* Component toggles */}
+      <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+        Componentes
+      </label>
+      <div className="space-y-1.5 mb-4">
+        {Object.values(COMPONENT_META).map((meta) => {
+          const active = components.includes(meta.id);
+          const disabled = !meta.available;
+          return (
+            <button
+              key={meta.id}
+              onClick={() => !disabled && toggleComponent(meta.id)}
+              disabled={disabled}
+              className={`w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all text-left ${
+                active ? 'border-[#5A3D7A] bg-[#F0E5FF]'
+                : disabled ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+                : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+              }`}
+            >
+              <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300'
+              }`}>{active ? '✓' : ''}</span>
+              <span className="text-lg shrink-0">{meta.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
+                  {disabled && (
+                    <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      Próximo
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-gray-500 leading-tight">{meta.description}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Budget sliders */}
+      {(components.includes('grammar') || components.includes('vocabulary') || components.includes('reading')) && (
+        <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3 space-y-3">
+          <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
+            Cantidad de preguntas
+          </p>
+          {components.includes('grammar') && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar (adaptativo)</label>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">tope {budgets.grammar} Q</span>
+              </div>
+              <input type="range" min={10} max={60} step={5} value={budgets.grammar}
+                onChange={e => setBudget('grammar', Number(e.target.value))}
+                className="w-full accent-[#5A3D7A]" />
+              <p className="text-[10px] text-gray-500 leading-tight">
+                Arranca en A1 y sube. Sube tras 3 correctas seguidas, baja tras 3 erradas seguidas. Frena al encontrar el techo.
+              </p>
+            </div>
+          )}
+          {components.includes('vocabulary') && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-[#2D1B4E]">💬 Vocabulary</label>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.vocabulary} Q</span>
+              </div>
+              <input type="range" min={5} max={40} step={5} value={budgets.vocabulary}
+                onChange={e => setBudget('vocabulary', Number(e.target.value))}
+                className="w-full accent-[#5A3D7A]" />
+              <p className="text-[10px] text-gray-500 leading-tight">
+                Calibrado al ±1 del nivel estimado por Grammar.
+              </p>
+            </div>
+          )}
+          {components.includes('reading') && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-[#2D1B4E]">📖 Reading</label>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} pasaje{budgets.reading !== 1 ? 's' : ''}</span>
+              </div>
+              <input type="range" min={1} max={6} step={1} value={budgets.reading}
+                onChange={e => setBudget('reading', Number(e.target.value))}
+                className="w-full accent-[#5A3D7A]" />
+              <p className="text-[10px] text-gray-500 leading-tight">
+                Pasajes cercanos al nivel estimado por Grammar, más cercano primero.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Summary */}
+      <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl px-3 py-2 mb-4 flex items-center justify-between">
+        <p className="text-xs text-[#5A3D7A]">
+          <strong>{components.length}</strong> componente{components.length !== 1 ? 's' : ''} seleccionado{components.length !== 1 ? 's' : ''}
+        </p>
+        <p className="text-xs font-bold text-[#5A3D7A]">≈ {estimateMinutes(components, budgets)} min total</p>
+      </div>
+    </>
+  );
+}
+
+// ── Live-test setup (teacher-led launch) ──────────────────────────────────
+
+function LiveTestSetupModal({
+  teacherId, onClose,
+}: {
+  teacherId: string;
+  onClose: () => void;
+}) {
+  const standard = PRESETS.find(p => p.id === 'standard')!;
+  const [cfg, setCfg] = useState<{ components: ComponentId[]; budgets: Budgets; presetId: string }>({
+    components: standard.components,
+    budgets:    standard.budgets,
+    presetId:   standard.id,
+  });
+
+  function launch() {
+    if (cfg.components.length === 0) return;
+    const params = new URLSearchParams({
+      mode:       'teacher-led',
+      components: cfg.components.join(','),
+      g:          String(cfg.budgets.grammar),
+      v:          String(cfg.budgets.vocabulary),
+      r:          String(cfg.budgets.reading),
+    });
+    window.open(`/placement-suite/${teacherId}?${params.toString()}`, '_blank', 'noopener,noreferrer');
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl bg-white my-8">
+        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-base font-bold text-white">Iniciar test en vivo</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                Modo teacher-led · se abre en una pestaña nueva.
+              </p>
+            </div>
+            <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <SuiteConfigForm value={cfg} onChange={setCfg} />
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
+              Cancelar
+            </button>
+            <button
+              onClick={launch}
+              disabled={cfg.components.length === 0}
+              className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
+              style={{ background: '#5A3D7A' }}
+            >
+              ▶ Iniciar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AssignTestModal({
   teacherId,
   approvedStudents,
@@ -449,26 +676,6 @@ function AssignTestModal({
   const [done, setDone]     = useState(false);
 
   const selected = approvedStudents.find(s => s.uid === selectedUid);
-
-  function applyPreset(preset: Preset) {
-    setSelectedPresetId(preset.id);
-    setComponents(preset.components);
-    setBudgets(preset.budgets);
-  }
-
-  function toggleComponent(id: ComponentId) {
-    setSelectedPresetId('custom');
-    setComponents((prev) =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id],
-    );
-  }
-
-  function setBudget(k: keyof Budgets, v: number) {
-    setSelectedPresetId('custom');
-    setBudgets(prev => ({ ...prev, [k]: v }));
-  }
-
-  const estimatedMin = estimateMinutes(components, budgets);
 
   async function handleAssign() {
     if (!selected) return;
@@ -522,7 +729,7 @@ function AssignTestModal({
               <p className="text-3xl mb-2">✅</p>
               <p className="font-semibold text-[#5A3D7A]">Test asignado a {selected?.fullName}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {components.length} componente{components.length !== 1 ? 's' : ''} · ~{estimatedMin} min
+                {components.length} componente{components.length !== 1 ? 's' : ''} · ~{estimateMinutes(components, budgets)} min
               </p>
               <button onClick={onClose}
                 className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
@@ -566,154 +773,10 @@ function AssignTestModal({
             </>
           ) : (
             <>
-              {/* Presets */}
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-                Preset
-              </label>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {PRESETS.map((p) => {
-                  const active = selectedPresetId === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => applyPreset(p)}
-                      className={`text-left rounded-xl p-3 border-2 transition-all ${
-                        active
-                          ? 'border-[#5A3D7A] bg-[#F0E5FF]'
-                          : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
-                      }`}
-                    >
-                      <p className="text-sm font-bold text-[#5A3D7A]">{p.label}</p>
-                      <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">{p.description}</p>
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setSelectedPresetId('custom')}
-                  className={`text-left rounded-xl p-3 border-2 transition-all col-span-2 ${
-                    selectedPresetId === 'custom'
-                      ? 'border-[#5A3D7A] bg-[#F0E5FF]'
-                      : 'border-dashed border-gray-300 bg-white hover:border-[#C8A8DC]'
-                  }`}
-                >
-                  <p className="text-sm font-bold text-[#5A3D7A]">✨ Custom</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5">Elegí exactamente qué evaluar.</p>
-                </button>
-              </div>
-
-              {/* Component toggles */}
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-                Componentes
-              </label>
-              <div className="space-y-1.5 mb-4">
-                {Object.values(COMPONENT_META).map((meta) => {
-                  const active = components.includes(meta.id);
-                  const disabled = !meta.available;
-                  return (
-                    <button
-                      key={meta.id}
-                      onClick={() => !disabled && toggleComponent(meta.id)}
-                      disabled={disabled}
-                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all text-left ${
-                        active
-                          ? 'border-[#5A3D7A] bg-[#F0E5FF]'
-                          : disabled
-                            ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
-                            : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
-                      }`}
-                    >
-                      <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                        active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300'
-                      }`}>
-                        {active ? '✓' : ''}
-                      </span>
-                      <span className="text-lg shrink-0">{meta.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
-                          {disabled && (
-                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                              Próximo
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-gray-500 leading-tight">{meta.description}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Per-component budget sliders */}
-              {(components.includes('grammar') || components.includes('vocabulary') || components.includes('reading')) && (
-                <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3 space-y-3">
-                  <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-                    Cantidad de preguntas
-                  </p>
-
-                  {components.includes('grammar') && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar (adaptativo)</label>
-                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">tope {budgets.grammar} Q</span>
-                      </div>
-                      <input
-                        type="range" min={10} max={60} step={5}
-                        value={budgets.grammar}
-                        onChange={e => setBudget('grammar', Number(e.target.value))}
-                        className="w-full accent-[#5A3D7A]"
-                      />
-                      <p className="text-[10px] text-gray-500 leading-tight">
-                        Camina niveles CEFR y frena al encontrar el techo. Rara vez llega al tope.
-                      </p>
-                    </div>
-                  )}
-
-                  {components.includes('vocabulary') && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-[#2D1B4E]">💬 Vocabulary</label>
-                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.vocabulary} Q</span>
-                      </div>
-                      <input
-                        type="range" min={5} max={40} step={5}
-                        value={budgets.vocabulary}
-                        onChange={e => setBudget('vocabulary', Number(e.target.value))}
-                        className="w-full accent-[#5A3D7A]"
-                      />
-                      <p className="text-[10px] text-gray-500 leading-tight">
-                        Calibrado al ±1 del nivel estimado por Grammar.
-                      </p>
-                    </div>
-                  )}
-
-                  {components.includes('reading') && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-[#2D1B4E]">📖 Reading</label>
-                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} pasaje{budgets.reading !== 1 ? 's' : ''}</span>
-                      </div>
-                      <input
-                        type="range" min={1} max={6} step={1}
-                        value={budgets.reading}
-                        onChange={e => setBudget('reading', Number(e.target.value))}
-                        className="w-full accent-[#5A3D7A]"
-                      />
-                      <p className="text-[10px] text-gray-500 leading-tight">
-                        Pasajes cercanos al nivel estimado por Grammar, más cercano primero.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Summary */}
-              <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl px-3 py-2 mb-4 flex items-center justify-between">
-                <p className="text-xs text-[#5A3D7A]">
-                  <strong>{components.length}</strong> componente{components.length !== 1 ? 's' : ''} seleccionado{components.length !== 1 ? 's' : ''}
-                </p>
-                <p className="text-xs font-bold text-[#5A3D7A]">≈ {estimatedMin} min total</p>
-              </div>
+              <SuiteConfigForm
+                value={{ components, budgets, presetId: selectedPresetId }}
+                onChange={(v) => { setComponents(v.components); setBudgets(v.budgets); setSelectedPresetId(v.presetId); }}
+              />
 
               {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-3">{error}</p>}
 
@@ -754,6 +817,7 @@ export default function PlacementDashboardPage() {
   const [search, setSearch]             = useState('');
   const [selectedSession, setSelected] = useState<PlacementSession | null>(null);
   const [showAssignModal, setShowAssign] = useState(false);
+  const [showLiveModal, setShowLive]     = useState(false);
 
   const approvedStudents = (students ?? [])
     .filter(s => s.status === 'approved')
@@ -802,15 +866,14 @@ export default function PlacementDashboardPage() {
             style={{ background: B.purple }}>
             + Asignar a estudiante
           </button>
-          <a
-            href={uid ? `/placement-suite/${uid}?mode=teacher-led` : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 border-2 ${!uid ? 'opacity-40 cursor-not-allowed' : ''}`}
+          <button
+            onClick={() => uid && setShowLive(true)}
+            disabled={!uid}
+            className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 border-2 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'white', color: B.purple, borderColor: B.purple }}
           >
             ▶ Iniciar test en vivo
-          </a>
+          </button>
           {testUrl && (
             <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
               <span className="text-xs font-semibold" style={{ color: B.purple }}>Test link:</span>
@@ -1050,6 +1113,13 @@ export default function PlacementDashboardPage() {
           teacherId={uid}
           approvedStudents={approvedStudents}
           onClose={() => setShowAssign(false)}
+        />
+      )}
+
+      {showLiveModal && (
+        <LiveTestSetupModal
+          teacherId={uid}
+          onClose={() => setShowLive(false)}
         />
       )}
     </div>

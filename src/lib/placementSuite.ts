@@ -28,51 +28,54 @@ const LEVEL_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 // ── Adaptive Grammar engine ────────────────────────────────────────────────
 //
 // The runner walks CEFR tiers instead of asking every question linearly.
-// Config:
-//   - startLevel:       where the first tier begins (default 'A2')
-//   - questionsPerTier: how many Q's to sample at each tier before deciding
-//   - passThreshold:    fraction correct to move up (default 0.6)
-//   - failThreshold:    fraction correct below which we drop (default 0.4)
-//   - hardCap:          absolute max Q's asked across all tiers (from budget)
-//
-// Termination:
-//   - Passed level X but failed level X+1 → placed at X (ceiling found).
-//   - Failed A0 → placed at A0.
-//   - hardCap reached → placed at the highest passed level so far (or A0).
+// - Starts from the bottom (A1) and climbs.
+// - Reacts to STREAKS within each tier:
+//     · `advanceOn` correct-in-a-row → mark tier passed, move up.
+//     · `dropOn` wrong-in-a-row     → mark tier failed, move down.
+// - `questionsPerTier` is a hard cap per tier — if we hit it before either
+//   streak triggers, we settle on majority (≥ passThreshold = passed).
+// - `hardCap` bounds total questions across the whole run.
+// - Terminates as soon as a ceiling is found (passed X, failed X+1).
 
 export interface AdaptiveState {
-  currentLevel: LessonLevel;
-  tierAsked:    PlacementQuestion[];   // Q's asked at currentLevel
-  tierAnswers:  PlacementAnswer[];     // answers at currentLevel
-  passedLevels: Set<LessonLevel>;
-  failedLevels: Set<LessonLevel>;
-  askedIds:     Set<number>;
-  totalAsked:   number;
-  direction:    'up' | 'down' | 'settle';
-  done:         boolean;
-  placedLevel:  LessonLevel;
+  currentLevel:       LessonLevel;
+  tierAsked:          PlacementQuestion[];   // Q's asked at currentLevel
+  tierAnswers:        PlacementAnswer[];     // answers at currentLevel
+  passedLevels:       Set<LessonLevel>;
+  failedLevels:       Set<LessonLevel>;
+  askedIds:           Set<number>;
+  totalAsked:         number;
+  consecCorrectTier:  number;                 // running streak within current tier
+  consecWrongTier:    number;
+  direction:          'up' | 'down' | 'settle';
+  done:               boolean;
+  placedLevel:        LessonLevel;
 }
 
 export interface AdaptiveConfig {
-  hardCap:          number;
-  startLevel?:      LessonLevel;
-  questionsPerTier?: number;
-  passThreshold?:   number;
-  failThreshold?:   number;
+  hardCap:           number;
+  startLevel?:       LessonLevel;   // default 'A1' — climb from the bottom
+  questionsPerTier?: number;        // default 5 (safety cap per tier)
+  advanceOn?:        number;        // consecutive correct → move up (default 3)
+  dropOn?:           number;        // consecutive wrong  → move down (default 3)
+  passThreshold?:    number;        // majority pass at questionsPerTier (default 0.6)
+  failThreshold?:    number;        // majority fail at questionsPerTier (default 0.4)
 }
 
 export function initAdaptiveState(cfg: AdaptiveConfig): AdaptiveState {
   return {
-    currentLevel: cfg.startLevel ?? 'A2',
-    tierAsked:    [],
-    tierAnswers:  [],
-    passedLevels: new Set(),
-    failedLevels: new Set(),
-    askedIds:     new Set(),
-    totalAsked:   0,
-    direction:    'up',
-    done:         false,
-    placedLevel:  'A0',
+    currentLevel:      cfg.startLevel ?? 'A1',
+    tierAsked:         [],
+    tierAnswers:       [],
+    passedLevels:      new Set(),
+    failedLevels:      new Set(),
+    askedIds:          new Set(),
+    totalAsked:        0,
+    consecCorrectTier: 0,
+    consecWrongTier:   0,
+    direction:         'up',
+    done:              false,
+    placedLevel:       'A0',
   };
 }
 
@@ -90,11 +93,19 @@ export function pickNextAdaptiveQuestion(
 }
 
 /** Record an answer and decide what happens next. Returns a NEW state.
- *  If the tier is complete, mutates transitions:
- *    - accuracy ≥ passThreshold → mark passed, move up
- *    - accuracy ≤ failThreshold → mark failed, move down (or terminate)
- *    - between → mark this tier as passed (marginal) and move up
- *  Termination happens when we've both passed X and failed X+1, or hit hardCap.
+ *
+ *  Transition rules (in order):
+ *    1. hardCap reached → done, place at highest passed (or A0).
+ *    2. `advanceOn` consecutive-correct at this tier → mark passed, move up.
+ *    3. `dropOn` consecutive-wrong at this tier      → mark failed, move down.
+ *    4. `questionsPerTier` reached without a streak → decide on majority:
+ *         accuracy ≥ passThreshold → passed, up
+ *         accuracy ≤ failThreshold → failed, down
+ *         otherwise                → count as passed and go up
+ *    5. Otherwise → keep asking at currentLevel.
+ *
+ *  A "ceiling" is found when we've both passed X and failed X+1; at that
+ *  point the placement is X (or A0 if we failed A0 outright).
  */
 export function recordAdaptiveAnswer(
   state: AdaptiveState,
@@ -102,87 +113,100 @@ export function recordAdaptiveAnswer(
   answer: PlacementAnswer,
   cfg: AdaptiveConfig,
 ): AdaptiveState {
-  const perTier   = cfg.questionsPerTier ?? 5;
-  const passT     = cfg.passThreshold    ?? 0.6;
-  const failT     = cfg.failThreshold    ?? 0.4;
+  const perTier    = cfg.questionsPerTier ?? 5;
+  const advanceOn  = cfg.advanceOn        ?? 3;
+  const dropOn     = cfg.dropOn           ?? 3;
+  const passT      = cfg.passThreshold    ?? 0.6;
+  const failT      = cfg.failThreshold    ?? 0.4;
 
   const tierAsked   = [...state.tierAsked, question];
   const tierAnswers = [...state.tierAnswers, answer];
   const askedIds    = new Set(state.askedIds); askedIds.add(question.id);
   const totalAsked  = state.totalAsked + 1;
 
+  const consecCorrect = answer.correct ? state.consecCorrectTier + 1 : 0;
+  const consecWrong   = answer.correct ? 0 : state.consecWrongTier + 1;
+
   // Hard cap → commit to whatever is highest so far.
   if (totalAsked >= cfg.hardCap) {
-    const placed = highestPassed(state.passedLevels) ?? 'A0';
-    return { ...state, tierAsked, tierAnswers, askedIds, totalAsked, done: true, placedLevel: placed };
+    const placed = highestPassed(state.passedLevels) ?? state.currentLevel;
+    return {
+      ...state, tierAsked, tierAnswers, askedIds, totalAsked,
+      consecCorrectTier: consecCorrect, consecWrongTier: consecWrong,
+      done: true, placedLevel: placed,
+    };
   }
 
-  // Not enough answers in this tier yet — keep asking at currentLevel.
-  if (tierAnswers.length < perTier) {
-    return { ...state, tierAsked, tierAnswers, askedIds, totalAsked };
-  }
-
-  // Tier complete — compute accuracy and decide direction.
-  const correct = tierAnswers.filter(a => a.correct).length;
-  const pct     = correct / tierAnswers.length;
-  const passed  = new Set(state.passedLevels);
-  const failed  = new Set(state.failedLevels);
-
+  // Helper: transition to nextLevel (or terminate) after passing or failing.
+  const passed = new Set(state.passedLevels);
+  const failed = new Set(state.failedLevels);
   let nextLevel: LessonLevel = state.currentLevel;
   let direction: 'up' | 'down' | 'settle' = state.direction;
   let done = false;
   let placed: LessonLevel = state.placedLevel;
+  let decided = false;
 
-  if (pct >= passT) {
-    passed.add(state.currentLevel);
-    // Passed → try one level up if we're not at the top.
-    const up = nextLevelUp(state.currentLevel);
-    if (up === null) {
-      // Already at C1 and passed — placed at C1, done.
-      done = true; placed = 'C1';
-    } else if (failed.has(up)) {
-      // We already failed this level going down before — ceiling found.
-      done = true; placed = state.currentLevel;
-    } else {
-      nextLevel = up; direction = 'up';
-    }
-  } else if (pct <= failT) {
-    failed.add(state.currentLevel);
-    // Failed → drop one level unless we already passed something lower.
-    if (state.direction === 'up' && passed.size > 0) {
-      // We came from below and just crashed. Placed at the highest passed.
-      done = true; placed = highestPassed(passed) ?? 'A0';
-    } else {
-      const down = nextLevelDown(state.currentLevel);
-      if (down === null) {
-        // Failed A0 — placed at A0.
-        done = true; placed = 'A0';
-      } else if (passed.has(down)) {
-        done = true; placed = down;
-      } else {
-        nextLevel = down; direction = 'down';
-      }
-    }
-  } else {
-    // Marginal (between failT and passT). Count as passed and try up.
+  function transitionPass() {
+    decided = true;
     passed.add(state.currentLevel);
     const up = nextLevelUp(state.currentLevel);
     if (up === null) { done = true; placed = 'C1'; }
     else if (failed.has(up)) { done = true; placed = state.currentLevel; }
     else { nextLevel = up; direction = 'up'; }
   }
+  function transitionFail() {
+    decided = true;
+    failed.add(state.currentLevel);
+    // If we came UP into a level and crashed here, settle at the highest passed.
+    if (state.direction === 'up' && passed.size > 0) {
+      done = true; placed = highestPassed(passed) ?? 'A0';
+      return;
+    }
+    const down = nextLevelDown(state.currentLevel);
+    if (down === null) { done = true; placed = 'A0'; }
+    else if (passed.has(down)) { done = true; placed = down; }
+    else { nextLevel = down; direction = 'down'; }
+  }
+
+  // 2. Advance streak.
+  if (consecCorrect >= advanceOn) {
+    transitionPass();
+  }
+  // 3. Drop streak.
+  else if (consecWrong >= dropOn) {
+    transitionFail();
+  }
+  // 4. Reached per-tier cap → decide on majority.
+  else if (tierAnswers.length >= perTier) {
+    const correct = tierAnswers.filter(a => a.correct).length;
+    const pct     = correct / tierAnswers.length;
+    if (pct >= passT)       transitionPass();
+    else if (pct <= failT)  transitionFail();
+    else                    transitionPass();  // marginal → pass and try higher
+  }
+
+  // 5. Not decided → keep asking at the same tier.
+  if (!decided) {
+    return {
+      ...state, tierAsked, tierAnswers, askedIds, totalAsked,
+      consecCorrectTier: consecCorrect, consecWrongTier: consecWrong,
+    };
+  }
 
   return {
-    currentLevel: nextLevel,
-    tierAsked:    done ? tierAsked : [],
-    tierAnswers:  done ? tierAnswers : [],
-    passedLevels: passed,
-    failedLevels: failed,
+    currentLevel:      nextLevel,
+    tierAsked:         done ? tierAsked : [],
+    tierAnswers:       done ? tierAnswers : [],
+    passedLevels:      passed,
+    failedLevels:      failed,
     askedIds,
     totalAsked,
+    // Reset per-tier streaks on transition.
+    consecCorrectTier: done ? consecCorrect : 0,
+    consecWrongTier:   done ? consecWrong   : 0,
     direction,
     done,
-    placedLevel:  done ? placed : highestPassed(passed) ?? 'A0',
+    placedLevel:       done ? placed : highestPassed(passed) ?? 'A0',
   };
 }
 

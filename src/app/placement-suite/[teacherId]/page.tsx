@@ -315,8 +315,10 @@ function AdaptiveGrammarRunner({
 }) {
   const cfg = useMemo(() => ({
     hardCap,
-    startLevel:       'A2' as LessonLevel,
+    startLevel:       'A1' as LessonLevel,
     questionsPerTier: 5,
+    advanceOn:        3,
+    dropOn:           3,
     passThreshold:    0.6,
     failThreshold:    0.4,
   }), [hardCap]);
@@ -626,6 +628,12 @@ export default function PlacementSuitePage() {
   const emailParam        = searchParams.get('email') ?? '';
   const modeParam         = (searchParams.get('mode') as SuiteMode | null) ?? null;
 
+  // URL-driven config (for teacher-led launches without an assignment doc).
+  const componentsParam = searchParams.get('components') ?? '';
+  const gParam = Number(searchParams.get('g') ?? '');
+  const vParam = Number(searchParams.get('v') ?? '');
+  const rParam = Number(searchParams.get('r') ?? '');
+
   const [phase, setPhase] = useState<Phase>(assignmentIdParam ? 'loading' : 'landing');
   const [name, setName]   = useState(nameParam);
   const [email, setEmail] = useState(emailParam);
@@ -634,9 +642,19 @@ export default function PlacementSuitePage() {
 
   const [config, setConfig] = useState<SuiteConfig>(() => {
     const standard = PRESETS.find(p => p.id === 'standard')!;
+    // URL params override the standard preset when present (used by the
+    // "Iniciar test en vivo" flow, which passes config via query string).
+    const urlComponents = componentsParam
+      ? componentsParam.split(',').filter(Boolean) as ComponentId[]
+      : null;
+    const urlBudgets: Budgets = {
+      grammar:    isFinite(gParam) && gParam > 0 ? gParam : standard.budgets.grammar,
+      vocabulary: isFinite(vParam) && vParam > 0 ? vParam : standard.budgets.vocabulary,
+      reading:    isFinite(rParam) && rParam > 0 ? rParam : standard.budgets.reading,
+    };
     return {
-      components: standard.components,
-      budgets:    standard.budgets,
+      components: urlComponents && urlComponents.length > 0 ? urlComponents : standard.components,
+      budgets:    urlBudgets,
       mode:       modeParam ?? 'student-self',
     };
   });
