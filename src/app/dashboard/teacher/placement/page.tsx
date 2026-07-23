@@ -545,7 +545,7 @@ function SuiteConfigForm({
                 onChange={e => setBudget('grammar', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
-                Arranca en A1 y sube. Sube tras 3 correctas seguidas, baja tras 3 erradas seguidas. Frena al encontrar el techo.
+                Arranca en A1 y sube. Sube tras 4 correctas seguidas, baja tras 3 erradas seguidas. Frena al encontrar el techo.
               </p>
             </div>
           )}

@@ -316,9 +316,9 @@ function AdaptiveGrammarRunner({
   const cfg = useMemo(() => ({
     hardCap,
     startLevel:       'A1' as LessonLevel,
-    questionsPerTier: 5,
-    advanceOn:        3,
-    dropOn:           3,
+    questionsPerTier: 6,   // safety cap; majority (≥60%) decides if no streak forms
+    advanceOn:        4,   // 4 correctas seguidas → sube (P azar ≈18% en tu nivel real)
+    dropOn:           3,   // 3 erradas seguidas → baja (P azar <5% en tu nivel real)
     passThreshold:    0.6,
     failThreshold:    0.4,
   }), [hardCap]);
