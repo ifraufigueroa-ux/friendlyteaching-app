@@ -6,7 +6,7 @@
 // naively. If ANTHROPIC_API_KEY is missing the route returns 503 and the
 // teacher can still save a minimal 2-slide deck client-side.
 import { NextRequest, NextResponse } from 'next/server';
-import type { Slide, LessonLevel, ComprehensionMode } from '@/types/firebase';
+import type { Slide, LessonLevel, ComprehensionMode, PracticeItem } from '@/types/firebase';
 import { generateTextLessonAlgorithmically } from '@/lib/utils/textLessonGenerator';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? '';
@@ -97,20 +97,84 @@ HARD RULES for slide 6:
 
 SLIDE 7 — type: "language_practice"
 { type, title: "Let's Practice!", phase: "while",
-  content: "short instruction",
-  practiceItems: [
-    { type: "unscramble", prompt: "word1 / word2 / word3 / word4 / word5", answer: "The correct sentence" },
-    { type: "match_halves", prompt: "First half of a sentence from the text", answer: "Correct second half", options: ["Correct second half", "wrong1", "wrong2", "wrong3"] },
-    { type: "unscramble", prompt: "another / scrambled / sentence", answer: "Another correct sentence" },
-    { type: "match_halves", prompt: "Another first half", answer: "Correct continuation", options: ["Correct continuation", "wrong1", "wrong2", "wrong3"] }
-  ]
+  content: "Short instruction naming the grammar target from slide 6 (e.g. 'Practise modals of deduction and obligation with sentences from the story.')",
+  practiceItems: [ ... exactly 4 items following the CEFR mix below, in order ... ]
 }
+
+CORE PRINCIPLE for slide 7 — coherence with slide 6:
+Every practiceItem MUST drill the EXACT grammar structure you chose for slide 6 (Language Focus). If slide 6 teaches "Modals of deduction and obligation", every item on slide 7 exercises that structure. If slide 6 teaches "Present perfect", every item exercises present perfect. Do NOT drift into other grammar just because the text has variety — the whole point of this slide is to reinforce THE ONE structure slide 6 just introduced.
+
+ITEM TYPES available (each carries the field grammarTopic: "<same topic name as slide 6, without the 'Language Focus:' prefix>"):
+
+  * unscramble
+    { type: "unscramble", prompt: "word1 / word2 / word3 / word4",
+      answer: "The correct sentence that uses the target structure",
+      grammarTopic: "<topic>" }
+
+  * match_halves
+    { type: "match_halves", prompt: "First half of a sentence that uses the target structure",
+      answer: "Correct second half (which contains or completes the structure)",
+      options: ["Correct second half", "wrong1", "wrong2", "wrong3"],
+      grammarTopic: "<topic>" }
+
+  * verb_form — student picks the correct verb form from 4 options
+    { type: "verb_form", prompt: "Sentence with {{blank}} where the target verb goes",
+      answer: "the correct form (must appear in options)",
+      options: ["form1", "form2", "form3", "form4"],   // 4 distinct forms of the same verb
+      grammarTopic: "<topic>" }
+    // Example for present perfect: prompt "She has {{blank}} the letter", answer "written",
+    // options ["write","writes","wrote","written"].
+
+  * error_correction — student rewrites a sentence with a target-structure error
+    { type: "error_correction",
+      prompt: "This sentence has an error with <topic>. Rewrite it correctly.",
+      wrongText: "The sentence WITH the systematic error",
+      answer: "The corrected sentence",
+      grammarTopic: "<topic>" }
+    // Inject a natural learner error OF THE TARGET STRUCTURE only. Examples:
+    //   3rd person -s → drop the -s ("she go home")
+    //   past 'to be' → swap was/were ("we was tired")
+    //   present continuous → drop -ing ("she is run")
+    //   present perfect → drop have/has ("she gone home")
+    //   past simple irregular → regularize ("he goed home")
+    //   modals → add -s after modal ("she can goes home")
+    //   used to → wrong form after "used to" ("I used to went")
+    //   conditionals → swap will/would
+    //   phrasal verbs → wrong particle ("give down" for "give up")
+
+  * multiple_selection — MCQ: which sentence uses the structure correctly?
+    { type: "multiple_selection",
+      prompt: "Which sentence uses <topic> correctly?",
+      answer: "The one grammatically correct sentence",
+      options: [correct, wrongA, wrongB, wrongC],   // 3 distractors each with the SAME TYPE of target-structure error
+      grammarTopic: "<topic>" }
+
+  * open_ended — no auto-check; student writes their own completion
+    { type: "open_ended",
+      prompt: "Complete the sentence with your own idea, using <topic>.",
+      stem: "Sentence stem that references the story's title/character/setting and invites the target structure (e.g. 'In {Title}, the main character must ')",
+      answer: "",
+      grammarTopic: "<topic>" }
+
+CEFR ACTIVITY MIX (EXACTLY 4 items, IN THIS ORDER, per level):
+  A0/A1: match_halves, multiple_selection, match_halves, unscramble
+  A2:    match_halves, unscramble,         multiple_selection, verb_form
+  B1:    unscramble,   verb_form,          error_correction,    multiple_selection
+  B1+:   unscramble,   verb_form,          error_correction,    multiple_selection
+  B2:    verb_form,    error_correction,   multiple_selection, open_ended
+  C1:    verb_form,    error_correction,   multiple_selection, open_ended
+
+The ladder walks from RECOGNITION (pick the right option) to CONTROLLED PRODUCTION (verb form / error fix) to FREE PRODUCTION (open_ended). Do NOT rearrange it — the order is the pedagogical progression.
+
 HARD RULES for slide 7:
-- Exactly 4 items in the order shown (unscramble → match_halves → unscramble → match_halves).
-- Every answer/pair MUST be a VERBATIM sentence from the text. Do not paraphrase or invent.
-- Pick 4 DIFFERENT sentences, from different sections.
+- COHERENCE FIRST: every item's answer/wrongText/stem must EXAMPLIFY the slide-6 structure. If you cannot cleanly demonstrate the structure in an item, invent a sentence using the story's characters, setting, or vocabulary — do NOT substitute a different grammar.
+- Sources for sentences: prefer VERBATIM quotes from the text when they cleanly showcase the target structure; if the text is thin on examples, write new sentences using the story's title, character names, setting, or key vocab. Never leave an item on unrelated grammar just because it's a text quote.
+- Use the SAME topic string in grammarTopic across all 4 items — same wording as slide 6's title minus the "Language Focus:" prefix.
 - unscramble prompt: take the answer, split on spaces, join with " / ". Do not change casing/punctuation.
-- match_halves: split at (or near) the halfway word. Distractors are second halves of OTHER real sentences (never the same sentence). Length within ±2 words of the answer.
+- match_halves: split at (or near) the halfway word so the SECOND half contains the target structure. Distractors are second halves of OTHER real sentences (never the same sentence). Length within ±2 words of the answer.
+- verb_form: the blanked verb MUST be the target verb of the structure (e.g. for present perfect, blank the past participle; for present continuous, blank the -ing verb). Options include the correct form + 3 other plausible forms of the SAME verb.
+- error_correction & multiple_selection distractors: inject ONLY errors that break the target structure. A distractor with a spelling mistake or unrelated tense error doesn't teach the target — it distracts pedagogically.
+- open_ended (B2/C1 only): the stem must reference the story ("In '{Title}', the character..."). answer stays "".
 - Sentence length by CEFR: A0/A1 → 4-6 words; A2 → 5-7; B1 → 6-9; B1+/B2/C1 → 7-11.
 
 SLIDE 8 — type: "translation_game"
@@ -160,35 +224,112 @@ interface GenerateResult {
   status?: number;     // status to bubble up (401 → invalid key, 429 → rate/credit, etc.)
 }
 
+// Sanity-check a single practice item against the shape its renderer needs.
+// Returns null for items so broken they'd render as empty/garbage — the
+// caller drops those instead of shipping them.
+function normalizePracticeItem(raw: PracticeItem): PracticeItem | null {
+  const item = { ...raw };
+  if (!item.type || typeof item.prompt !== 'string') return null;
+
+  switch (item.type) {
+    case 'unscramble':
+      // prompt is "word / word / …", answer is the correct sentence.
+      if (!item.answer || !item.prompt.includes('/')) return null;
+      return item;
+
+    case 'match_halves':
+    case 'multiple_selection':
+      if (!item.answer || !Array.isArray(item.options) || item.options.length < 2) return null;
+      // Guarantee the correct answer is one of the options — swap in if drift.
+      if (!item.options.some(o => o.toLowerCase().trim() === item.answer.toLowerCase().trim())) {
+        const patched = [...item.options];
+        patched[Math.floor(Math.random() * patched.length)] = item.answer;
+        return { ...item, options: patched };
+      }
+      return item;
+
+    case 'verb_form': {
+      if (!item.answer || !Array.isArray(item.options) || item.options.length < 2) return null;
+      // Ensure {{blank}} marker; if Claude wrote {{answer}} or [answer], normalize.
+      let prompt = item.prompt;
+      if (!prompt.includes('{{blank}}')) {
+        prompt = prompt.replace(/\{\{[^}]+\}\}/g, '{{blank}}');
+        if (!prompt.includes('{{blank}}')) {
+          // Last-ditch: try to blank the answer word inside the prompt.
+          const re = new RegExp(`\\b${item.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          if (re.test(prompt)) prompt = prompt.replace(re, '{{blank}}');
+        }
+      }
+      if (!prompt.includes('{{blank}}')) return null;
+      // Answer must appear in options — same self-heal as MCQ.
+      const opts = item.options.some(o => o.toLowerCase().trim() === item.answer.toLowerCase().trim())
+        ? item.options
+        : (() => {
+            const patched = [...item.options];
+            patched[Math.floor(Math.random() * patched.length)] = item.answer;
+            return patched;
+          })();
+      return { ...item, prompt, options: opts };
+    }
+
+    case 'error_correction':
+      if (!item.wrongText || !item.answer) return null;
+      // Cheap sanity check — wrongText and answer must actually differ.
+      if (item.wrongText.trim().toLowerCase() === item.answer.trim().toLowerCase()) return null;
+      return item;
+
+    case 'open_ended':
+      // No autograding — just ensure there's a stem to render.
+      if (!item.stem) {
+        // Fall back to prompt as stem so the student still sees SOMETHING.
+        if (!item.prompt) return null;
+        return { ...item, stem: item.prompt, answer: item.answer ?? '' };
+      }
+      return { ...item, answer: item.answer ?? '' };
+
+    default:
+      return null;
+  }
+}
+
 // Post-process AI output before we hand it back — Claude occasionally drifts
-// on two rules that break the translation game at render time:
-//   1. It writes the answer word inside the braces (`{{encontrar}}`) instead
-//      of the canonical marker (`{{blank}}`). The player splits on the exact
-//      token, so drift produces literal `{{encontrar}}` on-screen.
-//   2. It ships an options array that doesn't contain the correct answer, so
-//      no button can ever resolve the blank.
-// Both are recoverable server-side without a re-roll, so we do it here.
+// on rules that break slides at render time. Recoverable drift is patched
+// here; unrecoverable items are dropped rather than shipped.
+//
+//   • translation_game: {{answer}} → {{blank}}, ensure answer ∈ options
+//   • language_practice: schema-check every practiceItem (verb_form needs
+//     {{blank}}, error_correction needs wrongText, MCQs must contain the
+//     correct answer, etc.). Dropped items are skipped.
 function normalizeSlides(slides: Slide[]): Slide[] {
   return slides.map((s) => {
-    if (s.type !== 'translation_game') return s;
-    const content = typeof s.content === 'string'
-      ? s.content.replace(/\{\{[^}]+\}\}/g, '{{blank}}')
-      : s.content;
-    const blanksData = (s.blanksData ?? []).map((b) => {
-      const opts = b.options ?? [];
-      const answer = b.word ?? '';
-      const hasAnswer = opts.some(
-        (o) => o.toLowerCase().trim() === answer.toLowerCase().trim(),
-      );
-      if (hasAnswer || !answer) return b;
-      // Preserve list length — swap a distractor slot for the correct answer.
-      if (opts.length === 0) return { ...b, options: [answer] };
-      const slot = Math.floor(Math.random() * opts.length);
-      const patched = [...opts];
-      patched[slot] = answer;
-      return { ...b, options: patched };
-    });
-    return { ...s, content, blanksData };
+    if (s.type === 'translation_game') {
+      const content = typeof s.content === 'string'
+        ? s.content.replace(/\{\{[^}]+\}\}/g, '{{blank}}')
+        : s.content;
+      const blanksData = (s.blanksData ?? []).map((b) => {
+        const opts = b.options ?? [];
+        const answer = b.word ?? '';
+        const hasAnswer = opts.some(
+          (o) => o.toLowerCase().trim() === answer.toLowerCase().trim(),
+        );
+        if (hasAnswer || !answer) return b;
+        if (opts.length === 0) return { ...b, options: [answer] };
+        const slot = Math.floor(Math.random() * opts.length);
+        const patched = [...opts];
+        patched[slot] = answer;
+        return { ...b, options: patched };
+      });
+      return { ...s, content, blanksData };
+    }
+
+    if (s.type === 'language_practice' && Array.isArray(s.practiceItems)) {
+      const cleaned = s.practiceItems
+        .map(normalizePracticeItem)
+        .filter((it): it is PracticeItem => it !== null);
+      return { ...s, practiceItems: cleaned };
+    }
+
+    return s;
   });
 }
 
