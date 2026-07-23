@@ -56,6 +56,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts/writing',
+    icon:        '✍️',
+    title:       'IELTS Writing Mocks',
+    description: 'Full mock (60 min, T1 + T2) o práctica individual. Academic + General Training. AI grading con band descriptors oficiales.',
+    gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
+    glow:        'shadow-[#C8A8DC]/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/tools/qa-simulator',
     icon:        '🎯',
     title:       'Q&A Simulator',
