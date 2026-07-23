@@ -73,6 +73,14 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   'Experiences': { icon: '🌍', color: '#0F766E', bg: '#CCFBF1' },
   'Opinions':    { icon: '💭', color: '#4338CA', bg: '#E0E7FF' },
   'Future':      { icon: '🚀', color: '#7E22CE', bg: '#F3E8FF' },
+  // Weekly Warm-Up categories (catch-up small talk before a lesson)
+  'Weekend':          { icon: '🎉', color: '#B45309', bg: '#FEF3C7' },
+  'This Week':        { icon: '📅', color: '#1D4ED8', bg: '#DBEAFE' },
+  'Mood':             { icon: '🌤️', color: '#A16207', bg: '#FEF9C3' },
+  'Recent News':      { icon: '📰', color: '#0F766E', bg: '#CCFBF1' },
+  'Wins & Struggles': { icon: '⚖️', color: '#B91C1C', bg: '#FEE2E2' },
+  'Coming Up':        { icon: '🔮', color: '#7E22CE', bg: '#F3E8FF' },
+  'Icebreaker':       { icon: '❄️', color: '#0284C7', bg: '#E0F2FE' },
 };
 
 const DEFAULT_CATEGORY_META: CategoryMeta = { icon: '❓', color: '#374151', bg: '#F3F4F6' };
