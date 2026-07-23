@@ -162,13 +162,32 @@ export interface QuizQuestion {
   correctAnswer: string;
 }
 
-export type PracticeType = 'unscramble' | 'match_halves';
+export type PracticeType =
+  | 'unscramble'
+  | 'match_halves'
+  | 'verb_form'
+  | 'error_correction'
+  | 'multiple_selection'
+  | 'open_ended';
 
 export interface PracticeItem {
   type: PracticeType;
   prompt: string;
   answer: string;
-  options?: string[];  // for match_halves: the 4 second-half choices
+  // For match_halves & multiple_selection: choices shown to the student.
+  // For verb_form: 4 verb forms (correct + 3 distractors).
+  options?: string[];
+  // Grammar structure this item drills — surfaced as an eyebrow in the card
+  // so students see the through-line from Language Focus.
+  grammarTopic?: string;
+  // For error_correction: the sentence-with-error the student must fix.
+  // The `answer` field holds the corrected version.
+  wrongText?: string;
+  // For open_ended: sentence stem the student completes with their own words.
+  // No auto-check — item is marked done on non-empty submit.
+  stem?: string;
+  // Optional line from the source text that anchors this item in context.
+  contextLine?: string;
 }
 
 export interface VocabWord {

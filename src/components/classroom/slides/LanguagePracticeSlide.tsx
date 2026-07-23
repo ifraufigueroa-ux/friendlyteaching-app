@@ -389,6 +389,404 @@ function MatchHalvesCard({
   );
 }
 
+// ─── Shared card shell ────────────────────────────────────────────────
+
+// Wraps the animated card + eyebrow + reveal button so the four new cards
+// don't repeat the same 40 lines of chrome. `renderBody` gets called with
+// the current "checked" state so it can style itself accordingly.
+function PracticeCardShell({
+  index,
+  eyebrow,
+  grammarTopic,
+  checked,
+  correct,
+  onReveal,
+  revealed,
+  revealedAnswer,
+  wrongHint,
+  cardRef,
+  children,
+}: {
+  index: number;
+  eyebrow: string;
+  grammarTopic?: string;
+  checked: boolean;
+  correct: boolean;
+  onReveal?: () => void;
+  revealed?: boolean;
+  revealedAnswer?: string;
+  wrongHint?: string;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      ref={cardRef}
+      className={`relative bg-white rounded-3xl shadow-md shadow-[#F472B6]/25 border border-white p-6 space-y-3 transition-shadow hover:shadow-xl
+        ${checked && !correct ? 'animate-[lpShake_400ms_ease-in-out]' : ''}`}
+      style={{
+        animation: 'lpCardIn 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        animationDelay: `${index * 90}ms`,
+      }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#EC4899]/80">
+          Exercise {index + 1} · {eyebrow}
+        </span>
+        {checked && (
+          <span className={`text-xs font-bold uppercase ${correct ? 'text-green-600' : 'text-red-600'}`}>
+            {correct ? '✓ Correct' : '✗ Try again'}
+          </span>
+        )}
+      </div>
+
+      {grammarTopic && (
+        <p className="text-[10px] uppercase tracking-widest text-[#EC4899]/60">
+          Grammar focus · {grammarTopic}
+        </p>
+      )}
+
+      {revealed && !correct && revealedAnswer && (
+        <div className="rounded-xl border-2 border-dashed border-[#EC4899]/50 bg-[#FFF0F7] px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]/80 mb-0.5">Answer</p>
+          <p className="text-sm font-semibold text-[#2D1B4E]">{revealedAnswer}</p>
+        </div>
+      )}
+
+      {children}
+
+      {onReveal && !correct && (
+        <div className="flex justify-end">
+          <button
+            onClick={onReveal}
+            className="px-3 py-1.5 rounded-full text-[11px] font-bold bg-white border-2 border-[#EC4899]/40 text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
+          >
+            {revealed ? '🙈 Hide answer' : '👁️ Reveal answer'}
+          </button>
+        </div>
+      )}
+
+      {checked && !correct && wrongHint && (
+        <p className="text-[11px] text-red-600 leading-snug pt-1">{wrongHint}</p>
+      )}
+    </div>
+  );
+}
+
+// Case-insensitive comparison ignoring surrounding punctuation, the same
+// rule used by UnscrambleCard / MatchHalvesCard so answers don't fail on
+// stray commas.
+function looseEq(a: string, b: string): boolean {
+  const norm = (s: string) => s.toLowerCase().replace(/[.,;:!?'"()\[\]]/g, '').replace(/\s+/g, ' ').trim();
+  return norm(a) === norm(b);
+}
+
+// ─── Verb form card ──────────────────────────────────────────────────
+
+function VerbFormCard({
+  item, index, onResult,
+}: {
+  item: PracticeItem;
+  index: number;
+  onResult: (correct: boolean, x: number, y: number) => void;
+}) {
+  const options = useMemo(() => [...(item.options ?? [])].sort(() => Math.random() - 0.5), [item.options]);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const correct = chosen != null && looseEq(chosen, item.answer);
+
+  const [beforeBlank, afterBlank] = item.prompt.split('{{blank}}');
+
+  function pick(opt: string) {
+    if (chosen) return;
+    setChosen(opt);
+    const rect = cardRef.current?.getBoundingClientRect();
+    const parentRect = cardRef.current?.offsetParent?.getBoundingClientRect();
+    const x = rect && parentRect ? rect.left - parentRect.left + rect.width / 2 : 0;
+    const y = rect && parentRect ? rect.top  - parentRect.top  + 60                : 0;
+    onResult(looseEq(opt, item.answer), x, y);
+  }
+
+  return (
+    <PracticeCardShell
+      index={index}
+      eyebrow="Choose the correct form"
+      grammarTopic={item.grammarTopic}
+      checked={chosen != null}
+      correct={correct}
+      onReveal={() => setRevealed(r => !r)}
+      revealed={revealed}
+      revealedAnswer={item.answer}
+      cardRef={cardRef}
+    >
+      <p className="text-base md:text-lg font-serif text-[#2D1B4E] leading-relaxed">
+        {beforeBlank}
+        <span className={`inline-block min-w-[5rem] mx-1 px-2 py-0.5 rounded-lg border-2 border-dashed align-baseline
+          ${chosen
+            ? correct ? 'border-green-400 bg-green-50 text-green-800' : 'border-red-400 bg-red-50 text-red-800'
+            : 'border-[#F472B6]/50 bg-[#FFF0F7] text-[#EC4899]/60 italic'}`}>
+          {chosen ?? '_____'}
+        </span>
+        {afterBlank}
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {options.map((opt, i) => {
+          const isPicked = chosen === opt;
+          const isAnswer = looseEq(opt, item.answer);
+          const showRight = chosen && isAnswer;
+          const showWrong = chosen && isPicked && !isAnswer;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => pick(opt)}
+              disabled={!!chosen}
+              className={`px-3 py-2 rounded-xl text-sm font-semibold border-2 transition-all
+                ${chosen
+                  ? showRight ? 'bg-green-100 border-green-500 text-green-900'
+                  : showWrong ? 'bg-red-100 border-red-400 text-red-900 line-through'
+                  : 'bg-white border-gray-200 text-gray-400'
+                  : 'bg-white border-[#F472B6]/50 text-[#2D1B4E] hover:bg-[#FFE8F0] hover:border-[#EC4899] active:scale-95'
+                }`}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    </PracticeCardShell>
+  );
+}
+
+// ─── Error correction card ───────────────────────────────────────────
+
+function ErrorCorrectionCard({
+  item, index, onResult,
+}: {
+  item: PracticeItem;
+  index: number;
+  onResult: (correct: boolean, x: number, y: number) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const [checked, setChecked] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const isCorrect = checked && looseEq(draft, item.answer);
+
+  function check() {
+    if (!draft.trim() || checked) return;
+    setChecked(true);
+    const rect = cardRef.current?.getBoundingClientRect();
+    const parentRect = cardRef.current?.offsetParent?.getBoundingClientRect();
+    const x = rect && parentRect ? rect.left - parentRect.left + rect.width / 2 : 0;
+    const y = rect && parentRect ? rect.top  - parentRect.top  + 60                : 0;
+    onResult(looseEq(draft, item.answer), x, y);
+  }
+  function retry() {
+    setDraft('');
+    setChecked(false);
+  }
+
+  return (
+    <PracticeCardShell
+      index={index}
+      eyebrow="Correct the sentence"
+      grammarTopic={item.grammarTopic}
+      checked={checked}
+      correct={isCorrect}
+      onReveal={() => setRevealed(r => !r)}
+      revealed={revealed}
+      revealedAnswer={item.answer}
+      wrongHint="Look carefully at the grammar focus — one word is wrong."
+      cardRef={cardRef}
+    >
+      <p className="text-sm text-[#2D1B4E]/80">{item.prompt}</p>
+      <div className="rounded-xl border-2 border-red-200 bg-red-50/50 px-4 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-red-500/80 mb-1">✗ Incorrect version</p>
+        <p className="text-base font-serif italic text-[#2D1B4E] line-through decoration-red-400/60">
+          {item.wrongText}
+        </p>
+      </div>
+
+      <textarea
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        disabled={checked}
+        rows={2}
+        placeholder="Type the corrected sentence…"
+        className={`w-full rounded-xl border-2 px-3 py-2 text-sm font-medium resize-none transition-colors focus:outline-none focus:ring-2
+          ${checked
+            ? isCorrect ? 'border-green-400 bg-green-50 text-green-900' : 'border-red-300 bg-red-50 text-red-900'
+            : 'border-[#F472B6]/50 bg-white text-[#2D1B4E] focus:ring-[#EC4899]/40'
+          }`}
+      />
+
+      <div className="flex justify-end gap-2">
+        {checked && !isCorrect && (
+          <button
+            onClick={retry}
+            className="px-4 py-2 rounded-full text-xs font-bold bg-white border-2 border-[#EC4899] text-[#EC4899] hover:bg-[#FFE8F0] active:scale-95"
+          >
+            ↻ Try again
+          </button>
+        )}
+        {!checked && (
+          <button
+            onClick={check}
+            disabled={!draft.trim()}
+            className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow disabled:opacity-40 active:scale-95"
+          >
+            ✓ Check
+          </button>
+        )}
+      </div>
+    </PracticeCardShell>
+  );
+}
+
+// ─── Multiple selection card ─────────────────────────────────────────
+
+function MultipleSelectionCard({
+  item, index, onResult,
+}: {
+  item: PracticeItem;
+  index: number;
+  onResult: (correct: boolean, x: number, y: number) => void;
+}) {
+  const options = useMemo(() => [...(item.options ?? [])].sort(() => Math.random() - 0.5), [item.options]);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const correct = chosen != null && looseEq(chosen, item.answer);
+
+  function pick(opt: string) {
+    if (chosen) return;
+    setChosen(opt);
+    const rect = cardRef.current?.getBoundingClientRect();
+    const parentRect = cardRef.current?.offsetParent?.getBoundingClientRect();
+    const x = rect && parentRect ? rect.left - parentRect.left + rect.width / 2 : 0;
+    const y = rect && parentRect ? rect.top  - parentRect.top  + 60                : 0;
+    onResult(looseEq(opt, item.answer), x, y);
+  }
+
+  return (
+    <PracticeCardShell
+      index={index}
+      eyebrow="Pick the correct sentence"
+      grammarTopic={item.grammarTopic}
+      checked={chosen != null}
+      correct={correct}
+      onReveal={() => setRevealed(r => !r)}
+      revealed={revealed}
+      revealedAnswer={item.answer}
+      cardRef={cardRef}
+    >
+      <p className="text-sm text-[#2D1B4E]/80">{item.prompt}</p>
+      <div className="grid grid-cols-1 gap-2">
+        {options.map((opt, i) => {
+          const isPicked = chosen === opt;
+          const isAnswer = looseEq(opt, item.answer);
+          const showRight = chosen && isAnswer;
+          const showWrong = chosen && isPicked && !isAnswer;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => pick(opt)}
+              disabled={!!chosen}
+              className={`text-left px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all
+                ${chosen
+                  ? showRight ? 'bg-green-100 border-green-500 text-green-900'
+                  : showWrong ? 'bg-red-100 border-red-400 text-red-900 line-through'
+                  : 'bg-white border-gray-200 text-gray-400'
+                  : 'bg-white border-[#F472B6]/50 text-[#2D1B4E] hover:bg-[#FFE8F0] hover:border-[#EC4899] hover:scale-[1.01] active:scale-95'
+                }`}
+            >
+              {chosen && showRight && '✓ '}
+              {chosen && showWrong && '✗ '}
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    </PracticeCardShell>
+  );
+}
+
+// ─── Open-ended card ─────────────────────────────────────────────────
+
+// Not auto-graded — any non-empty submission counts as done and grants
+// base points, but a submission never docks the star rating.
+function OpenEndedCard({
+  item, index, onResult,
+}: {
+  item: PracticeItem;
+  index: number;
+  onResult: (correct: boolean, x: number, y: number) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  function submit() {
+    if (!draft.trim() || submitted) return;
+    setSubmitted(true);
+    const rect = cardRef.current?.getBoundingClientRect();
+    const parentRect = cardRef.current?.offsetParent?.getBoundingClientRect();
+    const x = rect && parentRect ? rect.left - parentRect.left + rect.width / 2 : 0;
+    const y = rect && parentRect ? rect.top  - parentRect.top  + 60                : 0;
+    // Open-ended always resolves "correct" — teachers grade offline.
+    onResult(true, x, y);
+  }
+
+  return (
+    <PracticeCardShell
+      index={index}
+      eyebrow="Complete with your own idea"
+      grammarTopic={item.grammarTopic}
+      checked={submitted}
+      correct={submitted}
+      cardRef={cardRef}
+    >
+      <p className="text-sm text-[#2D1B4E]/80">{item.prompt}</p>
+      <p className="text-base md:text-lg font-serif italic text-[#2D1B4E] leading-relaxed">
+        ✏️ {item.stem}
+        <span className="text-[#EC4899]/50">___</span>
+      </p>
+
+      <textarea
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        disabled={submitted}
+        rows={3}
+        placeholder="Write your own ending here…"
+        className={`w-full rounded-xl border-2 px-3 py-2 text-sm font-medium resize-none transition-colors focus:outline-none focus:ring-2
+          ${submitted
+            ? 'border-green-400 bg-green-50 text-green-900'
+            : 'border-[#F472B6]/50 bg-white text-[#2D1B4E] focus:ring-[#EC4899]/40'
+          }`}
+      />
+
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] text-[#EC4899]/60 italic">
+          {submitted ? 'Saved — your teacher will read this.' : 'No auto-check — just write freely.'}
+        </span>
+        {!submitted && (
+          <button
+            onClick={submit}
+            disabled={!draft.trim()}
+            className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow disabled:opacity-40 active:scale-95"
+          >
+            ✓ Submit
+          </button>
+        )}
+      </div>
+    </PracticeCardShell>
+  );
+}
+
 // ─── Slide ─────────────────────────────────────────────────────────────
 
 interface FloatPts { id: number; x: number; y: number; pts: number }
@@ -518,25 +916,26 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
 
         {/* Exercise cards */}
         <div className="w-full max-w-3xl space-y-4">
-          {items.map((item, i) => (
-            item.type === 'unscramble' ? (
-              <UnscrambleCard
-                key={i}
-                item={item}
-                index={i}
-                onResult={(ok, x, y) => handleResult(i, ok, x, y)}
-                brand={brand}
-              />
-            ) : item.type === 'match_halves' ? (
-              <MatchHalvesCard
-                key={i}
-                item={item}
-                index={i}
-                onResult={(ok, x, y) => handleResult(i, ok, x, y)}
-                brand={brand}
-              />
-            ) : null
-          ))}
+          {items.map((item, i) => {
+            const key = i;
+            const cb = (ok: boolean, x: number, y: number) => handleResult(i, ok, x, y);
+            switch (item.type) {
+              case 'unscramble':
+                return <UnscrambleCard key={key} item={item} index={i} onResult={cb} brand={brand} />;
+              case 'match_halves':
+                return <MatchHalvesCard key={key} item={item} index={i} onResult={cb} brand={brand} />;
+              case 'verb_form':
+                return <VerbFormCard key={key} item={item} index={i} onResult={cb} />;
+              case 'error_correction':
+                return <ErrorCorrectionCard key={key} item={item} index={i} onResult={cb} />;
+              case 'multiple_selection':
+                return <MultipleSelectionCard key={key} item={item} index={i} onResult={cb} />;
+              case 'open_ended':
+                return <OpenEndedCard key={key} item={item} index={i} onResult={cb} />;
+              default:
+                return null;
+            }
+          })}
         </div>
 
         {/* Completion */}

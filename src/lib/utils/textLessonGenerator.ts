@@ -7,7 +7,7 @@
 // idioms are dropped from the grammar detector.
 
 import type {
-  Slide, LessonLevel, VocabWord, LyricsBlank, QuizQuestion, PracticeItem,
+  Slide, LessonLevel, VocabWord, LyricsBlank, QuizQuestion, PracticeItem, PracticeType,
   ComprehensionMode, TextData,
 } from '@/types/firebase';
 
@@ -333,75 +333,141 @@ function buildComprehensionQuiz(text: string, title: string): Slide {
 
 // ─── Grammar detector (compact — same shape as music) ─────────
 
-interface GrammarPattern { topic: string; description: string; regex: RegExp }
+// Every pattern carries a `category` tag so the practice-item generators
+// can pick the right verb-form transform and error-injection rule for the
+// grammar structure that Language Focus is actually teaching. Categories
+// tagged 'generic' fall back to unscramble / match_halves only.
+type GrammarCategory =
+  | 'simple_present_base'
+  | 'simple_present_3ps'
+  | 'present_continuous'
+  | 'past_be'
+  | 'past_simple_irregular'
+  | 'past_continuous'
+  | 'modals'
+  | 'going_to_future'
+  | 'used_to'
+  | 'can_could_ability'
+  | 'present_perfect'
+  | 'present_perfect_cont'
+  | 'perfect_tenses'
+  | 'conditionals'
+  | 'reported_speech'
+  | 'phrasal_verbs'
+  | 'modals_speculation'
+  | 'passive_voice'
+  | 'frequency_adverbs'
+  | 'comparatives'
+  | 'demonstratives'
+  | 'there_is_are'
+  | 'negative_contractions'
+  | 'advanced_collocations'
+  | 'cleft_sentences'
+  | 'reduced_relatives'
+  | 'inversion'
+  | 'generic';
+
+interface GrammarPattern {
+  topic: string;
+  description: string;
+  regex: RegExp;
+  category: GrammarCategory;
+}
 
 const GRAMMAR_PATTERNS: Record<string, GrammarPattern[]> = {
   'A0': [
-    { topic: 'Simple present', regex: /\b(I|you|we|they)\s+(like|love|want|need|know|feel|see|go|come|live|say|think)\b/i,
+    { topic: 'Simple present', category: 'simple_present_base',
+      regex: /\b(I|you|we|they)\s+(like|love|want|need|know|feel|see|go|come|live|say|think)\b/i,
       description: 'The simple present is used for habits, feelings and facts. With I / you / we / they the verb keeps its base form.' },
-    { topic: '"There is / there are"', regex: /\b(there'?s|there is|there are)\b/i,
+    { topic: '"There is / there are"', category: 'there_is_are',
+      regex: /\b(there'?s|there is|there are)\b/i,
       description: '"There is / there are" tells us that something exists in a place or moment. Writers use it to set a scene.' },
-    { topic: 'Demonstratives (this / that / these / those)', regex: /\b(this|that|these|those)\s+\w+/i,
+    { topic: 'Demonstratives (this / that / these / those)', category: 'demonstratives',
+      regex: /\b(this|that|these|those)\s+\w+/i,
       description: 'Demonstratives point to people or things — near ("this / these") or far ("that / those").' },
   ],
   'A1': [
-    { topic: 'Negative contractions', regex: /\b(don't|doesn't|can't|won't|isn't|aren't|wasn't|weren't|didn't)\b/i,
+    { topic: 'Negative contractions', category: 'negative_contractions',
+      regex: /\b(don't|doesn't|can't|won't|isn't|aren't|wasn't|weren't|didn't)\b/i,
       description: 'Negative contractions shorten the sentence and sound natural in written English.' },
-    { topic: 'Simple present (3rd person)', regex: /\b(he|she|it)\s+\w+s\b/i,
+    { topic: 'Simple present (3rd person)', category: 'simple_present_3ps',
+      regex: /\b(he|she|it)\s+\w+s\b/i,
       description: 'With he / she / it in the simple present we add -s (or -es) to the verb.' },
-    { topic: 'Adverbs of frequency', regex: /\b(always|never|usually|often|sometimes|rarely|hardly ever)\b/i,
+    { topic: 'Adverbs of frequency', category: 'frequency_adverbs',
+      regex: /\b(always|never|usually|often|sometimes|rarely|hardly ever)\b/i,
       description: 'Adverbs of frequency sit before the main verb and tell us HOW OFTEN something happens.' },
   ],
   'A2': [
-    { topic: 'Present continuous (am/is/are + -ing)', regex: /\b(am|is|are|'m|'re|'s)\s+\w+ing\b/i,
+    { topic: 'Present continuous (am/is/are + -ing)', category: 'present_continuous',
+      regex: /\b(am|is|are|'m|'re|'s)\s+\w+ing\b/i,
       description: 'The present continuous describes actions happening right now or around now.' },
-    { topic: '"Going to" for future plans', regex: /\bgoing to\s+\w+/i,
+    { topic: '"Going to" for future plans', category: 'going_to_future',
+      regex: /\bgoing to\s+\w+/i,
       description: '"Going to + base verb" expresses plans and intentions.' },
-    { topic: 'Past simple of "to be"', regex: /\b(was|were|wasn't|weren't)\b/i,
+    { topic: 'Past simple of "to be"', category: 'past_be',
+      regex: /\b(was|were|wasn't|weren't)\b/i,
       description: '"Was" / "were" are the past forms of "to be". They describe states in the past.' },
-    { topic: '"Can / could" for ability', regex: /\b(can|can't|cannot|could|couldn't)\s+\w+/i,
+    { topic: '"Can / could" for ability', category: 'can_could_ability',
+      regex: /\b(can|can't|cannot|could|couldn't)\s+\w+/i,
       description: '"Can / could" + base verb expresses ability or possibility.' },
-    { topic: 'Comparative adjectives', regex: /\b(\w+er than|more \w+ than|better than|worse than)\b/i,
+    { topic: 'Comparative adjectives', category: 'comparatives',
+      regex: /\b(\w+er than|more \w+ than|better than|worse than)\b/i,
       description: 'Comparatives put two things side by side.' },
   ],
   'B1': [
-    { topic: 'Past simple (irregular verbs)', regex: /\b(went|came|saw|knew|told|gave|took|made|said|got|felt|thought|fell|broke|wrote|left|stood|found|kept|brought|caught|ran|drank|fought|held|spoke|heard|met|sent|read|paid)\b/i,
+    { topic: 'Past simple (irregular verbs)', category: 'past_simple_irregular',
+      regex: /\b(went|came|saw|knew|told|gave|took|made|said|got|felt|thought|fell|broke|wrote|left|stood|found|kept|brought|caught|ran|drank|fought|held|spoke|heard|met|sent|read|paid)\b/i,
       description: 'The past simple describes completed actions in the past. Texts are full of irregular verbs.' },
-    { topic: 'Modal verbs (can / will / would)', regex: /\b(can|cannot|can't|could|will|won't|would|wouldn't|should|might|may|must)\s+\w+/i,
+    { topic: 'Modal verbs (can / will / would)', category: 'modals',
+      regex: /\b(can|cannot|can't|could|will|won't|would|wouldn't|should|might|may|must)\s+\w+/i,
       description: 'Modals are followed by the base verb. They express ability, future, advice or hypothetical ideas.' },
-    { topic: 'Past continuous (was/were + -ing)', regex: /\b(was|were)\s+\w+ing\b/i,
+    { topic: 'Past continuous (was/were + -ing)', category: 'past_continuous',
+      regex: /\b(was|were)\s+\w+ing\b/i,
       description: '"Was / were + verb-ing" describes an ongoing action in the past — perfect for storytelling.' },
-    { topic: 'Present perfect', regex: /\b(have|has|haven't|hasn't|I've|you've|we've|they've)\s+\w+(en|ed|n|t)\b/i,
+    { topic: 'Present perfect', category: 'present_perfect',
+      regex: /\b(have|has|haven't|hasn't|I've|you've|we've|they've)\s+\w+(en|ed|n|t)\b/i,
       description: '"Have / has + past participle" connects a past action with the present moment.' },
   ],
   'B1+': [
-    { topic: 'First & second conditional', regex: /\bif\s+\w+(?:\s+\w+){0,5}\s+(would|will|could|won't|wouldn't)\b/i,
+    { topic: 'First & second conditional', category: 'conditionals',
+      regex: /\bif\s+\w+(?:\s+\w+){0,5}\s+(would|will|could|won't|wouldn't)\b/i,
       description: 'Conditionals use "if" to express conditions and their results.' },
-    { topic: '"Used to" for past habits', regex: /\bused to\s+\w+/i,
+    { topic: '"Used to" for past habits', category: 'used_to',
+      regex: /\bused to\s+\w+/i,
       description: '"Used to + base verb" describes habits or states in the past that are no longer true today.' },
-    { topic: 'Present perfect continuous', regex: /\b(have|has|haven't|hasn't|I've|you've|we've|they've)\s+been\s+\w+ing\b/i,
+    { topic: 'Present perfect continuous', category: 'present_perfect_cont',
+      regex: /\b(have|has|haven't|hasn't|I've|you've|we've|they've)\s+been\s+\w+ing\b/i,
       description: '"Have / has been + verb-ing" describes an action that started in the past and is still going.' },
-    { topic: 'Reported speech basics', regex: /\b(said|told|asked)\s+(?:me|you|him|her|us|them)?\s*(?:that\s+)?\w+/i,
+    { topic: 'Reported speech basics', category: 'reported_speech',
+      regex: /\b(said|told|asked)\s+(?:me|you|him|her|us|them)?\s*(?:that\s+)?\w+/i,
       description: '"Said / told / asked" report what someone else said.' },
   ],
   'B2': [
-    { topic: 'Phrasal verbs', regex: /\b(give up|hold on|let go|run away|break down|come on|fall apart|get over|move on|carry on|wake up|grow up|stand up|turn around|look up|find out|figure out|take off|throw away|reach out|hold back|push back|tear apart|come back|walk away|step back)\b/i,
+    { topic: 'Phrasal verbs', category: 'phrasal_verbs',
+      regex: /\b(give up|hold on|let go|run away|break down|come on|fall apart|get over|move on|carry on|wake up|grow up|stand up|turn around|look up|find out|figure out|take off|throw away|reach out|hold back|push back|tear apart|come back|walk away|step back)\b/i,
       description: 'Phrasal verbs carry meaning that goes beyond the literal words. Central to natural English.' },
-    { topic: 'Perfect tenses', regex: /\b(have|has|had|haven't|hasn't|hadn't|I've|you've|we've|they've)\s+(been|done|gone|seen|made|got|told|thought|known|kept|left|brought|written|spoken|broken)\b/i,
+    { topic: 'Perfect tenses', category: 'perfect_tenses',
+      regex: /\b(have|has|had|haven't|hasn't|hadn't|I've|you've|we've|they've)\s+(been|done|gone|seen|made|got|told|thought|known|kept|left|brought|written|spoken|broken)\b/i,
       description: 'Perfect tenses connect different time frames.' },
-    { topic: 'Modals of speculation', regex: /\b(must|might|may|could)\s+(be|have)\s+\w+/i,
+    { topic: 'Modals of speculation', category: 'modals_speculation',
+      regex: /\b(must|might|may|could)\s+(be|have)\s+\w+/i,
       description: '"Must / might / may / could + be / have + …" are used to speculate about present or past situations.' },
-    { topic: 'Passive voice basics', regex: /\b(was|were|is|are|been)\s+\w+(ed|en|n|t)\s+by\b/i,
+    { topic: 'Passive voice basics', category: 'passive_voice',
+      regex: /\b(was|were|is|are|been)\s+\w+(ed|en|n|t)\s+by\b/i,
       description: 'The passive voice shifts focus from doer to receiver.' },
   ],
   'C1': [
-    { topic: 'Advanced collocations', regex: /\b(deeply (in love|hurt|sorry|troubled|concerned)|widely (known|regarded|reported)|painfully aware|hopelessly lost|utterly (broken|convinced)|firmly (believe|convinced))\b/i,
+    { topic: 'Advanced collocations', category: 'advanced_collocations',
+      regex: /\b(deeply (in love|hurt|sorry|troubled|concerned)|widely (known|regarded|reported)|painfully aware|hopelessly lost|utterly (broken|convinced)|firmly (believe|convinced))\b/i,
       description: 'Adverb + adjective / adverb + verb collocations intensify or precise the claim.' },
-    { topic: 'Cleft sentences (It was … that …)', regex: /\b(it (was|is|wasn't|isn't)|what (I|you|we|they|he|she) (did|need|want|feel))\b.*\bthat\b/i,
+    { topic: 'Cleft sentences (It was … that …)', category: 'cleft_sentences',
+      regex: /\b(it (was|is|wasn't|isn't)|what (I|you|we|they|he|she) (did|need|want|feel))\b.*\bthat\b/i,
       description: 'Cleft sentences split one idea into two clauses to place emphasis on the key element.' },
-    { topic: 'Reduced relative clauses', regex: /\b\w+ed\s+by\s+\w+|\b\w+ing\s+(?:through|in|on|under|over|behind)\b/i,
+    { topic: 'Reduced relative clauses', category: 'reduced_relatives',
+      regex: /\b\w+ed\s+by\s+\w+|\b\w+ing\s+(?:through|in|on|under|over|behind)\b/i,
       description: 'Reduced relative clauses drop the pronoun and auxiliary, packing whole descriptions into a single phrase.' },
-    { topic: 'Inversion', regex: /\b(Never have I|Little did|Rarely do|Only then|Not until|No sooner)\b/,
+    { topic: 'Inversion', category: 'inversion',
+      regex: /\b(Never have I|Little did|Rarely do|Only then|Not until|No sooner)\b/,
       description: 'Inversion (auxiliary before subject) raises emphasis and drama.' },
   ],
 };
@@ -409,6 +475,8 @@ const GRAMMAR_PATTERNS: Record<string, GrammarPattern[]> = {
 interface DetectedGrammar {
   topic: string;
   description: string;
+  category: GrammarCategory;
+  regex: RegExp;
   examples: { highlight: string; line: string }[];
 }
 
@@ -431,17 +499,30 @@ function detectMultipleGrammar(text: string, level: LessonLevel, limit = 3): Det
       }
     }
     if (examples.length >= 2) {
-      results.push({ topic: pat.topic, description: pat.description, examples });
+      results.push({
+        topic: pat.topic,
+        description: pat.description,
+        category: pat.category,
+        regex: pat.regex,
+        examples,
+      });
       if (results.length >= limit) break;
     }
   }
 
   if (results.length === 0) {
     // Nothing matched — fall back gracefully so the slide is never empty.
-    const first = patterns[0] ?? { topic: 'Key expressions', description: 'Notice how everyday words combine into natural patterns in this text.' };
+    const first = patterns[0] ?? {
+      topic: 'Key expressions',
+      description: 'Notice how everyday words combine into natural patterns in this text.',
+      category: 'generic' as const,
+      regex: /./,
+    };
     results.push({
       topic: first.topic,
       description: first.description,
+      category: first.category,
+      regex: first.regex,
       examples: lines.slice(0, 3).map(l => ({ highlight: l.split(/\s+/)[0] ?? l, line: l })),
     });
   }
@@ -478,7 +559,30 @@ function buildLanguageFocus(text: string, level: LessonLevel, title: string): Sl
   };
 }
 
-// ─── Language practice (unscramble + match_halves) ────────────
+// ─── Language practice (grammar-coupled, CEFR-tiered) ────────
+//
+// The practice slide now drills the SAME grammar the Language Focus slide
+// just taught. `detectPrimaryGrammar` returns the top-scoring pattern with
+// enough metadata (category tag + regex + matched lines) for the item
+// generators to build tailored exercises:
+//
+//   • unscramble         — text quote that contains the pattern
+//   • match_halves       — split near the middle so the second half holds
+//                          the pattern
+//   • verb_form          — quote with the target verb blanked, 4 forms
+//                          offered as choices
+//   • error_correction   — same quote with a systematic error injected
+//                          (drop the -s for 3ps, swap was/were, etc.); the
+//                          student rewrites it correctly
+//   • multiple_selection — 1 correct pattern line + 3 error-injected
+//                          variants → "which one is right?"
+//   • open_ended         — templated stem the student completes with their
+//                          own idea (checked as "done" on non-empty submit)
+//
+// The 4-item deck is picked from a per-CEFR mix that walks up the
+// cognitive-load ladder (recognition → controlled → semi-controlled →
+// productive). If a builder can't handle a category it returns null and
+// the caller falls back to unscramble on the same line.
 
 const LEVEL_PRACTICE_CFG: Record<string, { minWords: number; maxWords: number }> = {
   'A0':  { minWords: 4, maxWords: 6  },
@@ -490,11 +594,25 @@ const LEVEL_PRACTICE_CFG: Record<string, { minWords: number; maxWords: number }>
   'C1':  { minWords: 7, maxWords: 11 },
 };
 
+// Per-CEFR activity mix — 4 items each, in order (top → bottom of the
+// slide). The ladder climbs from recognition to production; verb_form and
+// error_correction start at A2/B1 where students have enough scaffolding
+// to attempt controlled production; open_ended only appears from B2 up.
+const CEFR_ACTIVITY_MIX: Record<string, PracticeType[]> = {
+  'A0':  ['match_halves', 'multiple_selection', 'match_halves', 'unscramble'],
+  'A1':  ['match_halves', 'multiple_selection', 'match_halves', 'unscramble'],
+  'A2':  ['match_halves', 'unscramble', 'multiple_selection', 'verb_form'],
+  'B1':  ['unscramble', 'verb_form', 'error_correction', 'multiple_selection'],
+  'B1+': ['unscramble', 'verb_form', 'error_correction', 'multiple_selection'],
+  'B2':  ['verb_form', 'error_correction', 'multiple_selection', 'open_ended'],
+  'C1':  ['verb_form', 'error_correction', 'multiple_selection', 'open_ended'],
+};
+
 function tokenizeLine(line: string): string[] {
   return line.trim().split(/\s+/).filter(Boolean);
 }
 
-// Round-robin across paragraphs so the 4 items aren't clumped in the first
+// Round-robin across paragraphs so items aren't clumped in the first
 // paragraph. Deduplicates by case-insensitive text.
 function pickDiverseLines(text: string, count: number, minWords: number, maxWords: number): string[] {
   const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
@@ -542,53 +660,612 @@ function pickHalfDistractors(pool: string[], correct: string, halfIdx: number, n
   return shuffle(Array.from(new Set(options))).slice(0, need);
 }
 
-function buildLanguagePractice(text: string, level: LessonLevel): Slide {
-  const cfg = LEVEL_PRACTICE_CFG[level] ?? { minWords: 5, maxWords: 9 };
-  const picks = pickDiverseLines(text, 4, cfg.minWords, cfg.maxWords);
+// ─── Verb-form helpers ────────────────────────────────────────
 
-  const filled: string[] = [...picks];
-  if (filled.length < 4) {
-    const relaxed = pickDiverseLines(text, 4, Math.max(3, cfg.minWords - 2), cfg.maxWords + 3);
-    for (const l of relaxed) {
-      if (filled.length >= 4) break;
-      if (!filled.some(f => f.toLowerCase() === l.toLowerCase())) filled.push(l);
+// Common irregulars — enough coverage that most past-simple / present-perfect
+// drills produce correct forms. Regular verbs fall through to `regularize`.
+const IRREGULAR_VERBS: Record<string, { past: string; pp: string; ing: string; s: string }> = {
+  be:         { past: 'was',        pp: 'been',       ing: 'being',        s: 'is' },
+  begin:      { past: 'began',      pp: 'begun',      ing: 'beginning',    s: 'begins' },
+  break:      { past: 'broke',      pp: 'broken',     ing: 'breaking',     s: 'breaks' },
+  bring:      { past: 'brought',    pp: 'brought',    ing: 'bringing',     s: 'brings' },
+  buy:        { past: 'bought',     pp: 'bought',     ing: 'buying',       s: 'buys' },
+  catch:      { past: 'caught',     pp: 'caught',     ing: 'catching',     s: 'catches' },
+  choose:     { past: 'chose',      pp: 'chosen',     ing: 'choosing',     s: 'chooses' },
+  come:       { past: 'came',       pp: 'come',       ing: 'coming',       s: 'comes' },
+  do:         { past: 'did',        pp: 'done',       ing: 'doing',        s: 'does' },
+  drink:      { past: 'drank',      pp: 'drunk',      ing: 'drinking',     s: 'drinks' },
+  drive:      { past: 'drove',      pp: 'driven',     ing: 'driving',      s: 'drives' },
+  eat:        { past: 'ate',        pp: 'eaten',      ing: 'eating',       s: 'eats' },
+  fall:       { past: 'fell',       pp: 'fallen',     ing: 'falling',      s: 'falls' },
+  feel:       { past: 'felt',       pp: 'felt',       ing: 'feeling',      s: 'feels' },
+  fight:      { past: 'fought',     pp: 'fought',     ing: 'fighting',     s: 'fights' },
+  find:       { past: 'found',      pp: 'found',      ing: 'finding',      s: 'finds' },
+  get:        { past: 'got',        pp: 'gotten',     ing: 'getting',      s: 'gets' },
+  give:       { past: 'gave',       pp: 'given',      ing: 'giving',       s: 'gives' },
+  go:         { past: 'went',       pp: 'gone',       ing: 'going',        s: 'goes' },
+  grow:       { past: 'grew',       pp: 'grown',      ing: 'growing',      s: 'grows' },
+  have:       { past: 'had',        pp: 'had',        ing: 'having',       s: 'has' },
+  hear:       { past: 'heard',      pp: 'heard',      ing: 'hearing',      s: 'hears' },
+  hold:       { past: 'held',       pp: 'held',       ing: 'holding',      s: 'holds' },
+  keep:       { past: 'kept',       pp: 'kept',       ing: 'keeping',      s: 'keeps' },
+  know:       { past: 'knew',       pp: 'known',      ing: 'knowing',      s: 'knows' },
+  leave:      { past: 'left',       pp: 'left',       ing: 'leaving',      s: 'leaves' },
+  lose:       { past: 'lost',       pp: 'lost',       ing: 'losing',       s: 'loses' },
+  make:       { past: 'made',       pp: 'made',       ing: 'making',       s: 'makes' },
+  meet:       { past: 'met',        pp: 'met',        ing: 'meeting',      s: 'meets' },
+  pay:        { past: 'paid',       pp: 'paid',       ing: 'paying',       s: 'pays' },
+  read:       { past: 'read',       pp: 'read',       ing: 'reading',      s: 'reads' },
+  ride:       { past: 'rode',       pp: 'ridden',     ing: 'riding',       s: 'rides' },
+  run:        { past: 'ran',        pp: 'run',        ing: 'running',      s: 'runs' },
+  say:        { past: 'said',       pp: 'said',       ing: 'saying',       s: 'says' },
+  see:        { past: 'saw',        pp: 'seen',       ing: 'seeing',       s: 'sees' },
+  sell:       { past: 'sold',       pp: 'sold',       ing: 'selling',      s: 'sells' },
+  send:       { past: 'sent',       pp: 'sent',       ing: 'sending',      s: 'sends' },
+  sit:        { past: 'sat',        pp: 'sat',        ing: 'sitting',      s: 'sits' },
+  speak:      { past: 'spoke',      pp: 'spoken',     ing: 'speaking',     s: 'speaks' },
+  stand:      { past: 'stood',      pp: 'stood',      ing: 'standing',     s: 'stands' },
+  take:       { past: 'took',       pp: 'taken',      ing: 'taking',       s: 'takes' },
+  tell:       { past: 'told',       pp: 'told',       ing: 'telling',      s: 'tells' },
+  think:      { past: 'thought',    pp: 'thought',    ing: 'thinking',     s: 'thinks' },
+  understand: { past: 'understood', pp: 'understood', ing: 'understanding',s: 'understands' },
+  wake:       { past: 'woke',       pp: 'woken',      ing: 'waking',       s: 'wakes' },
+  win:        { past: 'won',        pp: 'won',        ing: 'winning',      s: 'wins' },
+  write:      { past: 'wrote',      pp: 'written',    ing: 'writing',      s: 'writes' },
+  become:     { past: 'became',     pp: 'become',     ing: 'becoming',     s: 'becomes' },
+  show:       { past: 'showed',     pp: 'shown',      ing: 'showing',      s: 'shows' },
+};
+
+// Naive-but-serviceable regular-verb conjugation. Not perfect (edge cases
+// like doubling final consonants after CVC are ignored), but good enough
+// for practice options that just need to LOOK like the target form.
+function regularize(base: string): { s: string; ing: string; ed: string } {
+  const b = base.toLowerCase();
+  const s   = /(s|x|z|sh|ch)$/.test(b) ? b + 'es'
+            : /[^aeiou]y$/.test(b)     ? b.slice(0, -1) + 'ies'
+            :                             b + 's';
+  const ing = /e$/.test(b) && !/ee$/.test(b) ? b.slice(0, -1) + 'ing'
+            :                                   b + 'ing';
+  const ed  = /e$/.test(b)                 ? b + 'd'
+            : /[^aeiou]y$/.test(b)         ? b.slice(0, -1) + 'ied'
+            :                                 b + 'ed';
+  return { s, ing, ed };
+}
+
+interface VerbForms { base: string; s: string; past: string; pp: string; ing: string }
+
+function verbForms(base: string): VerbForms {
+  const b = base.toLowerCase();
+  const irr = IRREGULAR_VERBS[b];
+  if (irr) return { base: b, ...irr };
+  const r = regularize(b);
+  return { base: b, s: r.s, past: r.ed, pp: r.ed, ing: r.ing };
+}
+
+// Look up an inflected form in the irregular map by scanning all entries.
+// Returns { base } when found so verb-form transforms can rebuild the
+// full paradigm from any inflection (past, pp, -ing, -s).
+function baseFromInflection(word: string): string | null {
+  const w = word.toLowerCase();
+  for (const [base, f] of Object.entries(IRREGULAR_VERBS)) {
+    if (f.past === w || f.pp === w || f.ing === w || f.s === w || base === w) return base;
+  }
+  // Regular fallbacks
+  if (/ing$/.test(w) && w.length > 5) return /([^aeiou])\1ing$/.test(w) ? w.slice(0, -4) : w.slice(0, -3);
+  if (/ied$/.test(w)) return w.slice(0, -3) + 'y';
+  if (/ed$/.test(w) && w.length > 4)  return w.slice(0, -2);
+  if (/ies$/.test(w)) return w.slice(0, -3) + 'y';
+  if (/es$/.test(w) && /(s|x|z|sh|ch)es$/.test(w)) return w.slice(0, -2);
+  if (/s$/.test(w) && w.length > 3)   return w.slice(0, -1);
+  return null;
+}
+
+// Return up to 4 distinct forms drawn from `preferred`; if dedupe leaves
+// fewer than 4, pad from `fallback`. Preserves order in `preferred`.
+function uniqueForms(preferred: string[], fallback: string[]): string[] {
+  const out: string[] = [];
+  for (const w of [...preferred, ...fallback]) {
+    if (!w) continue;
+    if (out.some(o => o.toLowerCase() === w.toLowerCase())) continue;
+    out.push(w);
+    if (out.length >= 4) break;
+  }
+  return out;
+}
+
+// Per-category verb-form extractor. Given the matched fragment, returns
+// the exact substring to blank + the 4 form options (correct included).
+// Returns null when the category isn't suited for verb-form drilling.
+type VerbFormExtractor = (matchStr: string) => { blank: string; options: string[] } | null;
+
+const VERB_FORM_EXTRACTORS: Partial<Record<GrammarCategory, VerbFormExtractor>> = {
+  simple_present_3ps: (m) => {
+    const toks = m.split(/\s+/);
+    const verb = toks[toks.length - 1];
+    if (!verb || !/s$/i.test(verb) || verb.length < 3) return null;
+    const base = baseFromInflection(verb) ?? verb.replace(/e?s$/i, '');
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.s, f.base, f.past, f.ing], [f.pp]) };
+  },
+  present_continuous: (m) => {
+    const toks = m.split(/\s+/);
+    const verb = toks[toks.length - 1];
+    if (!verb || !/ing$/i.test(verb)) return null;
+    const base = baseFromInflection(verb) ?? verb.replace(/ing$/i, '');
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.ing, f.base, f.s, f.past], [f.pp]) };
+  },
+  past_continuous: (m) => {
+    const toks = m.split(/\s+/);
+    const verb = toks[toks.length - 1];
+    if (!verb || !/ing$/i.test(verb)) return null;
+    const base = baseFromInflection(verb) ?? verb.replace(/ing$/i, '');
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.ing, f.base, f.past, f.pp], [f.s]) };
+  },
+  past_be: (m) => {
+    const verb = m.trim().toLowerCase();
+    const clean = verb.replace(/n't$/, '');
+    if (clean !== 'was' && clean !== 'were') return null;
+    return { blank: m.trim(), options: ['is', 'are', 'was', 'were'] };
+  },
+  past_simple_irregular: (m) => {
+    const verb = m.trim().toLowerCase();
+    const base = baseFromInflection(verb);
+    if (!base) return null;
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.past, f.base, f.pp, f.ing], [f.s]) };
+  },
+  modals: (m) => {
+    const toks = m.split(/\s+/);
+    if (toks.length < 2) return null;
+    const verb = toks[1];
+    const base = baseFromInflection(verb) ?? verb.toLowerCase();
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.base, f.s, f.past, f.ing], [f.pp]) };
+  },
+  can_could_ability: (m) => VERB_FORM_EXTRACTORS.modals!(m),
+  going_to_future: (m) => {
+    const toks = m.split(/\s+/);
+    const idx = toks.findIndex(t => /^to$/i.test(t));
+    if (idx < 0 || idx + 1 >= toks.length) return null;
+    const verb = toks[idx + 1];
+    const base = baseFromInflection(verb) ?? verb.toLowerCase();
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.base, f.s, f.past, f.ing], [f.pp]) };
+  },
+  used_to: (m) => VERB_FORM_EXTRACTORS.going_to_future!(m),
+  present_perfect: (m) => {
+    const toks = m.split(/\s+/);
+    if (toks.length < 2) return null;
+    const verb = toks[toks.length - 1];
+    const base = baseFromInflection(verb) ?? verb.replace(/(ed|en|n|t)$/i, '');
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.pp, f.base, f.past, f.ing], [f.s]) };
+  },
+  perfect_tenses: (m) => VERB_FORM_EXTRACTORS.present_perfect!(m),
+  present_perfect_cont: (m) => {
+    const toks = m.split(/\s+/);
+    const verb = toks[toks.length - 1];
+    if (!verb || !/ing$/i.test(verb)) return null;
+    const base = baseFromInflection(verb) ?? verb.replace(/ing$/i, '');
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.ing, f.base, f.pp, f.past], [f.s]) };
+  },
+  simple_present_base: (m) => {
+    const toks = m.split(/\s+/);
+    if (toks.length < 2) return null;
+    const verb = toks[toks.length - 1];
+    const base = baseFromInflection(verb) ?? verb.toLowerCase();
+    const f = verbForms(base);
+    return { blank: verb, options: uniqueForms([f.base, f.s, f.past, f.ing], [f.pp]) };
+  },
+};
+
+// ─── Error-injection helpers (used by error_correction + MCQ) ─
+
+type ErrorInjector = (line: string) => string | null;
+
+const ERROR_INJECTORS: Partial<Record<GrammarCategory, ErrorInjector>> = {
+  simple_present_3ps: (line) => {
+    const re = /\b(he|she|it)\s+(\w+?)(e?s)\b/i;
+    return re.test(line) ? line.replace(re, '$1 $2') : null;
+  },
+  simple_present_base: (line) => {
+    const re = /\b(I|you|we|they)\s+(\w+)\b/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, subj: string, verb: string) => `${subj} ${regularize(verb).s}`);
+  },
+  present_continuous: (line) => {
+    const re = /\b(am|is|are|'m|'re|'s)\s+(\w+?)ing\b/i;
+    return re.test(line) ? line.replace(re, '$1 $2') : null;
+  },
+  past_continuous: (line) => {
+    const re = /\b(was|were)\s+(\w+?)ing\b/i;
+    return re.test(line) ? line.replace(re, '$1 $2') : null;
+  },
+  past_be: (line) => {
+    if (/\bwas\b/i.test(line)) return line.replace(/\bwas\b/i, 'were');
+    if (/\bwere\b/i.test(line)) return line.replace(/\bwere\b/i, 'was');
+    return null;
+  },
+  past_simple_irregular: (line) => {
+    for (const [base, f] of Object.entries(IRREGULAR_VERBS)) {
+      const re = new RegExp(`\\b${f.past}\\b`, 'i');
+      if (re.test(line)) return line.replace(re, regularize(base).ed);
+    }
+    return null;
+  },
+  present_perfect: (line) => {
+    const re = /\b(have|has|haven't|hasn't|I've|you've|we've|they've)\s+/i;
+    return re.test(line) ? line.replace(re, '') : null;
+  },
+  perfect_tenses: (line) => ERROR_INJECTORS.present_perfect!(line),
+  present_perfect_cont: (line) => {
+    const re = /\bbeen\s+/i;
+    return re.test(line) ? line.replace(re, '') : null;
+  },
+  modals: (line) => {
+    const re = /\b(can|cannot|can't|could|couldn't|will|won't|would|wouldn't|should|shouldn't|might|may|must)\s+(\w+)\b/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, modal: string, verb: string) => `${modal} ${regularize(verb).s}`);
+  },
+  can_could_ability: (line) => ERROR_INJECTORS.modals!(line),
+  going_to_future: (line) => {
+    const re = /\b(going to)\s+(\w+)\b/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, gt: string, verb: string) => `${gt} ${regularize(verb).ing}`);
+  },
+  used_to: (line) => {
+    const re = /\b(used to)\s+(\w+)\b/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, ut: string, verb: string) => `${ut} ${regularize(verb).ed}`);
+  },
+  conditionals: (line) => {
+    if (/\bwill\b/i.test(line))  return line.replace(/\bwill\b/i, 'would');
+    if (/\bwould\b/i.test(line)) return line.replace(/\bwould\b/i, 'will');
+    return null;
+  },
+  reported_speech: (line) => {
+    if (/\bsaid\b/i.test(line))  return line.replace(/\bsaid\b/i, 'say');
+    if (/\btold\b/i.test(line))  return line.replace(/\btold\b/i, 'tell');
+    if (/\basked\b/i.test(line)) return line.replace(/\basked\b/i, 'ask');
+    return null;
+  },
+  phrasal_verbs: (line) => {
+    const wrongParticle: Record<string, string> = {
+      up: 'down', down: 'up', on: 'off', off: 'on',
+      in: 'out', out: 'in', over: 'under', apart: 'together',
+      away: 'toward', back: 'forward', around: 'straight',
+    };
+    for (const [particle, wrong] of Object.entries(wrongParticle)) {
+      const re = new RegExp(`\\b(give|hold|let|run|break|come|fall|get|move|carry|wake|grow|stand|turn|look|find|figure|take|throw|reach|push|tear|walk|step)\\s+${particle}\\b`, 'i');
+      if (re.test(line)) return line.replace(re, (_m, verb: string) => `${verb} ${wrong}`);
+    }
+    return null;
+  },
+  modals_speculation: (line) => {
+    const re = /\b(must|might|may|could)\s+(be|have)\s+/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, modal: string) => `${modal} `);
+  },
+  passive_voice: (line) => {
+    const re = /\b(was|were|is|are|been)\s+(\w+?(?:ed|en|n|t))\s+by\b/i;
+    if (!re.test(line)) return null;
+    return line.replace(re, (_m, _aux: string, verb: string) => `${verb} by`);
+  },
+  frequency_adverbs: (line) => {
+    const m = line.match(/\b(always|never|usually|often|sometimes|rarely)\b/i);
+    if (!m) return null;
+    const adv = m[0];
+    return line.replace(new RegExp(`\\b${adv}\\s+`, 'i'), '') + ' ' + adv;
+  },
+  comparatives: (line) => {
+    if (/\bthan\b/i.test(line)) return line.replace(/\bthan\b/i, 'from');
+    return null;
+  },
+  demonstratives: (line) => {
+    const swaps: Record<string, string> = { this: 'these', these: 'this', that: 'those', those: 'that' };
+    for (const [k, v] of Object.entries(swaps)) {
+      const re = new RegExp(`\\b${k}\\b`, 'i');
+      if (re.test(line)) return line.replace(re, v);
+    }
+    return null;
+  },
+  negative_contractions: (line) => {
+    const swaps: Array<[RegExp, string]> = [
+      [/\bdon't\b/i, "doesn't"], [/\bdoesn't\b/i, "don't"],
+      [/\bcan't\b/i, "won't"],   [/\bwon't\b/i, "can't"],
+      [/\bisn't\b/i, "aren't"],  [/\baren't\b/i, "isn't"],
+      [/\bwasn't\b/i, "weren't"],[/\bweren't\b/i, "wasn't"],
+      [/\bdidn't\b/i, "don't"],
+    ];
+    for (const [re, repl] of swaps) {
+      if (re.test(line)) return line.replace(re, repl);
+    }
+    return null;
+  },
+  advanced_collocations: (line) => {
+    const swaps: Record<string, string> = {
+      deeply: 'highly', widely: 'deeply', painfully: 'strongly',
+      hopelessly: 'gently', utterly: 'kind of', firmly: 'lightly',
+    };
+    for (const [k, v] of Object.entries(swaps)) {
+      const re = new RegExp(`\\b${k}\\b`, 'i');
+      if (re.test(line)) return line.replace(re, v);
+    }
+    return null;
+  },
+};
+
+// ─── Open-ended stems (templated by grammar category + title) ─
+
+const OPEN_ENDED_STEMS: Partial<Record<GrammarCategory, string>> = {
+  simple_present_base:   'In "{title}", the characters always ',
+  simple_present_3ps:    'The main character in "{title}" often ',
+  present_continuous:    'Right now, in "{title}", the narrator is ',
+  past_be:               'When "{title}" begins, everything was ',
+  past_simple_irregular: 'The most surprising moment in "{title}" happened when someone ',
+  past_continuous:       'While the events of "{title}" were unfolding, the narrator was ',
+  modals:                'After reading "{title}", I think the main character should ',
+  going_to_future:       'By the end of "{title}", the characters are going to ',
+  used_to:               'The characters in "{title}" used to ',
+  can_could_ability:     'The main character in "{title}" can ',
+  present_perfect:       'By this point in "{title}", the characters have ',
+  present_perfect_cont:  'The narrator in "{title}" has been ',
+  perfect_tenses:        'Before "{title}" begins, the characters had ',
+  conditionals:          'If I were a character in "{title}", I would ',
+  reported_speech:       'The narrator of "{title}" says that ',
+  phrasal_verbs:         'At the turning point of "{title}", the character had to ',
+  modals_speculation:    'Reading "{title}", I think the main character must have ',
+  passive_voice:         'In "{title}", one important thing was ',
+  frequency_adverbs:     'In "{title}", the character always ',
+  comparatives:          'The main character in "{title}" is more ',
+  demonstratives:        'The most important thing in "{title}" is this: ',
+  there_is_are:          'In "{title}", there is ',
+  negative_contractions: 'By the end of "{title}", the character can\'t ',
+  advanced_collocations: 'The narrator of "{title}" is deeply ',
+  cleft_sentences:       'What matters most in "{title}" is ',
+  reduced_relatives:     'The character in "{title}", ',
+  inversion:             'Never before had the character in "{title}" ',
+  generic:               'Write one sentence about "{title}" using this structure: ',
+};
+
+// ─── Primary-grammar helper (consumed by the practice builder) ─
+
+interface PrimaryGrammar {
+  topic: string;
+  description: string;
+  category: GrammarCategory;
+  regex: RegExp;
+  matchedLines: string[];
+}
+
+function detectPrimaryGrammarForPractice(text: string, level: LessonLevel): PrimaryGrammar {
+  const detected = detectMultipleGrammar(text, level, 1);
+  const primary  = detected[0];
+  const matchedLines = primary.examples.map(e => e.line);
+  return {
+    topic: primary.topic,
+    description: primary.description,
+    category: primary.category,
+    regex: primary.regex,
+    matchedLines,
+  };
+}
+
+// ─── Item builders ────────────────────────────────────────────
+
+function buildUnscrambleItem(line: string, primary: PrimaryGrammar): PracticeItem {
+  const toks = tokenizeLine(line);
+  return {
+    type: 'unscramble',
+    prompt: shuffle(toks).join(' / '),
+    answer: line,
+    grammarTopic: primary.topic,
+  };
+}
+
+function buildMatchHalvesItem(line: string, primary: PrimaryGrammar, distractorPool: string[]): PracticeItem {
+  const toks = tokenizeLine(line);
+  const halfIdx    = Math.max(1, Math.floor(toks.length / 2));
+  const firstHalf  = toks.slice(0, halfIdx).join(' ');
+  const secondHalf = toks.slice(halfIdx).join(' ');
+  const distractors = pickHalfDistractors(distractorPool, secondHalf, halfIdx, 3);
+  while (distractors.length < 3) {
+    distractors.push(['a new day', 'a quiet street', 'the sound of home', 'a page for you'][distractors.length]);
+  }
+  return {
+    type: 'match_halves',
+    prompt: firstHalf,
+    answer: secondHalf,
+    options: shuffle([secondHalf, ...distractors.slice(0, 3)]),
+    grammarTopic: primary.topic,
+  };
+}
+
+function buildVerbFormItem(line: string, primary: PrimaryGrammar): PracticeItem | null {
+  const extractor = VERB_FORM_EXTRACTORS[primary.category];
+  if (!extractor) return null;
+  const match = line.match(primary.regex);
+  if (!match?.[0]) return null;
+  const extracted = extractor(match[0]);
+  if (!extracted || extracted.options.length < 3) return null;
+  // Blank the target verb, case-insensitive whole-word replace of the first
+  // occurrence inside the matched substring.
+  const blanked = line.replace(new RegExp(`\\b${extracted.blank}\\b`, 'i'), '{{blank}}');
+  if (blanked === line) return null;
+  return {
+    type: 'verb_form',
+    prompt: blanked,
+    answer: extracted.blank,
+    options: shuffle(uniqueForms(extracted.options, [])),
+    grammarTopic: primary.topic,
+    contextLine: line,
+  };
+}
+
+function buildErrorCorrectionItem(line: string, primary: PrimaryGrammar): PracticeItem | null {
+  const injector = ERROR_INJECTORS[primary.category];
+  if (!injector) return null;
+  const wrong = injector(line);
+  if (!wrong || wrong.toLowerCase() === line.toLowerCase()) return null;
+  return {
+    type: 'error_correction',
+    prompt: `This sentence has an error with ${primary.topic.toLowerCase()}. Rewrite it correctly.`,
+    answer: line,
+    wrongText: wrong,
+    grammarTopic: primary.topic,
+  };
+}
+
+function buildMultipleSelectionItem(
+  correctLine: string,
+  primary: PrimaryGrammar,
+  otherMatched: string[],
+): PracticeItem | null {
+  const injector = ERROR_INJECTORS[primary.category];
+  if (!injector) return null;
+
+  const wrongs: string[] = [];
+  const seen = new Set<string>([correctLine.toLowerCase()]);
+
+  // First pass: inject the error into DIFFERENT matched lines so distractors
+  // stay varied. Second pass: fall back to variants of the correct line.
+  for (const other of otherMatched) {
+    if (wrongs.length >= 3) break;
+    if (seen.has(other.toLowerCase())) continue;
+    const w = injector(other);
+    if (w && !seen.has(w.toLowerCase())) {
+      wrongs.push(w);
+      seen.add(w.toLowerCase());
     }
   }
-  const safety = ['The story begins today', 'Every page is a new chance', 'The world is bright with words', 'We keep reading until the last line'];
-  while (filled.length < 4) filled.push(safety[filled.length] ?? safety[0]);
+  if (wrongs.length < 3) {
+    const wSelf = injector(correctLine);
+    if (wSelf && !seen.has(wSelf.toLowerCase())) {
+      wrongs.push(wSelf);
+      seen.add(wSelf.toLowerCase());
+    }
+  }
+  if (wrongs.length < 3) return null;
 
-  const distractorPool = text.split(/\n|(?<=[.!?])\s+/)
-    .map(l => l.trim())
-    .filter(l => l && tokenizeLine(l).length >= 3);
+  return {
+    type: 'multiple_selection',
+    prompt: `Which sentence uses ${primary.topic.toLowerCase()} correctly?`,
+    answer: correctLine,
+    options: shuffle([correctLine, ...wrongs.slice(0, 3)]),
+    grammarTopic: primary.topic,
+  };
+}
+
+function buildOpenEndedItem(primary: PrimaryGrammar, title: string): PracticeItem {
+  const template = OPEN_ENDED_STEMS[primary.category] ?? OPEN_ENDED_STEMS.generic!;
+  const stem = template.replace('{title}', title);
+  return {
+    type: 'open_ended',
+    prompt: `Complete the sentence with your own idea, using ${primary.topic.toLowerCase()}.`,
+    answer: '', // no auto-check; card marks done on non-empty submit
+    stem,
+    grammarTopic: primary.topic,
+  };
+}
+
+// ─── Slide assembler ──────────────────────────────────────────
+
+function buildLanguagePractice(text: string, level: LessonLevel, primary: PrimaryGrammar, title: string): Slide {
+  const cfg = LEVEL_PRACTICE_CFG[level] ?? { minWords: 5, maxWords: 9 };
+  const mix = CEFR_ACTIVITY_MIX[level] ?? CEFR_ACTIVITY_MIX['B1'];
+
+  // Pool 1: lines from the text that contain the primary grammar pattern,
+  // in the level's word-count range. These get first pick for every item.
+  const rawLines = text.split(/\n|(?<=[.!?])\s+/).map(l => l.trim()).filter(Boolean);
+  const patternLines = rawLines.filter(l => {
+    const wc = tokenizeLine(l).length;
+    return wc >= cfg.minWords && wc <= cfg.maxWords && primary.regex.test(l);
+  });
+
+  // Pool 2: any text line in the length range (fallback when a builder
+  // demands a line but the pattern pool has run out).
+  const diverseLines = pickDiverseLines(text, 8, cfg.minWords, cfg.maxWords);
+
+  // Pool 3: safety fillers so short texts never render an empty deck.
+  const safety = [
+    'The story begins today',
+    'Every page is a new chance',
+    'The world is bright with words',
+    'We keep reading until the last line',
+  ];
+
+  // Broad pool for match_halves distractors — everything readable in the text.
+  const distractorPool = rawLines.filter(l => tokenizeLine(l).length >= 3);
+
+  // Consume pattern lines in order; when exhausted, drift into diverse lines
+  // that don't match the pattern but at least come from the text.
+  const linesQueue: string[] = [
+    ...patternLines,
+    ...diverseLines.filter(l => !patternLines.some(p => p.toLowerCase() === l.toLowerCase())),
+    ...safety,
+  ];
+  const usedLines = new Set<string>();
+  function nextLine(): string {
+    for (const l of linesQueue) {
+      if (!usedLines.has(l.toLowerCase())) {
+        usedLines.add(l.toLowerCase());
+        return l;
+      }
+    }
+    return safety[0];
+  }
 
   const items: PracticeItem[] = [];
-  filled.slice(0, 4).forEach((line, i) => {
-    const toks = tokenizeLine(line);
-    if (i % 2 === 0) {
-      items.push({ type: 'unscramble', prompt: shuffle(toks).join(' / '), answer: line });
-    } else {
-      const halfIdx    = Math.max(1, Math.floor(toks.length / 2));
-      const firstHalf  = toks.slice(0, halfIdx).join(' ');
-      const secondHalf = toks.slice(halfIdx).join(' ');
-      const distractors = pickHalfDistractors(distractorPool, secondHalf, halfIdx, 3);
-      while (distractors.length < 3) {
-        distractors.push(['a new day', 'a broken sky', 'the sound of home', 'a page for you'][distractors.length]);
+  for (const kind of mix) {
+    let item: PracticeItem | null = null;
+
+    switch (kind) {
+      case 'unscramble':
+        item = buildUnscrambleItem(nextLine(), primary);
+        break;
+      case 'match_halves':
+        item = buildMatchHalvesItem(nextLine(), primary, distractorPool);
+        break;
+      case 'verb_form': {
+        // Verb-form needs a pattern-matching line specifically.
+        const candidate = patternLines.find(l => !usedLines.has(l.toLowerCase())) ?? nextLine();
+        usedLines.add(candidate.toLowerCase());
+        item = buildVerbFormItem(candidate, primary)
+            ?? buildMatchHalvesItem(candidate, primary, distractorPool);
+        break;
       }
-      items.push({
-        type: 'match_halves',
-        prompt: firstHalf,
-        answer: secondHalf,
-        options: shuffle([secondHalf, ...distractors.slice(0, 3)]),
-      });
+      case 'error_correction': {
+        const candidate = patternLines.find(l => !usedLines.has(l.toLowerCase())) ?? nextLine();
+        usedLines.add(candidate.toLowerCase());
+        item = buildErrorCorrectionItem(candidate, primary)
+            ?? buildUnscrambleItem(candidate, primary);
+        break;
+      }
+      case 'multiple_selection': {
+        const candidate = patternLines.find(l => !usedLines.has(l.toLowerCase())) ?? nextLine();
+        usedLines.add(candidate.toLowerCase());
+        const others = patternLines.filter(l => l.toLowerCase() !== candidate.toLowerCase());
+        item = buildMultipleSelectionItem(candidate, primary, others)
+            ?? buildMatchHalvesItem(candidate, primary, distractorPool);
+        break;
+      }
+      case 'open_ended':
+        item = buildOpenEndedItem(primary, title);
+        break;
     }
-  });
+
+    if (item) items.push(item);
+  }
 
   return {
     id: 'lang-practice',
     type: 'language_practice',
     phase: 'while',
     title: "Let's Practice!",
-    content: 'Complete the activities below using sentences from the text.',
+    content: `Drilling ${primary.topic.toLowerCase()} using sentences from the text.`,
     practiceItems: items,
   };
 }
@@ -845,7 +1522,8 @@ export async function generateTextLessonAlgorithmically(
   const comprehensionSlide = { ...buildComprehensionSlide(text, comprehensionMode), textData: previewTextData };
   const comprehensionQuiz  = buildComprehensionQuiz(text, title);
   const langFocus          = buildLanguageFocus(text, level, title);
-  const langPractice       = buildLanguagePractice(text, level);
+  const primaryGrammar     = detectPrimaryGrammarForPractice(text, level);
+  const langPractice       = buildLanguagePractice(text, level, primaryGrammar, title);
   const translationGame    = await buildTranslationGame(text, level);
   const wrapupSlide        = buildWrapupSlide(title, source, text, level, comprehensionMode);
 
