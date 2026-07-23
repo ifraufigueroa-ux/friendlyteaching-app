@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PLACEMENT_QUESTIONS, TOPIC_LABELS, LEVEL_SECTIONS } from '@/data/placementQuestions';
 import type { PlacementAnswer, SectionScore, WeakArea, LearningProgram } from '@/types/placement';
 import type { LessonLevel } from '@/types/firebase';
+import type { WritingGradeResult, IELTSVersion } from '@/types/ielts-writing';
 
 export interface ProgressReportData {
   type: 'progress';
@@ -45,6 +46,19 @@ export interface InvoiceData {
   notes?: string;
 }
 
+export interface WritingFeedbackReportData {
+  type:            'writing-feedback';
+  studentName?:    string;
+  taskTitle:       string;
+  version:         IELTSVersion;
+  task:            1 | 2;
+  taskLabel:       string;         // e.g. "Task 1 · Letter (formal)" or "Task 2 · opinion"
+  prompt:          string;
+  studentAnswer:   string;
+  result:          WritingGradeResult;
+  completedAt?:    string;         // ISO date
+}
+
 export interface PlacementReportData {
   type: 'placement';
   variant?: 'student' | 'teacher';  // default: 'student'
@@ -62,7 +76,7 @@ export interface PlacementReportData {
   learningProgram?: LearningProgram;
 }
 
-type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData;
+type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData;
 
 // ── PDF generation using pure HTML → PDF conversion ──────────
 
@@ -503,6 +517,179 @@ function generatePlacementHTML(data: PlacementReportData, logoUrl: string): stri
 </html>`;
 }
 
+// ── IELTS Writing feedback PDF ───────────────────────────────────
+
+function bandColor(band: number): string {
+  if (band >= 8) return '#15803D';
+  if (band >= 7) return '#5A3D7A';
+  if (band >= 6) return '#0369A1';
+  if (band >= 5) return '#B45309';
+  return '#DC2626';
+}
+function bandBg(band: number): string {
+  if (band >= 8) return '#DCFCE7';
+  if (band >= 7) return '#F0E5FF';
+  if (band >= 6) return '#E0F2FE';
+  if (band >= 5) return '#FEF3C7';
+  return '#FEE2E2';
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function generateWritingFeedbackHTML(data: WritingFeedbackReportData, logoUrl: string): string {
+  const r = data.result;
+  const dateStr = data.completedAt
+    ? new Date(data.completedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const criterion1Label = data.task === 1 ? 'Task Achievement' : 'Task Response';
+  const versionLabel    = data.version === 'academic' ? 'Academic' : 'General Training';
+
+  const criteria = [
+    { title: criterion1Label,              score: r.taskAchievement   },
+    { title: 'Coherence & Cohesion',       score: r.coherenceCohesion },
+    { title: 'Lexical Resource',           score: r.lexicalResource   },
+    { title: 'Grammatical Range',          score: r.grammarAccuracy   },
+  ];
+
+  const criterionCards = criteria.map(({ title, score }) => `
+    <div style="background:#FFFFFF;border:1px solid #F0E5FF;border-radius:14px;padding:14px;page-break-inside:avoid;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#5A3D7A;">${escapeHtml(title)}</div>
+        <span style="font-size:14px;font-weight:900;padding:3px 10px;border-radius:20px;background:${bandBg(score.band)};color:${bandColor(score.band)};">
+          ${score.band.toFixed(1)}
+        </span>
+      </div>
+      <div style="height:6px;background:#F0E5FF;border-radius:3px;overflow:hidden;margin-bottom:10px;">
+        <div style="height:100%;width:${(score.band / 9) * 100}%;background:${bandColor(score.band)};border-radius:3px;"></div>
+      </div>
+      <p style="font-size:11px;color:#374151;line-height:1.5;margin-bottom:8px;">${escapeHtml(score.summary)}</p>
+      ${score.strengths.length ? `
+      <div style="margin-bottom:6px;">
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#15803D;margin-bottom:3px;">Fortalezas</div>
+        <ul style="margin:0;padding-left:16px;">
+          ${score.strengths.map(s => `<li style="font-size:10px;color:#4B5563;line-height:1.5;">${escapeHtml(s)}</li>`).join('')}
+        </ul>
+      </div>` : ''}
+      ${score.improvements.length ? `
+      <div>
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#B45309;margin-bottom:3px;">A mejorar</div>
+        <ul style="margin:0;padding-left:16px;">
+          ${score.improvements.map(s => `<li style="font-size:10px;color:#4B5563;line-height:1.5;">${escapeHtml(s)}</li>`).join('')}
+        </ul>
+      </div>` : ''}
+    </div>
+  `).join('');
+
+  const errorsList = r.keyErrors.length ? `
+    <div class="section-title">Errores específicos</div>
+    <ul style="margin:0;padding-left:20px;">
+      ${r.keyErrors.map(e => `<li style="font-size:11px;color:#374151;line-height:1.6;margin-bottom:4px;">${escapeHtml(e)}</li>`).join('')}
+    </ul>
+  ` : '';
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>IELTS Writing Feedback — ${escapeHtml(data.taskTitle)}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1F2937; background: white; font-size: 13px; line-height: 1.5; }
+  @media print {
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 40px; }
+  .hero { background: linear-gradient(135deg, #5A3D7A 0%, #9B7CB8 100%); border-radius: 16px; padding: 28px; margin-bottom: 24px; color: white; position: relative; overflow: hidden; }
+  .hero-bg1 { position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08); }
+  .brand-row { display:flex;align-items:center;gap:10px;margin-bottom:18px; }
+  .brand-logo { width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.15); }
+  .brand-name { font-size:16px;font-weight:800;letter-spacing:-0.3px; }
+  .brand-tld { font-size:11px;opacity:0.6; }
+  .hero-main { display:flex;justify-content:space-between;align-items:flex-end;gap:20px; }
+  .task-label { font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:0.7;margin-bottom:6px; }
+  .task-title { font-size:22px;font-weight:800;letter-spacing:-0.4px; }
+  .task-sub { font-size:12px;opacity:0.7;margin-top:4px; }
+  .band-pill { background:rgba(255,255,255,0.2);border-radius:14px;padding:12px 22px;text-align:center;flex-shrink:0; }
+  .band-value { font-size:36px;font-weight:900;line-height:1; }
+  .band-label { font-size:9px;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:4px; }
+  .criteria-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px; }
+  .section-title { font-size:12px;font-weight:800;color:#5A3D7A;padding-bottom:8px;border-bottom:2px solid #F0E5FF;margin-bottom:14px;margin-top:24px;text-transform:uppercase;letter-spacing:0.6px; }
+  .prompt-box { background:#F0E5FF;border-left:4px solid #9B7CB8;border-radius:8px;padding:14px 16px;font-size:12px;color:#2D1B4E;line-height:1.6;white-space:pre-line; }
+  .answer-block { background:#FDFAFF;border:1px solid #F0E5FF;border-radius:12px;padding:16px;font-family:'Courier New',monospace;font-size:11px;color:#1F2937;line-height:1.7;white-space:pre-wrap; }
+  .corrected-block { background:#DCFCE7;border:1px solid #86EFAC;border-radius:12px;padding:16px;font-family:'Courier New',monospace;font-size:11px;color:#064E3B;line-height:1.7;white-space:pre-wrap; }
+  .comparison { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+  .print-btn { position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#6B4F8A,#5A3D7A);color:white;border:none;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(90,61,122,0.35); }
+  .footer { margin-top:36px;padding-top:16px;border-top:2px solid #F0E5FF;font-size:10px;color:#C8A8DC;text-align:center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-bg1"></div>
+    <div class="brand-row">
+      <div class="brand-logo">
+        <img src="${logoUrl}" alt="FT" style="width:36px;height:36px;object-fit:cover;" onerror="this.style.display='none'"/>
+      </div>
+      <div>
+        <div class="brand-name">FriendlyTeaching</div>
+        <div class="brand-tld">.cl · IELTS Writing Feedback</div>
+      </div>
+    </div>
+    <div class="hero-main">
+      <div style="flex:1;min-width:0;">
+        <div class="task-label">${versionLabel} · ${escapeHtml(data.taskLabel)}</div>
+        <div class="task-title">${escapeHtml(data.taskTitle)}</div>
+        <div class="task-sub">
+          ${data.studentName ? escapeHtml(data.studentName) + ' · ' : ''}${r.wordCount} palabras · ${dateStr}
+        </div>
+      </div>
+      <div class="band-pill">
+        <div class="band-value">${r.overallBand.toFixed(1)}</div>
+        <div class="band-label">Overall band</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:0;">Prompt</div>
+  <div class="prompt-box">${escapeHtml(data.prompt)}</div>
+
+  <div class="section-title">Desglose por criterio</div>
+  <div class="criteria-grid">
+    ${criterionCards}
+  </div>
+
+  ${errorsList}
+
+  <div class="section-title page-break">Comparación</div>
+  <div class="comparison">
+    <div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#6B7280;margin-bottom:6px;">Tu respuesta</div>
+      <div class="answer-block">${escapeHtml(data.studentAnswer)}</div>
+    </div>
+    <div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#15803D;margin-bottom:6px;">Versión banda 8+</div>
+      <div class="corrected-block">${escapeHtml(r.correctedVersion)}</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Generated by FriendlyTeaching.cl · ${new Date().toLocaleDateString('es-CL')} · IELTS Writing AI Feedback
+  </div>
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</body>
+</html>`;
+}
+
 export async function POST(request: NextRequest) {
   let body: ExportRequest;
   try {
@@ -527,6 +714,13 @@ export async function POST(request: NextRequest) {
     const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
     html = generatePlacementHTML(d, logoUrl);
     filename = `PlacementReport_${d.studentName.replace(/\s+/g, '_')}.html`;
+  } else if (body.type === 'writing-feedback') {
+    const d = body as WritingFeedbackReportData;
+    const origin = request.nextUrl.origin;
+    const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
+    html = generateWritingFeedbackHTML(d, logoUrl);
+    const slug = (d.studentName ?? d.taskTitle).replace(/\s+/g, '_');
+    filename = `IELTS_Writing_${slug}.html`;
   } else {
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   }

@@ -242,7 +242,40 @@ function ResultView({
   onBack: () => void;
 }) {
   const [showCorrection, setShowCorrection] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const criterion1Label = result.task === 1 ? 'Task Achievement' : 'Task Response';
+
+  const taskLabel = prompt.task === 1
+    ? (prompt.version === 'academic' ? 'Task 1 · Report' : `Task 1 · Letter (${(prompt as GTTask1Prompt).tone})`)
+    : `Task 2 · ${(prompt as Task2Prompt).essayType.replace(/-/g, ' ')}`;
+
+  async function handleDownloadPdf() {
+    setDownloadingPdf(true);
+    try {
+      const res = await fetch('/api/export-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:          'writing-feedback',
+          taskTitle:     prompt.title,
+          version:       prompt.version,
+          task:          prompt.task,
+          taskLabel,
+          prompt:        prompt.prompt,
+          studentAnswer,
+          result,
+          completedAt:   new Date().toISOString(),
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -322,7 +355,14 @@ function ResultView({
         </div>
       </div>
 
-      <div className="flex justify-center gap-3 pt-2">
+      <div className="flex flex-wrap justify-center gap-3 pt-2">
+        <button
+          onClick={handleDownloadPdf}
+          disabled={downloadingPdf}
+          className="px-6 py-2.5 bg-white border-2 border-[#5A3D7A] text-[#5A3D7A] rounded-full text-sm font-bold shadow-md hover:bg-[#F0E5FF] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {downloadingPdf ? '⏳ Generando…' : '⬇ Descargar PDF'}
+        </button>
         <button
           onClick={onBack}
           className="px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg active:scale-95"
