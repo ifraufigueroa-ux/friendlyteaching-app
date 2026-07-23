@@ -208,7 +208,7 @@ export default function PlacementTestPage() {
         // Auto-complete the assignment if the student came via a direct assignment link
         if (assignmentId) {
           const { completePlacementAssignment } = await import('@/hooks/usePlacementAssignments');
-          await completePlacementAssignment(assignmentId, sid).catch(() => {});
+          await completePlacementAssignment(assignmentId, { placementSessionId: sid }).catch(() => {});
         }
       }).catch(() => setSaveError(true)).finally(() => setSaving(false));
       setStep('done');

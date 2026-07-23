@@ -15,7 +15,14 @@ export interface PlacementAssignment {
   studentName: string;
   studentEmail: string;
   status: 'pending' | 'completed';
-  placementSessionId?: string;
+  placementSessionId?: string;      // grammar-only sessions
+  placementSuiteSessionId?: string; // suite sessions
+  // Suite extras — when these are set the assignment runs the multi-component
+  // suite. When absent, the assignment falls back to the classic grammar-only
+  // /placement/[teacherId] flow (backward compatible with existing docs).
+  components?: string[];
+  mode?: 'student-self' | 'teacher-led';
+  grammarLength?: 30 | 60 | 100;
   createdAt: Timestamp;
   completedAt?: Timestamp;
 }
@@ -94,6 +101,11 @@ export async function createPlacementAssignment(data: {
   studentId: string;
   studentName: string;
   studentEmail: string;
+  // Suite fields — all optional. When omitted, this creates a grammar-only
+  // assignment (same behaviour as before).
+  components?: string[];
+  mode?: 'student-self' | 'teacher-led';
+  grammarLength?: 30 | 60 | 100;
 }): Promise<string> {
   const ref = doc(collection(db, 'placementAssignments'));
   await setDoc(ref, {
@@ -102,6 +114,9 @@ export async function createPlacementAssignment(data: {
     studentName: data.studentName,
     studentEmail: data.studentEmail,
     status: 'pending',
+    ...(data.components ? { components: data.components } : {}),
+    ...(data.mode ? { mode: data.mode } : {}),
+    ...(data.grammarLength ? { grammarLength: data.grammarLength } : {}),
     createdAt: serverTimestamp(),
   });
   return ref.id;
@@ -109,11 +124,12 @@ export async function createPlacementAssignment(data: {
 
 export async function completePlacementAssignment(
   assignmentId: string,
-  placementSessionId?: string,
+  opts?: { placementSessionId?: string; placementSuiteSessionId?: string },
 ): Promise<void> {
   await updateDoc(doc(db, 'placementAssignments', assignmentId), {
     status: 'completed',
-    ...(placementSessionId ? { placementSessionId } : {}),
+    ...(opts?.placementSessionId       ? { placementSessionId: opts.placementSessionId }             : {}),
+    ...(opts?.placementSuiteSessionId  ? { placementSuiteSessionId: opts.placementSuiteSessionId }   : {}),
     completedAt: serverTimestamp(),
   });
 }

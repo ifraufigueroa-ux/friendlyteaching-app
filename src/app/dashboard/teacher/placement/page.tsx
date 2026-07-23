@@ -10,8 +10,12 @@ import {
   usePlacementAssignments, createPlacementAssignment,
   deletePlacementAssignment, type PlacementAssignment,
 } from '@/hooks/usePlacementAssignments';
+import { usePlacementSuiteSessions } from '@/hooks/usePlacementSuiteSessions';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementSession, SectionScore } from '@/types/placement';
+import {
+  COMPONENT_META, PRESETS, type ComponentId, type Preset, type PlacementSuiteSession,
+} from '@/types/placement-suite';
 
 // ── Brand palette ─────────────────────────────────────────────
 const B = {
@@ -433,23 +437,53 @@ function AssignTestModal({
   approvedStudents: { uid: string; fullName: string; email: string }[];
   onClose: () => void;
 }) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [selectedUid, setSelectedUid] = useState('');
-  const [saving, setSaving]           = useState(false);
-  const [error, setError]             = useState('');
-  const [done, setDone]               = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('standard');
+  const [components, setComponents] = useState<ComponentId[]>(
+    PRESETS.find(p => p.id === 'standard')?.components ?? ['grammar', 'vocabulary', 'reading'],
+  );
+  const [grammarLength, setGrammarLength] = useState<30 | 60 | 100>(60);
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState('');
+  const [done, setDone]     = useState(false);
 
   const selected = approvedStudents.find(s => s.uid === selectedUid);
 
+  function applyPreset(preset: Preset) {
+    setSelectedPresetId(preset.id);
+    setComponents(preset.components);
+    setGrammarLength(preset.grammarLength);
+  }
+
+  function toggleComponent(id: ComponentId) {
+    setSelectedPresetId('custom');
+    setComponents((prev) =>
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id],
+    );
+  }
+
+  const estimatedMin = components.reduce((sum, cid) => {
+    const meta = COMPONENT_META[cid];
+    if (!meta) return sum;
+    // Grammar time scales with length.
+    if (cid === 'grammar') return sum + Math.round(meta.estimatedMin * (grammarLength / 100));
+    return sum + meta.estimatedMin;
+  }, 0);
+
   async function handleAssign() {
     if (!selected) return;
-    setSaving(true);
-    setError('');
+    if (components.length === 0) { setError('Seleccioná al menos un componente.'); return; }
+    setSaving(true); setError('');
     try {
       await createPlacementAssignment({
         teacherId,
-        studentId: selected.uid,
-        studentName: selected.fullName,
+        studentId:    selected.uid,
+        studentName:  selected.fullName,
         studentEmail: selected.email,
+        components,
+        mode:         'student-self',
+        grammarLength,
       });
       setDone(true);
     } catch (err: unknown) {
@@ -460,17 +494,27 @@ function AssignTestModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
-      <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-white">
+      <div className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl bg-white my-8">
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
           <div className="flex items-center justify-between">
-            <p className="text-base font-bold text-white">Asignar placement test</p>
+            <div>
+              <p className="text-base font-bold text-white">Asignar placement test</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                {done ? '¡Listo!' : `Paso ${step} de 2`}
+              </p>
+            </div>
             <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
           </div>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            El estudiante verá un aviso en su dashboard para completar el test.
-          </p>
+
+          {/* Step indicator */}
+          {!done && (
+            <div className="flex gap-1.5 mt-3">
+              <span className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 1 ? 'bg-white' : 'bg-white/25'}`} />
+              <span className={`h-1.5 flex-1 rounded-full transition-colors ${step >= 2 ? 'bg-white' : 'bg-white/25'}`} />
+            </div>
+          )}
         </div>
 
         <div className="p-6">
@@ -478,14 +522,16 @@ function AssignTestModal({
             <div className="text-center py-4">
               <p className="text-3xl mb-2">✅</p>
               <p className="font-semibold text-[#5A3D7A]">Test asignado a {selected?.fullName}</p>
-              <p className="text-xs text-gray-400 mt-1">El estudiante verá el aviso al ingresar a su cuenta.</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {components.length} componente{components.length !== 1 ? 's' : ''} · ~{estimatedMin} min
+              </p>
               <button onClick={onClose}
                 className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
                 style={{ background: '#5A3D7A' }}>
                 Cerrar
               </button>
             </div>
-          ) : (
+          ) : step === 1 ? (
             <>
               <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
                 Estudiante
@@ -505,19 +551,157 @@ function AssignTestModal({
                 </select>
               )}
 
-              {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-3">{error}</p>}
-
               <div className="flex gap-3">
                 <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
                   Cancelar
                 </button>
                 <button
-                  onClick={handleAssign}
-                  disabled={!selectedUid || saving}
+                  onClick={() => setStep(2)}
+                  disabled={!selectedUid}
                   className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
                   style={{ background: '#5A3D7A' }}
                 >
-                  {saving ? '...' : 'Asignar'}
+                  Continuar →
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Presets */}
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+                Preset
+              </label>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {PRESETS.map((p) => {
+                  const active = selectedPresetId === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => applyPreset(p)}
+                      className={`text-left rounded-xl p-3 border-2 transition-all ${
+                        active
+                          ? 'border-[#5A3D7A] bg-[#F0E5FF]'
+                          : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+                      }`}
+                    >
+                      <p className="text-sm font-bold text-[#5A3D7A]">{p.label}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">{p.description}</p>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setSelectedPresetId('custom')}
+                  className={`text-left rounded-xl p-3 border-2 transition-all col-span-2 ${
+                    selectedPresetId === 'custom'
+                      ? 'border-[#5A3D7A] bg-[#F0E5FF]'
+                      : 'border-dashed border-gray-300 bg-white hover:border-[#C8A8DC]'
+                  }`}
+                >
+                  <p className="text-sm font-bold text-[#5A3D7A]">✨ Custom</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Elegí exactamente qué evaluar.</p>
+                </button>
+              </div>
+
+              {/* Component toggles */}
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+                Componentes
+              </label>
+              <div className="space-y-1.5 mb-4">
+                {Object.values(COMPONENT_META).map((meta) => {
+                  const active = components.includes(meta.id);
+                  const disabled = !meta.available;
+                  return (
+                    <button
+                      key={meta.id}
+                      onClick={() => !disabled && toggleComponent(meta.id)}
+                      disabled={disabled}
+                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all text-left ${
+                        active
+                          ? 'border-[#5A3D7A] bg-[#F0E5FF]'
+                          : disabled
+                            ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+                            : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+                      }`}
+                    >
+                      <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                        active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300'
+                      }`}>
+                        {active ? '✓' : ''}
+                      </span>
+                      <span className="text-lg shrink-0">{meta.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
+                          {disabled && (
+                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                              Próximo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-gray-500 leading-tight">{meta.description}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">
+                        ~{meta.id === 'grammar' ? Math.round(meta.estimatedMin * (grammarLength / 100)) : meta.estimatedMin} min
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Grammar length slider */}
+              {components.includes('grammar') && (
+                <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
+                      Longitud del Grammar
+                    </label>
+                    <span className="text-xs font-bold text-[#5A3D7A]">{grammarLength} preguntas</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {([30, 60, 100] as const).map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => { setGrammarLength(n); setSelectedPresetId('custom'); }}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                          grammarLength === n
+                            ? 'bg-[#5A3D7A] text-white'
+                            : 'bg-white text-[#5A3D7A] border border-[#E8D5F0] hover:bg-[#F0E5FF]'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-1.5">
+                    Se mantiene la cobertura de niveles reduciendo proporcionalmente. Autostop tras 6 errores seguidos.
+                  </p>
+                </div>
+              )}
+
+              {/* Summary */}
+              <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl px-3 py-2 mb-4 flex items-center justify-between">
+                <p className="text-xs text-[#5A3D7A]">
+                  <strong>{components.length}</strong> componente{components.length !== 1 ? 's' : ''} seleccionado{components.length !== 1 ? 's' : ''}
+                </p>
+                <p className="text-xs font-bold text-[#5A3D7A]">≈ {estimatedMin} min total</p>
+              </div>
+
+              {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-3">{error}</p>}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep(1)}
+                  className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  ← Atrás
+                </button>
+                <button
+                  onClick={handleAssign}
+                  disabled={saving || components.length === 0}
+                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
+                  style={{ background: '#5A3D7A' }}
+                >
+                  {saving ? 'Asignando…' : 'Asignar test'}
                 </button>
               </div>
             </>
@@ -534,6 +718,7 @@ export default function PlacementDashboardPage() {
   const uid    = auth.currentUser?.uid ?? '';
 
   const { sessions, loading } = usePlacementSessions(uid);
+  const { sessions: suiteSessions } = usePlacementSuiteSessions(uid);
   const { pendingStudents, students }   = useStudents();
   const { assignments }                 = usePlacementAssignments(uid);
 
@@ -588,6 +773,15 @@ export default function PlacementDashboardPage() {
             style={{ background: B.purple }}>
             + Asignar a estudiante
           </button>
+          <a
+            href={uid ? `/placement-suite/${uid}?mode=teacher-led` : '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 border-2 ${!uid ? 'opacity-40 cursor-not-allowed' : ''}`}
+            style={{ background: 'white', color: B.purple, borderColor: B.purple }}
+          >
+            ▶ Iniciar test en vivo
+          </a>
           {testUrl && (
             <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
               <span className="text-xs font-semibold" style={{ color: B.purple }}>Test link:</span>
@@ -747,6 +941,69 @@ export default function PlacementDashboardPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ── Complete Placement (suite) sessions ─────────────────── */}
+      {suiteSessions.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: B.purple }}>
+              Complete Placements
+            </p>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: B.lavender, color: B.purple }}>
+              {suiteSessions.length}
+            </span>
+          </div>
+          <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${B.lavenderDark}`, boxShadow: '0 2px 16px -4px rgba(200,168,220,0.2)' }}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: B.lavender }}>
+                  {['Student', 'Date', 'Components', 'Mode', 'Overall', 'Status'].map((h) => (
+                    <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wider px-4 py-3" style={{ color: B.purpleMed }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {suiteSessions.map((s: PlacementSuiteSession, idx) => (
+                  <tr key={s.id}
+                    style={{ background: idx % 2 === 0 ? 'white' : B.bg, borderTop: `1px solid ${B.lavender}` }}>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold" style={{ color: B.purple }}>{s.studentName}</p>
+                      {s.studentEmail && <p className="text-xs" style={{ color: B.purpleMed }}>{s.studentEmail}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-xs" style={{ color: B.purpleMed }}>{formatDate(s.createdAt)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {s.components.map((c) => (
+                          <span key={c} className="text-sm" title={COMPONENT_META[c]?.label ?? c}>
+                            {COMPONENT_META[c]?.icon ?? '❓'}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[11px] font-semibold" style={{ color: B.purpleMed }}>
+                      {s.mode === 'teacher-led' ? '👤 Live' : '🎓 Self'}
+                    </td>
+                    <td className="px-4 py-3">
+                      {s.overallLevel
+                        ? <LevelBadge level={s.overallLevel} />
+                        : <span style={{ color: B.purpleLight }}>—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-[10px] font-semibold px-2 py-1 rounded-full"
+                        style={{
+                          background: s.status === 'completed' ? '#DCFCE7' : s.status === 'partially_completed' ? '#FEF3C7' : B.lavender,
+                          color: s.status === 'completed' ? '#15803D' : s.status === 'partially_completed' ? '#92400E' : B.purple,
+                        }}>
+                        {s.status === 'completed' ? 'Completed' : s.status === 'partially_completed' ? 'Partial' : 'In progress'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

@@ -268,23 +268,33 @@ export default function StudentDashboardPage() {
       ))}
 
       {/* Placement test banners */}
-      {placementAssignments.map((assignment) => (
-        <Link
-          key={assignment.id}
-          href={`/placement/${assignment.teacherId}?name=${encodeURIComponent(profile?.fullName ?? '')}&email=${encodeURIComponent(profile?.email ?? '')}&assignmentId=${assignment.id}`}
-          className="flex items-center gap-3 mb-4 px-4 py-3.5 rounded-xl text-white shadow-lg hover:opacity-90 transition-opacity group"
-          style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
-        >
-          <span className="text-2xl flex-shrink-0">📋</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">Test de nivel asignado</p>
-            <p className="text-xs opacity-75">Tu profesor te ha pedido completar el placement test.</p>
-          </div>
-          <span className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0 whitespace-nowrap">
-            Comenzar →
-          </span>
-        </Link>
-      ))}
+      {placementAssignments.map((assignment) => {
+        const isSuite = Array.isArray(assignment.components) && assignment.components.length > 0;
+        const base = isSuite ? '/placement-suite' : '/placement';
+        return (
+          <Link
+            key={assignment.id}
+            href={`${base}/${assignment.teacherId}?name=${encodeURIComponent(profile?.fullName ?? '')}&email=${encodeURIComponent(profile?.email ?? '')}&assignmentId=${assignment.id}`}
+            className="flex items-center gap-3 mb-4 px-4 py-3.5 rounded-xl text-white shadow-lg hover:opacity-90 transition-opacity group"
+            style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+          >
+            <span className="text-2xl flex-shrink-0">📋</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold">
+                {isSuite ? 'Placement test completo asignado' : 'Test de nivel asignado'}
+              </p>
+              <p className="text-xs opacity-75">
+                {isSuite
+                  ? `Tu profesor te ha pedido completar ${assignment.components!.length} componente${assignment.components!.length !== 1 ? 's' : ''}.`
+                  : 'Tu profesor te ha pedido completar el placement test.'}
+              </p>
+            </div>
+            <span className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0 whitespace-nowrap">
+              Comenzar →
+            </span>
+          </Link>
+        );
+      })}
 
       {/* ── ROW 1: Nivel + Racha | Próxima Lección ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
