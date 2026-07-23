@@ -22,6 +22,8 @@ export interface PlacementAssignment {
   // /placement/[teacherId] flow (backward compatible with existing docs).
   components?: string[];
   mode?: 'student-self' | 'teacher-led';
+  budgets?: { grammar: number; vocabulary: number; reading: number };
+  /** @deprecated Old assignments still use this; new ones use `budgets`. */
   grammarLength?: 30 | 60 | 100;
   createdAt: Timestamp;
   completedAt?: Timestamp;
@@ -105,7 +107,7 @@ export async function createPlacementAssignment(data: {
   // assignment (same behaviour as before).
   components?: string[];
   mode?: 'student-self' | 'teacher-led';
-  grammarLength?: 30 | 60 | 100;
+  budgets?: { grammar: number; vocabulary: number; reading: number };
 }): Promise<string> {
   const ref = doc(collection(db, 'placementAssignments'));
   await setDoc(ref, {
@@ -116,7 +118,7 @@ export async function createPlacementAssignment(data: {
     status: 'pending',
     ...(data.components ? { components: data.components } : {}),
     ...(data.mode ? { mode: data.mode } : {}),
-    ...(data.grammarLength ? { grammarLength: data.grammarLength } : {}),
+    ...(data.budgets ? { budgets: data.budgets } : {}),
     createdAt: serverTimestamp(),
   });
   return ref.id;

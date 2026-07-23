@@ -14,7 +14,8 @@ import { usePlacementSuiteSessions } from '@/hooks/usePlacementSuiteSessions';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementSession, SectionScore } from '@/types/placement';
 import {
-  COMPONENT_META, PRESETS, type ComponentId, type Preset, type PlacementSuiteSession,
+  COMPONENT_META, PRESETS, estimateMinutes,
+  type ComponentId, type Preset, type PlacementSuiteSession, type Budgets,
 } from '@/types/placement-suite';
 
 // ── Brand palette ─────────────────────────────────────────────
@@ -437,13 +438,12 @@ function AssignTestModal({
   approvedStudents: { uid: string; fullName: string; email: string }[];
   onClose: () => void;
 }) {
+  const standardPreset = PRESETS.find(p => p.id === 'standard')!;
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedUid, setSelectedUid] = useState('');
   const [selectedPresetId, setSelectedPresetId] = useState<string>('standard');
-  const [components, setComponents] = useState<ComponentId[]>(
-    PRESETS.find(p => p.id === 'standard')?.components ?? ['grammar', 'vocabulary', 'reading'],
-  );
-  const [grammarLength, setGrammarLength] = useState<30 | 60 | 100>(60);
+  const [components, setComponents] = useState<ComponentId[]>(standardPreset.components);
+  const [budgets, setBudgets] = useState<Budgets>(standardPreset.budgets);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
   const [done, setDone]     = useState(false);
@@ -453,7 +453,7 @@ function AssignTestModal({
   function applyPreset(preset: Preset) {
     setSelectedPresetId(preset.id);
     setComponents(preset.components);
-    setGrammarLength(preset.grammarLength);
+    setBudgets(preset.budgets);
   }
 
   function toggleComponent(id: ComponentId) {
@@ -463,13 +463,12 @@ function AssignTestModal({
     );
   }
 
-  const estimatedMin = components.reduce((sum, cid) => {
-    const meta = COMPONENT_META[cid];
-    if (!meta) return sum;
-    // Grammar time scales with length.
-    if (cid === 'grammar') return sum + Math.round(meta.estimatedMin * (grammarLength / 100));
-    return sum + meta.estimatedMin;
-  }, 0);
+  function setBudget(k: keyof Budgets, v: number) {
+    setSelectedPresetId('custom');
+    setBudgets(prev => ({ ...prev, [k]: v }));
+  }
+
+  const estimatedMin = estimateMinutes(components, budgets);
 
   async function handleAssign() {
     if (!selected) return;
@@ -483,7 +482,7 @@ function AssignTestModal({
         studentEmail: selected.email,
         components,
         mode:         'student-self',
-        grammarLength,
+        budgets,
       });
       setDone(true);
     } catch (err: unknown) {
@@ -640,41 +639,71 @@ function AssignTestModal({
                         </div>
                         <p className="text-[10px] text-gray-500 leading-tight">{meta.description}</p>
                       </div>
-                      <span className="text-[10px] text-gray-400 tabular-nums shrink-0">
-                        ~{meta.id === 'grammar' ? Math.round(meta.estimatedMin * (grammarLength / 100)) : meta.estimatedMin} min
-                      </span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Grammar length slider */}
-              {components.includes('grammar') && (
-                <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-                      Longitud del Grammar
-                    </label>
-                    <span className="text-xs font-bold text-[#5A3D7A]">{grammarLength} preguntas</span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    {([30, 60, 100] as const).map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => { setGrammarLength(n); setSelectedPresetId('custom'); }}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                          grammarLength === n
-                            ? 'bg-[#5A3D7A] text-white'
-                            : 'bg-white text-[#5A3D7A] border border-[#E8D5F0] hover:bg-[#F0E5FF]'
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-gray-500 mt-1.5">
-                    Se mantiene la cobertura de niveles reduciendo proporcionalmente. Autostop tras 6 errores seguidos.
+              {/* Per-component budget sliders */}
+              {(components.includes('grammar') || components.includes('vocabulary') || components.includes('reading')) && (
+                <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3 space-y-3">
+                  <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
+                    Cantidad de preguntas
                   </p>
+
+                  {components.includes('grammar') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar (adaptativo)</label>
+                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">tope {budgets.grammar} Q</span>
+                      </div>
+                      <input
+                        type="range" min={10} max={60} step={5}
+                        value={budgets.grammar}
+                        onChange={e => setBudget('grammar', Number(e.target.value))}
+                        className="w-full accent-[#5A3D7A]"
+                      />
+                      <p className="text-[10px] text-gray-500 leading-tight">
+                        Camina niveles CEFR y frena al encontrar el techo. Rara vez llega al tope.
+                      </p>
+                    </div>
+                  )}
+
+                  {components.includes('vocabulary') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-[#2D1B4E]">💬 Vocabulary</label>
+                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.vocabulary} Q</span>
+                      </div>
+                      <input
+                        type="range" min={5} max={40} step={5}
+                        value={budgets.vocabulary}
+                        onChange={e => setBudget('vocabulary', Number(e.target.value))}
+                        className="w-full accent-[#5A3D7A]"
+                      />
+                      <p className="text-[10px] text-gray-500 leading-tight">
+                        Calibrado al ±1 del nivel estimado por Grammar.
+                      </p>
+                    </div>
+                  )}
+
+                  {components.includes('reading') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-[#2D1B4E]">📖 Reading</label>
+                        <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} pasaje{budgets.reading !== 1 ? 's' : ''}</span>
+                      </div>
+                      <input
+                        type="range" min={1} max={6} step={1}
+                        value={budgets.reading}
+                        onChange={e => setBudget('reading', Number(e.target.value))}
+                        className="w-full accent-[#5A3D7A]"
+                      />
+                      <p className="text-[10px] text-gray-500 leading-tight">
+                        Pasajes cercanos al nivel estimado por Grammar, más cercano primero.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

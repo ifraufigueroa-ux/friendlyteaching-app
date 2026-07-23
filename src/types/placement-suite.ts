@@ -43,6 +43,22 @@ export const COMPONENT_META: Record<ComponentId, ComponentMeta> = {
   speaking:   { id: 'speaking',   label: 'Speaking',   icon: '🎤', description: 'Preguntas guiadas con grabación (próximamente).',                   estimatedMin: 12, available: false, skill: 'speaking' },
 };
 
+// ── Budgets (per-component question caps) ──────────────────────────────────
+//
+// Grammar is adaptive: it walks CEFR tiers and stops when it finds a ceiling.
+// The budget is a HARD cap on how many questions grammar can ask before it
+// commits to whatever level is highest-passing so far. In practice adaptive
+// grammar rarely needs more than 20-25 Q's regardless of budget.
+//
+// Vocab / Reading are calibrated after grammar to the estimated CEFR ±1 and
+// stop when the budget is reached (Reading counts passages, not questions).
+
+export interface Budgets {
+  grammar:    number;   // max Q's (cap)
+  vocabulary: number;   // exact Q count
+  reading:    number;   // exact passage count
+}
+
 // ── Presets ────────────────────────────────────────────────────────────────
 
 export interface Preset {
@@ -50,32 +66,46 @@ export interface Preset {
   label:       string;
   description: string;
   components:  ComponentId[];
-  grammarLength: 30 | 60 | 100;
+  budgets:     Budgets;
+  targetMin:   number;   // rough total minutes for this preset
 }
 
 export const PRESETS: Preset[] = [
   {
     id: 'quick',
     label: 'Quick check',
-    description: '~15 min. Grammar corto + Vocabulary + 1 pasaje de Reading.',
+    description: '~10-15 min. Grammar adaptativo corto + vocab compacto + 1 pasaje.',
     components: ['grammar', 'vocabulary', 'reading'],
-    grammarLength: 30,
+    budgets: { grammar: 15, vocabulary: 12, reading: 1 },
+    targetMin: 15,
   },
   {
     id: 'standard',
     label: 'Standard',
-    description: '~45 min. Grammar 60 preguntas + Vocabulary + Reading completo.',
+    description: '~25-30 min. Grammar adaptativo estándar + vocab + 2 pasajes.',
     components: ['grammar', 'vocabulary', 'reading'],
-    grammarLength: 60,
+    budgets: { grammar: 25, vocabulary: 20, reading: 2 },
+    targetMin: 30,
   },
   {
     id: 'full',
     label: 'Full CEFR',
-    description: '~90 min. Todos los componentes disponibles al máximo detalle.',
+    description: '~45-60 min. Grammar profundo + vocab amplio + 3 pasajes.',
     components: ['grammar', 'vocabulary', 'reading'],
-    grammarLength: 100,
+    budgets: { grammar: 40, vocabulary: 30, reading: 3 },
+    targetMin: 55,
   },
 ];
+
+/** Rough estimate — used by the selector to show total minutes for a custom
+ *  configuration. Per-question / per-passage rates come from field-testing. */
+export function estimateMinutes(components: ComponentId[], budgets: Budgets): number {
+  let total = 0;
+  if (components.includes('grammar'))    total += Math.round(budgets.grammar    * 0.5);   // ~30s per Q
+  if (components.includes('vocabulary')) total += Math.round(budgets.vocabulary * 0.4);   // ~24s per Q
+  if (components.includes('reading'))    total += budgets.reading * 6;                    // ~6 min per passage
+  return total;
+}
 
 // ── Component results ──────────────────────────────────────────────────────
 
@@ -109,7 +139,9 @@ export interface PlacementSuiteSession {
   assignmentId?:    string;
   mode:             SuiteMode;
   components:       ComponentId[];             // what the teacher selected
-  grammarLength:    30 | 60 | 100;             // if grammar is in components
+  budgets:          Budgets;                   // per-component caps
+  /** @deprecated retained for old sessions — new sessions use `budgets`. */
+  grammarLength?:   30 | 60 | 100;
   results:          Partial<Record<ComponentId, ComponentResult>>;
   progress:         Partial<Record<ComponentId, 'pending' | 'in_progress' | 'completed' | 'skipped'>>;
   perSkillLevel?:   Partial<Record<ComponentId, LessonLevel>>;
@@ -199,5 +231,7 @@ export const READING_TYPE_LABELS: Record<ReadingQuestionType, string> = {
 export interface PlacementSuiteAssignmentExtras {
   components?:    ComponentId[];
   mode?:          SuiteMode;
+  budgets?:       Budgets;
+  /** @deprecated retained so old assignments continue to run. */
   grammarLength?: 30 | 60 | 100;
 }

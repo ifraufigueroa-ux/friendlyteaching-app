@@ -22,14 +22,18 @@ import { db } from '@/lib/firebase/config';
 import { PLACEMENT_QUESTIONS } from '@/data/placementQuestions';
 import { PLACEMENT_VOCABULARY_QUESTIONS } from '@/data/placementVocabulary';
 import { PLACEMENT_READING } from '@/data/placementReading';
+import { shouldStopTest } from '@/lib/placementScoring';
 import {
-  computeSectionScores, determineLevel, computeWeakAreas, shouldStopTest,
-} from '@/lib/placementScoring';
-import { aggregateSuite, deriveSuiteStatus, scoreMCQComponent, scoreReadingComponent } from '@/lib/placementSuite';
+  aggregateSuite, deriveSuiteStatus, scoreMCQComponent, scoreReadingComponent,
+  initAdaptiveState, pickNextAdaptiveQuestion, recordAdaptiveAnswer,
+  pickCalibratedQuestions, pickCalibratedPassages,
+  type AdaptiveState,
+} from '@/lib/placementSuite';
 import {
-  COMPONENT_META, PRESETS, type ComponentId, type ComponentResult, type SuiteMode,
+  COMPONENT_META, PRESETS, type ComponentId, type ComponentResult, type SuiteMode, type Budgets,
 } from '@/types/placement-suite';
 import type { PlacementQuestion, PlacementAnswer, LearningProgram, WeakArea } from '@/types/placement';
+import type { ReadingPassage } from '@/types/placement-suite';
 import type { LessonLevel } from '@/types/firebase';
 
 // ── Shared palette / helpers ───────────────────────────────────────────────
@@ -51,24 +55,8 @@ function sortComponents(ids: ComponentId[]): ComponentId[] {
   return [...ids].sort((a, b) => COMPONENT_ORDER.indexOf(a) - COMPONENT_ORDER.indexOf(b));
 }
 
-function pickGrammarQuestions(all: PlacementQuestion[], length: 30 | 60 | 100): PlacementQuestion[] {
-  if (length === 100) return all;
-  const byLevel: Record<string, PlacementQuestion[]> = {};
-  for (const q of all) {
-    (byLevel[q.level] ??= []).push(q);
-  }
-  const result: PlacementQuestion[] = [];
-  for (const level of LEVEL_ORDER) {
-    const pool = byLevel[level] ?? [];
-    if (pool.length === 0) continue;
-    const target = Math.max(2, Math.round(pool.length * (length / 100)));
-    for (let i = 0; i < Math.min(target, pool.length); i++) {
-      const idx = Math.floor(i * pool.length / target);
-      result.push(pool[idx]);
-    }
-  }
-  return result;
-}
+// Adaptive grammar uses initAdaptiveState / recordAdaptiveAnswer from
+// placementSuite.ts — no linear sampling needed.
 
 // ── Shell components (reused from grammar-only page look and feel) ─────────
 
@@ -312,15 +300,177 @@ function MCQRunner({
   );
 }
 
+// ── Adaptive Grammar runner ────────────────────────────────────────────────
+//
+// Walks CEFR tiers instead of asking the bank linearly. Starts at A2, asks
+// 5 questions per tier, moves up on ≥60% and down on <40%. Terminates as
+// soon as a ceiling is found (passed X, failed X+1) or hardCap is hit.
+
+function AdaptiveGrammarRunner({
+  hardCap, teacherLed, onComplete,
+}: {
+  hardCap:     number;
+  teacherLed:  boolean;
+  onComplete:  (result: ComponentResult) => void;
+}) {
+  const cfg = useMemo(() => ({
+    hardCap,
+    startLevel:       'A2' as LessonLevel,
+    questionsPerTier: 5,
+    passThreshold:    0.6,
+    failThreshold:    0.4,
+  }), [hardCap]);
+
+  const [state, setState] = useState<AdaptiveState>(() => initAdaptiveState(cfg));
+  const [currentQ, setCurrentQ] = useState<PlacementQuestion | null>(() => pickNextAdaptiveQuestion(PLACEMENT_QUESTIONS, initAdaptiveState(cfg)));
+  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const startRef = useRef<Date>(new Date());
+  const questionStart = useRef<number>(Date.now());
+  const pending = useRef<PlacementAnswer | null>(null);
+
+  const completedRef = useRef(false);
+
+  function confirm() {
+    if (selected === null || confirmed || !currentQ) return;
+    setConfirmed(true);
+    pending.current = {
+      questionId: currentQ.id,
+      level:      currentQ.level,
+      topic:      currentQ.topic,
+      selected:   selected as 0 | 1 | 2 | 3,
+      correct:    selected === currentQ.correct,
+      timeMs:     Date.now() - questionStart.current,
+    };
+  }
+
+  function next() {
+    if (!confirmed || !pending.current || !currentQ) return;
+    const ans = pending.current;
+    pending.current = null;
+
+    const newAnswers = [...answers, ans];
+    setAnswers(newAnswers);
+
+    // Auto-stop escape hatch: 6 straight wrong from cold. This complements
+    // the adaptive downshift for pathologically weak starts.
+    const autoStop = shouldStopTest(newAnswers);
+
+    const newState = recordAdaptiveAnswer(state, currentQ, ans, cfg);
+    setState(newState);
+
+    if (newState.done || autoStop) {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const result = scoreMCQComponent(
+        'grammar',
+        newAnswers,
+        startRef.current,
+        new Date(),
+        autoStop ? { stopped: true, stoppedAtQ: currentQ.id } : undefined,
+      );
+      // Override the linear placedLevel with the adaptive one — more accurate
+      // because we sampled proportionally instead of stopping halfway through
+      // a tier.
+      result.placedLevel = newState.placedLevel;
+      onComplete(result);
+      return;
+    }
+
+    // Pick next question from the (possibly new) currentLevel.
+    const nextQ = pickNextAdaptiveQuestion(PLACEMENT_QUESTIONS, newState);
+    if (!nextQ) {
+      // Pool exhausted at this level — force termination with current data.
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const result = scoreMCQComponent('grammar', newAnswers, startRef.current, new Date());
+      result.placedLevel = newState.placedLevel;
+      onComplete(result);
+      return;
+    }
+    setCurrentQ(nextQ);
+    setSelected(null);
+    setConfirmed(false);
+    questionStart.current = Date.now();
+  }
+
+  if (!currentQ) return null;
+
+  return (
+    <div className="w-full max-w-2xl space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.2)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+              Grammar · Level {currentQ.level}
+            </span>
+            <span className="text-[9px] font-bold text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+              Adaptive
+            </span>
+          </div>
+          {teacherLed && (
+            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+              Teacher view
+            </span>
+          )}
+        </div>
+
+        <MCQCard
+          prompt={currentQ.sentence}
+          options={currentQ.options}
+          selected={selected}
+          onSelect={setSelected}
+          confirmed={confirmed}
+          correctIdx={currentQ.correct}
+        />
+
+        {teacherLed && confirmed && currentQ.explanation && (
+          <p className="mt-3 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <strong>Explanation:</strong> {currentQ.explanation}
+          </p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          {!confirmed ? (
+            <button
+              onClick={confirm}
+              disabled={selected === null}
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
+              style={{ background: B.purple }}
+            >
+              Confirm
+            </button>
+          ) : (
+            <button
+              onClick={next}
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+              style={{ background: B.purple }}
+            >
+              Next →
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ProgressBar
+        current={answers.length + (confirmed ? 1 : 0)}
+        total={hardCap}
+        label={`Grammar · ${answers.length + 1}/${hardCap} · @ ${state.currentLevel}`}
+      />
+    </div>
+  );
+}
+
 // ── Reading runner ─────────────────────────────────────────────────────────
 
 function ReadingRunner({
-  teacherLed, onComplete,
+  passages, teacherLed, onComplete,
 }: {
+  passages:   ReadingPassage[];
   teacherLed: boolean;
   onComplete: (result: ComponentResult) => void;
 }) {
-  const passages = PLACEMENT_READING;
   const [pIdx, setPIdx] = useState(0);
   const [qIdx, setQIdx] = useState(0);
   const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
@@ -363,6 +513,9 @@ function ReadingRunner({
     if (isLastQInPassage && isLastPassage) {
       setAnswers(newAnswers);
       const result = scoreReadingComponent(passages, newAnswers, startRef.current, new Date());
+      // scoreReadingComponent picks the level from the answers, not the
+      // passages themselves. Override with the top-most level answered
+      // correctly so the calibrated overall stays accurate.
       onComplete(result);
       return;
     }
@@ -459,9 +612,9 @@ function ReadingRunner({
 type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading';
 
 interface SuiteConfig {
-  components:    ComponentId[];
-  grammarLength: 30 | 60 | 100;
-  mode:          SuiteMode;
+  components: ComponentId[];
+  budgets:    Budgets;
+  mode:       SuiteMode;
 }
 
 export default function PlacementSuitePage() {
@@ -482,9 +635,9 @@ export default function PlacementSuitePage() {
   const [config, setConfig] = useState<SuiteConfig>(() => {
     const standard = PRESETS.find(p => p.id === 'standard')!;
     return {
-      components:    standard.components,
-      grammarLength: standard.grammarLength,
-      mode:          modeParam ?? 'student-self',
+      components: standard.components,
+      budgets:    standard.budgets,
+      mode:       modeParam ?? 'student-self',
     };
   });
 
@@ -508,13 +661,20 @@ export default function PlacementSuitePage() {
         const snap = await getDoc(doc(db, 'placementAssignments', assignmentIdParam));
         if (snap.exists()) {
           const data = snap.data();
+          const standard = PRESETS.find(p => p.id === 'standard')!;
           const comps: ComponentId[] = Array.isArray(data.components) && data.components.length > 0
             ? data.components as ComponentId[]
-            : PRESETS.find(p => p.id === 'standard')!.components;
+            : standard.components;
+          // Prefer new-style `budgets`; fall back to legacy `grammarLength`.
+          const budgetsFromDoc: Budgets = data.budgets
+            ? data.budgets as Budgets
+            : { grammar: (data.grammarLength as number) ?? standard.budgets.grammar,
+                vocabulary: standard.budgets.vocabulary,
+                reading:    standard.budgets.reading };
           setConfig({
-            components:    sortComponents(comps),
-            grammarLength: (data.grammarLength as 30 | 60 | 100) ?? 60,
-            mode:          (data.mode as SuiteMode) ?? modeParam ?? 'student-self',
+            components: sortComponents(comps),
+            budgets:    budgetsFromDoc,
+            mode:       (data.mode as SuiteMode) ?? modeParam ?? 'student-self',
           });
           if (!name && data.studentName)  setName(String(data.studentName));
           if (!email && data.studentEmail) setEmail(String(data.studentEmail));
@@ -543,7 +703,7 @@ export default function PlacementSuitePage() {
       studentPhone: phone.trim() || null,
       mode:         config.mode,
       components:   ordered,
-      grammarLength: config.grammarLength,
+      budgets:      config.budgets,
       results:      {},
       progress:     initialProgress,
       status:       'in_progress',
@@ -731,9 +891,10 @@ export default function PlacementSuitePage() {
 
   if (phase === 'roadmap') {
     const totalMin = ordered.reduce((sum, c) => {
-      const meta = COMPONENT_META[c];
-      if (c === 'grammar') return sum + Math.round(meta.estimatedMin * (config.grammarLength / 100));
-      return sum + meta.estimatedMin;
+      if (c === 'grammar')    return sum + Math.round(config.budgets.grammar    * 0.5);
+      if (c === 'vocabulary') return sum + Math.round(config.budgets.vocabulary * 0.4);
+      if (c === 'reading')    return sum + config.budgets.reading * 6;
+      return sum + (COMPONENT_META[c]?.estimatedMin ?? 0);
     }, 0);
 
     return (
@@ -756,7 +917,10 @@ export default function PlacementSuitePage() {
             <div className="space-y-2 mb-6">
               {ordered.map((cid, i) => {
                 const meta = COMPONENT_META[cid];
-                const min = cid === 'grammar' ? Math.round(meta.estimatedMin * (config.grammarLength / 100)) : meta.estimatedMin;
+                const min = cid === 'grammar'    ? Math.round(config.budgets.grammar    * 0.5)
+                          : cid === 'vocabulary' ? Math.round(config.budgets.vocabulary * 0.4)
+                          : cid === 'reading'    ? config.budgets.reading * 6
+                          : meta.estimatedMin;
                 return (
                   <div key={cid} className="flex items-center gap-3 p-3 rounded-xl border" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
                     <div className="w-8 h-8 rounded-full text-white font-black text-sm flex items-center justify-center" style={{ background: B.purple }}>{i + 1}</div>
@@ -827,16 +991,16 @@ export default function PlacementSuitePage() {
     const cid = ordered[componentIdx];
     const teacherLed = config.mode === 'teacher-led';
 
+    // Anchor for calibration: prefer the grammar-derived level; fall back to
+    // the mid-scale B1 when grammar didn't run.
+    const anchor: LessonLevel = results.grammar?.placedLevel ?? 'B1';
+
     if (cid === 'grammar') {
-      const bank = pickGrammarQuestions(PLACEMENT_QUESTIONS, config.grammarLength);
       return (
         <PageBg>
-          <MCQRunner
-            componentId="grammar"
-            bank={bank}
+          <AdaptiveGrammarRunner
+            hardCap={config.budgets.grammar}
             teacherLed={teacherLed}
-            allowAutoStop
-            label={`Grammar ${config.grammarLength}Q`}
             onComplete={handleComponentComplete}
           />
         </PageBg>
@@ -844,14 +1008,15 @@ export default function PlacementSuitePage() {
     }
 
     if (cid === 'vocabulary') {
+      const bank = pickCalibratedQuestions(PLACEMENT_VOCABULARY_QUESTIONS, anchor, config.budgets.vocabulary);
       return (
         <PageBg>
           <MCQRunner
             componentId="vocabulary"
-            bank={PLACEMENT_VOCABULARY_QUESTIONS}
+            bank={bank}
             teacherLed={teacherLed}
             allowAutoStop={false}
-            label="Vocabulary"
+            label={`Vocabulary · calibrated to ${anchor}`}
             onComplete={handleComponentComplete}
           />
         </PageBg>
@@ -859,9 +1024,14 @@ export default function PlacementSuitePage() {
     }
 
     if (cid === 'reading') {
+      const passages = pickCalibratedPassages(PLACEMENT_READING, anchor, config.budgets.reading);
       return (
         <PageBg>
-          <ReadingRunner teacherLed={teacherLed} onComplete={handleComponentComplete} />
+          <ReadingRunner
+            passages={passages}
+            teacherLed={teacherLed}
+            onComplete={handleComponentComplete}
+          />
         </PageBg>
       );
     }
