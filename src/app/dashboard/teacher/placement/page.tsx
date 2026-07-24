@@ -15,7 +15,7 @@ import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementSession, SectionScore } from '@/types/placement';
 import {
   COMPONENT_META, PRESETS, estimateMinutes,
-  type ComponentId, type Preset, type PlacementSuiteSession, type Budgets,
+  type ComponentId, type Preset, type PlacementSuiteSession, type Budgets, type GrammarMode,
 } from '@/types/placement-suite';
 
 // ── Brand palette ─────────────────────────────────────────────
@@ -683,13 +683,13 @@ function SuiteSessionModal({
 function SuiteConfigForm({
   value, onChange,
 }: {
-  value: { components: ComponentId[]; budgets: Budgets; presetId: string };
-  onChange: (v: { components: ComponentId[]; budgets: Budgets; presetId: string }) => void;
+  value: { components: ComponentId[]; budgets: Budgets; presetId: string; grammarMode: GrammarMode };
+  onChange: (v: { components: ComponentId[]; budgets: Budgets; presetId: string; grammarMode: GrammarMode }) => void;
 }) {
-  const { components, budgets, presetId } = value;
+  const { components, budgets, presetId, grammarMode } = value;
 
   function applyPreset(preset: Preset) {
-    onChange({ components: preset.components, budgets: preset.budgets, presetId: preset.id });
+    onChange({ ...value, components: preset.components, budgets: preset.budgets, presetId: preset.id });
   }
   function toggleComponent(id: ComponentId) {
     onChange({
@@ -700,6 +700,9 @@ function SuiteConfigForm({
   }
   function setBudget(k: keyof Budgets, v: number) {
     onChange({ ...value, budgets: { ...budgets, [k]: v }, presetId: 'custom' });
+  }
+  function setGrammarMode(m: GrammarMode) {
+    onChange({ ...value, grammarMode: m });
   }
 
   return (
@@ -783,14 +786,36 @@ function SuiteConfigForm({
           {components.includes('grammar') && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar (adaptativo)</label>
-                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">tope {budgets.grammar} Q</span>
+                <label className="text-xs font-semibold text-[#2D1B4E]">
+                  📘 Grammar ({grammarMode === 'adaptive' ? 'adaptativo' : 'lineal'})
+                </label>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">
+                  {grammarMode === 'adaptive' ? `tope ${budgets.grammar} Q` : `${budgets.grammar} Q`}
+                </span>
+              </div>
+              {/* Mode toggle */}
+              <div className="flex gap-1 mb-2">
+                {(['adaptive', 'linear'] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setGrammarMode(m)}
+                    className={`flex-1 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                      grammarMode === m
+                        ? 'bg-[#5A3D7A] text-white'
+                        : 'bg-white text-[#5A3D7A] border border-[#E8D5F0]'
+                    }`}
+                  >
+                    {m === 'adaptive' ? '⚡ Adaptativo' : '📋 Lineal'}
+                  </button>
+                ))}
               </div>
               <input type="range" min={10} max={60} step={5} value={budgets.grammar}
                 onChange={e => setBudget('grammar', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
-                Arranca en A1 y sube. Sube tras 4 correctas seguidas, baja tras 3 erradas seguidas. Frena al encontrar el techo.
+                {grammarMode === 'adaptive'
+                  ? 'Arranca en A1 y sube por rachas (4 correctas → sube, 3 erradas → baja, o 80%+ en el tier). Frena al encontrar el techo.'
+                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas. Más lento pero más determinista.'}
               </p>
             </div>
           )}
@@ -845,20 +870,22 @@ function LiveTestSetupModal({
   onClose: () => void;
 }) {
   const standard = PRESETS.find(p => p.id === 'standard')!;
-  const [cfg, setCfg] = useState<{ components: ComponentId[]; budgets: Budgets; presetId: string }>({
-    components: standard.components,
-    budgets:    standard.budgets,
-    presetId:   standard.id,
+  const [cfg, setCfg] = useState<{ components: ComponentId[]; budgets: Budgets; presetId: string; grammarMode: GrammarMode }>({
+    components:  standard.components,
+    budgets:     standard.budgets,
+    presetId:    standard.id,
+    grammarMode: 'adaptive',
   });
 
   function launch() {
     if (cfg.components.length === 0) return;
     const params = new URLSearchParams({
-      mode:       'teacher-led',
-      components: cfg.components.join(','),
-      g:          String(cfg.budgets.grammar),
-      v:          String(cfg.budgets.vocabulary),
-      r:          String(cfg.budgets.reading),
+      mode:        'teacher-led',
+      components:  cfg.components.join(','),
+      g:           String(cfg.budgets.grammar),
+      v:           String(cfg.budgets.vocabulary),
+      r:           String(cfg.budgets.reading),
+      grammarMode: cfg.grammarMode,
     });
     window.open(`/placement-suite/${teacherId}?${params.toString()}`, '_blank', 'noopener,noreferrer');
     onClose();
@@ -916,6 +943,7 @@ function AssignTestModal({
   const [selectedPresetId, setSelectedPresetId] = useState<string>('standard');
   const [components, setComponents] = useState<ComponentId[]>(standardPreset.components);
   const [budgets, setBudgets] = useState<Budgets>(standardPreset.budgets);
+  const [grammarMode, setGrammarMode] = useState<GrammarMode>('adaptive');
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
   const [done, setDone]     = useState(false);
@@ -935,6 +963,7 @@ function AssignTestModal({
         components,
         mode:         'student-self',
         budgets,
+        grammarMode,
       });
       setDone(true);
     } catch (err: unknown) {
@@ -1019,8 +1048,13 @@ function AssignTestModal({
           ) : (
             <>
               <SuiteConfigForm
-                value={{ components, budgets, presetId: selectedPresetId }}
-                onChange={(v) => { setComponents(v.components); setBudgets(v.budgets); setSelectedPresetId(v.presetId); }}
+                value={{ components, budgets, presetId: selectedPresetId, grammarMode }}
+                onChange={(v) => {
+                  setComponents(v.components);
+                  setBudgets(v.budgets);
+                  setSelectedPresetId(v.presetId);
+                  setGrammarMode(v.grammarMode);
+                }}
               />
 
               {error && <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-3">{error}</p>}

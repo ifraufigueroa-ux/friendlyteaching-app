@@ -54,10 +54,15 @@ export const COMPONENT_META: Record<ComponentId, ComponentMeta> = {
 // stop when the budget is reached (Reading counts passages, not questions).
 
 export interface Budgets {
-  grammar:    number;   // max Q's (cap)
+  grammar:    number;   // max Q's (cap for adaptive; exact for linear)
   vocabulary: number;   // exact Q count
   reading:    number;   // exact passage count
 }
+
+/** Grammar can run in two modes: adaptive (CEFR tier walking with streak
+ *  detection, terminates early) or linear (all N questions sequential with
+ *  6-consecutive-wrong auto-stop only). Vocab and Reading are always linear. */
+export type GrammarMode = 'adaptive' | 'linear';
 
 // ── Presets ────────────────────────────────────────────────────────────────
 
@@ -140,6 +145,7 @@ export interface PlacementSuiteSession {
   mode:             SuiteMode;
   components:       ComponentId[];             // what the teacher selected
   budgets:          Budgets;                   // per-component caps
+  grammarMode?:     GrammarMode;               // default 'adaptive'
   /** @deprecated retained for old sessions — new sessions use `budgets`. */
   grammarLength?:   30 | 60 | 100;
   results:          Partial<Record<ComponentId, ComponentResult>>;
@@ -232,6 +238,7 @@ export interface PlacementSuiteAssignmentExtras {
   components?:    ComponentId[];
   mode?:          SuiteMode;
   budgets?:       Budgets;
+  grammarMode?:   GrammarMode;
   /** @deprecated retained so old assignments continue to run. */
   grammarLength?: 30 | 60 | 100;
 }

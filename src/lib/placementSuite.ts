@@ -176,8 +176,16 @@ export function recordAdaptiveAnswer(
   else if (consecWrong >= dropOn) {
     transitionFail();
   }
-  // 4. Reached per-tier cap → decide on majority.
-  else if (tierAnswers.length >= perTier) {
+  // 4. Dominance shortcut: strong performance early. If we're at ≥3 answers
+  //    in this tier and running ≥80% accuracy, we've seen enough — advance
+  //    without waiting for a 4-in-a-row streak. Prevents a single fluke
+  //    wrong (right, right, right, WRONG, right) from resetting to 0 streak.
+  else if (tierAnswers.length >= 3) {
+    const correct = tierAnswers.filter(a => a.correct).length;
+    if (correct / tierAnswers.length >= 0.8) transitionPass();
+  }
+  // 5. Reached per-tier cap → decide on majority.
+  if (!decided && tierAnswers.length >= perTier) {
     const correct = tierAnswers.filter(a => a.correct).length;
     const pct     = correct / tierAnswers.length;
     if (pct >= passT)       transitionPass();
@@ -334,9 +342,27 @@ export function scoreReadingComponent(
 
 // ── Aggregation ────────────────────────────────────────────────────────────
 
+/** Weight per component when computing the overall level. Grammar is the
+ *  primary anchor (calibrates the other components), so it counts double.
+ *  Skills that ship in later phases carry weight 1 as well. */
+const OVERALL_WEIGHT: Record<ComponentId, number> = {
+  grammar:    2,
+  vocabulary: 1,
+  reading:    1,
+  listening:  1,
+  writing:    1,
+  speaking:   1,
+};
+
 /** Given a partially-populated results record, compute the derived fields
  *  the results view and the PDF export need. Safe to call at any point in
- *  the run (returns partial results if only some components are complete). */
+ *  the run (returns partial results if only some components are complete).
+ *
+ *  Overall level is a WEIGHTED VOTE across component placements — not the
+ *  min-of-skills. In practice this matters when a shaky Grammar tier drags
+ *  down strong Vocab/Reading (or vice versa): weighted average survives one
+ *  outlier per component without either promoting a genuinely-weak student
+ *  or burying a strong one. */
 export function aggregateSuite(
   results: Partial<Record<ComponentId, ComponentResult>>,
 ): {
@@ -346,15 +372,22 @@ export function aggregateSuite(
   learningProgram: LearningProgram;
 } {
   const perSkillLevel: Partial<Record<ComponentId, LessonLevel>> = {};
-  const skillLevels: LessonLevel[] = [];
+  let weightSum = 0;
+  let scoreSum  = 0;
 
   for (const [cid, res] of Object.entries(results)) {
     if (!res) continue;
-    perSkillLevel[cid as ComponentId] = res.placedLevel;
-    skillLevels.push(res.placedLevel);
+    const id = cid as ComponentId;
+    perSkillLevel[id] = res.placedLevel;
+    const w = OVERALL_WEIGHT[id] ?? 1;
+    const idx = LEVEL_ORDER.indexOf(res.placedLevel);
+    if (idx < 0) continue;
+    weightSum += w;
+    scoreSum  += idx * w;
   }
 
-  const overallLevel = minLevel(skillLevels);
+  const avgIdx = weightSum > 0 ? scoreSum / weightSum : 0;
+  const overallLevel: LessonLevel = LEVEL_ORDER[Math.round(avgIdx)] ?? 'A0';
 
   // Merge weak areas across components. Same topic in multiple components
   // gets its counts summed so the percentage reflects total exposure.

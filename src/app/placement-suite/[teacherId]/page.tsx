@@ -30,11 +30,22 @@ import {
   type AdaptiveState,
 } from '@/lib/placementSuite';
 import {
-  COMPONENT_META, PRESETS, type ComponentId, type ComponentResult, type SuiteMode, type Budgets,
+  COMPONENT_META, PRESETS, VOCAB_TOPIC_LABELS, READING_TYPE_LABELS,
+  type ComponentId, type ComponentResult, type SuiteMode, type Budgets, type GrammarMode,
 } from '@/types/placement-suite';
+import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementQuestion, PlacementAnswer, LearningProgram, WeakArea } from '@/types/placement';
 import type { ReadingPassage } from '@/types/placement-suite';
 import type { LessonLevel } from '@/types/firebase';
+
+/** Human label for a weak-area topic — spans grammar topics, vocab topics
+ *  and reading question types (all stored as opaque strings on the answer). */
+function weakLabel(topic: string): string {
+  return (TOPIC_LABELS as Record<string, string>)[topic]
+      ?? (VOCAB_TOPIC_LABELS as Record<string, string>)[topic]
+      ?? (READING_TYPE_LABELS as Record<string, string>)[topic]
+      ?? topic;
+}
 
 // ── Shared palette / helpers ───────────────────────────────────────────────
 
@@ -56,7 +67,24 @@ function sortComponents(ids: ComponentId[]): ComponentId[] {
 }
 
 // Adaptive grammar uses initAdaptiveState / recordAdaptiveAnswer from
-// placementSuite.ts — no linear sampling needed.
+// placementSuite.ts. Linear grammar uses this proportional sampler so the
+// question count stays balanced across CEFR levels regardless of budget.
+function pickLinearGrammar(all: PlacementQuestion[], length: number): PlacementQuestion[] {
+  if (length >= all.length) return all;
+  const byLevel: Record<string, PlacementQuestion[]> = {};
+  for (const q of all) (byLevel[q.level] ??= []).push(q);
+  const result: PlacementQuestion[] = [];
+  for (const level of LEVEL_ORDER) {
+    const pool = byLevel[level] ?? [];
+    if (pool.length === 0) continue;
+    const target = Math.max(2, Math.round(pool.length * (length / all.length)));
+    for (let i = 0; i < Math.min(target, pool.length); i++) {
+      const idx = Math.floor(i * pool.length / target);
+      result.push(pool[idx]);
+    }
+  }
+  return result;
+}
 
 // ── Shell components (reused from grammar-only page look and feel) ─────────
 
@@ -714,7 +742,7 @@ function ResultsScreen({
                 {agg.mergedWeakAreas.slice(0, 10).map((w) => (
                   <span key={w.topic} className="text-[10px] font-semibold px-2 py-1 rounded-full"
                     style={{ background: w.pct === 0 ? '#FEE2E2' : '#FEF3C7', color: w.pct === 0 ? '#991B1B' : '#92400E' }}>
-                    {w.topic} · {w.pct}%
+                    {weakLabel(w.topic)} · {w.pct}%
                   </span>
                 ))}
               </div>
@@ -792,9 +820,10 @@ function ResultsScreen({
 type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading';
 
 interface SuiteConfig {
-  components: ComponentId[];
-  budgets:    Budgets;
-  mode:       SuiteMode;
+  components:  ComponentId[];
+  budgets:     Budgets;
+  mode:        SuiteMode;
+  grammarMode: GrammarMode;
 }
 
 export default function PlacementSuitePage() {
@@ -811,6 +840,7 @@ export default function PlacementSuitePage() {
   const gParam = Number(searchParams.get('g') ?? '');
   const vParam = Number(searchParams.get('v') ?? '');
   const rParam = Number(searchParams.get('r') ?? '');
+  const grammarModeParam = (searchParams.get('grammarMode') as GrammarMode | null) ?? null;
 
   const [phase, setPhase] = useState<Phase>(assignmentIdParam ? 'loading' : 'landing');
   const [name, setName]   = useState(nameParam);
@@ -831,9 +861,10 @@ export default function PlacementSuitePage() {
       reading:    isFinite(rParam) && rParam > 0 ? rParam : standard.budgets.reading,
     };
     return {
-      components: urlComponents && urlComponents.length > 0 ? urlComponents : standard.components,
-      budgets:    urlBudgets,
-      mode:       modeParam ?? 'student-self',
+      components:  urlComponents && urlComponents.length > 0 ? urlComponents : standard.components,
+      budgets:     urlBudgets,
+      mode:        modeParam ?? 'student-self',
+      grammarMode: grammarModeParam ?? 'adaptive',
     };
   });
 
@@ -868,9 +899,10 @@ export default function PlacementSuitePage() {
                 vocabulary: standard.budgets.vocabulary,
                 reading:    standard.budgets.reading };
           setConfig({
-            components: sortComponents(comps),
-            budgets:    budgetsFromDoc,
-            mode:       (data.mode as SuiteMode) ?? modeParam ?? 'student-self',
+            components:  sortComponents(comps),
+            budgets:     budgetsFromDoc,
+            mode:        (data.mode as SuiteMode) ?? modeParam ?? 'student-self',
+            grammarMode: (data.grammarMode as GrammarMode) ?? grammarModeParam ?? 'adaptive',
           });
           if (!name && data.studentName)  setName(String(data.studentName));
           if (!email && data.studentEmail) setEmail(String(data.studentEmail));
@@ -900,13 +932,18 @@ export default function PlacementSuitePage() {
       mode:         config.mode,
       components:   ordered,
       budgets:      config.budgets,
+      grammarMode:  config.grammarMode,
       results:      {},
       progress:     initialProgress,
       status:       'in_progress',
       startedAt:    Timestamp.fromDate(startTimeRef.current),
       createdAt:    serverTimestamp(),
       ...(assignmentRef ? { assignmentId: assignmentRef } : {}),
-    }).then(() => ref.id).catch(() => ref.id);
+    }).then(() => ref.id).catch((err: unknown) => {
+      console.error('[placement-suite] failed to create session:', err);
+      setSaveError(true);
+      return ref.id;
+    });
     sessionPending.current = p;
     return p;
   }
@@ -1192,6 +1229,24 @@ export default function PlacementSuitePage() {
     const anchor: LessonLevel = results.grammar?.placedLevel ?? 'B1';
 
     if (cid === 'grammar') {
+      if (config.grammarMode === 'linear') {
+        // Linear mode: take the first N questions from the level-balanced
+        // bank (proportional slice) and run sequentially with the standard
+        // 6-consecutive-wrong auto-stop.
+        const bank = pickLinearGrammar(PLACEMENT_QUESTIONS, config.budgets.grammar);
+        return (
+          <PageBg>
+            <MCQRunner
+              componentId="grammar"
+              bank={bank}
+              teacherLed={teacherLed}
+              allowAutoStop
+              label={`Grammar · lineal (${bank.length} Q)`}
+              onComplete={handleComponentComplete}
+            />
+          </PageBg>
+        );
+      }
       return (
         <PageBg>
           <AdaptiveGrammarRunner

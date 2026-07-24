@@ -23,6 +23,7 @@ export interface PlacementAssignment {
   components?: string[];
   mode?: 'student-self' | 'teacher-led';
   budgets?: { grammar: number; vocabulary: number; reading: number };
+  grammarMode?: 'adaptive' | 'linear';
   /** @deprecated Old assignments still use this; new ones use `budgets`. */
   grammarLength?: 30 | 60 | 100;
   createdAt: Timestamp;
@@ -108,6 +109,7 @@ export async function createPlacementAssignment(data: {
   components?: string[];
   mode?: 'student-self' | 'teacher-led';
   budgets?: { grammar: number; vocabulary: number; reading: number };
+  grammarMode?: 'adaptive' | 'linear';
 }): Promise<string> {
   const ref = doc(collection(db, 'placementAssignments'));
   await setDoc(ref, {
@@ -119,6 +121,7 @@ export async function createPlacementAssignment(data: {
     ...(data.components ? { components: data.components } : {}),
     ...(data.mode ? { mode: data.mode } : {}),
     ...(data.budgets ? { budgets: data.budgets } : {}),
+    ...(data.grammarMode ? { grammarMode: data.grammarMode } : {}),
     createdAt: serverTimestamp(),
   });
   return ref.id;

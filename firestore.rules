@@ -331,5 +331,22 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // Complete Placement (suite) — same access model as placementSessions.
+    // Public: create + update while in_progress; teacher: read/update/delete own.
+    match /placementSuiteSessions/{sessionId} {
+      allow create: if true;
+      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow update: if (
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+        ||
+        (!isAuthenticated() && resource.data.status == 'in_progress')
+        ||
+        // Public runner needs to write results and mark completed while the
+        // taker is unauthenticated. Allow updates that don't change teacherId.
+        (request.resource.data.teacherId == resource.data.teacherId)
+      );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
   }
 }
