@@ -80,32 +80,57 @@ export function initAdaptiveState(cfg: AdaptiveConfig): AdaptiveState {
 }
 
 /** Pick the next question for the current tier. Random draw from unasked at
- *  currentLevel. Returns null when the pool is exhausted for this level (in
- *  which case the runner should force a tier transition based on partial data). */
+ *  currentLevel. When the tier's pool is exhausted (revisits during a long
+ *  budget can drain small levels like B1+/A0), fall back to the closest
+ *  unasked level so we keep serving fresh questions until the whole bank
+ *  is drained. Returns null only when every question has been asked. */
 export function pickNextAdaptiveQuestion(
   bank: PlacementQuestion[],
   state: AdaptiveState,
 ): PlacementQuestion | null {
-  const pool = bank.filter(q => q.level === state.currentLevel && !state.askedIds.has(q.id));
-  if (pool.length === 0) return null;
-  const idx = Math.floor(Math.random() * pool.length);
-  return pool[idx];
+  const draw = (level: LessonLevel): PlacementQuestion | null => {
+    const pool = bank.filter(q => q.level === level && !state.askedIds.has(q.id));
+    if (pool.length === 0) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+
+  const first = draw(state.currentLevel);
+  if (first) return first;
+
+  // Pool exhausted at currentLevel — try adjacent levels, closest first.
+  const anchorIdx = LEVEL_ORDER.indexOf(state.currentLevel);
+  for (let radius = 1; radius < LEVEL_ORDER.length; radius++) {
+    for (const dir of [1, -1] as const) {
+      const idx = anchorIdx + dir * radius;
+      if (idx < 0 || idx >= LEVEL_ORDER.length) continue;
+      const q = draw(LEVEL_ORDER[idx]);
+      if (q) return q;
+    }
+  }
+  return null;
 }
 
 /** Record an answer and decide what happens next. Returns a NEW state.
  *
- *  Transition rules (in order):
- *    1. hardCap reached → done, place at highest passed (or A0).
- *    2. `advanceOn` consecutive-correct at this tier → mark passed, move up.
- *    3. `dropOn` consecutive-wrong at this tier      → mark failed, move down.
- *    4. `questionsPerTier` reached without a streak → decide on majority:
- *         accuracy ≥ passThreshold → passed, up
- *         accuracy ≤ failThreshold → failed, down
- *         otherwise                → count as passed and go up
- *    5. Otherwise → keep asking at currentLevel.
+ *  The test runs to the full hardCap — we never stop early even when a
+ *  "ceiling" is found. The goal is to collect maximum evidence about the
+ *  student's level, adjusting the tier as we go.
  *
- *  A "ceiling" is found when we've both passed X and failed X+1; at that
- *  point the placement is X (or A0 if we failed A0 outright).
+ *  Transition rules (in order, per question):
+ *    1. hardCap reached → done. Placement = highest passed tier (or A0).
+ *    2. `advanceOn` consecutive-correct  → move up one tier.
+ *    3. `dropOn` consecutive-wrong       → move down one tier.
+ *    4. Dominance shortcut: ≥3 in tier + ≥80% pct → move up.
+ *    5. `questionsPerTier` reached with no streak → majority decision:
+ *         ≥ passThreshold → move up
+ *         ≤ failThreshold → move down
+ *         otherwise       → move up (marginal)
+ *    6. Otherwise → stay at currentLevel.
+ *
+ *  If we're already at C1 and would "move up" → stay at C1 (collect more
+ *  evidence). Same at A0 for "move down". Revisits of tiers we've been to
+ *  before are fine — questions aren't repeated because `askedIds` filters
+ *  the pool.
  */
 export function recordAdaptiveAnswer(
   state: AdaptiveState,
@@ -113,8 +138,8 @@ export function recordAdaptiveAnswer(
   answer: PlacementAnswer,
   cfg: AdaptiveConfig,
 ): AdaptiveState {
-  const perTier    = cfg.questionsPerTier ?? 5;
-  const advanceOn  = cfg.advanceOn        ?? 3;
+  const perTier    = cfg.questionsPerTier ?? 6;
+  const advanceOn  = cfg.advanceOn        ?? 4;
   const dropOn     = cfg.dropOn           ?? 3;
   const passT      = cfg.passThreshold    ?? 0.6;
   const failT      = cfg.failThreshold    ?? 0.4;
@@ -127,94 +152,78 @@ export function recordAdaptiveAnswer(
   const consecCorrect = answer.correct ? state.consecCorrectTier + 1 : 0;
   const consecWrong   = answer.correct ? 0 : state.consecWrongTier + 1;
 
-  // Hard cap → commit to whatever is highest so far.
+  // Hard cap → we're done. Final placement = highest passed tier.
   if (totalAsked >= cfg.hardCap) {
-    const placed = highestPassed(state.passedLevels) ?? state.currentLevel;
+    const passedNow = new Set(state.passedLevels);
+    // Consider the current tier if this final batch already looks passing.
+    const finalPct = tierAnswers.filter(a => a.correct).length / tierAnswers.length;
+    if (finalPct >= passT) passedNow.add(state.currentLevel);
     return {
       ...state, tierAsked, tierAnswers, askedIds, totalAsked,
       consecCorrectTier: consecCorrect, consecWrongTier: consecWrong,
-      done: true, placedLevel: placed,
+      passedLevels: passedNow,
+      done: true,
+      placedLevel: highestPassed(passedNow) ?? state.currentLevel,
     };
   }
 
-  // Helper: transition to nextLevel (or terminate) after passing or failing.
   const passed = new Set(state.passedLevels);
   const failed = new Set(state.failedLevels);
   let nextLevel: LessonLevel = state.currentLevel;
   let direction: 'up' | 'down' | 'settle' = state.direction;
-  let done = false;
-  let placed: LessonLevel = state.placedLevel;
-  let decided = false;
+  let transitioned = false;
 
-  function transitionPass() {
-    decided = true;
+  function moveUp() {
     passed.add(state.currentLevel);
     const up = nextLevelUp(state.currentLevel);
-    if (up === null) { done = true; placed = 'C1'; }
-    else if (failed.has(up)) { done = true; placed = state.currentLevel; }
-    else { nextLevel = up; direction = 'up'; }
+    if (up !== null) { nextLevel = up; direction = 'up'; transitioned = true; }
+    // Already at C1 → stay, keep gathering evidence at ceiling.
   }
-  function transitionFail() {
-    decided = true;
+  function moveDown() {
     failed.add(state.currentLevel);
-    // If we came UP into a level and crashed here, settle at the highest passed.
-    if (state.direction === 'up' && passed.size > 0) {
-      done = true; placed = highestPassed(passed) ?? 'A0';
-      return;
-    }
     const down = nextLevelDown(state.currentLevel);
-    if (down === null) { done = true; placed = 'A0'; }
-    else if (passed.has(down)) { done = true; placed = down; }
-    else { nextLevel = down; direction = 'down'; }
+    if (down !== null) { nextLevel = down; direction = 'down'; transitioned = true; }
+    // Already at A0 → stay.
   }
 
   // 2. Advance streak.
   if (consecCorrect >= advanceOn) {
-    transitionPass();
+    moveUp();
   }
   // 3. Drop streak.
   else if (consecWrong >= dropOn) {
-    transitionFail();
+    moveDown();
   }
-  // 4. Dominance shortcut: strong performance early. If we're at ≥3 answers
-  //    in this tier and running ≥80% accuracy, we've seen enough — advance
-  //    without waiting for a 4-in-a-row streak. Prevents a single fluke
-  //    wrong (right, right, right, WRONG, right) from resetting to 0 streak.
+  // 4. Dominance shortcut.
   else if (tierAnswers.length >= 3) {
     const correct = tierAnswers.filter(a => a.correct).length;
-    if (correct / tierAnswers.length >= 0.8) transitionPass();
+    if (correct / tierAnswers.length >= 0.8) moveUp();
   }
-  // 5. Reached per-tier cap → decide on majority.
-  if (!decided && tierAnswers.length >= perTier) {
+  // 5. Reached per-tier cap without a streak → majority decision.
+  if (!transitioned && tierAnswers.length >= perTier) {
     const correct = tierAnswers.filter(a => a.correct).length;
     const pct     = correct / tierAnswers.length;
-    if (pct >= passT)       transitionPass();
-    else if (pct <= failT)  transitionFail();
-    else                    transitionPass();  // marginal → pass and try higher
+    if (pct >= passT)       moveUp();
+    else if (pct <= failT)  moveDown();
+    else                    moveUp();  // marginal → pass and try higher
   }
 
-  // 5. Not decided → keep asking at the same tier.
-  if (!decided) {
-    return {
-      ...state, tierAsked, tierAnswers, askedIds, totalAsked,
-      consecCorrectTier: consecCorrect, consecWrongTier: consecWrong,
-    };
-  }
+  const placedNow: LessonLevel = highestPassed(passed) ?? state.currentLevel;
 
   return {
-    currentLevel:      nextLevel,
-    tierAsked:         done ? tierAsked : [],
-    tierAnswers:       done ? tierAnswers : [],
-    passedLevels:      passed,
-    failedLevels:      failed,
+    currentLevel: nextLevel,
+    // Reset per-tier state on transition; keep accumulating otherwise.
+    tierAsked:    transitioned ? [] : tierAsked,
+    tierAnswers:  transitioned ? [] : tierAnswers,
+    passedLevels: passed,
+    failedLevels: failed,
     askedIds,
     totalAsked,
-    // Reset per-tier streaks on transition.
-    consecCorrectTier: done ? consecCorrect : 0,
-    consecWrongTier:   done ? consecWrong   : 0,
+    consecCorrectTier: transitioned ? 0 : consecCorrect,
+    consecWrongTier:   transitioned ? 0 : consecWrong,
     direction,
-    done,
-    placedLevel:       done ? placed : highestPassed(passed) ?? 'A0',
+    done: false,
+    placedLevel: placedNow,
   };
 }
 

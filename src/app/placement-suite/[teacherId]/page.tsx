@@ -383,26 +383,15 @@ function AdaptiveGrammarRunner({
     const newAnswers = [...answers, ans];
     setAnswers(newAnswers);
 
-    // Auto-stop escape hatch: 6 straight wrong from cold. This complements
-    // the adaptive downshift for pathologically weak starts.
-    const autoStop = shouldStopTest(newAnswers);
-
     const newState = recordAdaptiveAnswer(state, currentQ, ans, cfg);
     setState(newState);
 
-    if (newState.done || autoStop) {
+    if (newState.done) {
       if (completedRef.current) return;
       completedRef.current = true;
-      const result = scoreMCQComponent(
-        'grammar',
-        newAnswers,
-        startRef.current,
-        new Date(),
-        autoStop ? { stopped: true, stoppedAtQ: currentQ.id } : undefined,
-      );
-      // Override the linear placedLevel with the adaptive one — more accurate
-      // because we sampled proportionally instead of stopping halfway through
-      // a tier.
+      const result = scoreMCQComponent('grammar', newAnswers, startRef.current, new Date());
+      // The adaptive placement is more informative than the flat "highest
+      // section passed" the section scorer produces — override with it.
       result.placedLevel = newState.placedLevel;
       onComplete(result);
       return;

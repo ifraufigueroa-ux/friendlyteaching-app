@@ -790,7 +790,7 @@ function SuiteConfigForm({
                   📘 Grammar ({grammarMode === 'adaptive' ? 'adaptativo' : 'lineal'})
                 </label>
                 <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">
-                  {grammarMode === 'adaptive' ? `tope ${budgets.grammar} Q` : `${budgets.grammar} Q`}
+                  {budgets.grammar} Q
                 </span>
               </div>
               {/* Mode toggle */}
@@ -814,8 +814,8 @@ function SuiteConfigForm({
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
                 {grammarMode === 'adaptive'
-                  ? 'Arranca en A1 y sube por rachas (4 correctas → sube, 3 erradas → baja, o 80%+ en el tier). Frena al encontrar el techo.'
-                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas. Más lento pero más determinista.'}
+                  ? 'Corre las N preguntas completas ajustando dificultad on the go. Sube tras 4 correctas o 80% en el tier, baja tras 3 erradas. Nunca termina antes.'
+                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas. Más determinista pero puede cortar antes.'}
               </p>
             </div>
           )}
