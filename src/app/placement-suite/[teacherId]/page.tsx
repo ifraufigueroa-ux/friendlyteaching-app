@@ -328,31 +328,39 @@ function MCQRunner({
   );
 }
 
-// ── Adaptive Grammar runner ────────────────────────────────────────────────
+// ── Adaptive MCQ runner (Grammar + Vocabulary) ─────────────────────────────
 //
-// Walks CEFR tiers instead of asking the bank linearly. Starts at A2, asks
-// 5 questions per tier, moves up on ≥60% and down on <40%. Terminates as
-// soon as a ceiling is found (passed X, failed X+1) or hardCap is hit.
+// Walks CEFR tiers based on streaks. Runs the full hardCap regardless — the
+// tier only reflects where the next question comes from. Placement = highest
+// tier ever passed when the budget is exhausted.
+//
+// Anchor: where the first question is asked from. Grammar starts at A1 to
+// climb from the bottom; Vocabulary starts at Grammar's estimate (if run)
+// so we don't waste 6 questions warming up.
 
-function AdaptiveGrammarRunner({
-  hardCap, teacherLed, onComplete,
+function AdaptiveMCQRunner({
+  componentId, bank, hardCap, anchorLevel, teacherLed, label, onComplete,
 }: {
+  componentId: 'grammar' | 'vocabulary';
+  bank:        PlacementQuestion[];
   hardCap:     number;
+  anchorLevel: LessonLevel;
   teacherLed:  boolean;
+  label:       string;
   onComplete:  (result: ComponentResult) => void;
 }) {
   const cfg = useMemo(() => ({
     hardCap,
-    startLevel:       'A1' as LessonLevel,
+    startLevel:       anchorLevel,
     questionsPerTier: 6,   // safety cap; majority (≥60%) decides if no streak forms
     advanceOn:        4,   // 4 correctas seguidas → sube (P azar ≈18% en tu nivel real)
     dropOn:           3,   // 3 erradas seguidas → baja (P azar <5% en tu nivel real)
     passThreshold:    0.6,
     failThreshold:    0.4,
-  }), [hardCap]);
+  }), [hardCap, anchorLevel]);
 
   const [state, setState] = useState<AdaptiveState>(() => initAdaptiveState(cfg));
-  const [currentQ, setCurrentQ] = useState<PlacementQuestion | null>(() => pickNextAdaptiveQuestion(PLACEMENT_QUESTIONS, initAdaptiveState(cfg)));
+  const [currentQ, setCurrentQ] = useState<PlacementQuestion | null>(() => pickNextAdaptiveQuestion(bank, initAdaptiveState(cfg)));
   const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -389,7 +397,7 @@ function AdaptiveGrammarRunner({
     if (newState.done) {
       if (completedRef.current) return;
       completedRef.current = true;
-      const result = scoreMCQComponent('grammar', newAnswers, startRef.current, new Date());
+      const result = scoreMCQComponent(componentId, newAnswers, startRef.current, new Date());
       // The adaptive placement is more informative than the flat "highest
       // section passed" the section scorer produces — override with it.
       result.placedLevel = newState.placedLevel;
@@ -397,13 +405,12 @@ function AdaptiveGrammarRunner({
       return;
     }
 
-    // Pick next question from the (possibly new) currentLevel.
-    const nextQ = pickNextAdaptiveQuestion(PLACEMENT_QUESTIONS, newState);
+    const nextQ = pickNextAdaptiveQuestion(bank, newState);
     if (!nextQ) {
-      // Pool exhausted at this level — force termination with current data.
+      // Pool exhausted across all levels — terminate with current data.
       if (completedRef.current) return;
       completedRef.current = true;
-      const result = scoreMCQComponent('grammar', newAnswers, startRef.current, new Date());
+      const result = scoreMCQComponent(componentId, newAnswers, startRef.current, new Date());
       result.placedLevel = newState.placedLevel;
       onComplete(result);
       return;
@@ -422,7 +429,7 @@ function AdaptiveGrammarRunner({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Grammar · Level {currentQ.level}
+              {label} · Level {currentQ.level}
             </span>
             <span className="text-[9px] font-bold text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
               Adaptive
@@ -475,7 +482,7 @@ function AdaptiveGrammarRunner({
       <ProgressBar
         current={answers.length + (confirmed ? 1 : 0)}
         total={hardCap}
-        label={`Grammar · ${answers.length + 1}/${hardCap} · @ ${state.currentLevel}`}
+        label={`${label} · ${answers.length + 1}/${hardCap} · @ ${state.currentLevel}`}
       />
     </div>
   );
@@ -624,6 +631,241 @@ function ReadingRunner({
       <ProgressBar current={answeredCount + (confirmed ? 1 : 0)} total={totalQuestions} label="Reading" />
     </div>
   );
+}
+
+// ── Adaptive Reading runner ────────────────────────────────────────────────
+//
+// Passage-level adaptation. Starts at the anchor level (closest available
+// passage), asks every question in that passage, then picks the next passage:
+//   ≥ 70% at last passage → level up (harder)
+//   ≤ 40% at last passage → level down (easier)
+//   otherwise             → try one level up if unused, else adjacent
+// Runs until `budget` passages are shown or the bank is drained.
+
+function AdaptiveReadingRunner({
+  budget, anchorLevel, teacherLed, onComplete,
+}: {
+  budget:      number;   // number of passages to show
+  anchorLevel: LessonLevel;
+  teacherLed:  boolean;
+  onComplete:  (result: ComponentResult) => void;
+}) {
+  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+
+  const pickPassageAt = (level: LessonLevel, used: Set<string>): ReadingPassage | null => {
+    return PLACEMENT_READING.find(p => p.level === level && !used.has(p.id)) ?? null;
+  };
+  const pickInitial = (anchor: LessonLevel): ReadingPassage => {
+    const used = new Set<string>();
+    const at = pickPassageAt(anchor, used);
+    if (at) return at;
+    // Fall back to closest available level.
+    const anchorIdx = LEVELS.indexOf(anchor);
+    for (let radius = 1; radius < LEVELS.length; radius++) {
+      for (const dir of [1, -1] as const) {
+        const idx = anchorIdx + dir * radius;
+        if (idx < 0 || idx >= LEVELS.length) continue;
+        const p = pickPassageAt(LEVELS[idx], used);
+        if (p) return p;
+      }
+    }
+    return PLACEMENT_READING[0];   // last-resort — should never happen
+  };
+
+  const [currentPassage, setCurrentPassage] = useState<ReadingPassage>(() => pickInitial(anchorLevel));
+  const [usedIds, setUsedIds] = useState<Set<string>>(() => new Set([pickInitial(anchorLevel).id]));
+  const [passagesDone, setPassagesDone] = useState(0);
+  const [qIdx, setQIdx] = useState(0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  const [currentPassageAnswers, setCurrentPassageAnswers] = useState<PlacementAnswer[]>([]);
+  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() => new Set());
+  const [selected, setSelected] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const startRef = useRef<Date>(new Date());
+  const questionStart = useRef<number>(Date.now());
+  const pending = useRef<PlacementAnswer | null>(null);
+  const completedRef = useRef(false);
+
+  const q = currentPassage.questions[qIdx];
+
+  function confirm() {
+    if (selected === null || confirmed) return;
+    setConfirmed(true);
+    pending.current = {
+      questionId: q.id,
+      level:      q.level,
+      topic:      q.type as unknown as PlacementAnswer['topic'],
+      selected:   selected as 0 | 1 | 2 | 3,
+      correct:    selected === q.correct,
+      timeMs:     Date.now() - questionStart.current,
+    };
+  }
+
+  function pickNextPassage(lastLevel: LessonLevel, pct: number, alreadyUsed: Set<string>): ReadingPassage | null {
+    const lastIdx = LEVELS.indexOf(lastLevel);
+    // Target index based on performance.
+    let targetIdx = lastIdx;
+    if (pct >= 0.7)      targetIdx = Math.min(LEVELS.length - 1, lastIdx + 1);
+    else if (pct <= 0.4) targetIdx = Math.max(0, lastIdx - 1);
+    else                 targetIdx = Math.min(LEVELS.length - 1, lastIdx + 1);  // marginal → try up
+
+    // Search outward from target for an unused passage.
+    for (let radius = 0; radius < LEVELS.length; radius++) {
+      for (const dir of radius === 0 ? [0] as const : [1, -1] as const) {
+        const idx = targetIdx + dir * radius;
+        if (idx < 0 || idx >= LEVELS.length) continue;
+        const p = pickPassageAt(LEVELS[idx], alreadyUsed);
+        if (p) return p;
+      }
+    }
+    return null;
+  }
+
+  function next() {
+    if (!confirmed || !pending.current) return;
+    const ans = pending.current;
+    pending.current = null;
+
+    const newAnswers = [...answers, ans];
+    const newPassageAnswers = [...currentPassageAnswers, ans];
+    setAnswers(newAnswers);
+    setCurrentPassageAnswers(newPassageAnswers);
+
+    const isLastQ = qIdx === currentPassage.questions.length - 1;
+    if (!isLastQ) {
+      setQIdx(i => i + 1);
+      setSelected(null);
+      setConfirmed(false);
+      questionStart.current = Date.now();
+      return;
+    }
+
+    // Passage complete — score it and decide next.
+    const correctInPassage = newPassageAnswers.filter(a => a.correct).length;
+    const pct = newPassageAnswers.length > 0 ? correctInPassage / newPassageAnswers.length : 0;
+    const newPassed = new Set(passedLevels);
+    if (pct >= 0.6) newPassed.add(currentPassage.level);
+    setPassedLevels(newPassed);
+
+    const donePassages = passagesDone + 1;
+    setPassagesDone(donePassages);
+
+    const budgetReached = donePassages >= budget;
+    if (budgetReached) {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const result = scoreReadingComponent(PLACEMENT_READING, newAnswers, startRef.current, new Date());
+      // Placement = highest passed passage level.
+      const placed = highestPassedLevel(newPassed) ?? currentPassage.level;
+      result.placedLevel = placed;
+      onComplete(result);
+      return;
+    }
+
+    const nextPassage = pickNextPassage(currentPassage.level, pct, usedIds);
+    if (!nextPassage) {
+      // Bank drained.
+      if (completedRef.current) return;
+      completedRef.current = true;
+      const result = scoreReadingComponent(PLACEMENT_READING, newAnswers, startRef.current, new Date());
+      const placed = highestPassedLevel(newPassed) ?? currentPassage.level;
+      result.placedLevel = placed;
+      onComplete(result);
+      return;
+    }
+    setUsedIds(prev => new Set([...prev, nextPassage.id]));
+    setCurrentPassage(nextPassage);
+    setCurrentPassageAnswers([]);
+    setQIdx(0);
+    setSelected(null);
+    setConfirmed(false);
+    questionStart.current = Date.now();
+  }
+
+  return (
+    <div className="w-full max-w-4xl space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* Passage */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+                Passage {passagesDone + 1} of {budget} · {currentPassage.level}
+              </span>
+              <span className="text-[9px] font-bold text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+                Adaptive
+              </span>
+            </div>
+            <span className="text-[10px] text-gray-400">{currentPassage.wordCount} words</span>
+          </div>
+          <h3 className="font-serif text-xl font-bold mb-3" style={{ color: B.purpleDark }}>{currentPassage.title}</h3>
+          <div className="prose prose-sm max-w-none text-sm leading-relaxed text-gray-800 whitespace-pre-line max-h-[60vh] overflow-y-auto pr-2">
+            {currentPassage.text}
+          </div>
+        </div>
+
+        {/* Question */}
+        <div className="lg:col-span-3 bg-white rounded-2xl p-5 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+              Question {qIdx + 1} of {currentPassage.questions.length}
+            </span>
+            {teacherLed && (
+              <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+                Teacher view
+              </span>
+            )}
+          </div>
+
+          <MCQCard
+            prompt={q.prompt}
+            options={q.options}
+            selected={selected}
+            onSelect={setSelected}
+            confirmed={confirmed}
+            correctIdx={q.correct}
+          />
+
+          {teacherLed && confirmed && q.explanation && (
+            <p className="mt-3 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <strong>Explanation:</strong> {q.explanation}
+            </p>
+          )}
+
+          <div className="mt-5 flex justify-end gap-2">
+            {!confirmed ? (
+              <button
+                onClick={confirm}
+                disabled={selected === null}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
+                style={{ background: B.purple }}
+              >
+                Confirm
+              </button>
+            ) : (
+              <button
+                onClick={next}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: B.purple }}
+              >
+                Next →
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ProgressBar current={answers.length + (confirmed ? 1 : 0)} total={budget * 5} label={`Reading · pasaje ${passagesDone + 1}/${budget} @ ${currentPassage.level}`} />
+    </div>
+  );
+}
+
+function highestPassedLevel(passed: Set<LessonLevel>): LessonLevel | null {
+  const order: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  for (let i = order.length - 1; i >= 0; i--) {
+    if (passed.has(order[i])) return order[i];
+  }
+  return null;
 }
 
 // ── Results screen ─────────────────────────────────────────────────────────
@@ -1238,9 +1480,13 @@ export default function PlacementSuitePage() {
       }
       return (
         <PageBg>
-          <AdaptiveGrammarRunner
+          <AdaptiveMCQRunner
+            componentId="grammar"
+            bank={PLACEMENT_QUESTIONS}
             hardCap={config.budgets.grammar}
+            anchorLevel="A1"
             teacherLed={teacherLed}
+            label="Grammar"
             onComplete={handleComponentComplete}
           />
         </PageBg>
@@ -1248,15 +1494,31 @@ export default function PlacementSuitePage() {
     }
 
     if (cid === 'vocabulary') {
-      const bank = pickCalibratedQuestions(PLACEMENT_VOCABULARY_QUESTIONS, anchor, config.budgets.vocabulary);
+      if (config.grammarMode === 'linear') {
+        // Linear = calibrated slice + sequential run (previous behaviour).
+        const bank = pickCalibratedQuestions(PLACEMENT_VOCABULARY_QUESTIONS, anchor, config.budgets.vocabulary);
+        return (
+          <PageBg>
+            <MCQRunner
+              componentId="vocabulary"
+              bank={bank}
+              teacherLed={teacherLed}
+              allowAutoStop={false}
+              label={`Vocabulary · calibrated to ${anchor}`}
+              onComplete={handleComponentComplete}
+            />
+          </PageBg>
+        );
+      }
       return (
         <PageBg>
-          <MCQRunner
+          <AdaptiveMCQRunner
             componentId="vocabulary"
-            bank={bank}
+            bank={PLACEMENT_VOCABULARY_QUESTIONS}
+            hardCap={config.budgets.vocabulary}
+            anchorLevel={anchor}
             teacherLed={teacherLed}
-            allowAutoStop={false}
-            label={`Vocabulary · calibrated to ${anchor}`}
+            label="Vocabulary"
             onComplete={handleComponentComplete}
           />
         </PageBg>
@@ -1264,11 +1526,23 @@ export default function PlacementSuitePage() {
     }
 
     if (cid === 'reading') {
-      const passages = pickCalibratedPassages(PLACEMENT_READING, anchor, config.budgets.reading);
+      if (config.grammarMode === 'linear') {
+        const passages = pickCalibratedPassages(PLACEMENT_READING, anchor, config.budgets.reading);
+        return (
+          <PageBg>
+            <ReadingRunner
+              passages={passages}
+              teacherLed={teacherLed}
+              onComplete={handleComponentComplete}
+            />
+          </PageBg>
+        );
+      }
       return (
         <PageBg>
-          <ReadingRunner
-            passages={passages}
+          <AdaptiveReadingRunner
+            budget={config.budgets.reading}
+            anchorLevel={anchor}
             teacherLed={teacherLed}
             onComplete={handleComponentComplete}
           />

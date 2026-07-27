@@ -787,14 +787,11 @@ function SuiteConfigForm({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-[#2D1B4E]">
-                  📘 Grammar ({grammarMode === 'adaptive' ? 'adaptativo' : 'lineal'})
+                  Modo del test ({grammarMode === 'adaptive' ? 'adaptativo' : 'lineal'})
                 </label>
-                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">
-                  {budgets.grammar} Q
-                </span>
               </div>
-              {/* Mode toggle */}
-              <div className="flex gap-1 mb-2">
+              {/* Mode toggle — applies to Grammar, Vocab and Reading */}
+              <div className="flex gap-1 mb-3">
                 {(['adaptive', 'linear'] as const).map((m) => (
                   <button
                     key={m}
@@ -809,13 +806,20 @@ function SuiteConfigForm({
                   </button>
                 ))}
               </div>
+
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar</label>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">
+                  {budgets.grammar} Q
+                </span>
+              </div>
               <input type="range" min={10} max={60} step={5} value={budgets.grammar}
                 onChange={e => setBudget('grammar', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
                 {grammarMode === 'adaptive'
-                  ? 'Corre las N preguntas completas ajustando dificultad on the go. Sube tras 4 correctas o 80% en el tier, baja tras 3 erradas. Nunca termina antes.'
-                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas. Más determinista pero puede cortar antes.'}
+                  ? 'Arranca en A1. Corre las N preguntas completas ajustando dificultad on the go (4 correctas → sube, 3 erradas → baja).'
+                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas.'}
               </p>
             </div>
           )}
@@ -829,7 +833,9 @@ function SuiteConfigForm({
                 onChange={e => setBudget('vocabulary', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
-                Calibrado al ±1 del nivel estimado por Grammar.
+                {grammarMode === 'adaptive'
+                  ? 'Adaptativo: arranca en el nivel estimado por Grammar y ajusta on the go.'
+                  : 'Lineal: calibrado al ±1 del nivel estimado por Grammar.'}
               </p>
             </div>
           )}
@@ -843,7 +849,9 @@ function SuiteConfigForm({
                 onChange={e => setBudget('reading', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
-                Pasajes cercanos al nivel estimado por Grammar, más cercano primero.
+                {grammarMode === 'adaptive'
+                  ? 'Adaptativo por pasaje: sube o baja el nivel del siguiente según accuracy en el actual.'
+                  : 'Lineal: pasajes cercanos al nivel estimado por Grammar, más cercano primero.'}
               </p>
             </div>
           )}
