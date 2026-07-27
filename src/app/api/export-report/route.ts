@@ -63,6 +63,14 @@ export interface PlacementSuiteReportData {
   mode:            'student-self' | 'teacher-led';
 }
 
+export interface TOEFLReportData {
+  type:         'toefl';
+  studentName:  string;
+  scores:       Partial<Record<'reading'|'listening'|'speaking'|'writing', { section: string; raw?: number; outOf?: number; score: number }>>;
+  overall:      number;
+  completedAt?: string;
+}
+
 export interface WritingFeedbackReportData {
   type:            'writing-feedback';
   studentName?:    string;
@@ -93,7 +101,7 @@ export interface PlacementReportData {
   learningProgram?: LearningProgram;
 }
 
-type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData | PlacementSuiteReportData;
+type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData | PlacementSuiteReportData | TOEFLReportData;
 
 // ── PDF generation using pure HTML → PDF conversion ──────────
 
@@ -930,6 +938,112 @@ function generatePlacementSuiteHTML(data: PlacementSuiteReportData, logoUrl: str
 </html>`;
 }
 
+function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
+  const dateStr = data.completedAt
+    ? new Date(data.completedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const meta: Record<string, { icon: string; label: string }> = {
+    reading:   { icon: '📖', label: 'Reading' },
+    listening: { icon: '🎧', label: 'Listening' },
+    speaking:  { icon: '🎤', label: 'Speaking' },
+    writing:   { icon: '✍️', label: 'Writing' },
+  };
+
+  const rows = (['reading','listening','speaking','writing'] as const).map(s => {
+    const sc = data.scores[s];
+    const pct = sc ? (sc.score / 30) * 100 : 0;
+    return `
+    <tr>
+      <td style="padding:14px;vertical-align:middle;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">${meta[s].icon}</span>
+          <div>
+            <p style="font-size:14px;font-weight:700;color:#1F2937;margin:0;">${meta[s].label}</p>
+            ${sc?.raw !== undefined && sc.outOf !== undefined
+              ? `<p style="font-size:10px;color:#9B7CB8;margin:2px 0 0;">${sc.raw}/${sc.outOf} correctas</p>` : ''}
+          </div>
+        </div>
+      </td>
+      <td style="padding:14px;vertical-align:middle;width:220px;">
+        <div style="height:10px;background:#F0E5FF;border-radius:5px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#5A3D7A,#9B7CB8);border-radius:5px;"></div>
+        </div>
+      </td>
+      <td style="padding:14px;text-align:right;width:100px;vertical-align:middle;">
+        <span style="font-size:22px;font-weight:900;color:#5A3D7A;">${sc?.score ?? 0}</span>
+        <span style="font-size:11px;color:#9B7CB8;"> / 30</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>TOEFL Report — ${data.studentName}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; color:#1F2937; background:white; font-size:13px; line-height:1.5; }
+  @media print {
+    body { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+    .no-print { display:none !important; }
+  }
+  .page { max-width:820px; margin:0 auto; padding:40px; }
+  .hero { background:linear-gradient(135deg,#3D2558 0%,#5A3D7A 55%,#9B7CB8 100%); border-radius:16px; padding:28px; margin-bottom:28px; color:white; position:relative; overflow:hidden; }
+  .hero-bg { position:absolute; top:-30px; right:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,0.08); }
+  .brand-row { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+  .brand-logo { width:36px; height:36px; border-radius:10px; overflow:hidden; background:rgba(255,255,255,0.15); }
+  .brand-name { font-size:16px; font-weight:800; }
+  .brand-tld { font-size:11px; opacity:0.6; }
+  .hero-main { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; }
+  .student-name { font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+  .student-sub { font-size:12px; opacity:0.75; margin-top:4px; }
+  .total-pill { background:rgba(255,255,255,0.25); border-radius:14px; padding:14px 24px; text-align:center; }
+  .total-value { font-size:38px; font-weight:900; line-height:1; }
+  .total-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; opacity:0.8; margin-top:4px; }
+  .section-title { font-size:12px; font-weight:800; color:#5A3D7A; padding-bottom:8px; border-bottom:2px solid #F0E5FF; margin-bottom:14px; margin-top:24px; text-transform:uppercase; letter-spacing:0.6px; }
+  .print-btn { position:fixed; bottom:24px; right:24px; background:linear-gradient(135deg,#6B4F8A,#5A3D7A); color:white; border:none; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(90,61,122,0.35); }
+  .footer { margin-top:36px; padding-top:16px; border-top:2px solid #F0E5FF; font-size:10px; color:#C8A8DC; text-align:center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="brand-row">
+      <div class="brand-logo">
+        <img src="${logoUrl}" alt="FT" style="width:36px;height:36px;object-fit:cover;" onerror="this.style.display='none'"/>
+      </div>
+      <div>
+        <div class="brand-name">FriendlyTeaching</div>
+        <div class="brand-tld">.cl · TOEFL Academic Simulator</div>
+      </div>
+    </div>
+    <div class="hero-main">
+      <div>
+        <div class="student-name">${data.studentName}</div>
+        <div class="student-sub">${dateStr}</div>
+      </div>
+      <div class="total-pill">
+        <div class="total-value">${data.overall}</div>
+        <div class="total-label">Total / 120</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:0;">Puntaje por sección</div>
+  <table style="width:100%; border-collapse:collapse; border:1px solid #F0E5FF; border-radius:12px; overflow:hidden;">
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="footer">Generated by FriendlyTeaching.cl · ${new Date().toLocaleDateString('es-CL')} · TOEFL iBT Report</div>
+</div>
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</body>
+</html>`;
+}
+
 export async function POST(request: NextRequest) {
   let body: ExportRequest;
   try {
@@ -967,6 +1081,12 @@ export async function POST(request: NextRequest) {
     const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
     html = generatePlacementSuiteHTML(d, logoUrl);
     filename = `PlacementSuite_${d.studentName.replace(/\s+/g, '_')}.html`;
+  } else if (body.type === 'toefl') {
+    const d = body as TOEFLReportData;
+    const origin = request.nextUrl.origin;
+    const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
+    html = generateTOEFLHTML(d, logoUrl);
+    filename = `TOEFL_${d.studentName.replace(/\s+/g, '_')}.html`;
   } else {
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   }

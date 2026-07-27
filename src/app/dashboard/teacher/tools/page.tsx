@@ -65,6 +65,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/toefl',
+    icon:        '🎓',
+    title:       'TOEFL Academic Simulator',
+    description: 'Full mock TOEFL iBT: Reading, Listening, Speaking, Writing. Scoring 0-120 estilo ETS + AI grading para W y S.',
+    gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
+    glow:        'shadow-[#C8A8DC]/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/tools/qa-simulator',
     icon:        '🎯',
     title:       'Q&A Simulator',
