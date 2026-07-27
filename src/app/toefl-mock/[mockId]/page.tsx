@@ -23,10 +23,11 @@ import { getMock } from '@/lib/data/toefl/mock-1';
 import type {
   TOEFLMock, TOEFLReadingPassage, TOEFLListeningAudio, TOEFLSpeakingPrompt,
   TOEFLWritingPrompt, ReadingAnswer, ListeningAnswer, SpeakingRecording,
-  WritingSubmission, SectionScore,
+  WritingSubmission, SectionScore, TOEFLSection,
 } from '@/types/toefl';
 import {
   readingRawToScaled, listeningRawToScaled, speakingRawToScaled,
+  TOEFL_SECTIONS, TOEFL_SECTION_META,
 } from '@/types/toefl';
 
 const B = {
@@ -629,14 +630,16 @@ function WritingSection({
 // ── Results ───────────────────────────────────────────────────────────────
 
 function ResultsScreen({
-  studentName, scores, overall,
+  studentName, scores, overall, enabledSections,
 }: {
-  studentName: string;
-  scores:      Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>;
-  overall:     number;
+  studentName:     string;
+  scores:          Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>;
+  overall:         number;
+  enabledSections: TOEFLSection[];
 }) {
   const [downloading, setDownloading] = useState(false);
-  const sections: ('reading' | 'listening' | 'speaking' | 'writing')[] = ['reading', 'listening', 'speaking', 'writing'];
+  const isPartial = enabledSections.length < 4;
+  const maxScore = enabledSections.length * 30;
   const meta: Record<string, { icon: string; label: string }> = {
     reading:   { icon: '📖', label: 'Reading' },
     listening: { icon: '🎧', label: 'Listening' },
@@ -675,9 +678,11 @@ function ResultsScreen({
           style={{ background: 'linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%)' }}>
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
           <div className="relative">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-70">Total TOEFL</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-70">
+              {isPartial ? `Subtotal (${enabledSections.length}/4)` : 'Total TOEFL'}
+            </p>
             <p className="text-7xl font-black mt-1 tabular-nums">{overall}</p>
-            <p className="text-sm mt-2 opacity-80">/ 120 · {studentName}</p>
+            <p className="text-sm mt-2 opacity-80">/ {maxScore} · {studentName}</p>
           </div>
         </div>
 
@@ -687,7 +692,7 @@ function ResultsScreen({
               Puntaje por sección
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {sections.map(s => {
+              {enabledSections.map(s => {
                 const sc = scores[s];
                 return (
                   <div key={s} className="rounded-xl border p-3" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
@@ -743,6 +748,22 @@ export default function TOEFLMockPage() {
   const teacherIdParam = searchParams.get('teacherId') ?? '';
   const nameParam = searchParams.get('name') ?? '';
   const emailParam = searchParams.get('email') ?? '';
+  const sectionsParam = searchParams.get('sections') ?? '';
+
+  // Selected sections come from ?sections=reading,writing (defaults to all
+  // four for backwards-compat when the query param is absent).
+  const enabledSections: TOEFLSection[] = useMemo(() => {
+    if (!sectionsParam) return [...TOEFL_SECTIONS];
+    const set = new Set(sectionsParam.split(',').filter(Boolean) as TOEFLSection[]);
+    return TOEFL_SECTIONS.filter(s => set.has(s));
+  }, [sectionsParam]);
+  const enabledSet = useMemo(() => new Set(enabledSections), [enabledSections]);
+
+  function nextEnabledAfter(current: TOEFLSection): TOEFLSection | null {
+    const idx = enabledSections.indexOf(current);
+    if (idx < 0 || idx === enabledSections.length - 1) return null;
+    return enabledSections[idx + 1];
+  }
 
   const mock: TOEFLMock | undefined = getMock(mockId);
 
@@ -819,6 +840,25 @@ export default function TOEFLMockPage() {
     setPhase('intro');
   }
 
+  async function advanceFrom(current: TOEFLSection, extraScore?: SectionScore) {
+    const next = nextEnabledAfter(current);
+    if (next) { setPhase(next as Phase); return; }
+    // Last enabled section → finalise session and go to results.
+    const combined = { ...scores, ...(extraScore ? { [current]: extraScore } : {}) };
+    const overall = Object.values(combined).reduce((s, v) => s + (v?.score ?? 0), 0);
+    try {
+      const sid = await ensureSession();
+      await updateDoc(doc(db, 'toeflSessions', sid), {
+        overallScore: overall,
+        status:       'completed',
+        completedAt:  serverTimestamp(),
+      });
+    } catch (err) {
+      console.error('[toefl-mock] finalise err:', err);
+    }
+    setPhase('results');
+  }
+
   async function onReadingDone(answers: ReadingAnswer[]) {
     const correct = answers.filter(a => a.correct).length;
     const score: SectionScore = {
@@ -829,7 +869,7 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, reading: score }));
     await persistSection('reading', { answers, score });
-    setPhase('listening');
+    await advanceFrom('reading', score);
   }
 
   async function onListeningDone(answers: ListeningAnswer[]) {
@@ -842,7 +882,7 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, listening: score }));
     await persistSection('listening', { answers, score });
-    setPhase('speaking');
+    await advanceFrom('listening', score);
   }
 
   async function onSpeakingDone(recordings: SpeakingRecording[]) {
@@ -888,7 +928,7 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, speaking: score }));
     await persistSection('speaking', { recordings: enriched, score });
-    setPhase('writing');
+    await advanceFrom('speaking', score);
   }
 
   async function onWritingDone(submission: WritingSubmission) {
@@ -927,16 +967,7 @@ export default function TOEFLMockPage() {
     const score: SectionScore = { section: 'writing', score: sectionScore };
     setScores(prev => ({ ...prev, writing: score }));
     await persistSection('writing', { submission: enriched, score });
-
-    // Finalise
-    const overall = Object.values({ ...scores, writing: score }).reduce((s, v) => s + (v?.score ?? 0), 0);
-    const sid = await ensureSession();
-    await updateDoc(doc(db, 'toeflSessions', sid), {
-      overallScore: overall,
-      status:       'completed',
-      completedAt:  serverTimestamp(),
-    }).catch(() => {});
-    setPhase('results');
+    await advanceFrom('writing', score);
   }
 
   const overallLive = Object.values(scores).reduce((s, v) => s + (v?.score ?? 0), 0);
@@ -981,36 +1012,48 @@ export default function TOEFLMockPage() {
   }
 
   if (phase === 'intro') {
+    const totalMin = enabledSections.reduce((s, sec) => s + TOEFL_SECTION_META[sec].minutes, 0);
+    const first = enabledSections[0];
+    const isPartial = enabledSections.length < TOEFL_SECTIONS.length;
     return (
       <PageBg>
         <div className="w-full max-w-lg rounded-3xl overflow-hidden bg-white" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
           <div className="px-8 py-7" style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A, #9B7CB8)' }}>
             <BrandHeader subtitle="TOEFL Academic Simulator" />
             <p className="text-lg font-serif font-bold text-white mt-4">Hola {name}, ¡vamos!</p>
+            {isPartial && (
+              <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                Práctica parcial: {enabledSections.length} de {TOEFL_SECTIONS.length} secciones (~{totalMin} min)
+              </p>
+            )}
           </div>
           <div className="p-8 space-y-4">
-            <p className="text-sm text-gray-700">Vas a hacer el mock completo en este orden:</p>
+            <p className="text-sm text-gray-700">
+              {isPartial ? 'Vas a hacer estas secciones en orden:' : 'Vas a hacer el mock completo en este orden:'}
+            </p>
             <ol className="space-y-2 text-sm text-[#2D1B4E]">
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#F0E5FF] flex items-center justify-center text-xs font-bold" style={{ color: B.purple }}>1</span>
-                <span>📖 <strong>Reading</strong> — 2 pasajes · 35 min</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#F0E5FF] flex items-center justify-center text-xs font-bold" style={{ color: B.purple }}>2</span>
-                <span>🎧 <strong>Listening</strong> — 1 lecture + 1 conversation · 20 min</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#F0E5FF] flex items-center justify-center text-xs font-bold" style={{ color: B.purple }}>3</span>
-                <span>🎤 <strong>Speaking</strong> — 4 tasks grabadas · ~8 min</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#F0E5FF] flex items-center justify-center text-xs font-bold" style={{ color: B.purple }}>4</span>
-                <span>✍️ <strong>Writing</strong> — 1 Academic Discussion · 10 min</span>
-              </li>
+              {enabledSections.map((s, i) => {
+                const meta = TOEFL_SECTION_META[s];
+                const desc: Record<TOEFLSection, string> = {
+                  reading:   '2 pasajes',
+                  listening: '1 lecture + 1 conversation',
+                  speaking:  '4 tasks grabadas',
+                  writing:   '1 Academic Discussion',
+                };
+                return (
+                  <li key={s} className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-[#F0E5FF] flex items-center justify-center text-xs font-bold" style={{ color: B.purple }}>{i + 1}</span>
+                    <span>{meta.icon} <strong>{meta.label}</strong> — {desc[s]} · {meta.minutes} min</span>
+                  </li>
+                );
+              })}
             </ol>
-            <p className="text-[11px] text-gray-500 italic">💡 Writing y Speaking se califican con AI (Claude + Whisper). Puede tardar 1-2 min después de submit.</p>
-            <button onClick={() => setPhase('reading')}
-              className="w-full font-bold py-3.5 rounded-xl text-white text-sm hover:opacity-90 transition-opacity"
+            {(enabledSet.has('speaking') || enabledSet.has('writing')) && (
+              <p className="text-[11px] text-gray-500 italic">💡 {enabledSet.has('writing') && 'Writing'}{enabledSet.has('writing') && enabledSet.has('speaking') && ' y '}{enabledSet.has('speaking') && 'Speaking'} se califica{(enabledSet.has('writing') && enabledSet.has('speaking')) ? 'n' : ''} con AI (Claude{enabledSet.has('speaking') ? ' + Whisper' : ''}). Puede tardar 1-2 min después de submit.</p>
+            )}
+            <button onClick={() => first && setPhase(first as Phase)}
+              disabled={!first}
+              className="w-full font-bold py-3.5 rounded-xl text-white text-sm hover:opacity-90 transition-opacity disabled:opacity-40"
               style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
               ▶ Empezar
             </button>
@@ -1037,5 +1080,5 @@ export default function TOEFLMockPage() {
     );
   }
 
-  return <PageBg><ResultsScreen studentName={name} scores={scores} overall={overallLive} /></PageBg>;
+  return <PageBg><ResultsScreen studentName={name} scores={scores} overall={overallLive} enabledSections={enabledSections} /></PageBg>;
 }
