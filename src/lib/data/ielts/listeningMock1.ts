@@ -629,7 +629,7 @@ const s4Questions: ListeningQuestion[] = [
   {
     id: 'l1-s4-q31',
     section: 4,
-    type: 'note-completion',
+    type: 'summary-completion',
     prompt: 'Urban forage lasts from early spring to late ____',
     contextBefore: 'Urban forage lasts from early spring to late',
     wordLimit: 1,
@@ -643,7 +643,7 @@ const s4Questions: ListeningQuestion[] = [
   {
     id: 'l1-s4-q32',
     section: 4,
-    type: 'note-completion',
+    type: 'summary-completion',
     prompt: 'London study: rural bees visited only ____ plant species per day',
     contextBefore: 'rural bees visited only',
     contextAfter: 'plant species per day',
@@ -816,6 +816,18 @@ const section4: ListeningSection = {
         { kind: 'text',  text: 'Beekeepers compete for the same limited forage' },
         { kind: 'text',  text: 'Result: smaller colony sizes and reduced honey yields' },
         { kind: 'blank', questionId: 'l1-s4-q38', contextBefore: 'Recommended action: inspect hives every 7-10', contextAfter: '' },
+      ],
+    },
+  ],
+  summaryLayouts: [
+    {
+      title: 'Why urban bees often outperform rural ones',
+      segments: [
+        { kind: 'text',  text: 'Urban bees benefit from continuous forage. Cities offer a mosaic of gardens, parks and street trees, so nectar is available from early spring to late ' },
+        { kind: 'blank', questionId: 'l1-s4-q31' },
+        { kind: 'text',  text: '. Rural landscapes dominated by monoculture bloom for only a few weeks each year. In a London study, urban bees visited an average of 30 plant species per day, while rural bees visited only ' },
+        { kind: 'blank', questionId: 'l1-s4-q32' },
+        { kind: 'text',  text: ' species per day.' },
       ],
     },
   ],

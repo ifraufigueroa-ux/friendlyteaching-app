@@ -18,9 +18,13 @@ import FullscreenButton from '@/components/ui/FullscreenButton';
 import { listeningMock1 } from '@/lib/data/ielts/listeningMock1';
 import { gradeAnswers } from '@/lib/ielts/scoreListening';
 import { loadMockAudioBindings, saveAudioBinding, deleteAudioBinding, type AudioSource } from '@/lib/ielts/audioStore';
+import {
+  createPracticeSession, updatePracticeSession, listPracticeSessions,
+  deletePracticeSession, type IELTSPracticeSession,
+} from '@/lib/ielts/practiceSessions';
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
-  ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout,
+  ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout,
 } from '@/types/ielts';
 
 const MOCKS: ListeningMock[] = [listeningMock1];
@@ -201,14 +205,22 @@ function groupInstructions(g: QGroup): string {
 
 /** Header — top bar mimicking IELTS CBT. Sticky at the top. */
 function CBTHeader({
-  studentName, candidateId, timeMinutesLeft, audioPlaying, onMenu,
+  studentName, candidateId, timeMinutesLeft, audioPlaying, savingState, savedAt, onMenu,
 }: {
   studentName:      string;
   candidateId:      string;
   timeMinutesLeft:  number;
   audioPlaying:     boolean;
+  savingState?:     'idle' | 'saving' | 'saved' | 'error';
+  savedAt?:         Date | null;
   onMenu?:          () => void;
 }) {
+  const savedLabel =
+    savingState === 'saving' ? 'Saving…' :
+    savingState === 'error'  ? 'Save failed' :
+    savingState === 'saved' && savedAt
+      ? `Saved ${savedAt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+      : null;
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-[#E8D5F0] shadow-sm">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
@@ -224,7 +236,7 @@ function CBTHeader({
         </div>
 
         <div className="flex flex-col items-end min-w-0">
-          <span className="text-sm font-bold text-[#2D1B4E] truncate max-w-[220px]">
+          <span className="text-sm font-bold text-[#2D1B4E] truncate max-w-[260px]">
             {studentName || 'Candidate'} <span className="text-gray-400 font-mono font-medium">- {candidateId}</span>
           </span>
           <div className="flex items-center gap-3 text-[11px] text-gray-600">
@@ -233,6 +245,16 @@ function CBTHeader({
               <span aria-hidden>{audioPlaying ? '🔊' : '🔈'}</span>
               <span>{audioPlaying ? 'Audio is playing' : 'Audio paused'}</span>
             </span>
+            {savedLabel && (
+              <span className={`inline-flex items-center gap-1 font-mono ${
+                savingState === 'error' ? 'text-red-500'
+                : savingState === 'saving' ? 'text-gray-400'
+                : 'text-emerald-600'
+              }`}>
+                <span aria-hidden>{savingState === 'saving' ? '⟳' : savingState === 'error' ? '⚠' : '✓'}</span>
+                <span>{savedLabel}</span>
+              </span>
+            )}
             <FullscreenButton variant="inline" className="!w-7 !h-7 !bg-transparent !border-transparent !text-[#5A3D7A] hover:!bg-[#F0E5FF] hover:!border-[#F0E5FF]" />
             <button
               onClick={onMenu}
@@ -569,6 +591,53 @@ function CBTFlowChartLayoutRenderer({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Summary container — titled paragraph of prose with inline blanks. */
+function CBTSummaryLayoutRenderer({
+  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+}: {
+  layout:          SummaryLayout;
+  section:         ListeningSection;
+  sectionIndex:    number;
+  answers:         StudentAnswers;
+  setAnswer:       (qId: string, val: string) => void;
+  activeQIndex:    number;
+  setActiveQIndex: (i: number) => void;
+  allowReveal?:    boolean;
+}) {
+  return (
+    <div className="rounded-lg border-2 border-[#C8A8DC] bg-white overflow-hidden">
+      <div className="bg-[#F0E5FF] px-4 py-2 text-center">
+        <p className="text-sm font-bold text-[#2D1B4E]">{layout.title}</p>
+      </div>
+      <p className="px-4 py-4 text-[15px] text-[#2D1B4E] leading-relaxed">
+        {layout.segments.map((seg, i) => {
+          if (seg.kind === 'text') {
+            return <span key={i}>{seg.text}</span>;
+          }
+          const q = section.questions.find((qq) => qq.id === seg.questionId);
+          if (!q || !('accepted' in q) || !('wordLimit' in q)) {
+            return <span key={i} className="text-xs text-red-600">[missing {seg.questionId}]</span>;
+          }
+          const qIdx = section.questions.indexOf(q);
+          return (
+            <CBTLayoutBlank
+              key={i}
+              q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
+              sectionIndex={sectionIndex}
+              qIndexInSection={qIdx}
+              answer={answers[q.id]}
+              onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
+              onFocus={() => setActiveQIndex(qIdx)}
+              isActive={activeQIndex === qIdx}
+              allowReveal={allowReveal}
+            />
+          );
+        })}
+      </p>
     </div>
   );
 }
@@ -1209,6 +1278,18 @@ export default function IELTSListeningPage() {
   const TOTAL_SEC = 30 * 60;
   const [timeLeft, setTimeLeft] = useState(TOTAL_SEC);
   const [timerRunning, setTimerRunning] = useState(false);
+
+  // Practice-mode session persistence — sessionId is set when the
+  // teacher either starts a new practice session (name required) or
+  // resumes a saved one. All state changes then auto-save.
+  const [sessionId,        setSessionId]        = useState<string | null>(null);
+  const [studentNameInput, setStudentNameInput] = useState('');
+  const [savedSessions,    setSavedSessions]    = useState<IELTSPracticeSession[]>([]);
+  const [loadingSessions,  setLoadingSessions]  = useState(false);
+  const [savedAt,          setSavedAt]          = useState<Date | null>(null);
+  const [savingState,      setSavingState]      = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const timeLeftRef = useRef(timeLeft);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -1222,6 +1303,54 @@ export default function IELTSListeningPage() {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, [timerRunning]);
 
+  // Load saved sessions when Practice landing is shown.
+  useEffect(() => {
+    if (!teacherId || phase !== 'landing' || mode !== 'practice') return;
+    let alive = true;
+    setLoadingSessions(true);
+    listPracticeSessions(teacherId, mock.id)
+      .then((sessions) => { if (alive) setSavedSessions(sessions); })
+      .catch((err) => console.error('[ielts-listening] list sessions:', err))
+      .finally(() => { if (alive) setLoadingSessions(false); });
+    return () => { alive = false; };
+  }, [teacherId, phase, mode, mock.id]);
+
+  // Debounced auto-save on answer / position changes (practice only).
+  useEffect(() => {
+    if (!sessionId || mode !== 'practice' || phase !== 'running') return;
+    const t = setTimeout(async () => {
+      setSavingState('saving');
+      try {
+        await updatePracticeSession(sessionId, {
+          answers,
+          currentSection,
+          activeQIndex,
+          timeLeftSec: timeLeftRef.current,
+        });
+        setSavingState('saved');
+        setSavedAt(new Date());
+      } catch (err) {
+        console.error('[ielts-listening] auto-save:', err);
+        setSavingState('error');
+      }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [sessionId, mode, phase, answers, currentSection, activeQIndex]);
+
+  // Periodic save for the timer (every 30 s).
+  useEffect(() => {
+    if (!sessionId || mode !== 'practice' || phase !== 'running') return;
+    const int = setInterval(async () => {
+      try {
+        await updatePracticeSession(sessionId, { timeLeftSec: timeLeftRef.current });
+        setSavedAt(new Date());
+      } catch (err) {
+        console.error('[ielts-listening] periodic save:', err);
+      }
+    }, 30_000);
+    return () => clearInterval(int);
+  }, [sessionId, mode, phase]);
+
   function startMock() {
     setPhase('running');
     setCurrentSection(0);
@@ -1229,6 +1358,70 @@ export default function IELTSListeningPage() {
     setAnswers({});
     setTimeLeft(TOTAL_SEC);
     setTimerRunning(true);
+    setSavedAt(null);
+    setSavingState('idle');
+  }
+
+  async function startNewPracticeSession() {
+    const name = studentNameInput.trim();
+    if (!name || !teacherId) return;
+    try {
+      const id = await createPracticeSession({
+        teacherId,
+        mockId:      mock.id,
+        studentName: name,
+        timeLeftSec: TOTAL_SEC,
+      });
+      setSessionId(id);
+      startMock();
+    } catch (err) {
+      console.error('[ielts-listening] create session:', err);
+      alert('No se pudo crear la sesión. Reintentá.');
+    }
+  }
+
+  function resumePracticeSession(session: IELTSPracticeSession) {
+    if (!session.id) return;
+    setSessionId(session.id);
+    setAnswers(session.answers ?? {});
+    setCurrentSection(session.currentSection ?? 0);
+    setActiveQIndex(session.activeQIndex ?? 0);
+    setTimeLeft(session.timeLeftSec ?? TOTAL_SEC);
+    setStudentNameInput(session.studentName ?? '');
+    setMode('practice');
+    setPhase('running');
+    setTimerRunning(true);
+    setSavedAt(session.updatedAt?.toDate?.() ?? null);
+    setSavingState('saved');
+  }
+
+  async function removeSession(id: string) {
+    if (!confirm('¿Borrar esta sesión guardada? No se puede deshacer.')) return;
+    try {
+      await deletePracticeSession(id);
+      setSavedSessions((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error('[ielts-listening] delete session:', err);
+      alert('No se pudo borrar la sesión.');
+    }
+  }
+
+  async function saveAndExit() {
+    if (sessionId && mode === 'practice') {
+      try {
+        await updatePracticeSession(sessionId, {
+          answers,
+          currentSection,
+          activeQIndex,
+          timeLeftSec: timeLeftRef.current,
+        });
+      } catch (err) {
+        console.error('[ielts-listening] save & exit:', err);
+      }
+    }
+    setSessionId(null);
+    setTimerRunning(false);
+    setPhase('landing');
   }
 
   function goToNextSection() {
@@ -1300,12 +1493,18 @@ export default function IELTSListeningPage() {
     return (
       <div className="min-h-screen bg-white text-[#2D1B4E] flex flex-col">
         <CBTHeader
-          studentName={studentName}
+          studentName={mode === 'practice' && sessionId ? studentNameInput : studentName}
           candidateId={cid}
           timeMinutesLeft={minutesLeft}
           audioPlaying={audioPlaying}
+          savingState={mode === 'practice' && sessionId ? savingState : undefined}
+          savedAt={mode === 'practice' && sessionId ? savedAt : undefined}
           onMenu={() => {
-            if (confirm('¿Salir del test? Se pierde el progreso actual.')) {
+            if (mode === 'practice' && sessionId) {
+              if (confirm('¿Guardar progreso y salir? Podés retomar la sesión desde el landing.')) {
+                saveAndExit();
+              }
+            } else if (confirm('¿Salir del test? Se pierde el progreso actual.')) {
               setPhase('landing');
               setTimerRunning(false);
             }
@@ -1396,6 +1595,13 @@ export default function IELTSListeningPage() {
                       s.kind === 'blank' && g.questions.some((q) => q.id === s.questionId)))
                 : undefined;
 
+            const matchedSummary: SummaryLayout | undefined =
+              g.type === 'summary-completion' && activeSection.summaryLayouts
+                ? activeSection.summaryLayouts.find((s) =>
+                    s.segments.some((seg) =>
+                      seg.kind === 'blank' && g.questions.some((q) => q.id === seg.questionId)))
+                : undefined;
+
             const setAnswer = (qId: string, val: string) =>
               setAnswers((prev) => ({ ...prev, [qId]: val }));
 
@@ -1451,6 +1657,17 @@ export default function IELTSListeningPage() {
                 ) : matchedFlow ? (
                   <CBTFlowChartLayoutRenderer
                     layout={matchedFlow}
+                    section={activeSection}
+                    sectionIndex={currentSection}
+                    answers={answers}
+                    setAnswer={setAnswer}
+                    activeQIndex={activeQIndex}
+                    setActiveQIndex={setActiveQIndex}
+                    allowReveal={mode === 'practice'}
+                  />
+                ) : matchedSummary ? (
+                  <CBTSummaryLayoutRenderer
+                    layout={matchedSummary}
                     section={activeSection}
                     sectionIndex={currentSection}
                     answers={answers}
@@ -1615,14 +1832,97 @@ export default function IELTSListeningPage() {
                 </div>
               </div>
 
+              {/* Practice setup — student name + saved sessions to resume */}
+              {mode === 'practice' && (
+                <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5 space-y-4">
+                  <div>
+                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-1.5">
+                      Student for this session
+                    </p>
+                    <input
+                      type="text"
+                      value={studentNameInput}
+                      onChange={(e) => setStudentNameInput(e.target.value)}
+                      placeholder="Nombre del estudiante"
+                      className="w-full px-4 py-2.5 rounded-xl border-2 border-[#E8D5F0] bg-[#FDFAFF] text-sm text-[#2D1B4E] focus:outline-none focus:border-[#5A3D7A] focus:bg-white transition-colors"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1.5">
+                      Se guarda el progreso automáticamente. Podés retomar la sesión desde acá cuando quieras.
+                    </p>
+                  </div>
+
+                  {/* Saved sessions to resume */}
+                  <div>
+                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-1.5">
+                      Resume a saved session
+                    </p>
+                    {loadingSessions ? (
+                      <p className="text-xs text-gray-500 flex items-center gap-2 py-3">
+                        <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
+                        Cargando sesiones…
+                      </p>
+                    ) : savedSessions.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic py-2">No hay sesiones guardadas para este mock.</p>
+                    ) : (
+                      <ul className="space-y-1.5 max-h-64 overflow-y-auto">
+                        {savedSessions.map((s) => {
+                          const answered = Object.keys(s.answers ?? {}).filter((k) => {
+                            const v = s.answers?.[k];
+                            return Array.isArray(v) ? v.length > 0 : (typeof v === 'string' && v.trim().length > 0);
+                          }).length;
+                          const updated = s.updatedAt?.toDate?.() ?? null;
+                          const updatedLabel = updated
+                            ? updated.toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : '—';
+                          return (
+                            <li key={s.id} className="flex items-center gap-2 border border-[#E8D5F0] rounded-xl px-3 py-2 bg-[#FDFAFF]">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[#2D1B4E] truncate">{s.studentName}</p>
+                                <p className="text-[10px] text-gray-500 font-mono">
+                                  {answered}/40 answered · Part {s.currentSection + 1} · guardado {updatedLabel}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => resumePracticeSession(s)}
+                                className="px-3 py-1.5 rounded-full bg-[#5A3D7A] hover:bg-[#7B5EA7] text-white text-xs font-bold whitespace-nowrap"
+                              >
+                                ▶ Resume
+                              </button>
+                              <button
+                                onClick={() => s.id && removeSession(s.id)}
+                                title="Borrar sesión"
+                                aria-label="Delete session"
+                                className="text-gray-400 hover:text-red-500 text-sm px-1"
+                              >
+                                ✕
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Start CTA */}
               <div className="flex justify-center">
-                <button
-                  onClick={startMock}
-                  className="px-8 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-base font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
-                >
-                  ▶ Start Listening Mock
-                </button>
+                {mode === 'practice' ? (
+                  <button
+                    onClick={startNewPracticeSession}
+                    disabled={!studentNameInput.trim() || !teacherId}
+                    className="px-8 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-base font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all"
+                  >
+                    ▶ Start new practice{studentNameInput.trim() ? ` for ${studentNameInput.trim()}` : ''}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setSessionId(null); startMock(); }}
+                    className="px-8 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-base font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
+                  >
+                    ▶ Start Exam
+                  </button>
+                )}
               </div>
 
               <p className="text-center text-[10px] text-gray-400">

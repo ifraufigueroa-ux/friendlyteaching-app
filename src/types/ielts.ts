@@ -158,6 +158,18 @@ export interface FlowChartLayout {
   steps:  FlowChartStep[];
 }
 
+// Summary Completion: a titled paragraph of prose with blanks embedded
+// inline. Segments render in order; text segments carry the prose, blank
+// segments render as inline numbered inputs.
+export type SummarySegment =
+  | { kind: 'text';  text: string }
+  | { kind: 'blank'; questionId: string };
+
+export interface SummaryLayout {
+  title:     string;
+  segments:  SummarySegment[];
+}
+
 export interface ListeningSection {
   number: 1 | 2 | 3 | 4;
   contextType: 'social-transactional' | 'social-monologue' | 'academic-discussion' | 'academic-lecture';
@@ -175,10 +187,11 @@ export interface ListeningSection {
   targetDurationSec: number;
   questions: ListeningQuestion[];
   // Optional structured layouts. If present, the runner renders the
-  // table/flow-chart in place of the default question-per-row list for
-  // the questions those layouts reference.
+  // table/flow-chart/summary in place of the default question-per-row
+  // list for the questions those layouts reference.
   tableLayouts?:      TableLayout[];
   flowChartLayouts?:  FlowChartLayout[];
+  summaryLayouts?:    SummaryLayout[];
 }
 
 export interface ListeningMock {

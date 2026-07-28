@@ -376,5 +376,14 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // IELTS practice-mode saved sessions (per student, per mock) so the
+    // teacher can resume where a student left off.
+    match /ieltsPracticeSessions/{sessionId} {
+      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
   }
 }
