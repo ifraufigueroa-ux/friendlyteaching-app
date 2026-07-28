@@ -396,6 +396,19 @@ const section2: ListeningSection = {
     { speakerId: 'guide', text: "The tour will take approximately 90 minutes. Any questions? No? Excellent — let's begin.", approxStartSec: 230 },
   ],
   questions: s2Questions,
+  tableLayouts: [
+    {
+      title: 'Cape Wilson Lighthouse — key facts',
+      rows: [
+        { label: 'Year built',            value: '1874' },
+        { label: 'Purpose',               value: 'to warn ships from the reef' },
+        { label: 'Tower height',          value: { blank: true, questionId: 'l1-s2-q13', suffix: 'metres' } },
+        { label: 'Original light source', value: { blank: true, questionId: 'l1-s2-q14', suffix: 'lamp' } },
+        { label: 'Automated since',       value: '1963' },
+        { label: 'Tour duration',         value: '90 minutes' },
+      ],
+    },
+  ],
 };
 
 // ─── SECTION 3 · Group project tutorial — sustainable packaging ─────
@@ -794,6 +807,18 @@ const section4: ListeningSection = {
     { speakerId: 'lecturer', text: "That's it for today. Next week we'll cover pollination ecology in tropical forests. Please read chapter 12 of Kerkstroem before then.", approxStartSec: 282 },
   ],
   questions: s4Questions,
+  flowChartLayouts: [
+    {
+      title: 'Urban beekeeping in central Paris — problem and response',
+      steps: [
+        { kind: 'text',  text: 'Number of urban hives in central Paris keeps rising' },
+        { kind: 'blank', questionId: 'l1-s4-q37', contextBefore: 'Main challenge:' },
+        { kind: 'text',  text: 'Beekeepers compete for the same limited forage' },
+        { kind: 'text',  text: 'Result: smaller colony sizes and reduced honey yields' },
+        { kind: 'blank', questionId: 'l1-s4-q38', contextBefore: 'Recommended action: inspect hives every 7-10', contextAfter: '' },
+      ],
+    },
+  ],
 };
 
 // ─── The mock ────────────────────────────────────────────────────────

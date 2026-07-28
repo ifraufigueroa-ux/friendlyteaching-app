@@ -20,7 +20,7 @@ import { gradeAnswers } from '@/lib/ielts/scoreListening';
 import { loadMockAudioBindings, saveAudioBinding, deleteAudioBinding, type AudioSource } from '@/lib/ielts/audioStore';
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
-  ListeningSessionMode, GradeResult,
+  ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout,
 } from '@/types/ielts';
 
 const MOCKS: ListeningMock[] = [listeningMock1];
@@ -366,6 +366,176 @@ function CBTFooter({
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Layout renderers (Table / Flow-chart) ──────────────────────────
+//
+// When a section defines tableLayouts or flowChartLayouts, the runner
+// renders the full container in place of individual QuestionCards for
+// the referenced questions. Cells/steps that reference a question id
+// resolve to a `CBTLayoutBlank` — a compact numbered input that stays
+// wired to the same answers/activeQIndex state as the rest of the mock.
+
+/** Compact inline input used inside table cells and flow-chart steps. */
+function CBTLayoutBlank({
+  q, sectionIndex, qIndexInSection, answer, onAnswer, onFocus, isActive, allowReveal,
+}: {
+  q:                ListeningQuestion & { accepted: string[]; wordLimit: number };
+  sectionIndex:     number;
+  qIndexInSection:  number;
+  answer:           string | string[] | undefined;
+  onAnswer:         (val: string) => void;
+  onFocus?:         () => void;
+  isActive?:        boolean;
+  allowReveal?:     boolean;
+}) {
+  const [revealed, setRevealed] = useState(false);
+  const number = sectionIndex * 10 + qIndexInSection + 1;
+  const numBox = isActive
+    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+    : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
+  return (
+    <span className="inline-flex items-center gap-1.5 align-baseline">
+      <span className={`min-w-[26px] h-6 px-1 rounded-md border-2 text-[11px] font-bold inline-flex items-center justify-center tabular-nums ${numBox}`}>
+        {number}
+      </span>
+      <input
+        type="text"
+        value={typeof answer === 'string' ? answer : ''}
+        onChange={(e) => onAnswer(e.target.value)}
+        onFocus={onFocus}
+        className={`px-2 py-1 rounded border-2 bg-white text-sm text-[#2D1B4E] focus:outline-none min-w-[100px] max-w-[200px] transition-colors ${
+          isActive ? 'border-[#5A3D7A]' : 'border-gray-400'
+        }`}
+      />
+      {allowReveal && (
+        <button
+          onClick={() => setRevealed((v) => !v)}
+          title={revealed ? 'Hide' : 'Check answer'}
+          className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A]"
+        >
+          {revealed ? '⤴' : '👁'}
+        </button>
+      )}
+      {revealed && (
+        <span className="text-[11px] text-emerald-700 font-mono bg-emerald-50 border border-emerald-200 rounded px-1.5">
+          {q.accepted[0]}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Table container — title header + rows of "label | value" where value
+ *  can be a pre-filled string or a blank pointing at a fill question. */
+function CBTTableLayoutRenderer({
+  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+}: {
+  layout:          TableLayout;
+  section:         ListeningSection;
+  sectionIndex:    number;
+  answers:         StudentAnswers;
+  setAnswer:       (qId: string, val: string) => void;
+  activeQIndex:    number;
+  setActiveQIndex: (i: number) => void;
+  allowReveal?:    boolean;
+}) {
+  return (
+    <div className="rounded-lg border-2 border-[#C8A8DC] overflow-hidden bg-white">
+      <div className="bg-[#F0E5FF] px-4 py-2 text-center">
+        <p className="text-sm font-bold text-[#2D1B4E]">{layout.title}</p>
+      </div>
+      <div className="divide-y divide-[#E8D5F0]">
+        {layout.rows.map((row, i) => {
+          const isBlank = typeof row.value !== 'string';
+          const blankVal = isBlank ? row.value as Exclude<typeof row.value, string> : null;
+          const q = blankVal ? section.questions.find((qq) => qq.id === blankVal.questionId) : null;
+          const qIdx = q ? section.questions.indexOf(q) : -1;
+          const isFillQ = !!q && 'accepted' in q && 'wordLimit' in q;
+          return (
+            <div key={i} className="grid grid-cols-[minmax(140px,1fr)_2fr] gap-3 px-4 py-2.5 items-center">
+              <span className="text-sm text-[#2D1B4E]/80">{row.label}</span>
+              <span className="text-sm text-[#2D1B4E] flex flex-wrap items-baseline gap-1.5">
+                {isBlank && isFillQ ? (
+                  <>
+                    <CBTLayoutBlank
+                      q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
+                      sectionIndex={sectionIndex}
+                      qIndexInSection={qIdx}
+                      answer={answers[q.id]}
+                      onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
+                      onFocus={() => setActiveQIndex(qIdx)}
+                      isActive={activeQIndex === qIdx}
+                      allowReveal={allowReveal}
+                    />
+                    {blankVal?.suffix && <span className="text-[#2D1B4E]">{blankVal.suffix}</span>}
+                  </>
+                ) : (
+                  <span>{row.value as string}</span>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Flow-chart container — titled sequence of boxed steps with ↓ arrows. */
+function CBTFlowChartLayoutRenderer({
+  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+}: {
+  layout:          FlowChartLayout;
+  section:         ListeningSection;
+  sectionIndex:    number;
+  answers:         StudentAnswers;
+  setAnswer:       (qId: string, val: string) => void;
+  activeQIndex:    number;
+  setActiveQIndex: (i: number) => void;
+  allowReveal?:    boolean;
+}) {
+  return (
+    <div>
+      <p className="text-sm font-bold text-[#2D1B4E] text-center mb-2">{layout.title}</p>
+      <div className="space-y-0">
+        {layout.steps.map((step, i) => (
+          <div key={i}>
+            {i > 0 && (
+              <div className="text-center text-[#5A3D7A]/60 text-xl leading-none py-1" aria-hidden>↓</div>
+            )}
+            <div className="rounded-lg border-2 border-[#C8A8DC] bg-white px-4 py-3">
+              {step.kind === 'text' ? (
+                <p className="text-sm text-[#2D1B4E]">{step.text}</p>
+              ) : (() => {
+                const q = section.questions.find((qq) => qq.id === step.questionId);
+                if (!q || !('accepted' in q) || !('wordLimit' in q)) {
+                  return <p className="text-xs text-red-600">Missing question: {step.questionId}</p>;
+                }
+                const qIdx = section.questions.indexOf(q);
+                return (
+                  <p className="text-sm text-[#2D1B4E] flex flex-wrap items-baseline gap-1.5">
+                    {step.contextBefore && <span>{step.contextBefore}</span>}
+                    <CBTLayoutBlank
+                      q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
+                      sectionIndex={sectionIndex}
+                      qIndexInSection={qIdx}
+                      answer={answers[q.id]}
+                      onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
+                      onFocus={() => setActiveQIndex(qIdx)}
+                      isActive={activeQIndex === qIdx}
+                      allowReveal={allowReveal}
+                    />
+                    {step.contextAfter && <span>{step.contextAfter}</span>}
+                  </p>
+                );
+              })()}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1163,13 +1333,32 @@ export default function IELTSListeningPage() {
             const groupFrom = currentSection * 10 + g.startIndex + 1;
             const groupTo   = currentSection * 10 + g.endIndex + 1;
             const isMatchGroup = g.type === 'matching' || g.type === 'plan-map-labelling';
-            const isTableGroup = g.type === 'table-completion';
-            const isFlowGroup  = g.type === 'flow-chart-completion';
             const bank = isMatchGroup
               ? ((g.questions[0] as { options?: { id: string; text: string }[] }).options ?? [])
               : [];
 
-            // Shared render helper for each question card + wrapper.
+            // Find a matching structural layout for this group. Layouts win
+            // over the default group renderer for their referenced questions.
+            const matchedTable: TableLayout | undefined =
+              g.type === 'table-completion' && activeSection.tableLayouts
+                ? activeSection.tableLayouts.find((t) =>
+                    t.rows.some((r) => {
+                      const v = r.value;
+                      if (typeof v === 'string') return false;
+                      return g.questions.some((q) => q.id === v.questionId);
+                    }))
+                : undefined;
+
+            const matchedFlow: FlowChartLayout | undefined =
+              g.type === 'flow-chart-completion' && activeSection.flowChartLayouts
+                ? activeSection.flowChartLayouts.find((f) =>
+                    f.steps.some((s) =>
+                      s.kind === 'blank' && g.questions.some((q) => q.id === s.questionId)))
+                : undefined;
+
+            const setAnswer = (qId: string, val: string) =>
+              setAnswers((prev) => ({ ...prev, [qId]: val }));
+
             const renderCard = (q: ListeningQuestion, i: number) => {
               const qIdxInSec = g.startIndex + i;
               return (
@@ -1208,38 +1397,29 @@ export default function IELTSListeningPage() {
                   </div>
                 )}
 
-                {/* Table container — thicker border + header row. */}
-                {isTableGroup && (
-                  <div className="rounded-lg border-2 border-[#C8A8DC] overflow-hidden">
-                    <div className="bg-[#F0E5FF] px-4 py-2 grid grid-cols-[1fr_auto] gap-3 text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]">
-                      <span>Detail</span>
-                      <span>Value</span>
-                    </div>
-                    <div className="divide-y divide-[#E8D5F0]">
-                      {g.questions.map((q, i) => renderCard(q, i))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Flow-chart container — steps with ↓ arrows between rows. */}
-                {isFlowGroup && (
-                  <div className="rounded-lg bg-[#FDFAFF] border border-[#C8A8DC] px-4 py-3 space-y-1">
-                    {g.questions.map((q, i) => (
-                      <div key={q.id}>
-                        {i > 0 && (
-                          <div className="text-center text-[#5A3D7A]/50 text-lg leading-none py-1" aria-hidden>↓</div>
-                        )}
-                        <div>
-                          <p className="text-[10px] font-black text-[#5A3D7A]/70 uppercase tracking-widest mb-1">Step {i + 1}</p>
-                          {renderCard(q, i)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Default renderer (MCQ, notes, sentence, short-answer, matching rows). */}
-                {!isTableGroup && !isFlowGroup && (
+                {matchedTable ? (
+                  <CBTTableLayoutRenderer
+                    layout={matchedTable}
+                    section={activeSection}
+                    sectionIndex={currentSection}
+                    answers={answers}
+                    setAnswer={setAnswer}
+                    activeQIndex={activeQIndex}
+                    setActiveQIndex={setActiveQIndex}
+                    allowReveal={mode === 'practice'}
+                  />
+                ) : matchedFlow ? (
+                  <CBTFlowChartLayoutRenderer
+                    layout={matchedFlow}
+                    section={activeSection}
+                    sectionIndex={currentSection}
+                    answers={answers}
+                    setAnswer={setAnswer}
+                    activeQIndex={activeQIndex}
+                    setActiveQIndex={setActiveQIndex}
+                    allowReveal={mode === 'practice'}
+                  />
+                ) : (
                   <div className="border-t border-[#E8D5F0] divide-y divide-[#E8D5F0]">
                     {g.questions.map((q, i) => renderCard(q, i))}
                   </div>

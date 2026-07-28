@@ -128,6 +128,36 @@ export interface ListeningScriptLine {
   approxStartSec?: number;
 }
 
+// ─── Layout hints for structured question groups ─────────────────────
+// The CBT UI renders certain question types as an integrated visual —
+// a titled table with pre-filled cells + blanks, or a flow-chart with
+// arrows between labelled steps. These optional layouts describe that
+// structure at the section level, so the runner can render the whole
+// container (title, context rows/steps, blanks in position) instead of
+// stacking the questions as isolated rows.
+
+export interface TableLayoutRow {
+  label:  string;
+  // `value` is either a pre-filled cell (string) or a blank that points
+  // at a fill-question by id; the runner sources word-limit + answer
+  // state from that question.
+  value:  string | { blank: true; questionId: string; suffix?: string };
+}
+
+export interface TableLayout {
+  title:  string;
+  rows:   TableLayoutRow[];
+}
+
+export type FlowChartStep =
+  | { kind: 'text';  text: string }
+  | { kind: 'blank'; questionId: string; contextBefore?: string; contextAfter?: string };
+
+export interface FlowChartLayout {
+  title:  string;
+  steps:  FlowChartStep[];
+}
+
 export interface ListeningSection {
   number: 1 | 2 | 3 | 4;
   contextType: 'social-transactional' | 'social-monologue' | 'academic-discussion' | 'academic-lecture';
@@ -144,6 +174,11 @@ export interface ListeningSection {
   // Expected audio duration in seconds — 5-8 min per section is typical.
   targetDurationSec: number;
   questions: ListeningQuestion[];
+  // Optional structured layouts. If present, the runner renders the
+  // table/flow-chart in place of the default question-per-row list for
+  // the questions those layouts reference.
+  tableLayouts?:      TableLayout[];
+  flowChartLayouts?:  FlowChartLayout[];
 }
 
 export interface ListeningMock {
