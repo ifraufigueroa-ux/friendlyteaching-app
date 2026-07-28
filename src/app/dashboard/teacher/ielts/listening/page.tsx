@@ -127,32 +127,37 @@ interface QGroup {
   questions:  ListeningQuestion[];
 }
 function groupQuestions(qs: ListeningQuestion[]): QGroup[] {
+  // Group by type (and pickCount for multi-select, since "Choose TWO" vs
+  // "Choose THREE" is a different instruction). Fill questions are NOT
+  // keyed on wordLimit / allowNumbers — a shared table or flow-chart
+  // can legitimately span questions with mildly different word rules
+  // (e.g. one accepts a number, the next only a word). Widen those
+  // fields to max / OR across the group so the derived instruction is
+  // permissive enough for every blank in it.
   const groups: QGroup[] = [];
   for (let i = 0; i < qs.length; i++) {
     const q = qs[i];
-    const key = (q.type as string)
-      + ('wordLimit' in q ? `|w${q.wordLimit}` : '')
-      + ('allowNumbers' in q ? `|n${q.allowNumbers}` : '')
-      + ('pickCount' in q ? `|p${q.pickCount}` : '');
+    const key = (q.type as string) + ('pickCount' in q ? `|p${q.pickCount}` : '');
     const last = groups[groups.length - 1];
-    const lastKey = last && (
-      (last.type as string)
-      + (last.wordLimit != null ? `|w${last.wordLimit}` : '')
-      + (last.allowNumbers != null ? `|n${last.allowNumbers}` : '')
-      + (last.pickCount != null ? `|p${last.pickCount}` : '')
-    );
+    const lastKey = last && ((last.type as string) + (last.pickCount != null ? `|p${last.pickCount}` : ''));
     if (last && lastKey === key) {
       last.endIndex = i;
       last.questions.push(q);
+      if ('wordLimit' in q) {
+        last.wordLimit = Math.max(last.wordLimit ?? 0, q.wordLimit);
+      }
+      if ('allowNumbers' in q) {
+        last.allowNumbers = (last.allowNumbers ?? false) || q.allowNumbers;
+      }
     } else {
       groups.push({
-        startIndex: i,
-        endIndex:   i,
-        type:       q.type,
-        wordLimit:  'wordLimit'  in q ? q.wordLimit  : undefined,
+        startIndex:   i,
+        endIndex:     i,
+        type:         q.type,
+        wordLimit:    'wordLimit' in q ? q.wordLimit : undefined,
         allowNumbers: 'allowNumbers' in q ? q.allowNumbers : undefined,
-        pickCount:  'pickCount' in q ? q.pickCount : undefined,
-        questions:  [q],
+        pickCount:    'pickCount' in q ? q.pickCount : undefined,
+        questions:    [q],
       });
     }
   }
