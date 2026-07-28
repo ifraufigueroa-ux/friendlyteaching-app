@@ -278,26 +278,35 @@ function CBTQuestionsHeading({ from, to, instructions }: { from: number; to: num
 }
 
 /** Footer paginator: per-question buttons for the active part,
- *  header buttons for the other parts, plus prev/next and submit. */
+ *  header buttons for the other parts, plus prev/next and submit.
+ *
+ *  When `allowBackward` is false (exam mode), the prev arrow is
+ *  disabled and previous-part headers become non-clickable — matches
+ *  the real CBT, where audio plays once and you cannot rewind. */
 function CBTFooter({
-  mock, currentSection, activeQIndex, answers, onGoTo, onPrev, onNext, onSubmit,
+  mock, currentSection, activeQIndex, answers, allowBackward, onGoTo, onPrev, onNext, onSubmit,
 }: {
   mock:           ListeningMock;
   currentSection: 0 | 1 | 2 | 3;
   activeQIndex:   number;                                  // 0-based within section
   answers:        StudentAnswers;
+  allowBackward:  boolean;
   onGoTo:         (section: 0 | 1 | 2 | 3, qIndex: number) => void;
   onPrev:         () => void;
   onNext:         () => void;
   onSubmit:       () => void;
 }) {
   const isLastSection = currentSection === 3;
+  const atFirstQuestion = currentSection === 0 && activeQIndex === 0;
+  const prevDisabled = atFirstQuestion || !allowBackward;
 
   return (
     <div className="sticky bottom-0 z-40 bg-[#2D1B4E] text-white border-t border-[#5A3D7A]">
       <div className="max-w-5xl mx-auto px-3 py-2 flex items-center gap-3 overflow-x-auto">
         {mock.sections.map((sec, sIdx) => {
           const isActivePart = sIdx === currentSection;
+          const isPreviousPart = sIdx < currentSection;
+          const partLocked = isPreviousPart && !allowBackward;
           const answeredCount = sec.questions.filter(q => {
             const a = answers[q.id];
             return Array.isArray(a) ? a.length > 0 : (typeof a === 'string' && a.trim().length > 0);
@@ -313,16 +322,19 @@ function CBTFooter({
                   const ans = answers[q.id];
                   const isAnswered = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim().length > 0);
                   const qNumber = sIdx * 10 + qIdx + 1;
+                  const qLocked = !allowBackward && qIdx < activeQIndex;
                   return (
                     <button
                       key={q.id}
-                      onClick={() => onGoTo(sIdx as 0 | 1 | 2 | 3, qIdx)}
+                      onClick={() => { if (!qLocked) onGoTo(sIdx as 0 | 1 | 2 | 3, qIdx); }}
+                      disabled={qLocked}
+                      title={qLocked ? 'Exam mode: cannot go back' : undefined}
                       className={`min-w-[26px] h-6 px-1.5 rounded text-[11px] font-bold tabular-nums transition-colors ${
                         isActive
                           ? 'bg-white text-[#2D1B4E] shadow-sm'
                           : isAnswered
-                            ? 'bg-[#9B7CB8] text-white'
-                            : 'bg-transparent text-white/80 hover:bg-white/10'
+                            ? qLocked ? 'bg-[#9B7CB8]/60 text-white/60 cursor-not-allowed' : 'bg-[#9B7CB8] text-white'
+                            : qLocked ? 'bg-transparent text-white/30 cursor-not-allowed' : 'bg-transparent text-white/80 hover:bg-white/10'
                       }`}
                       aria-current={isActive ? 'true' : undefined}
                       aria-label={`Go to question ${qNumber}`}
@@ -337,19 +349,34 @@ function CBTFooter({
           return (
             <button
               key={sec.number}
-              onClick={() => onGoTo(sIdx as 0 | 1 | 2 | 3, 0)}
-              className="shrink-0 flex items-center gap-2 px-2.5 py-1 rounded text-[11px] font-bold text-white/80 hover:bg-white/10 transition-colors"
+              onClick={() => { if (!partLocked) onGoTo(sIdx as 0 | 1 | 2 | 3, 0); }}
+              disabled={partLocked}
+              title={partLocked ? 'Exam mode: cannot go back to a previous part' : undefined}
+              className={`shrink-0 flex items-center gap-2 px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
+                partLocked
+                  ? 'text-white/30 cursor-not-allowed'
+                  : 'text-white/80 hover:bg-white/10'
+              }`}
             >
               <span>Part {sec.number}</span>
-              <span className="text-white/50 font-mono">{answeredCount} of {sec.questions.length}</span>
+              <span className={partLocked ? 'text-white/25 font-mono' : 'text-white/50 font-mono'}>
+                {answeredCount} of {sec.questions.length}
+              </span>
+              {partLocked && <span aria-hidden className="text-white/40">🔒</span>}
             </button>
           );
         })}
 
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
           <button
-            onClick={onPrev}
-            className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white text-lg leading-none flex items-center justify-center"
+            onClick={() => { if (!prevDisabled) onPrev(); }}
+            disabled={prevDisabled}
+            title={!allowBackward ? 'Exam mode: audio plays once — cannot go back' : (atFirstQuestion ? 'Already at the first question' : 'Previous')}
+            className={`w-8 h-8 rounded text-lg leading-none flex items-center justify-center transition-colors ${
+              prevDisabled
+                ? 'bg-white/5 text-white/25 cursor-not-allowed'
+                : 'bg-white/10 hover:bg-white/20 text-white'
+            }`}
             aria-label="Previous"
           >
             ←
@@ -1211,11 +1238,19 @@ export default function IELTSListeningPage() {
   }
 
   function goToSection(section: 0 | 1 | 2 | 3, qIndex: number) {
+    // In exam mode, block moves that go backward (either to a previous
+    // part or to an earlier question of the current part) — the CBT
+    // footer already gates this at the UI level; this is a defence.
+    if (mode === 'exam') {
+      if (section < currentSection) return;
+      if (section === currentSection && qIndex < activeQIndex) return;
+    }
     setCurrentSection(section);
     setActiveQIndex(Math.max(0, Math.min(mock.sections[section].questions.length - 1, qIndex)));
   }
 
   function goPrev() {
+    if (mode === 'exam') return;   // Exam mode: no rewinding.
     if (activeQIndex > 0) { setActiveQIndex(activeQIndex - 1); return; }
     if (currentSection > 0) {
       const prevSec = (currentSection - 1) as 0 | 1 | 2 | 3;
@@ -1451,6 +1486,7 @@ export default function IELTSListeningPage() {
           currentSection={currentSection}
           activeQIndex={activeQIndex}
           answers={answers}
+          allowBackward={mode === 'practice'}
           onGoTo={goToSection}
           onPrev={goPrev}
           onNext={goNext}
