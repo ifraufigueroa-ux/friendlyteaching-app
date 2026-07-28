@@ -228,6 +228,7 @@ function CBTHeader({
               <span aria-hidden>{audioPlaying ? '🔊' : '🔈'}</span>
               <span>{audioPlaying ? 'Audio is playing' : 'Audio paused'}</span>
             </span>
+            <FullscreenButton variant="inline" className="!w-7 !h-7 !bg-transparent !border-transparent !text-[#5A3D7A] hover:!bg-[#F0E5FF] hover:!border-[#F0E5FF]" />
             <button
               onClick={onMenu}
               aria-label="Menu"
@@ -380,6 +381,7 @@ function QuestionCard({
   onFocus,
   isActive,
   showAnswer,
+  allowReveal,
   correctInline,
 }: {
   q: ListeningQuestion;
@@ -388,10 +390,13 @@ function QuestionCard({
   onAnswer: (val: string | string[]) => void;
   onFocus?: () => void;                  // fired when user interacts — parent sets active question
   isActive?: boolean;                    // highlights the number box like the real CBT
-  showAnswer?: boolean;                  // review/practice mode reveal
+  showAnswer?: boolean;                  // review mode: force reveal
+  allowReveal?: boolean;                 // practice mode: opt-in reveal via a button
   correctInline?: boolean;               // grade badge after submit
 }) {
   const number = index + 1;
+  const [revealed, setRevealed] = useState(false);
+  const displayAnswer = showAnswer || revealed;
 
   // Small helper — canonical accepted answer string for the reveal.
   const canonical =
@@ -417,8 +422,8 @@ function QuestionCard({
             {q.prompt}
           </p>
 
-          {/* Input by type — CBT: bare radios/checkboxes, not chip buttons. */}
-          {(q.type === 'multiple-choice' || q.type === 'matching' || q.type === 'plan-map-labelling') && (
+          {/* Single-answer MCQ — radios. */}
+          {q.type === 'multiple-choice' && (
             <div className="space-y-1 pl-1">
               {q.options.map((opt) => {
                 const selected = answer === opt.id;
@@ -440,8 +445,15 @@ function QuestionCard({
             </div>
           )}
 
+          {/* Multi-select MCQ — checkboxes with "Choose N" hint. */}
           {q.type === 'multiple-choice-multi' && (
             <div className="space-y-1 pl-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]/70 mb-1">
+                Choose {q.pickCount === 3 ? 'THREE' : 'TWO'}
+                {Array.isArray(answer) && answer.length > 0 && (
+                  <span className="ml-2 text-[#5A3D7A] font-mono">({answer.length}/{q.pickCount})</span>
+                )}
+              </p>
               {q.options.map((opt) => {
                 const chosen = Array.isArray(answer) ? answer.includes(opt.id) : false;
                 return (
@@ -463,6 +475,29 @@ function QuestionCard({
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {/* Matching / plan-map-labelling — dropdown, since sibling Qs share
+              the same option bank (shown once above the group in the runner). */}
+          {(q.type === 'matching' || q.type === 'plan-map-labelling') && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-sm text-[#2D1B4E] flex-1 min-w-[140px]">
+                {q.type === 'matching' ? q.leftItem : q.labelSpot}
+              </span>
+              <select
+                value={typeof answer === 'string' ? answer : ''}
+                onChange={(e) => onAnswer(e.target.value)}
+                onFocus={onFocus}
+                className={`px-3 py-1.5 rounded border-2 bg-white text-sm text-[#2D1B4E] focus:outline-none min-w-[80px] transition-colors ${
+                  isActive ? 'border-[#5A3D7A]' : 'border-gray-400'
+                }`}
+              >
+                <option value="">— select —</option>
+                {q.options.map((opt) => (
+                  <option key={opt.id} value={opt.id}>{opt.id.toUpperCase()}. {opt.text}</option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -489,8 +524,18 @@ function QuestionCard({
             </div>
           )}
 
-          {/* Answer reveal (practice / review) */}
-          {showAnswer && (
+          {/* Practice: opt-in reveal via a small button (hidden until clicked). */}
+          {allowReveal && !showAnswer && (
+            <button
+              onClick={() => setRevealed((v) => !v)}
+              className="mt-1 text-[11px] font-semibold text-[#5A3D7A]/80 hover:text-[#5A3D7A] underline decoration-dotted underline-offset-2"
+            >
+              {revealed ? '⤴ Hide answer' : '👁 Check answer'}
+            </button>
+          )}
+
+          {/* Answer reveal (practice-revealed or review). */}
+          {displayAnswer && (
             <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200">
               <span className="text-emerald-600 text-sm">✓</span>
               <div className="min-w-0">
@@ -1117,9 +1162,30 @@ export default function IELTSListeningPage() {
           {groups.map((g) => {
             const groupFrom = currentSection * 10 + g.startIndex + 1;
             const groupTo   = currentSection * 10 + g.endIndex + 1;
+            // Matching + plan-map-labelling share an option bank across the
+            // whole group — render it once above the rows, IELTS-CBT style.
+            const isMatchGroup = g.type === 'matching' || g.type === 'plan-map-labelling';
+            const bank = isMatchGroup
+              ? ((g.questions[0] as { options?: { id: string; text: string }[] }).options ?? [])
+              : [];
             return (
               <div key={`g-${g.startIndex}`} className="mb-6">
                 <CBTQuestionsHeading from={groupFrom} to={groupTo} instructions={groupInstructions(g)} />
+
+                {isMatchGroup && bank.length > 0 && (
+                  <div className="mb-3 rounded-lg bg-[#FDFAFF] border border-[#E8D5F0] px-4 py-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70 mb-1.5">Options</p>
+                    <div className="grid gap-1 text-sm text-[#2D1B4E]">
+                      {bank.map((opt) => (
+                        <div key={opt.id} className="flex items-baseline gap-2">
+                          <span className="font-bold text-[#5A3D7A] w-5 shrink-0">{opt.id.toUpperCase()}</span>
+                          <span>{opt.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="border-t border-[#E8D5F0] divide-y divide-[#E8D5F0]">
                   {g.questions.map((q, i) => {
                     const qIdxInSec = g.startIndex + i;
@@ -1135,7 +1201,7 @@ export default function IELTSListeningPage() {
                         }}
                         onFocus={() => setActiveQIndex(qIdxInSec)}
                         isActive={activeQIndex === qIdxInSec}
-                        showAnswer={mode === 'practice'}
+                        allowReveal={mode === 'practice'}
                       />
                     );
                   })}
