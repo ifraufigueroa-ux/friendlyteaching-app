@@ -25,6 +25,78 @@ import type {
 
 const MOCKS: ListeningMock[] = [listeningMock1];
 
+// ─── Audio player with playback-speed control ───────────────────────
+// Wraps a native <audio> and adds a speed pill selector below (0.75x /
+// 0.85x / 1x). Hidden in exam mode so real-test conditions are
+// preserved. Setting playbackRate in an effect + on loadedmetadata
+// covers the case where the audio hasn't decoded when the state changes.
+
+const SPEED_OPTIONS: { label: string; rate: number }[] = [
+  { label: '0.75x', rate: 0.75 },
+  { label: '0.85x', rate: 0.85 },
+  { label: '1x',    rate: 1.0  },
+];
+
+function AudioWithSpeed({
+  src, mode, autoPlay, tone = 'dark',
+}: {
+  src:       string;
+  mode:      ListeningSessionMode;
+  autoPlay?: boolean;
+  tone?:     'dark' | 'light';
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [rate, setRate] = useState(1);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = rate;
+  }, [rate, src]);
+
+  const showSpeed = mode !== 'exam';
+  const pillActive = tone === 'dark'
+    ? 'bg-white text-[#5A3D7A]'
+    : 'bg-[#5A3D7A] text-white';
+  const pillIdle = tone === 'dark'
+    ? 'bg-white/15 text-white/80 hover:bg-white/25'
+    : 'bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0C8F0]';
+  const labelColor = tone === 'dark' ? 'text-white/70' : 'text-[#5A3D7A]/70';
+
+  return (
+    <>
+      <audio
+        ref={audioRef}
+        src={src}
+        controls={mode !== 'exam'}
+        controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
+        className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
+        autoPlay={autoPlay}
+        onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
+      />
+      {showSpeed && (
+        <div className="flex items-center gap-2 mt-2">
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>
+            Velocidad
+          </span>
+          <div className="flex gap-1">
+            {SPEED_OPTIONS.map((opt) => (
+              <button
+                key={opt.rate}
+                onClick={() => setRate(opt.rate)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums transition-colors ${
+                  rate === opt.rate ? pillActive : pillIdle
+                }`}
+                aria-pressed={rate === opt.rate}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── Question card ──────────────────────────────────────────────────
 
 function QuestionCard({
@@ -279,12 +351,11 @@ function AudioPanel({
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70 mb-2">
           Section {section.number} audio
         </p>
-        <audio
+        <AudioWithSpeed
           src={section.audioUrl}
-          controls={mode !== 'exam'}
-          controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
-          className="w-full accent-white"
+          mode={mode}
           autoPlay={mode === 'exam'}
+          tone="dark"
         />
         {mode === 'exam' && (
           <p className="text-[10px] text-white/60 mt-2 italic">Exam mode: audio plays once, no pause.</p>
@@ -853,12 +924,11 @@ export default function IELTSListeningPage() {
                       🔄 Regenerar
                     </button>
                   </div>
-                  <audio
+                  <AudioWithSpeed
                     src={sessionAudioUrls[activeSection.number]}
-                    controls={mode !== 'exam'}
-                    controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
-                    className="w-full"
+                    mode={mode}
                     autoPlay={mode === 'exam'}
+                    tone="dark"
                   />
                   {mode === 'exam' && (
                     <p className="text-[10px] text-white/60 italic">Exam mode: audio plays once, no pause.</p>
