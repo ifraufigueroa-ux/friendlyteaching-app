@@ -235,9 +235,6 @@ const section1: ListeningSection = {
         {
           heading: 'Membership',
           rows: [
-            { kind: 'text',  label: 'Bronze tier:',    value: '£30 / month — gym only' },
-            { kind: 'text',  label: 'Silver tier:',    value: '£45 / month — gym + one sport' },
-            { kind: 'text',  label: 'Gold tier:',      value: '£60 / month — unlimited access' },
             { kind: 'blank', label: 'Tier chosen:',                         questionId: 'l1-s1-q6' },
             { kind: 'blank', label: 'Monthly cost:',   prefix: '£',         questionId: 'l1-s1-q7' },
             { kind: 'blank', label: 'Payment method:',                      questionId: 'l1-s1-q8' },
