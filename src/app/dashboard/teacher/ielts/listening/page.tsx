@@ -1162,16 +1162,38 @@ export default function IELTSListeningPage() {
           {groups.map((g) => {
             const groupFrom = currentSection * 10 + g.startIndex + 1;
             const groupTo   = currentSection * 10 + g.endIndex + 1;
-            // Matching + plan-map-labelling share an option bank across the
-            // whole group — render it once above the rows, IELTS-CBT style.
             const isMatchGroup = g.type === 'matching' || g.type === 'plan-map-labelling';
+            const isTableGroup = g.type === 'table-completion';
+            const isFlowGroup  = g.type === 'flow-chart-completion';
             const bank = isMatchGroup
               ? ((g.questions[0] as { options?: { id: string; text: string }[] }).options ?? [])
               : [];
+
+            // Shared render helper for each question card + wrapper.
+            const renderCard = (q: ListeningQuestion, i: number) => {
+              const qIdxInSec = g.startIndex + i;
+              return (
+                <QuestionCard
+                  key={q.id}
+                  q={q}
+                  index={currentSection * 10 + qIdxInSec}
+                  answer={answers[q.id]}
+                  onAnswer={(val) => {
+                    setAnswers((prev) => ({ ...prev, [q.id]: val }));
+                    setActiveQIndex(qIdxInSec);
+                  }}
+                  onFocus={() => setActiveQIndex(qIdxInSec)}
+                  isActive={activeQIndex === qIdxInSec}
+                  allowReveal={mode === 'practice'}
+                />
+              );
+            };
+
             return (
               <div key={`g-${g.startIndex}`} className="mb-6">
                 <CBTQuestionsHeading from={groupFrom} to={groupTo} instructions={groupInstructions(g)} />
 
+                {/* Shared option bank for matching / plan-map-labelling. */}
                 {isMatchGroup && bank.length > 0 && (
                   <div className="mb-3 rounded-lg bg-[#FDFAFF] border border-[#E8D5F0] px-4 py-3">
                     <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70 mb-1.5">Options</p>
@@ -1186,26 +1208,42 @@ export default function IELTSListeningPage() {
                   </div>
                 )}
 
-                <div className="border-t border-[#E8D5F0] divide-y divide-[#E8D5F0]">
-                  {g.questions.map((q, i) => {
-                    const qIdxInSec = g.startIndex + i;
-                    return (
-                      <QuestionCard
-                        key={q.id}
-                        q={q}
-                        index={currentSection * 10 + qIdxInSec}
-                        answer={answers[q.id]}
-                        onAnswer={(val) => {
-                          setAnswers((prev) => ({ ...prev, [q.id]: val }));
-                          setActiveQIndex(qIdxInSec);
-                        }}
-                        onFocus={() => setActiveQIndex(qIdxInSec)}
-                        isActive={activeQIndex === qIdxInSec}
-                        allowReveal={mode === 'practice'}
-                      />
-                    );
-                  })}
-                </div>
+                {/* Table container — thicker border + header row. */}
+                {isTableGroup && (
+                  <div className="rounded-lg border-2 border-[#C8A8DC] overflow-hidden">
+                    <div className="bg-[#F0E5FF] px-4 py-2 grid grid-cols-[1fr_auto] gap-3 text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]">
+                      <span>Detail</span>
+                      <span>Value</span>
+                    </div>
+                    <div className="divide-y divide-[#E8D5F0]">
+                      {g.questions.map((q, i) => renderCard(q, i))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Flow-chart container — steps with ↓ arrows between rows. */}
+                {isFlowGroup && (
+                  <div className="rounded-lg bg-[#FDFAFF] border border-[#C8A8DC] px-4 py-3 space-y-1">
+                    {g.questions.map((q, i) => (
+                      <div key={q.id}>
+                        {i > 0 && (
+                          <div className="text-center text-[#5A3D7A]/50 text-lg leading-none py-1" aria-hidden>↓</div>
+                        )}
+                        <div>
+                          <p className="text-[10px] font-black text-[#5A3D7A]/70 uppercase tracking-widest mb-1">Step {i + 1}</p>
+                          {renderCard(q, i)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Default renderer (MCQ, notes, sentence, short-answer, matching rows). */}
+                {!isTableGroup && !isFlowGroup && (
+                  <div className="border-t border-[#E8D5F0] divide-y divide-[#E8D5F0]">
+                    {g.questions.map((q, i) => renderCard(q, i))}
+                  </div>
+                )}
               </div>
             );
           })}
