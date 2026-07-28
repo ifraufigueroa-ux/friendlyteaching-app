@@ -10,6 +10,7 @@
 //   · review   → only accessible after submit; walks through with answers shown
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase/config';
@@ -244,11 +245,24 @@ function CBTHeader({
     <div className="sticky top-0 z-40 bg-white border-b border-[#E8D5F0] shadow-sm">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-baseline gap-1">
-            <span className="font-black text-2xl tracking-tight leading-none" style={{ color: '#5A3D7A' }}>FT</span>
-            <span className="text-[9px] font-bold text-[#5A3D7A]/70 tracking-widest">™</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 ring-1 ring-[#E8D5F0]">
+              <Image
+                src="/logo-friendlyteaching.jpg"
+                alt="FriendlyTeaching"
+                width={36}
+                height={36}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            <span
+              className="hidden sm:inline font-black text-[15px] tracking-tight leading-none whitespace-nowrap"
+              style={{ color: '#5A3D7A' }}
+            >
+              FriendlyTeaching
+            </span>
           </div>
-          <div className="hidden sm:flex flex-col leading-tight border-l border-[#E8D5F0] pl-3">
+          <div className="hidden md:flex flex-col leading-tight border-l border-[#E8D5F0] pl-3">
             <span className="text-[9px] font-black text-[#5A3D7A] uppercase tracking-[0.3em]">IELTS Simulator</span>
             <span className="text-[10px] text-gray-500">Listening Test</span>
           </div>
