@@ -13,8 +13,10 @@ import {
   getSimulation,
   getCategoryMeta,
   categoriesInSimulation,
+  cefrLevelsInSimulation,
   type QASimulation,
   type QAQuestion,
+  type QACefrLevel,
 } from '@/data/qa-simulations';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 
@@ -90,20 +92,29 @@ function NotFoundScreen() {
 
 function QASimulator({ simulation }: { simulation: QASimulation }) {
   const allCategories = useMemo(() => categoriesInSimulation(simulation), [simulation]);
+  const availableLevels = useMemo(() => cefrLevelsInSimulation(simulation), [simulation]);
+  const hasCefr = availableLevels.length > 0;
 
   // Phase state
   const [phase, setPhase] = useState<Phase>('setup');
 
   // ─── Setup state ────────────────────────────────────────────────
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set(allCategories));
+  const [selectedLevels, setSelectedLevels] = useState<Set<QACefrLevel>>(new Set(availableLevels));
   const [timerSec, setTimerSec] = useState<TimerOption>(60);
   const [answerMode, setAnswerMode] = useState<AnswerMode>('verbal');
   const [requestedQuestions, setRequestedQuestions] = useState<number>(10);
 
-  // Filtered + size
+  // Filtered + size. Intersection of category and (when tagged) CEFR level.
+  // Untagged questions pass the level filter unconditionally so mixed banks
+  // work — but for a sim like Weekly Warm-Up all questions have cefr.
   const filteredPool = useMemo(
-    () => simulation.questions.filter(q => selectedCategories.has(q.category)),
-    [selectedCategories, simulation],
+    () => simulation.questions.filter(q => {
+      if (!selectedCategories.has(q.category)) return false;
+      if (hasCefr && q.cefr && !selectedLevels.has(q.cefr)) return false;
+      return true;
+    }),
+    [selectedCategories, selectedLevels, simulation, hasCefr],
   );
   const poolCount = filteredPool.length;
   const effectiveCount = Math.min(requestedQuestions, poolCount);
@@ -167,6 +178,18 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
 
   function selectAllCategories() {
     setSelectedCategories(new Set(allCategories));
+  }
+
+  function toggleLevel(level: QACefrLevel) {
+    setSelectedLevels(prev => {
+      const next = new Set(prev);
+      if (next.has(level)) next.delete(level); else next.add(level);
+      return next;
+    });
+  }
+
+  function selectAllLevels() {
+    setSelectedLevels(new Set(availableLevels));
   }
 
   function startGame() {
@@ -305,6 +328,11 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
         selectedCategories={selectedCategories}
         toggleCategory={toggleCategory}
         selectAllCategories={selectAllCategories}
+        availableLevels={availableLevels}
+        selectedLevels={selectedLevels}
+        toggleLevel={toggleLevel}
+        selectAllLevels={selectAllLevels}
+        hasCefr={hasCefr}
         timerSec={timerSec}
         setTimerSec={setTimerSec}
         answerMode={answerMode}
@@ -366,6 +394,7 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
 function SetupScreen({
   simulation, allCategories,
   selectedCategories, toggleCategory, selectAllCategories,
+  availableLevels, selectedLevels, toggleLevel, selectAllLevels, hasCefr,
   timerSec, setTimerSec,
   answerMode, setAnswerMode,
   requestedQuestions, setRequestedQuestions,
@@ -377,6 +406,11 @@ function SetupScreen({
   selectedCategories:    Set<string>;
   toggleCategory:        (cat: string) => void;
   selectAllCategories:   () => void;
+  availableLevels:       QACefrLevel[];
+  selectedLevels:        Set<QACefrLevel>;
+  toggleLevel:           (l: QACefrLevel) => void;
+  selectAllLevels:       () => void;
+  hasCefr:               boolean;
   timerSec:              TimerOption;
   setTimerSec:           (t: TimerOption) => void;
   answerMode:            AnswerMode;
@@ -413,6 +447,45 @@ function SetupScreen({
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+
+        {/* ── Nivel CEFR (solo si el sim tiene questions tageadas) ─── */}
+        {hasCefr && (
+          <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Nivel CEFR</h2>
+              <button
+                onClick={selectAllLevels}
+                disabled={availableLevels.every(l => selectedLevels.has(l))}
+                className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Seleccionar todos
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableLevels.map(level => {
+                const active = selectedLevels.has(level);
+                const count = simulation.questions.filter(q => q.cefr === level).length;
+                return (
+                  <button
+                    key={level}
+                    onClick={() => toggleLevel(level)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-bold transition-all tabular-nums ${
+                      active
+                        ? 'bg-[#F0E5FF] border-[#9B7CB8] text-[#5A3D7A] shadow-sm'
+                        : 'opacity-50 border-gray-200 bg-white text-gray-500 hover:opacity-75'
+                    }`}
+                  >
+                    <span>{level}</span>
+                    <span className="text-[10px] opacity-60">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Filtra las preguntas por nivel CEFR estimado. Combina con categorías más abajo.
+            </p>
+          </section>
+        )}
 
         {/* ── Categorías ───────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">

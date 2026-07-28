@@ -10,12 +10,19 @@
 // CATEGORY_META lookup (with a default fallback for unknown categories).
 
 export type QADifficulty = 'easy' | 'medium' | 'hard';
+export type QACefrLevel  = 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1';
+
+export const QA_CEFR_ORDER: QACefrLevel[] = ['A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
 export interface QAQuestion {
   id:         number;
   category:   string;
   difficulty: QADifficulty;
   question:   string;
+  /** Optional CEFR tag. When present in a sim's bank the runner shows a
+   *  level filter alongside the categories one. Sims without CEFR tags
+   *  behave exactly as before. */
+  cefr?:      QACefrLevel;
 }
 
 export interface QASimulation {
@@ -97,4 +104,12 @@ export function categoriesInSimulation(sim: QASimulation): string[] {
   Object.keys(CATEGORY_META).forEach(c => { if (present.has(c)) ordered.push(c); });
   Array.from(present).filter(c => !CATEGORY_META[c]).sort().forEach(c => ordered.push(c));
   return ordered;
+}
+
+/** CEFR levels present in a sim's bank, ordered A1 → C1. Empty when no
+ *  questions are tagged (in which case the runner hides the level filter). */
+export function cefrLevelsInSimulation(sim: QASimulation): QACefrLevel[] {
+  const present = new Set<QACefrLevel>();
+  for (const q of sim.questions) if (q.cefr) present.add(q.cefr);
+  return QA_CEFR_ORDER.filter(l => present.has(l));
 }
