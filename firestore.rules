@@ -368,5 +368,13 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // Placement Listening audio bindings — same pattern (teacher-owned).
+    match /placementListeningAudios/{bindingId} {
+      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
   }
 }

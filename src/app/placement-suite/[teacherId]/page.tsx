@@ -22,6 +22,11 @@ import { db } from '@/lib/firebase/config';
 import { PLACEMENT_QUESTIONS } from '@/data/placementQuestions';
 import { PLACEMENT_VOCABULARY_QUESTIONS } from '@/data/placementVocabulary';
 import { PLACEMENT_READING } from '@/data/placementReading';
+import { PLACEMENT_LISTENING } from '@/data/placementListening';
+import { pickWritingPromptForAnchor } from '@/data/placementWriting';
+import { pickSpeakingPromptsForAnchor } from '@/data/placementSpeaking';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase/config';
 import { shouldStopTest } from '@/lib/placementScoring';
 import {
   aggregateSuite, deriveSuiteStatus, scoreMCQComponent, scoreReadingComponent,
@@ -35,7 +40,7 @@ import {
 } from '@/types/placement-suite';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementQuestion, PlacementAnswer, LearningProgram, WeakArea } from '@/types/placement';
-import type { ReadingPassage } from '@/types/placement-suite';
+import type { ReadingPassage, ListeningClip } from '@/types/placement-suite';
 import type { LessonLevel } from '@/types/firebase';
 
 /** Human label for a weak-area topic — spans grammar topics, vocab topics
@@ -1046,6 +1051,566 @@ function ResultsScreen({
   );
 }
 
+// ── Placement Listening runner (adaptive at clip level) ───────────────────
+
+function PlacementListeningRunner({
+  budget, anchorLevel, teacherId, teacherLed, onComplete,
+}: {
+  budget:      number;
+  anchorLevel: LessonLevel;
+  teacherId:   string;
+  teacherLed:  boolean;
+  onComplete:  (result: ComponentResult) => void;
+}) {
+  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+
+  const pickClipAt = (level: LessonLevel, used: Set<string>): ListeningClip | null =>
+    PLACEMENT_LISTENING.find(c => c.level === level && !used.has(c.id)) ?? null;
+  const pickInitial = (anchor: LessonLevel): ListeningClip => {
+    const used = new Set<string>();
+    const at = pickClipAt(anchor, used);
+    if (at) return at;
+    const idx = LEVELS.indexOf(anchor);
+    for (let r = 1; r < LEVELS.length; r++) {
+      for (const dir of [1, -1] as const) {
+        const i = idx + dir * r;
+        if (i < 0 || i >= LEVELS.length) continue;
+        const c = pickClipAt(LEVELS[i], used);
+        if (c) return c;
+      }
+    }
+    return PLACEMENT_LISTENING[0];
+  };
+
+  const [currentClip, setCurrentClip] = useState<ListeningClip>(() => pickInitial(anchorLevel));
+  const [usedIds, setUsedIds] = useState<Set<string>>(() => new Set([pickInitial(anchorLevel).id]));
+  const [phase, setPhase] = useState<'play' | 'quiz'>('play');
+  const [qIdx, setQIdx] = useState(0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  const [clipAnswers, setClipAnswers] = useState<PlacementAnswer[]>([]);
+  const [clipsDone, setClipsDone] = useState(0);
+  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() => new Set());
+  const [selected, setSelected] = useState<number | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [audioLoading, setAudioLoading] = useState(true);
+  const startRef = useRef<Date>(new Date());
+  const questionStart = useRef<number>(Date.now());
+  const completedRef = useRef(false);
+
+  // Fetch audio binding for the current clip
+  useEffect(() => {
+    if (!teacherId) { setAudioLoading(false); return; }
+    setAudioLoading(true);
+    (async () => {
+      try {
+        const key = `${teacherId}_${currentClip.id}`;
+        const snap = await getDoc(doc(db, 'placementListeningAudios', key));
+        if (snap.exists()) {
+          const url = snap.data().audioUrl as string | undefined;
+          setAudioUrl(url ?? '');
+        } else {
+          setAudioUrl('');
+        }
+      } catch (err) {
+        console.error('[placement-listening] load audio:', err);
+        setAudioUrl('');
+      } finally {
+        setAudioLoading(false);
+      }
+    })();
+  }, [teacherId, currentClip]);
+
+  const q = currentClip.questions[qIdx];
+
+  function record(idx: number) { setSelected(idx); }
+
+  function pickNextClip(lastLevel: LessonLevel, pct: number, used: Set<string>): ListeningClip | null {
+    const lastIdx = LEVELS.indexOf(lastLevel);
+    let target = lastIdx;
+    if (pct >= 0.7)      target = Math.min(LEVELS.length - 1, lastIdx + 1);
+    else if (pct <= 0.4) target = Math.max(0, lastIdx - 1);
+    else                 target = Math.min(LEVELS.length - 1, lastIdx + 1);
+    for (let r = 0; r < LEVELS.length; r++) {
+      for (const dir of r === 0 ? [0] as const : [1, -1] as const) {
+        const i = target + dir * r;
+        if (i < 0 || i >= LEVELS.length) continue;
+        const c = pickClipAt(LEVELS[i], used);
+        if (c) return c;
+      }
+    }
+    return null;
+  }
+
+  function next() {
+    if (selected === null) return;
+    const ans: PlacementAnswer = {
+      questionId: parseInt(q.id.replace(/\D/g, ''), 10) || (Date.now() % 1e9),
+      level:      q.level,
+      topic:      'listening' as unknown as PlacementAnswer['topic'],
+      selected:   selected as 0 | 1 | 2 | 3,
+      correct:    selected === q.correct,
+      timeMs:     Date.now() - questionStart.current,
+    };
+    const newAnswers = [...answers, ans];
+    const newClipAnswers = [...clipAnswers, ans];
+    setAnswers(newAnswers);
+    setClipAnswers(newClipAnswers);
+    setSelected(null);
+
+    const isLastQ = qIdx === currentClip.questions.length - 1;
+    if (!isLastQ) {
+      setQIdx(i => i + 1);
+      questionStart.current = Date.now();
+      return;
+    }
+
+    // Clip done — evaluate + decide next
+    const correct = newClipAnswers.filter(a => a.correct).length;
+    const pct = newClipAnswers.length > 0 ? correct / newClipAnswers.length : 0;
+    const newPassed = new Set(passedLevels);
+    if (pct >= 0.6) newPassed.add(currentClip.level);
+    setPassedLevels(newPassed);
+    const doneClips = clipsDone + 1;
+    setClipsDone(doneClips);
+
+    const budgetReached = doneClips >= budget;
+    if (budgetReached) {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      finalize(newAnswers, newPassed);
+      return;
+    }
+    const nextClip = pickNextClip(currentClip.level, pct, usedIds);
+    if (!nextClip) {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      finalize(newAnswers, newPassed);
+      return;
+    }
+    setUsedIds(prev => new Set([...prev, nextClip.id]));
+    setCurrentClip(nextClip);
+    setClipAnswers([]);
+    setQIdx(0);
+    setPhase('play');
+    questionStart.current = Date.now();
+  }
+
+  function finalize(finalAnswers: PlacementAnswer[], passed: Set<LessonLevel>) {
+    const placed = (['C1','B2','B1+','B1','A2','A1','A0'] as LessonLevel[])
+      .find(l => passed.has(l)) ?? currentClip.level;
+    const result = scoreMCQComponent('listening', finalAnswers, startRef.current, new Date());
+    result.placedLevel = placed;
+    onComplete(result);
+  }
+
+  return (
+    <div className="w-full max-w-2xl space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+              Listening · Clip {clipsDone + 1}/{budget} · {currentClip.level}
+            </span>
+            <span className="text-[9px] font-bold text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+              Adaptive
+            </span>
+          </div>
+          <span className="text-[10px] text-gray-400">{currentClip.wordCount} words</span>
+        </div>
+        <h3 className="font-serif text-xl font-bold mb-2" style={{ color: B.purpleDark }}>{currentClip.title}</h3>
+        <p className="text-xs text-gray-500 italic mb-3">{currentClip.scenario}</p>
+
+        {phase === 'play' && (
+          <>
+            {audioLoading ? (
+              <div className="bg-[#FDFAFF] rounded-xl p-4 text-center text-xs text-gray-500">Cargando audio…</div>
+            ) : audioUrl ? (
+              <div className="bg-[#F0E5FF] rounded-xl p-3 mb-3">
+                <audio src={audioUrl} controls className="w-full" />
+                <p className="text-[10px] text-gray-500 mt-2 text-center italic">
+                  Escuchá el audio con atención. Después vas a contestar {currentClip.questions.length} preguntas.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
+                <p className="text-xs text-amber-800 font-semibold">⚠ Audio no generado todavía</p>
+                <p className="text-[11px] text-amber-700 mt-1 leading-relaxed">
+                  Ejecutá <code className="bg-white/60 px-1 rounded">node scripts/generate-placement-listening-audios.js</code> para
+                  generar los 6 clips con ElevenLabs (una sola vez). Mientras tanto, podés leer el script.
+                </p>
+                <details className="mt-2">
+                  <summary className="text-[11px] font-semibold text-amber-800 cursor-pointer">Ver script</summary>
+                  <div className="mt-2 max-h-48 overflow-y-auto text-[11px] text-gray-700 space-y-1.5">
+                    {currentClip.script.map((line, i) => {
+                      const spk = currentClip.speakers.find(s => s.id === line.speakerId)?.name ?? line.speakerId;
+                      return <p key={i}><strong className="text-[#5A3D7A]">{spk}:</strong> {line.text}</p>;
+                    })}
+                  </div>
+                </details>
+              </div>
+            )}
+            <button
+              onClick={() => { setPhase('quiz'); questionStart.current = Date.now(); }}
+              className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+              style={{ background: B.purple }}
+            >
+              Continuar a las preguntas →
+            </button>
+          </>
+        )}
+
+        {phase === 'quiz' && (
+          <>
+            <div className="mb-3">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+                Question {qIdx + 1} of {currentClip.questions.length}
+              </span>
+            </div>
+            <MCQCard
+              prompt={q.prompt}
+              options={q.options}
+              selected={selected}
+              onSelect={record}
+              confirmed={false}
+              correctIdx={q.correct}
+            />
+            {teacherLed && q.explanation && (
+              <p className="mt-3 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <strong>Explanation:</strong> {q.explanation}
+              </p>
+            )}
+            <div className="mt-5 flex justify-end">
+              <button
+                onClick={next}
+                disabled={selected === null}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
+                style={{ background: B.purple }}
+              >
+                {qIdx === currentClip.questions.length - 1 ? (clipsDone + 1 >= budget ? 'Finish component →' : 'Next clip →') : 'Next →'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+      <ProgressBar current={answers.length + 1} total={budget * 3} label={`Listening @ ${currentClip.level}`} />
+    </div>
+  );
+}
+
+// ── Placement Writing runner ──────────────────────────────────────────────
+
+function PlacementWritingRunner({
+  anchorLevel, onComplete,
+}: {
+  anchorLevel: LessonLevel;
+  onComplete:  (result: ComponentResult) => void;
+}) {
+  const prompt = useMemo(() => pickWritingPromptForAnchor(anchorLevel), [anchorLevel]);
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const startRef = useRef<Date>(new Date());
+  const totalSec = prompt.timerMin * 60;
+  const [timeLeft, setTimeLeft] = useState(totalSec);
+  const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
+
+  useEffect(() => {
+    const id = setInterval(() => setTimeLeft(t => (t <= 1 ? 0 : t - 1)), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  async function submit() {
+    if (submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/ai-grade-placement-writing', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          promptLevel:   prompt.level,
+          promptText:    prompt.prompt,
+          studentAnswer: text,
+          wordCount,
+          minWords:      prompt.minWords,
+        }),
+      });
+      if (!res.ok) throw new Error(`grader ${res.status}`);
+      const g = await res.json();
+      const result: ComponentResult = {
+        componentId:   'writing',
+        answers:       [],
+        totalAnswered: 1,
+        totalCorrect:  0,
+        sectionScores: [],
+        weakAreas:     [],
+        placedLevel:   g.placedLevel as LessonLevel,
+        startedAt:     Timestamp.fromDate(startRef.current),
+        completedAt:   Timestamp.now(),
+      };
+      onComplete(result);
+    } catch (err) {
+      console.error('[placement-writing] error:', err);
+      setError('Error al calificar. Reintentá o pedile al docente que revise.');
+      setSubmitting(false);
+    }
+  }
+
+  const meets = wordCount >= prompt.minWords;
+  const timeStr = `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')}`;
+
+  return (
+    <div className="w-full max-w-3xl space-y-4">
+      <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+            Writing · calibrated to {prompt.level}
+          </span>
+          <span className="text-xs font-mono tabular-nums" style={{ color: timeLeft < 60 ? '#DC2626' : B.purple }}>
+            ⏱ {timeStr}
+          </span>
+        </div>
+        <h3 className="font-serif text-xl font-bold mb-2" style={{ color: B.purpleDark }}>{prompt.title}</h3>
+        <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl p-3 mb-3">
+          <p className="text-sm text-[#2D1B4E] leading-relaxed">{prompt.prompt}</p>
+        </div>
+
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          autoFocus
+          placeholder="Empezá a escribir…"
+          spellCheck
+          className="w-full min-h-[280px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
+        />
+
+        <div className="flex items-center justify-between mt-3 text-xs">
+          <span className={`font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
+            {wordCount} / {prompt.minWords} palabras {meets && '✓'}
+          </span>
+          <button
+            onClick={submit}
+            disabled={submitting || wordCount === 0}
+            className="px-6 py-2 rounded-full text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 active:scale-95 transition-all"
+          >
+            {submitting ? 'Calificando…' : '✓ Submit'}
+          </button>
+        </div>
+        {error && <p className="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Placement Speaking runner ─────────────────────────────────────────────
+
+function PlacementSpeakingRunner({
+  anchorLevel, count, teacherId, onComplete,
+}: {
+  anchorLevel: LessonLevel;
+  count:       number;
+  teacherId:   string;
+  onComplete:  (result: ComponentResult) => void;
+}) {
+  const prompts = useMemo(() => pickSpeakingPromptsForAnchor(anchorLevel, count), [anchorLevel, count]);
+
+  const [pIdx, setPIdx] = useState(0);
+  const [phase, setPhase] = useState<'read' | 'prep' | 'speak' | 'grading'>('read');
+  const [prepLeft, setPrepLeft] = useState(0);
+  const [speakLeft, setSpeakLeft] = useState(0);
+  const [levels, setLevels] = useState<LessonLevel[]>([]);
+  const [error, setError] = useState('');
+  const chunks = useRef<Blob[]>([]);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const stream = useRef<MediaStream | null>(null);
+  const startRef = useRef<Date>(new Date());
+  const prompt = prompts[pIdx];
+
+  // Prep countdown
+  useEffect(() => {
+    if (phase !== 'prep') return;
+    setPrepLeft(prompt.prepSec);
+    const id = setInterval(() => {
+      setPrepLeft(t => {
+        if (t <= 1) { queueMicrotask(() => startSpeaking()); return 0; }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, pIdx]);
+
+  // Speak countdown
+  useEffect(() => {
+    if (phase !== 'speak') return;
+    setSpeakLeft(prompt.speakSec);
+    const id = setInterval(() => {
+      setSpeakLeft(t => {
+        if (t <= 1) { queueMicrotask(() => stopSpeaking()); return 0; }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, pIdx]);
+
+  async function startRecording() {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.current = s;
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      const rec = new MediaRecorder(s, { mimeType });
+      chunks.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
+      rec.start();
+      recorder.current = rec;
+    } catch (err) {
+      console.error('[placement-speaking] mic:', err);
+      setError('No se pudo acceder al micrófono. Revisá permisos.');
+    }
+  }
+  function startPrep() { setError(''); setPhase('prep'); }
+  function startSpeaking() { setPhase('speak'); startRecording(); }
+
+  async function stopSpeaking() {
+    if (!recorder.current) { setPhase('grading'); return; }
+    setPhase('grading');
+    await new Promise<void>((resolve) => {
+      const rec = recorder.current!;
+      rec.onstop = () => resolve();
+      rec.stop();
+    });
+    stream.current?.getTracks().forEach(t => t.stop());
+    const blob = new Blob(chunks.current, { type: recorder.current!.mimeType });
+    const path = `audio/placement-speaking-${teacherId}-${Date.now()}-${prompt.id}.webm`;
+    try {
+      const sref = storageRef(storage, path);
+      await uploadBytes(sref, blob, { contentType: blob.type });
+      const url = await getDownloadURL(sref);
+
+      // Whisper
+      const audioBlob = await fetch(url).then(r => r.blob());
+      const form = new FormData();
+      form.append('audio', audioBlob, 'audio.webm');
+      form.append('language', 'en');
+      const tRes = await fetch('/api/transcribe-speech', { method: 'POST', body: form });
+      const tJson = await tRes.json();
+      const transcript = String(tJson.text ?? '');
+
+      // Grade
+      const gRes = await fetch('/api/ai-grade-placement-speaking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promptLevel: prompt.level,
+          promptText:  prompt.prompt,
+          transcript,
+          durationSec: prompt.speakSec - speakLeft,
+        }),
+      });
+      const gJson = await gRes.json();
+      const placed = (gJson.placedLevel as LessonLevel) ?? 'A1';
+      const newLevels = [...levels, placed];
+      setLevels(newLevels);
+
+      if (pIdx < prompts.length - 1) {
+        setPIdx(i => i + 1);
+        setPhase('read');
+      } else {
+        finalize(newLevels);
+      }
+    } catch (err) {
+      console.error('[placement-speaking] error:', err);
+      setError('Error al procesar la grabación. Reintentá o salteá.');
+      setPhase('speak');
+    }
+  }
+
+  function skip() {
+    if (pIdx < prompts.length - 1) { setPIdx(i => i + 1); setPhase('read'); }
+    else finalize(levels);
+  }
+
+  function finalize(finalLevels: LessonLevel[]) {
+    // Placement = the highest level seen among the graded prompts.
+    const order: LessonLevel[] = ['A0','A1','A2','B1','B1+','B2','C1'];
+    let bestIdx = 0;
+    for (const l of finalLevels) {
+      const i = order.indexOf(l);
+      if (i > bestIdx) bestIdx = i;
+    }
+    const placed = order[bestIdx] ?? 'A1';
+    const result: ComponentResult = {
+      componentId:   'speaking',
+      answers:       [],
+      totalAnswered: finalLevels.length,
+      totalCorrect:  0,
+      sectionScores: [],
+      weakAreas:     [],
+      placedLevel:   placed,
+      startedAt:     Timestamp.fromDate(startRef.current),
+      completedAt:   Timestamp.now(),
+    };
+    onComplete(result);
+  }
+
+  return (
+    <div className="w-full max-w-2xl">
+      <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+            Speaking · Task {pIdx + 1}/{prompts.length} · {prompt.level}
+          </span>
+        </div>
+        <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl p-4 mb-4">
+          <p className="text-sm text-[#2D1B4E] leading-relaxed">{prompt.prompt}</p>
+        </div>
+
+        {phase === 'read' && (
+          <div className="text-center space-y-3">
+            <p className="text-[11px] text-gray-500">
+              {prompt.prepSec}s de preparación, luego {prompt.speakSec}s para grabar.
+            </p>
+            <button onClick={startPrep} className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all" style={{ background: B.purple }}>
+              ▶ Empezar preparación
+            </button>
+          </div>
+        )}
+
+        {phase === 'prep' && (
+          <div className="text-center py-6 space-y-3">
+            <div className="text-6xl font-black tabular-nums" style={{ color: B.purple }}>{prepLeft}</div>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.purpleMed }}>Preparación</p>
+            <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 mt-2">Empezar a grabar ahora →</button>
+          </div>
+        )}
+
+        {phase === 'speak' && (
+          <div className="text-center py-6 space-y-3">
+            <div className="text-6xl font-black tabular-nums text-red-500 animate-pulse">{speakLeft}</div>
+            <p className="text-xs font-bold uppercase tracking-widest text-red-600">🔴 Grabando</p>
+            <button onClick={stopSpeaking} className="px-5 py-2 rounded-full text-xs font-bold border border-gray-300 hover:bg-gray-50 transition-colors">Terminar ahora</button>
+          </div>
+        )}
+
+        {phase === 'grading' && (
+          <div className="text-center py-8">
+            <div className="w-10 h-10 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
+            <p className="text-sm font-bold" style={{ color: B.purple }}>Transcribiendo y calificando…</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-700 flex items-center justify-between gap-2">
+            <span>{error}</span>
+            <button onClick={skip} className="text-red-600 underline whitespace-nowrap">Skip →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────
 
 type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading';
@@ -1090,6 +1655,9 @@ export default function PlacementSuitePage() {
       grammar:    isFinite(gParam) && gParam > 0 ? gParam : standard.budgets.grammar,
       vocabulary: isFinite(vParam) && vParam > 0 ? vParam : standard.budgets.vocabulary,
       reading:    isFinite(rParam) && rParam > 0 ? rParam : standard.budgets.reading,
+      listening:  standard.budgets.listening,
+      writing:    standard.budgets.writing,
+      speaking:   standard.budgets.speaking,
     };
     return {
       components:  urlComponents && urlComponents.length > 0 ? urlComponents : standard.components,
@@ -1124,11 +1692,16 @@ export default function PlacementSuitePage() {
             ? data.components as ComponentId[]
             : standard.components;
           // Prefer new-style `budgets`; fall back to legacy `grammarLength`.
-          const budgetsFromDoc: Budgets = data.budgets
-            ? data.budgets as Budgets
-            : { grammar: (data.grammarLength as number) ?? standard.budgets.grammar,
-                vocabulary: standard.budgets.vocabulary,
-                reading:    standard.budgets.reading };
+          // Ensure the 3 productive-skill budgets have defaults for old docs.
+          const rawBudgets = (data.budgets as Partial<Budgets> | undefined) ?? {};
+          const budgetsFromDoc: Budgets = {
+            grammar:    rawBudgets.grammar    ?? (data.grammarLength as number) ?? standard.budgets.grammar,
+            vocabulary: rawBudgets.vocabulary ?? standard.budgets.vocabulary,
+            reading:    rawBudgets.reading    ?? standard.budgets.reading,
+            listening:  rawBudgets.listening  ?? standard.budgets.listening,
+            writing:    rawBudgets.writing    ?? standard.budgets.writing,
+            speaking:   rawBudgets.speaking   ?? standard.budgets.speaking,
+          };
           setConfig({
             components:  sortComponents(comps),
             budgets:     budgetsFromDoc,
@@ -1550,7 +2123,45 @@ export default function PlacementSuitePage() {
       );
     }
 
-    // Fallback for components not yet implemented (listening/writing/speaking)
+    if (cid === 'listening') {
+      return (
+        <PageBg>
+          <PlacementListeningRunner
+            budget={config.budgets.listening ?? 3}
+            anchorLevel={anchor}
+            teacherId={teacherId}
+            teacherLed={teacherLed}
+            onComplete={handleComponentComplete}
+          />
+        </PageBg>
+      );
+    }
+
+    if (cid === 'writing') {
+      return (
+        <PageBg>
+          <PlacementWritingRunner
+            anchorLevel={anchor}
+            onComplete={handleComponentComplete}
+          />
+        </PageBg>
+      );
+    }
+
+    if (cid === 'speaking') {
+      return (
+        <PageBg>
+          <PlacementSpeakingRunner
+            anchorLevel={anchor}
+            count={config.budgets.speaking ?? 3}
+            teacherId={teacherId}
+            onComplete={handleComponentComplete}
+          />
+        </PageBg>
+      );
+    }
+
+    // Fallback (should not hit now)
     return (
       <PageBg>
         <div className="text-center py-24">

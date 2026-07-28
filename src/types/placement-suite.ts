@@ -35,12 +35,12 @@ export interface ComponentMeta {
 }
 
 export const COMPONENT_META: Record<ComponentId, ComponentMeta> = {
-  grammar:    { id: 'grammar',    label: 'Grammar',    icon: '📘', description: 'Multiple choice, CEFR A0-C1, auto-stop tras 6 errores seguidos.', estimatedMin: 20, available: true,  skill: 'grammar' },
-  vocabulary: { id: 'vocabulary', label: 'Vocabulary', icon: '💬', description: 'Sinónimos, colocaciones, phrasal verbs y word formation.',        estimatedMin: 12, available: true,  skill: 'vocabulary' },
-  reading:    { id: 'reading',    label: 'Reading',    icon: '📖', description: 'Pasajes cortos con comprensión, dificultad progresiva.',           estimatedMin: 20, available: true,  skill: 'reading' },
-  listening:  { id: 'listening',  label: 'Listening',  icon: '🎧', description: 'Clips A1-C1 con MCQ y gap-fill (próximamente).',                    estimatedMin: 20, available: false, skill: 'listening' },
-  writing:    { id: 'writing',    label: 'Writing',    icon: '✍️', description: 'Prompt corto graded con IELTS band descriptors (próximamente).',   estimatedMin: 25, available: false, skill: 'writing' },
-  speaking:   { id: 'speaking',   label: 'Speaking',   icon: '🎤', description: 'Preguntas guiadas con grabación (próximamente).',                   estimatedMin: 12, available: false, skill: 'speaking' },
+  grammar:    { id: 'grammar',    label: 'Grammar',    icon: '📘', description: 'Multiple choice, CEFR A0-C1, auto-stop tras 6 errores seguidos.', estimatedMin: 20, available: true, skill: 'grammar' },
+  vocabulary: { id: 'vocabulary', label: 'Vocabulary', icon: '💬', description: 'Sinónimos, colocaciones, phrasal verbs y word formation.',        estimatedMin: 12, available: true, skill: 'vocabulary' },
+  reading:    { id: 'reading',    label: 'Reading',    icon: '📖', description: 'Pasajes cortos con comprensión, dificultad progresiva.',           estimatedMin: 20, available: true, skill: 'reading' },
+  listening:  { id: 'listening',  label: 'Listening',  icon: '🎧', description: 'Clips A1-C1 con MCQ. Adaptativo por clip, arranca cercano al nivel de Grammar.', estimatedMin: 12, available: true, skill: 'listening' },
+  writing:    { id: 'writing',    label: 'Writing',    icon: '✍️', description: 'Un prompt calibrado al nivel de Grammar. AI grader devuelve CEFR.', estimatedMin: 12, available: true, skill: 'writing' },
+  speaking:   { id: 'speaking',   label: 'Speaking',   icon: '🎤', description: '3 preguntas guiadas grabadas. Whisper + Claude → CEFR.',            estimatedMin: 6,  available: true, skill: 'speaking' },
 };
 
 // ── Budgets (per-component question caps) ──────────────────────────────────
@@ -57,6 +57,9 @@ export interface Budgets {
   grammar:    number;   // max Q's (cap for adaptive; exact for linear)
   vocabulary: number;   // exact Q count
   reading:    number;   // exact passage count
+  listening:  number;   // exact clip count
+  writing:    number;   // number of writing prompts (typically 1)
+  speaking:   number;   // number of speaking prompts (typically 3)
 }
 
 /** Grammar can run in two modes: adaptive (CEFR tier walking with streak
@@ -79,26 +82,34 @@ export const PRESETS: Preset[] = [
   {
     id: 'quick',
     label: 'Quick check',
-    description: '~10-15 min. Grammar adaptativo corto + vocab compacto + 1 pasaje.',
+    description: '~10-15 min. Grammar corto + vocab compacto + 1 pasaje.',
     components: ['grammar', 'vocabulary', 'reading'],
-    budgets: { grammar: 15, vocabulary: 12, reading: 1 },
+    budgets: { grammar: 15, vocabulary: 12, reading: 1, listening: 2, writing: 1, speaking: 3 },
     targetMin: 15,
   },
   {
     id: 'standard',
     label: 'Standard',
-    description: '~25-30 min. Grammar adaptativo estándar + vocab + 2 pasajes.',
-    components: ['grammar', 'vocabulary', 'reading'],
-    budgets: { grammar: 25, vocabulary: 20, reading: 2 },
+    description: '~30 min. Grammar + vocab + reading + listening.',
+    components: ['grammar', 'vocabulary', 'reading', 'listening'],
+    budgets: { grammar: 25, vocabulary: 20, reading: 2, listening: 3, writing: 1, speaking: 3 },
     targetMin: 30,
+  },
+  {
+    id: 'productive',
+    label: 'Productive skills',
+    description: '~15 min. Solo Writing + Speaking (para completar un placement iniciado).',
+    components: ['writing', 'speaking'],
+    budgets: { grammar: 25, vocabulary: 20, reading: 2, listening: 3, writing: 1, speaking: 3 },
+    targetMin: 15,
   },
   {
     id: 'full',
     label: 'Full CEFR',
-    description: '~45-60 min. Grammar profundo + vocab amplio + 3 pasajes.',
-    components: ['grammar', 'vocabulary', 'reading'],
-    budgets: { grammar: 40, vocabulary: 30, reading: 3 },
-    targetMin: 55,
+    description: '~60 min. Los 6 componentes al detalle.',
+    components: ['grammar', 'vocabulary', 'reading', 'listening', 'writing', 'speaking'],
+    budgets: { grammar: 40, vocabulary: 30, reading: 3, listening: 4, writing: 1, speaking: 3 },
+    targetMin: 60,
   },
 ];
 
@@ -109,6 +120,9 @@ export function estimateMinutes(components: ComponentId[], budgets: Budgets): nu
   if (components.includes('grammar'))    total += Math.round(budgets.grammar    * 0.5);   // ~30s per Q
   if (components.includes('vocabulary')) total += Math.round(budgets.vocabulary * 0.4);   // ~24s per Q
   if (components.includes('reading'))    total += budgets.reading * 6;                    // ~6 min per passage
+  if (components.includes('listening'))  total += budgets.listening * 3;                  // ~3 min per clip (audio + Qs)
+  if (components.includes('writing'))    total += budgets.writing * 10;                   // 10 min per prompt
+  if (components.includes('speaking'))   total += Math.round(budgets.speaking * 1.5);     // ~1.5 min per prompt (prep + speak)
   return total;
 }
 
@@ -228,6 +242,59 @@ export const READING_TYPE_LABELS: Record<ReadingQuestionType, string> = {
   'reference':              'Reference',
   'purpose':                'Purpose',
 };
+
+// ── Listening bank ─────────────────────────────────────────────────────────
+
+export interface ListeningClipQuestion {
+  id:      string;
+  level:   LessonLevel;
+  prompt:  string;
+  options: [string, string, string, string];
+  correct: 0 | 1 | 2 | 3;
+  explanation?: string;
+}
+
+export interface ListeningClipSpeaker {
+  id:    string;
+  name:  string;
+}
+
+export interface ListeningClipLine {
+  speakerId: string;
+  text:      string;
+}
+
+export interface ListeningClip {
+  id:         string;
+  level:      LessonLevel;
+  title:      string;
+  scenario:   string;
+  speakers:   ListeningClipSpeaker[];
+  script:     ListeningClipLine[];
+  wordCount:  number;
+  questions:  ListeningClipQuestion[];
+}
+
+// ── Writing prompts ────────────────────────────────────────────────────────
+
+export interface WritingPromptPlacement {
+  id:          string;
+  level:       LessonLevel;
+  title:       string;
+  prompt:      string;
+  minWords:    number;
+  timerMin:    number;
+}
+
+// ── Speaking prompts ───────────────────────────────────────────────────────
+
+export interface SpeakingPromptPlacement {
+  id:        string;
+  level:     LessonLevel;
+  prompt:    string;
+  prepSec:   number;
+  speakSec:  number;
+}
 
 // ── Public assignment (extended) ───────────────────────────────────────────
 
