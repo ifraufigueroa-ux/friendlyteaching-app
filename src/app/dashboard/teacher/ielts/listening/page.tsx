@@ -38,12 +38,13 @@ const SPEED_OPTIONS: { label: string; rate: number }[] = [
 ];
 
 function AudioWithSpeed({
-  src, mode, autoPlay, tone = 'dark',
+  src, mode, autoPlay, tone = 'dark', onPlayingChange,
 }: {
-  src:       string;
-  mode:      ListeningSessionMode;
-  autoPlay?: boolean;
-  tone?:     'dark' | 'light';
+  src:              string;
+  mode:             ListeningSessionMode;
+  autoPlay?:        boolean;
+  tone?:            'dark' | 'light';
+  onPlayingChange?: (playing: boolean) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [rate, setRate] = useState(1);
@@ -71,6 +72,9 @@ function AudioWithSpeed({
         className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
         autoPlay={autoPlay}
         onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
+        onPlay={() => onPlayingChange?.(true)}
+        onPause={() => onPlayingChange?.(false)}
+        onEnded={() => onPlayingChange?.(false)}
       />
       {showSpeed && (
         <div className="flex items-center gap-2 mt-2">
@@ -97,6 +101,275 @@ function AudioWithSpeed({
   );
 }
 
+// ─── CBT shell (mimics IELTS Computer-Based UI) ─────────────────────
+//
+// FriendlyTeaching-branded rebuild of the real CBT layout. Everything
+// below drives the "running" phase — landing/results stay on our
+// regular styling.
+
+/** Compute a stable 5-char candidate ID from the teacher's uid, so it
+ *  looks like the real IELTS "12345" but stays deterministic. */
+function candidateIdFrom(uid: string): string {
+  if (!uid) return '00000';
+  const tail = uid.replace(/[^a-zA-Z0-9]/g, '').slice(-5).toUpperCase();
+  return tail.padStart(5, '0');
+}
+
+/** Group contiguous same-format questions in a section so we can
+ *  render "Questions 1-6" then "Questions 7-10" like the real CBT. */
+interface QGroup {
+  startIndex: number;   // 0-based within the section (for numbering: startIndex+1..endIndex+1)
+  endIndex:   number;
+  type:       ListeningQuestion['type'];
+  wordLimit?: number;
+  allowNumbers?: boolean;
+  pickCount?: 2 | 3;
+  questions:  ListeningQuestion[];
+}
+function groupQuestions(qs: ListeningQuestion[]): QGroup[] {
+  const groups: QGroup[] = [];
+  for (let i = 0; i < qs.length; i++) {
+    const q = qs[i];
+    const key = (q.type as string)
+      + ('wordLimit' in q ? `|w${q.wordLimit}` : '')
+      + ('allowNumbers' in q ? `|n${q.allowNumbers}` : '')
+      + ('pickCount' in q ? `|p${q.pickCount}` : '');
+    const last = groups[groups.length - 1];
+    const lastKey = last && (
+      (last.type as string)
+      + (last.wordLimit != null ? `|w${last.wordLimit}` : '')
+      + (last.allowNumbers != null ? `|n${last.allowNumbers}` : '')
+      + (last.pickCount != null ? `|p${last.pickCount}` : '')
+    );
+    if (last && lastKey === key) {
+      last.endIndex = i;
+      last.questions.push(q);
+    } else {
+      groups.push({
+        startIndex: i,
+        endIndex:   i,
+        type:       q.type,
+        wordLimit:  'wordLimit'  in q ? q.wordLimit  : undefined,
+        allowNumbers: 'allowNumbers' in q ? q.allowNumbers : undefined,
+        pickCount:  'pickCount' in q ? q.pickCount : undefined,
+        questions:  [q],
+      });
+    }
+  }
+  return groups;
+}
+
+/** Instruction text derived from group format (matches real IELTS wording). */
+function groupInstructions(g: QGroup): string {
+  const isFill = (
+    g.type === 'form-completion'
+    || g.type === 'note-completion'
+    || g.type === 'table-completion'
+    || g.type === 'summary-completion'
+    || g.type === 'sentence-completion'
+    || g.type === 'flow-chart-completion'
+    || g.type === 'short-answer'
+  );
+  if (isFill) {
+    const wl = g.wordLimit ?? 2;
+    const words = wl === 1 ? 'ONE WORD' : wl === 2 ? 'TWO WORDS' : wl === 3 ? 'THREE WORDS' : `${wl} WORDS`;
+    const num = g.allowNumbers ? ' AND/OR A NUMBER' : '';
+    const containerLabel =
+      g.type === 'form-completion'     ? 'form'
+      : g.type === 'note-completion'   ? 'notes'
+      : g.type === 'table-completion'  ? 'table'
+      : g.type === 'summary-completion' ? 'summary'
+      : g.type === 'sentence-completion' ? 'sentences'
+      : g.type === 'flow-chart-completion' ? 'flow chart'
+      : /* short-answer */ 'answers';
+    if (g.type === 'short-answer') {
+      return `Answer the questions. Write NO MORE THAN ${words}${num} for each answer.`;
+    }
+    return `Complete the ${containerLabel}. Write NO MORE THAN ${words}${num} for each answer.`;
+  }
+  if (g.type === 'multiple-choice')       return 'Choose the correct answer.';
+  if (g.type === 'multiple-choice-multi') return `Choose ${g.pickCount === 3 ? 'THREE' : 'TWO'} correct answers.`;
+  if (g.type === 'matching')              return 'Choose the correct answer from the list below.';
+  if (g.type === 'plan-map-labelling')    return 'Label the plan/map with the options below.';
+  return '';
+}
+
+/** Header — top bar mimicking IELTS CBT. Sticky at the top. */
+function CBTHeader({
+  studentName, candidateId, timeMinutesLeft, audioPlaying, onMenu,
+}: {
+  studentName:      string;
+  candidateId:      string;
+  timeMinutesLeft:  number;
+  audioPlaying:     boolean;
+  onMenu?:          () => void;
+}) {
+  return (
+    <div className="sticky top-0 z-40 bg-white border-b border-[#E8D5F0] shadow-sm">
+      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-baseline gap-1">
+            <span className="font-black text-2xl tracking-tight leading-none" style={{ color: '#5A3D7A' }}>FT</span>
+            <span className="text-[9px] font-bold text-[#5A3D7A]/70 tracking-widest">™</span>
+          </div>
+          <div className="hidden sm:flex flex-col leading-tight border-l border-[#E8D5F0] pl-3">
+            <span className="text-[9px] font-black text-[#5A3D7A] uppercase tracking-[0.3em]">IELTS Simulator</span>
+            <span className="text-[10px] text-gray-500">Listening Test</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-end min-w-0">
+          <span className="text-sm font-bold text-[#2D1B4E] truncate max-w-[220px]">
+            {studentName || 'Candidate'} <span className="text-gray-400 font-mono font-medium">- {candidateId}</span>
+          </span>
+          <div className="flex items-center gap-3 text-[11px] text-gray-600">
+            <span>{timeMinutesLeft} minutes remaining</span>
+            <span className="inline-flex items-center gap-1">
+              <span aria-hidden>{audioPlaying ? '🔊' : '🔈'}</span>
+              <span>{audioPlaying ? 'Audio is playing' : 'Audio paused'}</span>
+            </span>
+            <button
+              onClick={onMenu}
+              aria-label="Menu"
+              className="text-gray-500 hover:text-[#5A3D7A] text-lg leading-none"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Part banner — "Part X — Listen and answer questions Y–Z". */
+function CBTPartBanner({ part, from, to }: { part: 1 | 2 | 3 | 4; from: number; to: number }) {
+  return (
+    <div className="rounded-lg bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3 mb-4">
+      <p className="text-base font-bold text-[#2D1B4E]">Part {part}</p>
+      <p className="text-sm text-[#5A3D7A]">
+        Listen and answer questions {from}–{to}.
+      </p>
+    </div>
+  );
+}
+
+/** Questions heading — "Questions X-Y" + instructions. Emphasises
+ *  NO MORE THAN X WORDS the way real IELTS does. */
+function CBTQuestionsHeading({ from, to, instructions }: { from: number; to: number; instructions: string }) {
+  // Bold the "NO MORE THAN … WORDS AND/OR A NUMBER" phrase like the real UI.
+  const m = instructions.match(/^(.*?)(NO MORE THAN [A-Z]+(?: AND\/OR A NUMBER)?)(.*)$/);
+  return (
+    <div className="mb-3">
+      <p className="text-base font-bold text-[#2D1B4E]">Questions {from}–{to}</p>
+      <p className="text-sm text-[#2D1B4E] leading-relaxed mt-1">
+        {m
+          ? (<>{m[1]}<strong className="font-bold">{m[2]}</strong>{m[3]}</>)
+          : instructions}
+      </p>
+    </div>
+  );
+}
+
+/** Footer paginator: per-question buttons for the active part,
+ *  header buttons for the other parts, plus prev/next and submit. */
+function CBTFooter({
+  mock, currentSection, activeQIndex, answers, onGoTo, onPrev, onNext, onSubmit,
+}: {
+  mock:           ListeningMock;
+  currentSection: 0 | 1 | 2 | 3;
+  activeQIndex:   number;                                  // 0-based within section
+  answers:        StudentAnswers;
+  onGoTo:         (section: 0 | 1 | 2 | 3, qIndex: number) => void;
+  onPrev:         () => void;
+  onNext:         () => void;
+  onSubmit:       () => void;
+}) {
+  const isLastSection = currentSection === 3;
+
+  return (
+    <div className="sticky bottom-0 z-40 bg-[#2D1B4E] text-white border-t border-[#5A3D7A]">
+      <div className="max-w-5xl mx-auto px-3 py-2 flex items-center gap-3 overflow-x-auto">
+        {mock.sections.map((sec, sIdx) => {
+          const isActivePart = sIdx === currentSection;
+          const answeredCount = sec.questions.filter(q => {
+            const a = answers[q.id];
+            return Array.isArray(a) ? a.length > 0 : (typeof a === 'string' && a.trim().length > 0);
+          }).length;
+          if (isActivePart) {
+            return (
+              <div key={sec.number} className="flex items-center gap-1 shrink-0">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#F0E5FF] mr-1">
+                  Part {sec.number}
+                </span>
+                {sec.questions.map((q, qIdx) => {
+                  const isActive = qIdx === activeQIndex;
+                  const ans = answers[q.id];
+                  const isAnswered = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim().length > 0);
+                  const qNumber = sIdx * 10 + qIdx + 1;
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => onGoTo(sIdx as 0 | 1 | 2 | 3, qIdx)}
+                      className={`min-w-[26px] h-6 px-1.5 rounded text-[11px] font-bold tabular-nums transition-colors ${
+                        isActive
+                          ? 'bg-white text-[#2D1B4E] shadow-sm'
+                          : isAnswered
+                            ? 'bg-[#9B7CB8] text-white'
+                            : 'bg-transparent text-white/80 hover:bg-white/10'
+                      }`}
+                      aria-current={isActive ? 'true' : undefined}
+                      aria-label={`Go to question ${qNumber}`}
+                    >
+                      {qNumber}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={sec.number}
+              onClick={() => onGoTo(sIdx as 0 | 1 | 2 | 3, 0)}
+              className="shrink-0 flex items-center gap-2 px-2.5 py-1 rounded text-[11px] font-bold text-white/80 hover:bg-white/10 transition-colors"
+            >
+              <span>Part {sec.number}</span>
+              <span className="text-white/50 font-mono">{answeredCount} of {sec.questions.length}</span>
+            </button>
+          );
+        })}
+
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={onPrev}
+            className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white text-lg leading-none flex items-center justify-center"
+            aria-label="Previous"
+          >
+            ←
+          </button>
+          {isLastSection ? (
+            <button
+              onClick={onSubmit}
+              className="h-8 px-4 rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1"
+            >
+              ✓ Submit
+            </button>
+          ) : (
+            <button
+              onClick={onNext}
+              className="w-8 h-8 rounded bg-white hover:bg-white/90 text-[#2D1B4E] text-lg leading-none flex items-center justify-center"
+              aria-label="Next"
+            >
+              →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Question card ──────────────────────────────────────────────────
 
 function QuestionCard({
@@ -104,15 +377,19 @@ function QuestionCard({
   index,
   answer,
   onAnswer,
+  onFocus,
+  isActive,
   showAnswer,
   correctInline,
 }: {
   q: ListeningQuestion;
-  index: number;
+  index: number;                         // 0-based absolute question index (across all 40)
   answer: string | string[] | undefined;
   onAnswer: (val: string | string[]) => void;
-  showAnswer?: boolean;    // review/practice mode reveal
-  correctInline?: boolean; // grade badge after submit
+  onFocus?: () => void;                  // fired when user interacts — parent sets active question
+  isActive?: boolean;                    // highlights the number box like the real CBT
+  showAnswer?: boolean;                  // review/practice mode reveal
+  correctInline?: boolean;               // grade badge after submit
 }) {
   const number = index + 1;
 
@@ -124,10 +401,14 @@ function QuestionCard({
         ? q.correct.map((id) => q.options.find((o) => o.id === id)?.text ?? id).join(' + ')
         : q.accepted[0];
 
+  const numBox = isActive
+    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+    : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
+
   return (
-    <div className="bg-white rounded-2xl border border-[#E8D5F0] shadow-sm hover:shadow-md transition-shadow p-4">
+    <div className="py-3" onMouseDown={onFocus} onFocus={onFocus}>
       <div className="flex items-start gap-3">
-        <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white text-xs font-bold flex items-center justify-center">
+        <span className={`flex-shrink-0 min-w-[28px] h-7 px-1.5 rounded-md border-2 text-xs font-bold flex items-center justify-center tabular-nums ${numBox}`}>
           {number}
         </span>
         <div className="flex-1 min-w-0 space-y-2">
@@ -136,27 +417,23 @@ function QuestionCard({
             {q.prompt}
           </p>
 
-          {/* Input by type */}
+          {/* Input by type — CBT: bare radios/checkboxes, not chip buttons. */}
           {(q.type === 'multiple-choice' || q.type === 'matching' || q.type === 'plan-map-labelling') && (
-            <div className="space-y-1.5">
+            <div className="space-y-1 pl-1">
               {q.options.map((opt) => {
                 const selected = answer === opt.id;
                 return (
                   <button
                     key={opt.id}
                     onClick={() => onAnswer(opt.id)}
-                    className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
-                      selected
-                        ? 'bg-[#F0E5FF] border-[#9B7CB8] text-[#2D1B4E] font-semibold'
-                        : 'bg-[#FDFAFF] border-gray-100 text-gray-700 hover:border-[#C8A8DC]'
-                    }`}
+                    className="w-full text-left px-1 py-1 flex items-center gap-2.5 text-sm rounded hover:bg-[#F0E5FF]/40 transition-colors"
                   >
-                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold ${
-                      selected ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300 text-gray-400'
+                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                      selected ? 'border-[#5A3D7A]' : 'border-gray-400'
                     }`}>
-                      {opt.id.toUpperCase()}
+                      {selected && <span className="w-2 h-2 rounded-full bg-[#5A3D7A]" />}
                     </span>
-                    <span>{opt.text}</span>
+                    <span className={selected ? 'text-[#2D1B4E] font-semibold' : 'text-[#2D1B4E]'}>{opt.text}</span>
                   </button>
                 );
               })}
@@ -164,10 +441,7 @@ function QuestionCard({
           )}
 
           {q.type === 'multiple-choice-multi' && (
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-widest">
-                Pick {q.pickCount}
-              </p>
+            <div className="space-y-1 pl-1">
               {q.options.map((opt) => {
                 const chosen = Array.isArray(answer) ? answer.includes(opt.id) : false;
                 return (
@@ -178,16 +452,14 @@ function QuestionCard({
                       if (chosen) onAnswer(current.filter((x) => x !== opt.id));
                       else if (current.length < q.pickCount) onAnswer([...current, opt.id]);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
-                      chosen ? 'bg-[#F0E5FF] border-[#9B7CB8] text-[#2D1B4E] font-semibold' : 'bg-[#FDFAFF] border-gray-100 text-gray-700 hover:border-[#C8A8DC]'
-                    }`}
+                    className="w-full text-left px-1 py-1 flex items-center gap-2.5 text-sm rounded hover:bg-[#F0E5FF]/40 transition-colors"
                   >
-                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[10px] font-bold ${
-                      chosen ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300 text-gray-400'
+                    <span className={`w-4 h-4 border-2 flex items-center justify-center flex-shrink-0 ${
+                      chosen ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-400'
                     }`}>
-                      {chosen ? '✓' : opt.id.toUpperCase()}
+                      {chosen && <span className="text-[10px] leading-none">✓</span>}
                     </span>
-                    <span>{opt.text}</span>
+                    <span className={chosen ? 'text-[#2D1B4E] font-semibold' : 'text-[#2D1B4E]'}>{opt.text}</span>
                   </button>
                 );
               })}
@@ -198,25 +470,22 @@ function QuestionCard({
             || q.type === 'table-completion' || q.type === 'summary-completion'
             || q.type === 'sentence-completion' || q.type === 'flow-chart-completion'
             || q.type === 'short-answer') && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                {q.contextBefore && (
-                  <span className="text-sm text-gray-600 whitespace-nowrap">{q.contextBefore}</span>
-                )}
-                <input
-                  type="text"
-                  value={typeof answer === 'string' ? answer : ''}
-                  onChange={(e) => onAnswer(e.target.value)}
-                  placeholder={`no more than ${q.wordLimit} word${q.wordLimit === 1 ? '' : 's'}${q.allowNumbers ? ' / number' : ''}`}
-                  className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border-2 border-dashed border-[#C8A8DC] bg-[#FDFAFF] text-sm focus:outline-none focus:border-[#5A3D7A] focus:bg-white transition-colors"
-                />
-                {q.contextAfter && (
-                  <span className="text-sm text-gray-600 whitespace-nowrap">{q.contextAfter}</span>
-                )}
-              </div>
-              <p className="text-[10px] text-gray-400 pl-1">
-                Max {q.wordLimit} word{q.wordLimit === 1 ? '' : 's'}{q.allowNumbers && ' and/or a number'}
-              </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {q.contextBefore && (
+                <span className="text-sm text-[#2D1B4E] whitespace-nowrap">{q.contextBefore}</span>
+              )}
+              <input
+                type="text"
+                value={typeof answer === 'string' ? answer : ''}
+                onChange={(e) => onAnswer(e.target.value)}
+                onFocus={onFocus}
+                className={`px-2 py-1 rounded border-2 bg-white text-sm text-[#2D1B4E] focus:outline-none min-w-[160px] max-w-[280px] transition-colors ${
+                  isActive ? 'border-[#5A3D7A]' : 'border-gray-400'
+                }`}
+              />
+              {q.contextAfter && (
+                <span className="text-sm text-[#2D1B4E] whitespace-nowrap">{q.contextAfter}</span>
+              )}
             </div>
           )}
 
@@ -612,10 +881,18 @@ function ResultsView({ mock, result, onReset }: { mock: ListeningMock; result: G
 export default function IELTSListeningPage() {
   // Auth (bypass useAuthStore hydration bug — same pattern used elsewhere).
   const [teacherId, setTeacherId] = useState<string>('');
+  const [studentName, setStudentName] = useState<string>('');
   useEffect(() => {
     const auth = getAuth();
-    if (auth.currentUser) { setTeacherId(auth.currentUser.uid); return; }
-    const unsub = onAuthStateChanged(auth, (u) => setTeacherId(u?.uid ?? ''));
+    if (auth.currentUser) {
+      setTeacherId(auth.currentUser.uid);
+      setStudentName(auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || 'Candidate');
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setTeacherId(u?.uid ?? '');
+      setStudentName(u?.displayName || u?.email?.split('@')[0] || 'Candidate');
+    });
     return () => unsub();
   }, []);
 
@@ -626,8 +903,10 @@ export default function IELTSListeningPage() {
   const [phase, setPhase] = useState<'landing' | 'running' | 'results'>('landing');
   const [mode, setMode] = useState<ListeningSessionMode>('exam');
   const [currentSection, setCurrentSection] = useState<0 | 1 | 2 | 3>(0);
+  const [activeQIndex, setActiveQIndex] = useState<number>(0);   // 0-based within the section
   const [answers, setAnswers] = useState<StudentAnswers>({});
   const [result, setResult] = useState<GradeResult | null>(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
 
   // Persisted audio URLs per section (hydrated from Firestore on mount, saved
   // on every generate/upload/url-set). Once written, the same URL survives
@@ -679,9 +958,9 @@ export default function IELTSListeningPage() {
     }
   }
 
-  // Timer per section — 6 min default, floating bar during running.
-  const SECTION_SEC = 360;
-  const [timeLeft, setTimeLeft] = useState(SECTION_SEC);
+  // Whole-mock timer — 30 min like the real IELTS Listening CBT.
+  const TOTAL_SEC = 30 * 60;
+  const [timeLeft, setTimeLeft] = useState(TOTAL_SEC);
   const [timerRunning, setTimerRunning] = useState(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -699,16 +978,36 @@ export default function IELTSListeningPage() {
   function startMock() {
     setPhase('running');
     setCurrentSection(0);
+    setActiveQIndex(0);
     setAnswers({});
-    setTimeLeft(SECTION_SEC);
+    setTimeLeft(TOTAL_SEC);
     setTimerRunning(true);
   }
 
   function goToNextSection() {
     if (currentSection >= 3) return;
     setCurrentSection((s) => (s + 1) as 0 | 1 | 2 | 3);
-    setTimeLeft(SECTION_SEC);
-    setTimerRunning(true);
+    setActiveQIndex(0);
+  }
+
+  function goToSection(section: 0 | 1 | 2 | 3, qIndex: number) {
+    setCurrentSection(section);
+    setActiveQIndex(Math.max(0, Math.min(mock.sections[section].questions.length - 1, qIndex)));
+  }
+
+  function goPrev() {
+    if (activeQIndex > 0) { setActiveQIndex(activeQIndex - 1); return; }
+    if (currentSection > 0) {
+      const prevSec = (currentSection - 1) as 0 | 1 | 2 | 3;
+      setCurrentSection(prevSec);
+      setActiveQIndex(mock.sections[prevSec].questions.length - 1);
+    }
+  }
+
+  function goNext() {
+    const secQs = mock.sections[currentSection].questions.length;
+    if (activeQIndex < secQs - 1) { setActiveQIndex(activeQIndex + 1); return; }
+    if (currentSection < 3) goToNextSection();
   }
 
   function submitMock() {
@@ -732,6 +1031,144 @@ export default function IELTSListeningPage() {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${String(sec).padStart(2, '0')}`;
+  }
+
+  // ─── CBT running phase (early return) ─────────────────────────────
+  if (phase === 'running') {
+    const audioUrl = sessionAudioUrls[activeSection.number];
+    const groups = groupQuestions(activeSection.questions);
+    const partFromQ = currentSection * 10 + 1;
+    const partToQ   = currentSection * 10 + activeSection.questions.length;
+    const minutesLeft = Math.max(0, Math.ceil(timeLeft / 60));
+    const cid = candidateIdFrom(teacherId);
+
+    return (
+      <div className="min-h-screen bg-white text-[#2D1B4E] flex flex-col">
+        <CBTHeader
+          studentName={studentName}
+          candidateId={cid}
+          timeMinutesLeft={minutesLeft}
+          audioPlaying={audioPlaying}
+          onMenu={() => {
+            if (confirm('¿Salir del test? Se pierde el progreso actual.')) {
+              setPhase('landing');
+              setTimerRunning(false);
+            }
+          }}
+        />
+
+        <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-4">
+          {/* Compact audio block — lavender, sits under the header */}
+          {audiosLoading ? (
+            <div className="mb-4 rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] p-3 flex items-center gap-2 text-xs text-gray-500">
+              <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
+              Cargando audio…
+            </div>
+          ) : audioUrl ? (
+            <div className="mb-4 rounded-lg bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
+                  Part {activeSection.number} · {activeSection.title}
+                </span>
+                {mode !== 'exam' && (
+                  <button
+                    onClick={() => {
+                      if (confirm('¿Borrar este audio y generar uno nuevo? Consume tokens de ElevenLabs otra vez.')) {
+                        clearAudioBinding(activeSection.number);
+                      }
+                    }}
+                    className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A] underline"
+                  >
+                    🔄 Regenerar
+                  </button>
+                )}
+              </div>
+              <AudioWithSpeed
+                src={audioUrl}
+                mode={mode}
+                autoPlay={mode === 'exam'}
+                tone="light"
+                onPlayingChange={setAudioPlaying}
+              />
+              {mode === 'exam' && (
+                <p className="text-[10px] text-[#5A3D7A]/70 italic mt-1">Exam mode: audio plays once, no pause.</p>
+              )}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <AudioPanel
+                section={activeSection}
+                mode={mode}
+                onAudioReady={(url, source) => persistAudioBinding(activeSection.number, url, source)}
+                teacherId={teacherId}
+              />
+            </div>
+          )}
+
+          {/* Script preview only in practice/review */}
+          {mode !== 'exam' && (
+            <div className="mb-4">
+              <ScriptPreview section={activeSection} />
+            </div>
+          )}
+
+          <CBTPartBanner part={activeSection.number} from={partFromQ} to={partToQ} />
+
+          {groups.map((g) => {
+            const groupFrom = currentSection * 10 + g.startIndex + 1;
+            const groupTo   = currentSection * 10 + g.endIndex + 1;
+            return (
+              <div key={`g-${g.startIndex}`} className="mb-6">
+                <CBTQuestionsHeading from={groupFrom} to={groupTo} instructions={groupInstructions(g)} />
+                <div className="border-t border-[#E8D5F0] divide-y divide-[#E8D5F0]">
+                  {g.questions.map((q, i) => {
+                    const qIdxInSec = g.startIndex + i;
+                    return (
+                      <QuestionCard
+                        key={q.id}
+                        q={q}
+                        index={currentSection * 10 + qIdxInSec}
+                        answer={answers[q.id]}
+                        onAnswer={(val) => {
+                          setAnswers((prev) => ({ ...prev, [q.id]: val }));
+                          setActiveQIndex(qIdxInSec);
+                        }}
+                        onFocus={() => setActiveQIndex(qIdxInSec)}
+                        isActive={activeQIndex === qIdxInSec}
+                        showAnswer={mode === 'practice'}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Timer pause (only in practice — exam should not pause). */}
+          {mode !== 'exam' && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setTimerRunning((r) => !r)}
+                className="text-[11px] font-semibold text-[#5A3D7A] hover:text-[#2D1B4E] underline"
+              >
+                {timerRunning ? `❚❚ Pausar timer (${fmt(timeLeft)})` : `▶ Reanudar (${fmt(timeLeft)})`}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <CBTFooter
+          mock={mock}
+          currentSection={currentSection}
+          activeQIndex={activeQIndex}
+          answers={answers}
+          onGoTo={goToSection}
+          onPrev={goPrev}
+          onNext={goNext}
+          onSubmit={submitMock}
+        />
+      </div>
+    );
   }
 
   return (
@@ -771,7 +1208,7 @@ export default function IELTSListeningPage() {
           ]}
         />
 
-        <div className={`max-w-4xl mx-auto mt-8 ${phase === 'running' ? 'pb-28' : ''}`}>
+        <div className="max-w-4xl mx-auto mt-8">
 
           {/* ─── LANDING ─── */}
           {phase === 'landing' && (
@@ -866,150 +1303,6 @@ export default function IELTSListeningPage() {
               <p className="text-center text-[10px] text-gray-400">
                 💡 Tip: Genera los audios en ElevenLabs con los scripts que se despliegan en cada sección. Súbelos aquí para reutilizarlos.
               </p>
-            </div>
-          )}
-
-          {/* ─── RUNNING ─── */}
-          {phase === 'running' && (
-            <div className="space-y-5">
-              {/* Section header */}
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.3em]">
-                    Section {activeSection.number} of 4
-                  </p>
-                  <h2 className="font-serif text-2xl font-bold text-[#2D1B4E]">{activeSection.title}</h2>
-                  <p className="text-xs text-gray-500 italic mt-0.5">{activeSection.scenario}</p>
-                </div>
-                <div className="flex gap-1">
-                  {mock.sections.map((s) => (
-                    <span
-                      key={s.number}
-                      className={`h-2 rounded-full transition-all ${
-                        s.number - 1 < currentSection ? 'w-6 bg-[#5A3D7A]'
-                        : s.number - 1 === currentSection ? 'w-10 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]'
-                        : 'w-6 bg-[#E8D5F0]'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Instructions */}
-              <div className="bg-[#F0E5FF] border border-[#C8A8DC]/40 rounded-2xl p-3">
-                <p className="text-xs text-[#5A3D7A] leading-relaxed">{activeSection.instructions}</p>
-              </div>
-
-              {/* Audio — either shows the persisted URL directly, or the
-                  upload/generate panel when none exists yet. */}
-              {audiosLoading ? (
-                <div className="bg-white rounded-2xl border border-[#E8D5F0] p-4 flex items-center justify-center gap-2 text-xs text-gray-500">
-                  <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
-                  Cargando audios guardados…
-                </div>
-              ) : sessionAudioUrls[activeSection.number] ? (
-                <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-2xl p-4 text-white shadow-md space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70">
-                      Section {activeSection.number} audio
-                    </p>
-                    <button
-                      onClick={() => {
-                        if (confirm('¿Borrar este audio y generar uno nuevo? Consumirá tokens de ElevenLabs otra vez.')) {
-                          clearAudioBinding(activeSection.number);
-                        }
-                      }}
-                      className="text-[10px] font-semibold text-white/70 hover:text-white underline decoration-white/40"
-                    >
-                      🔄 Regenerar
-                    </button>
-                  </div>
-                  <AudioWithSpeed
-                    src={sessionAudioUrls[activeSection.number]}
-                    mode={mode}
-                    autoPlay={mode === 'exam'}
-                    tone="dark"
-                  />
-                  {mode === 'exam' && (
-                    <p className="text-[10px] text-white/60 italic">Exam mode: audio plays once, no pause.</p>
-                  )}
-                </div>
-              ) : (
-                <AudioPanel
-                  section={activeSection}
-                  mode={mode}
-                  onAudioReady={(url, source) => persistAudioBinding(activeSection.number, url, source)}
-                  teacherId={teacherId}
-                />
-              )}
-
-              {/* Script preview (helpful when teacher hasn't generated audio yet) */}
-              <ScriptPreview section={activeSection} />
-
-              {/* Questions */}
-              <div className="space-y-3">
-                {activeSection.questions.map((q, i) => (
-                  <QuestionCard
-                    key={q.id}
-                    q={q}
-                    index={i + (currentSection * 10)}
-                    answer={answers[q.id]}
-                    onAnswer={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
-                    showAnswer={mode === 'practice'}
-                  />
-                ))}
-              </div>
-
-              {/* Section nav */}
-              <div className="flex justify-center gap-3 pt-2">
-                {currentSection < 3 ? (
-                  <button
-                    onClick={goToNextSection}
-                    className="px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg active:scale-95"
-                  >
-                    Continue to Section {currentSection + 2} →
-                  </button>
-                ) : (
-                  <button
-                    onClick={submitMock}
-                    className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-bold shadow-lg active:scale-95"
-                  >
-                    ✓ Submit mock
-                  </button>
-                )}
-                <button
-                  onClick={() => { setPhase('landing'); setTimerRunning(false); }}
-                  className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"
-                >
-                  Abort
-                </button>
-              </div>
-
-              {/* Floating timer */}
-              <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-2xl">
-                <div className="bg-white/95 backdrop-blur-md rounded-full shadow-2xl shadow-[#5A3D7A]/30 border border-[#E8D5F0] pl-5 pr-3 py-2.5 flex items-center gap-3">
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] leading-none">
-                      Section 0{activeSection.number} · Listening
-                    </span>
-                    <span className="text-lg font-black font-mono tabular-nums leading-tight text-[#5A3D7A]">
-                      {fmt(timeLeft)}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0 h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-[width] bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]"
-                      style={{ width: `${((SECTION_SEC - timeLeft) / SECTION_SEC) * 100}%` }}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setTimerRunning((r) => !r)}
-                    className="shrink-0 px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-full text-xs font-bold hover:bg-[#E0C8F0]"
-                  >
-                    {timerRunning ? '❚❚ Pause' : '▶ Resume'}
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
