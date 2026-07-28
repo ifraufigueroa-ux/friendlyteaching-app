@@ -213,6 +213,46 @@ const section1: ListeningSection = {
     { speakerId: 'receptionist', text: "Let me check. Yes, Thursday at 3 works. See you then, Daniel.", approxStartSec: 278 },
   ],
   questions: s1Questions,
+  formLayouts: [
+    {
+      title: 'Riverside Sports Club — Enrolment form',
+      sections: [
+        {
+          heading: 'Personal details',
+          rows: [
+            { kind: 'blank', label: 'Full name:',      prefix: 'Daniel',   questionId: 'l1-s1-q1' },
+            { kind: 'blank', label: 'Mobile:',                             questionId: 'l1-s1-q2' },
+            { kind: 'blank', label: 'Date of birth:',                       questionId: 'l1-s1-q3', suffix: 'March 1990' },
+          ],
+        },
+        {
+          heading: 'Sports interests',
+          rows: [
+            { kind: 'blank', label: 'Primary sport:',                       questionId: 'l1-s1-q4' },
+            { kind: 'blank', label: 'Pool closes at:',                      questionId: 'l1-s1-q5', suffix: 'on weekdays' },
+          ],
+        },
+        {
+          heading: 'Membership',
+          rows: [
+            { kind: 'text',  label: 'Bronze tier:',    value: '£30 / month — gym only' },
+            { kind: 'text',  label: 'Silver tier:',    value: '£45 / month — gym + one sport' },
+            { kind: 'text',  label: 'Gold tier:',      value: '£60 / month — unlimited access' },
+            { kind: 'blank', label: 'Tier chosen:',                         questionId: 'l1-s1-q6' },
+            { kind: 'blank', label: 'Monthly cost:',   prefix: '£',         questionId: 'l1-s1-q7' },
+            { kind: 'blank', label: 'Payment method:',                      questionId: 'l1-s1-q8' },
+          ],
+        },
+        {
+          heading: 'Required ID (bring to first visit)',
+          rows: [
+            { kind: 'blank', label: 'First form:',     prefix: 'passport OR', questionId: 'l1-s1-q9' },
+            { kind: 'blank', label: 'Second form:',    prefix: 'recent',    questionId: 'l1-s1-q10' },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 // ─── SECTION 2 · Guided tour — Cape Wilson Lighthouse ───────────────

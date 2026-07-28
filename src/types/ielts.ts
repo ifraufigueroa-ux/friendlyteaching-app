@@ -170,6 +170,27 @@ export interface SummaryLayout {
   segments:  SummarySegment[];
 }
 
+// Form / notes layout: titled panel with sub-heading blocks. Each row is
+// either a pre-filled reference line (kind='text') or a labelled blank
+// wired to a question by id (kind='blank'). The blank renders whatever
+// input the referenced question needs — text field for fill-types,
+// inline radios for MCQ, etc. — so a phone-call enrolment form can mix
+// scribbled details with a multiple-choice sport pick without needing
+// two separate containers.
+export type FormRow =
+  | { kind: 'text';  label: string; value: string; isExample?: boolean }
+  | { kind: 'blank'; label: string; questionId: string; prefix?: string; suffix?: string };
+
+export interface FormSection {
+  heading?: string;
+  rows:     FormRow[];
+}
+
+export interface FormLayout {
+  title:    string;
+  sections: FormSection[];
+}
+
 export interface ListeningSection {
   number: 1 | 2 | 3 | 4;
   contextType: 'social-transactional' | 'social-monologue' | 'academic-discussion' | 'academic-lecture';
@@ -187,11 +208,14 @@ export interface ListeningSection {
   targetDurationSec: number;
   questions: ListeningQuestion[];
   // Optional structured layouts. If present, the runner renders the
-  // table/flow-chart/summary in place of the default question-per-row
-  // list for the questions those layouts reference.
+  // table/flow-chart/summary/form in place of the default question-per-row
+  // list for the questions those layouts reference. Form layouts win at
+  // the section level and can wrap the whole section (they can host mixed
+  // question types — fills + MCQ + short-answer — under one panel).
   tableLayouts?:      TableLayout[];
   flowChartLayouts?:  FlowChartLayout[];
   summaryLayouts?:    SummaryLayout[];
+  formLayouts?:       FormLayout[];
 }
 
 export interface ListeningMock {

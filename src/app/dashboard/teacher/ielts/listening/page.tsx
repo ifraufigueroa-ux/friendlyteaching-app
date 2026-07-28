@@ -24,7 +24,7 @@ import {
 } from '@/lib/ielts/practiceSessions';
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
-  ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout,
+  ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout, FormLayout, FormRow,
 } from '@/types/ielts';
 
 const MOCKS: ListeningMock[] = [listeningMock1];
@@ -201,6 +201,25 @@ function groupInstructions(g: QGroup): string {
   if (g.type === 'matching')              return 'Choose the correct answer from the list below.';
   if (g.type === 'plan-map-labelling')    return 'Label the plan/map with the options below.';
   return '';
+}
+
+/** Instructions for a form-layout-wrapped section: computes the max
+ *  word-limit across the fill-family questions inside so the CBT
+ *  heading matches the strictest constraint (mirrors what real IELTS
+ *  prints above a mixed form). Non-fill types (MCQ) don't count. */
+function sectionFormInstructions(section: ListeningSection): string {
+  const fills = section.questions.filter((q) =>
+    q.type === 'form-completion' || q.type === 'note-completion'
+    || q.type === 'table-completion' || q.type === 'summary-completion'
+    || q.type === 'sentence-completion' || q.type === 'flow-chart-completion'
+    || q.type === 'short-answer'
+  ) as (ListeningQuestion & { wordLimit: number; allowNumbers: boolean })[];
+  if (fills.length === 0) return 'Complete the form.';
+  const wl = Math.max(...fills.map((q) => q.wordLimit));
+  const anyNum = fills.some((q) => q.allowNumbers);
+  const words = wl === 1 ? 'ONE WORD' : wl === 2 ? 'TWO WORDS' : wl === 3 ? 'THREE WORDS' : `${wl} WORDS`;
+  const num = anyNum ? ' AND/OR A NUMBER' : '';
+  return `Complete the form. Write NO MORE THAN ${words}${num} for each answer.`;
 }
 
 /** Header — top bar mimicking IELTS CBT. Sticky at the top. */
@@ -638,6 +657,146 @@ function CBTSummaryLayoutRenderer({
           );
         })}
       </p>
+    </div>
+  );
+}
+
+/** Form / notes container — titled panel with sub-heading blocks.
+ *  Each row is either a static reference line (label:value, optionally
+ *  highlighted as the exam-style pre-filled example) or a labelled blank
+ *  wired to a question. The blank picks the right inline widget for the
+ *  referenced question type — text input for fill/short-answer, radio
+ *  pills for MCQ — so a phone-call enrolment form can mix scribbled
+ *  details with a "primary sport" choice under a single panel. */
+function CBTFormLayoutRenderer({
+  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+}: {
+  layout:          FormLayout;
+  section:         ListeningSection;
+  sectionIndex:    number;
+  answers:         StudentAnswers;
+  setAnswer:       (qId: string, val: string) => void;
+  activeQIndex:    number;
+  setActiveQIndex: (i: number) => void;
+  allowReveal?:    boolean;
+}) {
+  return (
+    <div className="rounded-lg border-2 border-[#C8A8DC] bg-white overflow-hidden">
+      <div className="bg-[#F0E5FF] px-4 py-2 text-center">
+        <p className="text-sm font-bold text-[#2D1B4E]">{layout.title}</p>
+      </div>
+      <div className="px-5 py-4 space-y-5">
+        {layout.sections.map((sec, si) => (
+          <div key={si}>
+            {sec.heading && (
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70 mb-2">
+                {sec.heading}
+              </p>
+            )}
+            <div className="space-y-2">
+              {sec.rows.map((row, ri) => (
+                <CBTFormRow
+                  key={ri}
+                  row={row}
+                  section={section}
+                  sectionIndex={sectionIndex}
+                  answers={answers}
+                  setAnswer={setAnswer}
+                  activeQIndex={activeQIndex}
+                  setActiveQIndex={setActiveQIndex}
+                  allowReveal={allowReveal}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** One row of a form layout — dispatches by question type. */
+function CBTFormRow({
+  row, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+}: {
+  row:             FormRow;
+  section:         ListeningSection;
+  sectionIndex:    number;
+  answers:         StudentAnswers;
+  setAnswer:       (qId: string, val: string) => void;
+  activeQIndex:    number;
+  setActiveQIndex: (i: number) => void;
+  allowReveal?:    boolean;
+}) {
+  if (row.kind === 'text') {
+    return (
+      <div className="flex items-baseline gap-3 text-sm pl-9">
+        <span className="min-w-[140px] text-[#2D1B4E]/80">{row.label}</span>
+        <span className={row.isExample
+          ? "px-2 py-0.5 rounded bg-[#5A3D7A]/15 border border-[#5A3D7A]/30 text-[#2D1B4E] font-bold"
+          : "text-[#2D1B4E]"
+        }>{row.value}</span>
+      </div>
+    );
+  }
+
+  const q = section.questions.find((qq) => qq.id === row.questionId);
+  if (!q) {
+    return <p className="text-xs text-red-600">Missing question: {row.questionId}</p>;
+  }
+  const qIdx = section.questions.indexOf(q);
+  const isActive = activeQIndex === qIdx;
+  const answer = answers[q.id];
+  const number = sectionIndex * 10 + qIdx + 1;
+  const numBox = isActive
+    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+    : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
+
+  return (
+    <div
+      className="flex items-start gap-2.5 text-sm"
+      onMouseDown={() => setActiveQIndex(qIdx)}
+      onFocus={() => setActiveQIndex(qIdx)}
+    >
+      <span className={`flex-shrink-0 min-w-[26px] h-6 mt-0.5 px-1 rounded-md border-2 text-[11px] font-bold inline-flex items-center justify-center tabular-nums ${numBox}`}>
+        {number}
+      </span>
+      <span className="min-w-[140px] text-[#2D1B4E]/80 pt-1">{row.label}</span>
+      <div className="flex-1 min-w-0 flex flex-wrap items-baseline gap-2">
+        {row.prefix && <span className="text-[#2D1B4E]">{row.prefix}</span>}
+        {q.type === 'multiple-choice' ? (
+          <div className="flex items-center gap-3 flex-wrap">
+            {q.options.map((opt) => {
+              const selected = answer === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => { setAnswer(q.id, opt.id); setActiveQIndex(qIdx); }}
+                  className="flex items-center gap-1.5 px-1.5 py-0.5 rounded hover:bg-[#F0E5FF]/40 transition-colors"
+                >
+                  <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    selected ? 'border-[#5A3D7A]' : 'border-gray-400'
+                  }`}>
+                    {selected && <span className="w-1.5 h-1.5 rounded-full bg-[#5A3D7A]" />}
+                  </span>
+                  <span className={selected ? 'text-[#2D1B4E] font-semibold' : 'text-[#2D1B4E]'}>{opt.text}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={typeof answer === 'string' ? answer : ''}
+            onChange={(e) => { setAnswer(q.id, e.target.value); setActiveQIndex(qIdx); }}
+            onFocus={() => setActiveQIndex(qIdx)}
+            className={`px-2 py-1 rounded border-2 bg-white text-sm text-[#2D1B4E] focus:outline-none min-w-[140px] max-w-[240px] transition-colors ${
+              isActive ? 'border-[#5A3D7A]' : 'border-gray-400'
+            }`}
+          />
+        )}
+        {row.suffix && <span className="text-[#2D1B4E]">{row.suffix}</span>}
+      </div>
     </div>
   );
 }
@@ -1568,7 +1727,27 @@ export default function IELTSListeningPage() {
 
           <CBTPartBanner part={activeSection.number} from={partFromQ} to={partToQ} />
 
-          {groups.map((g) => {
+          {activeSection.formLayouts && activeSection.formLayouts[0] ? (
+            <div className="mb-6">
+              <CBTQuestionsHeading
+                from={partFromQ}
+                to={partToQ}
+                instructions={sectionFormInstructions(activeSection)}
+              />
+              <CBTFormLayoutRenderer
+                layout={activeSection.formLayouts[0]}
+                section={activeSection}
+                sectionIndex={currentSection}
+                answers={answers}
+                setAnswer={(qId, val) =>
+                  setAnswers((prev) => ({ ...prev, [qId]: val }))
+                }
+                activeQIndex={activeQIndex}
+                setActiveQIndex={setActiveQIndex}
+                allowReveal={mode === 'practice'}
+              />
+            </div>
+          ) : groups.map((g) => {
             const groupFrom = currentSection * 10 + g.startIndex + 1;
             const groupTo   = currentSection * 10 + g.endIndex + 1;
             const isMatchGroup = g.type === 'matching' || g.type === 'plan-map-labelling';
