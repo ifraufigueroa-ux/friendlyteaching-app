@@ -1459,6 +1459,7 @@ export default function IELTSListeningPage() {
   const [studentNameInput, setStudentNameInput] = useState('');
   const [savedSessions,    setSavedSessions]    = useState<IELTSPracticeSession[]>([]);
   const [loadingSessions,  setLoadingSessions]  = useState(false);
+  const [sessionsError,    setSessionsError]    = useState<string | null>(null);
   const [savedAt,          setSavedAt]          = useState<Date | null>(null);
   const [savingState,      setSavingState]      = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const timeLeftRef = useRef(timeLeft);
@@ -1476,14 +1477,20 @@ export default function IELTSListeningPage() {
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
   }, [timerRunning]);
 
-  // Load saved sessions when Practice landing is shown.
+  // Load saved sessions when Practice landing is shown. Errors surface
+  // in the UI so we don't repeat the Guillermo incident where a missing
+  // Firestore index silently returned zero results.
   useEffect(() => {
     if (!teacherId || phase !== 'landing' || mode !== 'practice') return;
     let alive = true;
     setLoadingSessions(true);
+    setSessionsError(null);
     listPracticeSessions(teacherId, mock.id)
       .then((sessions) => { if (alive) setSavedSessions(sessions); })
-      .catch((err) => console.error('[ielts-listening] list sessions:', err))
+      .catch((err: unknown) => {
+        console.error('[ielts-listening] list sessions:', err);
+        if (alive) setSessionsError((err as { message?: string })?.message ?? String(err));
+      })
       .finally(() => { if (alive) setLoadingSessions(false); });
     return () => { alive = false; };
   }, [teacherId, phase, mode, mock.id]);
@@ -2054,6 +2061,11 @@ export default function IELTSListeningPage() {
                         <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
                         Cargando sesiones…
                       </p>
+                    ) : sessionsError ? (
+                      <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                        <p className="font-semibold">No se pudo cargar el listado</p>
+                        <p className="mt-1 font-mono break-all">{sessionsError}</p>
+                      </div>
                     ) : savedSessions.length === 0 ? (
                       <p className="text-xs text-gray-400 italic py-2">No hay sesiones guardadas para este mock.</p>
                     ) : (
