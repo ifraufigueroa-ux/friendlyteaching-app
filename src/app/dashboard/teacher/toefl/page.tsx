@@ -554,6 +554,27 @@ function ListeningAudioManager({ teacherId }: { teacherId: string }) {
                   )}
                 </div>
               </div>
+
+              {/* Script viewer — collapsed by default. Lets the teacher read
+                  what needs to be recorded / narrated before uploading. */}
+              <details className="mt-3 rounded-xl border border-[#E8D5F0] bg-[#FDFAFF] group">
+                <summary className="cursor-pointer text-[11px] font-bold uppercase tracking-widest text-[#5A3D7A] px-3 py-2 flex items-center justify-between select-none">
+                  <span>📄 Ver script</span>
+                  <span className="text-[10px] font-normal normal-case text-[#5A3D7A]/60 group-open:hidden">
+                    {item.audio.script.length} líneas
+                  </span>
+                </summary>
+                <div className="border-t border-[#F0E5FF] p-3 max-h-72 overflow-y-auto text-[12px] text-gray-700 space-y-1.5 bg-white rounded-b-xl">
+                  {item.audio.script.map((line, i) => {
+                    const speaker = item.audio.speakers.find(s => s.id === line.speakerId)?.name ?? line.speakerId;
+                    return (
+                      <p key={i} className="leading-snug">
+                        <strong className="text-[#5A3D7A]">{speaker}:</strong> {line.text}
+                      </p>
+                    );
+                  })}
+                </div>
+              </details>
             </div>
           );
         })}
