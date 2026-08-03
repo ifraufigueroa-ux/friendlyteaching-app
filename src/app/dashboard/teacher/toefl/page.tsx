@@ -5,12 +5,29 @@
 // new tab with the selection in the URL.
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { TOEFL_SECTION_META, TOEFL_SECTIONS, type TOEFLSection, type TOEFLSession } from '@/types/toefl';
+import {
+  TOEFL_SECTION_META, TOEFL_SECTIONS,
+  type TOEFLSection, type TOEFLSession, type TOEFLListeningAudio,
+} from '@/types/toefl';
 import { listSessionsForTeacher, sectionsSummary } from '@/lib/toefl/sessions';
+import { toeflMock1 } from '@/lib/data/toefl/mock-1';
+
+const LISTENING_AUDIOS_FOR_UPLOAD: Array<{
+  mockId:  string;
+  mockTitle: string;
+  audio:   TOEFLListeningAudio;
+}> = toeflMock1.listening.map((audio) => ({
+  mockId:    toeflMock1.id,
+  mockTitle: toeflMock1.title,
+  audio,
+}));
 
 interface Preset {
   id:       string;
@@ -225,6 +242,9 @@ export default function TOEFLDashboardPage() {
 
           {/* Sessions table */}
           <SessionsTable sessions={sessions} loading={loadingSessions} teacherId={teacherId} />
+
+          {/* Manual audio upload panel */}
+          <ListeningAudioManager teacherId={teacherId} />
         </div>
       </div>
     </div>
@@ -345,5 +365,233 @@ function SessionsTable({
         </table>
       </div>
     </div>
+  );
+}
+
+// ─── Manual audio upload panel ────────────────────────────────────────────
+//
+// Lists every listening audio across all mocks and lets the teacher upload
+// an MP3 file for each. Writes the toeflListeningAudios/{teacherId}_{mockId}_
+// {audioId} binding so the runner picks it up on next load. Replaces / deletes
+// clean up both Storage and Firestore.
+
+interface AudioBinding {
+  audioUrl:    string;
+  storagePath: string;
+  updatedAt?:  Timestamp;
+}
+
+function ListeningAudioManager({ teacherId }: { teacherId: string }) {
+  const [bindings, setBindings] = useState<Record<string, AudioBinding | null>>({});
+  const [loading, setLoading] = useState(true);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  async function refresh() {
+    if (!teacherId) return;
+    setLoading(true);
+    const next: Record<string, AudioBinding | null> = {};
+    for (const item of LISTENING_AUDIOS_FOR_UPLOAD) {
+      const key = `${teacherId}_${item.mockId}_${item.audio.id}`;
+      try {
+        const snap = await getDoc(doc(db, 'toeflListeningAudios', key));
+        next[key] = snap.exists() ? (snap.data() as AudioBinding) : null;
+      } catch {
+        next[key] = null;
+      }
+    }
+    setBindings(next);
+    setLoading(false);
+  }
+
+  useEffect(() => { void refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [teacherId]);
+
+  async function uploadFor(item: (typeof LISTENING_AUDIOS_FOR_UPLOAD)[number], file: File) {
+    if (!teacherId) return;
+    const key = `${teacherId}_${item.mockId}_${item.audio.id}`;
+    setBusyKey(key);
+    setErrors(prev => ({ ...prev, [key]: '' }));
+    try {
+      // If a binding exists, delete the old Storage object first so we don't
+      // orphan files in the bucket.
+      const prev = bindings[key];
+      if (prev?.storagePath) {
+        try { await deleteObject(storageRef(storage, prev.storagePath)); }
+        catch (err) { console.warn('[toefl-upload] old file delete failed:', err); }
+      }
+
+      const ext = file.name.split('.').pop() || 'mp3';
+      const path = `audio/toefl-${item.mockId}-${item.audio.id}-${teacherId}-${Date.now()}.${ext}`;
+      const ref = storageRef(storage, path);
+      await uploadBytes(ref, file, { contentType: file.type || 'audio/mpeg' });
+      const url = await getDownloadURL(ref);
+
+      await setDoc(doc(db, 'toeflListeningAudios', key), {
+        teacherId,
+        mockId:      item.mockId,
+        audioId:     item.audio.id,
+        audioUrl:    url,
+        storagePath: path,
+        source:      'manual-upload',
+        createdAt:   Timestamp.now(),
+        updatedAt:   Timestamp.now(),
+      }, { merge: true });
+
+      setBindings(prev => ({
+        ...prev,
+        [key]: { audioUrl: url, storagePath: path, updatedAt: Timestamp.now() },
+      }));
+    } catch (err) {
+      console.error('[toefl-upload] failed:', err);
+      setErrors(prev => ({ ...prev, [key]: err instanceof Error ? err.message : 'Error subiendo el audio' }));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function removeFor(item: (typeof LISTENING_AUDIOS_FOR_UPLOAD)[number]) {
+    if (!teacherId) return;
+    const key = `${teacherId}_${item.mockId}_${item.audio.id}`;
+    const binding = bindings[key];
+    if (!binding) return;
+    if (!confirm(`¿Eliminar el audio de "${item.audio.title}"? Los estudiantes verán "audio pendiente" hasta que subas otro.`)) return;
+    setBusyKey(key);
+    setErrors(prev => ({ ...prev, [key]: '' }));
+    try {
+      if (binding.storagePath) {
+        try { await deleteObject(storageRef(storage, binding.storagePath)); }
+        catch (err) { console.warn('[toefl-upload] storage delete failed:', err); }
+      }
+      await deleteDoc(doc(db, 'toeflListeningAudios', key));
+      setBindings(prev => ({ ...prev, [key]: null }));
+    } catch (err) {
+      console.error('[toefl-upload] delete failed:', err);
+      setErrors(prev => ({ ...prev, [key]: err instanceof Error ? err.message : 'Error eliminando el audio' }));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  return (
+    <div className="mt-10">
+      <div className="flex items-center gap-2 mb-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#5A3D7A]">
+          🎧 Audios de Listening
+        </p>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F0E5FF] text-[#5A3D7A]">
+          {LISTENING_AUDIOS_FOR_UPLOAD.length}
+        </span>
+      </div>
+      <p className="text-[11px] text-[#5A3D7A]/70 mb-3">
+        Subí un MP3 por cada clip (idealmente 3-6 min). Se guarda en el bucket bajo tu cuenta y los estudiantes lo escuchan directo — no hace falta ninguna API key externa. Máximo 20 MB por archivo.
+      </p>
+
+      <div className="space-y-2">
+        {LISTENING_AUDIOS_FOR_UPLOAD.map((item) => {
+          const key = `${teacherId}_${item.mockId}_${item.audio.id}`;
+          const binding = bindings[key] ?? null;
+          const busy = busyKey === key;
+          const err  = errors[key];
+          return (
+            <div key={key} className="bg-white rounded-2xl border border-[#E8D5F0] shadow-sm p-4">
+              <div className="flex items-start gap-3 flex-wrap">
+                <div className="text-2xl">{item.audio.type === 'lecture' ? '🎓' : '💬'}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-[#5A3D7A]">{item.audio.title}</p>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F0E5FF] text-[#5A3D7A] uppercase tracking-wider">
+                      {item.audio.type}
+                    </span>
+                    {item.audio.subject && (
+                      <span className="text-[10px] text-[#5A3D7A]/60">{item.audio.subject}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#5A3D7A]/60 mt-0.5">
+                    {item.mockTitle} · {item.audio.script.length} líneas · {item.audio.questions.length} preguntas
+                  </p>
+                  {loading ? (
+                    <div className="mt-2 h-1.5 bg-[#F0E5FF] rounded-full animate-pulse w-32" />
+                  ) : binding ? (
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        ✓ Uploaded
+                      </span>
+                      <a
+                        href={binding.audioUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-mono text-[#5A3D7A]/60 hover:underline truncate max-w-xs"
+                        title={binding.audioUrl}
+                      >
+                        Escuchar ↗
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                        ⚠ Pendiente
+                      </span>
+                    </div>
+                  )}
+                  {err && <p className="mt-2 text-[11px] text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">{err}</p>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <UploadButton
+                    label={binding ? 'Reemplazar' : 'Subir MP3'}
+                    disabled={busy || !teacherId}
+                    busy={busy}
+                    onFile={(file) => uploadFor(item, file)}
+                  />
+                  {binding && (
+                    <button
+                      onClick={() => removeFor(item)}
+                      disabled={busy}
+                      className="text-[11px] font-semibold text-red-600 border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-full disabled:opacity-40"
+                      title="Eliminar audio"
+                    >
+                      🗑
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function UploadButton({
+  label, busy, disabled, onFile,
+}: {
+  label: string;
+  busy?: boolean;
+  disabled?: boolean;
+  onFile: (file: File) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="audio/*,.mp3,.m4a,.wav,.ogg"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onFile(file);
+          e.target.value = '';   // reset so re-selecting the same file still fires onChange
+        }}
+        className="hidden"
+      />
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled}
+        className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+      >
+        {busy ? '⏳ Subiendo…' : `⬆ ${label}`}
+      </button>
+    </>
   );
 }

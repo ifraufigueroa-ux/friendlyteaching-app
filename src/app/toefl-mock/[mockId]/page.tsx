@@ -555,16 +555,18 @@ function ListeningSection({
                 </div>
               ) : (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
-                  <p className="text-xs text-amber-800 font-semibold">⚠ Audio pendiente de generar</p>
+                  <p className="text-xs text-amber-800 font-semibold">⚠ Audio pendiente</p>
                   <p className="text-[11px] text-amber-700 mt-1 leading-relaxed">
-                    Podés generarlo ahora mismo con TTS. Tarda ~30-60 segundos según la duración del clip.
+                    Tu profesor todavía no subió el audio para este clip. Avisale para que lo suba
+                    desde su dashboard (menú TOEFL → panel &ldquo;Audios de Listening&rdquo;) y recargá esta página.
                   </p>
                   <button
                     onClick={requestGeneration}
                     disabled={generating}
-                    className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-60 transition-colors"
+                    className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold text-amber-800 border border-amber-300 bg-white/70 hover:bg-white disabled:opacity-60 transition-colors"
+                    title="Intenta generar el audio con TTS (requiere API key configurada en el servidor)"
                   >
-                    {generating ? '⏳ Generando audio…' : '🎙 Generar audio ahora'}
+                    {generating ? '⏳ Intentando generar…' : '🎙 Intentar generación automática'}
                   </button>
                   {genError && <p className="text-[11px] text-red-600 mt-2">{genError}</p>}
                 </div>
