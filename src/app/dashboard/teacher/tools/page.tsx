@@ -65,6 +65,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts/reading',
+    icon:        '📖',
+    title:       'IELTS Reading Mocks',
+    description: 'Mock de General Training con 3 secciones × 40 preguntas. Diagnóstico por band, tipo de pregunta y carga cognitiva.',
+    gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
+    glow:        'shadow-[#C8A8DC]/40',
+    badge:       'Beta',
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',
