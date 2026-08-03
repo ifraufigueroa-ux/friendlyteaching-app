@@ -58,6 +58,7 @@ export default function TOEFLDashboardPage() {
   const [sections, setSections] = useState<Set<TOEFLSection>>(new Set(['reading', 'writing']));
   const [sessions, setSessions] = useState<TOEFLSession[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!teacherId) return;
@@ -98,6 +99,25 @@ export default function TOEFLDashboardPage() {
     const qs = params.toString();
     return `/toefl-mock/mock-1${qs ? '?' + qs : ''}`;
   }, [teacherId, orderedSelected]);
+
+  // Absolute URL for the share flow — always explicit about the sections so
+  // the recipient can't accidentally get a different mock config than the one
+  // the teacher selected.
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined' || !teacherId || orderedSelected.length === 0) return '';
+    const params = new URLSearchParams({
+      teacherId,
+      sections: orderedSelected.join(','),
+    });
+    return `${window.location.origin}/toefl-mock/mock-1?${params.toString()}`;
+  }, [teacherId, orderedSelected]);
+
+  async function handleCopyLink() {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
@@ -215,23 +235,58 @@ export default function TOEFLDashboardPage() {
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="flex justify-center gap-3 flex-wrap">
-            {orderedSelected.length > 0 ? (
-              <a
-                href={launchHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
-                style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
-              >
-                ▶ Empezar {orderedSelected.length === 4 ? 'full mock' : `práctica (${orderedSelected.length} secc.)`}
-              </a>
-            ) : (
-              <button disabled className="px-6 py-3 rounded-full text-sm font-bold text-white opacity-40 cursor-not-allowed"
-                style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
-                Elegí al menos una sección
-              </button>
+          {/* CTAs — dos flujos: en vivo (docente + alumno en la misma pantalla)
+              o compartir un link para que el alumno lo haga solo. */}
+          <div className="space-y-3">
+            <div className="flex justify-center gap-3 flex-wrap">
+              {orderedSelected.length > 0 && teacherId ? (
+                <>
+                  <a
+                    href={launchHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
+                    style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
+                  >
+                    ▶ Iniciar Mock en Vivo
+                  </a>
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-6 py-3 rounded-full text-sm font-bold border-2 transition-all hover:-translate-y-0.5 active:scale-95"
+                    style={{ borderColor: '#5A3D7A', color: '#5A3D7A', background: copied ? '#DCFCE7' : 'white' }}
+                  >
+                    {copied ? '✓ Link copiado' : '🔗 Compartir link'}
+                  </button>
+                </>
+              ) : (
+                <button disabled className="px-6 py-3 rounded-full text-sm font-bold text-white opacity-40 cursor-not-allowed"
+                  style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
+                  {!teacherId ? 'Iniciá sesión primero' : 'Elegí al menos una sección'}
+                </button>
+              )}
+            </div>
+
+            {/* Live URL preview — visible so the teacher can confirm exactly
+                which sections + mock go in the link before copying. */}
+            {shareUrl && (
+              <div className="max-w-2xl mx-auto">
+                <div className="flex items-center gap-2 bg-white border border-[#E8D5F0] rounded-xl px-3 py-2 shadow-sm">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/60 shrink-0">Link</span>
+                  <input
+                    readOnly
+                    value={shareUrl}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="flex-1 min-w-0 text-[11px] font-mono text-[#5A3D7A]/70 bg-transparent focus:outline-none truncate"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="text-[10px] font-bold px-2.5 py-1 rounded-lg hover:opacity-80 transition-opacity shrink-0"
+                    style={{ background: copied ? '#DCFCE7' : '#F0E5FF', color: copied ? '#15803D' : '#5A3D7A' }}
+                  >
+                    {copied ? '✓' : 'Copy'}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
