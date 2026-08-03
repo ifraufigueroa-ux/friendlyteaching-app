@@ -447,6 +447,32 @@ function ReadingSection({
 
 // ── Listening section ─────────────────────────────────────────────────────
 
+// Collapsed script viewer — mirrors the transcript panel you'd get in the
+// real CBT after you finish listening. Kept collapsed by default so it
+// doesn't spoil the listening test if the student opens it too early.
+function ScriptViewer({ audio }: { audio: TOEFLListeningAudio }) {
+  return (
+    <details className="mt-3 rounded-xl border border-[#E8D5F0] bg-white group">
+      <summary className="cursor-pointer text-[11px] font-bold uppercase tracking-widest text-[#5A3D7A] px-3 py-2 flex items-center justify-between select-none">
+        <span>📄 Ver script</span>
+        <span className="text-[10px] font-normal normal-case text-[#5A3D7A]/60 group-open:hidden">
+          {audio.script.length} líneas
+        </span>
+      </summary>
+      <div className="border-t border-[#F0E5FF] p-3 max-h-64 overflow-y-auto text-[11px] text-gray-700 space-y-1.5">
+        {audio.script.map((line, i) => {
+          const speaker = audio.speakers.find(s => s.id === line.speakerId)?.name ?? line.speakerId;
+          return (
+            <p key={i} className="leading-snug">
+              <strong className="text-[#5A3D7A]">{speaker}:</strong> {line.text}
+            </p>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 function ListeningSection({
   audios, audioUrls, onDone, onGenerateAudio, initial, onSnapshot,
 }: {
@@ -571,10 +597,13 @@ function ListeningSection({
                   {genError && <p className="text-[11px] text-red-600 mt-2">{genError}</p>}
                 </div>
               )}
+
+              <ScriptViewer audio={audio} />
+
               <button
                 onClick={() => setPhase('quiz')}
                 disabled={!url}
-                className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed mt-3"
                 style={{ background: B.purple }}
               >
                 Continuar a las preguntas →
@@ -596,6 +625,8 @@ function ListeningSection({
                 </button>
               </div>
               <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
+
+              <ScriptViewer audio={audio} />
 
               {/* Question dots for this audio */}
               <div className="mt-4 flex flex-wrap gap-1.5">
