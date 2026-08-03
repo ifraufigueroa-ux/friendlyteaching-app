@@ -237,6 +237,32 @@ interface AiGeneratedDeck {
   source?: 'ai' | 'algorithmic';
 }
 
+// Generate the 7 surrounding slides for a Friendlyflix® clip lesson. The
+// authored dialogue_game + comprehension slides are NEVER sent to the API;
+// they get merged back at their canonical positions by the caller.
+async function generateFullClipDeck(
+  title: string, source: string, dialogueWithBlanks: string, level: LessonLevel,
+  clip: ClipData, mode: 'ai' | 'algorithmic',
+): Promise<{ slides: Slide[]; error?: string }> {
+  try {
+    const res = await fetch('/api/clip-lesson', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title, source,
+        dialogue: stripBlanks(dialogueWithBlanks),
+        level, clipData: clip, mode,
+      }),
+    });
+    const data = await res.json() as AiGeneratedDeck & { error?: string };
+    if (!res.ok) return { slides: [], error: data.error ?? `HTTP ${res.status}` };
+    if (!data.slides || data.slides.length === 0) return { slides: [], error: 'Empty deck' };
+    return { slides: data.slides };
+  } catch (err) {
+    return { slides: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 async function generateFullSongDeck(
   title: string, artist: string, lyricsWithBlanks: string, level: LessonLevel,
   song: SongData,
@@ -339,6 +365,20 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
   const [showTranscriptPaste, setShowTranscriptPaste] = useState(false);
   const [randomizeCount, setRandomizeCount] = useState<number>(mode === 'song' ? 8 : 12);
 
+  // Movie-only: full CLT deck generated around the authored dialogue_game +
+  // comprehension. Empty until the teacher clicks "Generar con IA" or
+  // "Generar por algoritmo". Preserved authored slides slot in at merge time.
+  const [generatedDeck, setGeneratedDeck] = useState<Slide[]>(() => {
+    if (mode !== 'movie' || !initial?.slides) return [];
+    // If editing an existing lesson that already has a full deck, keep the
+    // surrounding slides so the teacher can re-save without losing them.
+    return initial.slides.filter(
+      s => s.type !== 'clip_dialogue_game' && s.type !== 'clip_comprehension',
+    );
+  });
+  const [generating, setGenerating] = useState<null | 'ai' | 'algorithmic'>(null);
+  const [generatorInfo, setGeneratorInfo] = useState<string>('');
+
   const detectedBlanks = (dialogue.match(/\{\{blank\}\}/g) ?? []).length;
   useEffect(() => {
     if (detectedBlanks === blanks.length) return;
@@ -397,6 +437,41 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
     } else {
       setError(null);
     }
+  }
+
+  // ── Full-deck generation (movie mode only) ───────────────────────────
+  async function handleGenerateDeck(genMode: 'ai' | 'algorithmic') {
+    setError(null);
+    if (mode !== 'movie') return;
+    if (!url.trim() || !extractVideoId(url)) { setError(copy.errorNoUrl); return; }
+    if (!title.trim())                       { setError(copy.errorNoTitle); return; }
+    if (!source.trim())                      { setError(copy.errorNoSource); return; }
+    if (!dialogue.trim())                    { setError(copy.errorNoDialogue); return; }
+
+    const clip: ClipData = {
+      title: title.trim(),
+      source: source.trim(),
+      youtubeUrl: url.trim(),
+      dialogue: dialogue.trim(),
+      timings: timingsValid ? timings : undefined,
+      startTime: startTime ? parseFloat(startTime) : undefined,
+      endTime:   endTime   ? parseFloat(endTime)   : undefined,
+      captionsSource: 'manual',
+    };
+
+    setGenerating(genMode);
+    setGeneratorInfo('');
+    const { slides, error: genErr } = await generateFullClipDeck(
+      title.trim(), source.trim(), dialogue.trim(), level, clip, genMode,
+    );
+    setGenerating(null);
+
+    if (genErr || slides.length === 0) {
+      setError(`No se pudo generar el deck (${genMode}): ${genErr ?? 'sin slides'}. ${genMode === 'ai' ? 'Probá con Algoritmo.' : ''}`);
+      return;
+    }
+    setGeneratedDeck(slides);
+    setGeneratorInfo(`${genMode === 'ai' ? '✨ IA' : '⚙️ Algoritmo'}: ${slides.length} slides generadas alrededor de tu Dialogue Game + Comprehension.`);
   }
 
   async function handleSave() {
@@ -460,7 +535,29 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
         : null;
 
       let slides: Slide[];
-      if (editing && initial?.slides && initial.slides.length > 0) {
+      if (generatedDeck.length > 0) {
+        // Fresh deck from the AI/algorithmic generator — slot the authored
+        // dialogue_game + comprehension between vocab_match and language_focus.
+        // The generator emits: [cover, predictions, vocab_match, language_focus,
+        // controlled_practice, production, end] — dialogue_game/comprehension
+        // never come from the generator, so simply splice at the vocab_match
+        // boundary.
+        const vocabIdx = generatedDeck.findIndex(s => s.type === 'clip_vocab_match');
+        const insertAt = vocabIdx >= 0 ? vocabIdx + 1 : Math.min(3, generatedDeck.length);
+        slides = [
+          ...generatedDeck.slice(0, insertAt),
+          gameSlide,
+          ...(comprehensionSlide ? [comprehensionSlide] : []),
+          ...generatedDeck.slice(insertAt),
+        ];
+        // Ensure clipData is on every slide that needs it (in case the AI or
+        // algorithm skipped some — the cover/predictions/production want it).
+        slides = slides.map(s =>
+          s.type === 'clip_cover' || s.type === 'clip_predictions' || s.type === 'clip_production'
+            ? { ...s, clipData: clip }
+            : s,
+        );
+      } else if (editing && initial?.slides && initial.slides.length > 0) {
         slides = initial.slides.map(s => {
           if (s.type === 'clip_dialogue_game' || s.type === 'lyrics_game') return gameSlide;
           if (s.type === 'clip_comprehension') return comprehensionSlide ?? s;
@@ -821,6 +918,59 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Movie mode: full CLT deck generation controls */}
+          {mode === 'movie' && (
+            <div className="md:col-span-2 border-t border-gray-100 pt-4">
+              <div className="rounded-xl p-3 border border-red-100 bg-gradient-to-r from-red-50 to-white">
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#E50914] font-semibold mb-0.5">🎬 Generar Full Deck CLT</p>
+                    <p className="text-[11px] text-red-600/70 leading-relaxed">
+                      Crea las 7 slides alrededor (cover, predictions, vocab, language focus,
+                      controlled practice, production, end). Tu <code className="bg-red-100 px-1 rounded">dialogue_game</code> y <code className="bg-red-100 px-1 rounded">comprehension</code> quedan intactas.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateDeck('ai')}
+                      disabled={generating !== null || saving}
+                      className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-[#E50914] to-[#FF6B6B] text-white disabled:opacity-50 shadow-sm"
+                    >
+                      {generating === 'ai' ? '⏳ Generando…' : '✨ Con IA'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateDeck('algorithmic')}
+                      disabled={generating !== null || saving}
+                      className="text-[11px] font-bold px-3 py-1.5 rounded-full border border-[#E50914] text-[#E50914] hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {generating === 'algorithmic' ? '⏳ Generando…' : '⚙️ Por algoritmo'}
+                    </button>
+                  </div>
+                </div>
+                {generatorInfo && (
+                  <p className="text-[11px] text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
+                    {generatorInfo}
+                  </p>
+                )}
+                {generatedDeck.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {generatedDeck.map((s, i) => (
+                      <span
+                        key={i}
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-red-100 text-red-700"
+                        title={s.title ?? s.type}
+                      >
+                        {s.type.replace('clip_', '').replace('friendlyflix_', '')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

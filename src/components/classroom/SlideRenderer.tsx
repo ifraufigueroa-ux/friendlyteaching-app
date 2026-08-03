@@ -137,6 +137,8 @@ function renderSlide(
       return <ClipControlledPracticeSlide slide={slide} />;
     case 'clip_production':
       return <ClipPredictionsSlide slide={slide} />;
+    case 'friendlyflix_end':
+      return <FriendlyricsEndSlide slide={slide} />;
     // ─── Friendlyrics (music lessons) ────────────────────────────
     case 'song_cover':
       return <SongCoverSlide slide={slide} />;
