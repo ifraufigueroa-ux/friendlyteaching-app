@@ -9,7 +9,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { TOEFL_SECTION_META, TOEFL_SECTIONS, type TOEFLSection } from '@/types/toefl';
+import { TOEFL_SECTION_META, TOEFL_SECTIONS, type TOEFLSection, type TOEFLSession } from '@/types/toefl';
+import { listSessionsForTeacher, sectionsSummary } from '@/lib/toefl/sessions';
 
 interface Preset {
   id:       string;
@@ -38,6 +39,16 @@ export default function TOEFLDashboardPage() {
 
   const [selectedPreset, setSelectedPreset] = useState<string>('rw');
   const [sections, setSections] = useState<Set<TOEFLSection>>(new Set(['reading', 'writing']));
+  const [sessions, setSessions] = useState<TOEFLSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+
+  useEffect(() => {
+    if (!teacherId) return;
+    setLoadingSessions(true);
+    listSessionsForTeacher(teacherId)
+      .then(setSessions)
+      .finally(() => setLoadingSessions(false));
+  }, [teacherId]);
 
   function applyPreset(preset: Preset) {
     setSelectedPreset(preset.id);
@@ -208,10 +219,130 @@ export default function TOEFLDashboardPage() {
           </div>
 
           <p className="text-center text-[10px] text-gray-400 max-w-md mx-auto">
-            💡 Los audios de Listening se generan una vez y quedan cacheados en el bucket.
+            💡 Los audios de Listening se generan on-demand cuando el estudiante los pide, y quedan cacheados en el bucket.
             Writing y Speaking se califican con Claude + Whisper (~$0.06 por session completa).
           </p>
+
+          {/* Sessions table */}
+          <SessionsTable sessions={sessions} loading={loadingSessions} teacherId={teacherId} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sessions table (completed + in-progress) ─────────────────────────────
+
+function fmtDate(ts: unknown): string {
+  if (!ts) return '—';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = ts as any;
+  const d = typeof raw?.toDate === 'function' ? raw.toDate() : new Date((raw?.seconds ?? 0) * 1000);
+  return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function SessionsTable({
+  sessions, loading, teacherId,
+}: {
+  sessions:  TOEFLSession[];
+  loading:   boolean;
+  teacherId: string;
+}) {
+  if (loading) {
+    return (
+      <div className="mt-10 space-y-2">
+        {[1, 2, 3].map(i => <div key={i} className="h-14 bg-[#F0E5FF] rounded-xl animate-pulse" />)}
+      </div>
+    );
+  }
+  if (sessions.length === 0) {
+    return (
+      <div className="mt-10 text-center py-12 rounded-2xl border border-dashed border-[#C8A8DC]/60 bg-white/40">
+        <p className="text-3xl mb-2">📄</p>
+        <p className="text-sm font-bold text-[#5A3D7A]">Aún no hay sesiones</p>
+        <p className="text-xs text-[#5A3D7A]/60 mt-1">Cuando un estudiante termine (o pause) el mock, va a aparecer acá.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-10">
+      <div className="flex items-center gap-2 mb-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#5A3D7A]">
+          Sesiones TOEFL
+        </p>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F0E5FF] text-[#5A3D7A]">
+          {sessions.length}
+        </span>
+      </div>
+      <div className="rounded-2xl overflow-hidden border border-[#E8D5F0] bg-white shadow-md">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[#F0E5FF]">
+              {['Student', 'Date', 'Sections', 'Reading', 'Listening', 'Total', 'Status'].map(h => (
+                <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wider px-3 py-2 text-[#5A3D7A]/70">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.map((s, idx) => {
+              const enabled = s.enabledSections ?? [];
+              const reading   = s.results?.reading?.score.score;
+              const listening = s.results?.listening?.score.score;
+              const isInProgress = s.status === 'in_progress';
+              return (
+                <tr
+                  key={s.id}
+                  className="border-t border-[#F0E5FF] hover:bg-[#FDFAFF] transition-colors"
+                  style={{ background: idx % 2 === 0 ? 'white' : '#FDFAFF' }}
+                >
+                  <td className="px-3 py-2.5">
+                    <p className="font-semibold text-[#5A3D7A]">{s.studentName}</p>
+                    {s.studentEmail && <p className="text-xs text-[#5A3D7A]/60">{s.studentEmail}</p>}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70 tabular-nums">
+                    {fmtDate(s.createdAt)}
+                  </td>
+                  <td className="px-3 py-2.5 text-[11px] font-mono font-bold text-[#5A3D7A]">
+                    {sectionsSummary(enabled)}
+                  </td>
+                  <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
+                    {reading != null ? `${reading}` : <span className="text-gray-300 font-normal">—</span>}
+                  </td>
+                  <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
+                    {listening != null ? `${listening}` : <span className="text-gray-300 font-normal">—</span>}
+                  </td>
+                  <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
+                    {s.overallScore != null ? s.overallScore : <span className="text-gray-300 font-normal">—</span>}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: s.status === 'completed' ? '#DCFCE7' : s.status === 'partial' ? '#FEF3C7' : '#F0E5FF',
+                          color:      s.status === 'completed' ? '#15803D' : s.status === 'partial' ? '#92400E' : '#5A3D7A',
+                        }}
+                      >
+                        {s.status === 'completed' ? 'Completed' : s.status === 'partial' ? 'Partial' : 'In progress'}
+                      </span>
+                      {isInProgress && (
+                        <a
+                          href={`/toefl-mock/${s.mockId}?teacherId=${teacherId}&resumeSessionId=${s.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white hover:opacity-90"
+                          style={{ background: '#5A3D7A' }}
+                        >
+                          ▶ Continuar
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

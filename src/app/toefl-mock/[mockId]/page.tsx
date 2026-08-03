@@ -23,12 +23,36 @@ import { getMock } from '@/lib/data/toefl/mock-1';
 import type {
   TOEFLMock, TOEFLReadingPassage, TOEFLListeningAudio, TOEFLSpeakingPrompt,
   TOEFLWritingPrompt, ReadingAnswer, ListeningAnswer, SpeakingRecording,
-  WritingSubmission, SectionScore, TOEFLSection,
+  WritingSubmission, SectionScore, TOEFLSection, TOEFLLiveSnapshot,
+  TOEFLReadingQuestionType, TOEFLSession,
 } from '@/types/toefl';
 import {
   readingRawToScaled, listeningRawToScaled, speakingRawToScaled,
   TOEFL_SECTIONS, TOEFL_SECTION_META,
 } from '@/types/toefl';
+import {
+  findResumableSession, loadSession, saveLiveSnapshot, clearLiveSnapshot,
+  debouncedSnapshot,
+} from '@/lib/toefl/sessions';
+
+// ── Reading question-type friendly labels ─────────────────────────────────
+const READING_TYPE_LABEL: Record<TOEFLReadingQuestionType, string> = {
+  'factual':                 'Factual information',
+  'negative-factual':        'Negative factual',
+  'vocabulary':              'Vocabulary in context',
+  'inference':               'Inference',
+  'rhetorical-purpose':      'Rhetorical purpose',
+  'sentence-simplification': 'Sentence simplification',
+  'reference':               'Reference',
+};
+
+/** Paragraph tag from index — A, B, C, …, Z, then AA, AB, … */
+function paraTag(zeroBasedIdx: number): string {
+  if (zeroBasedIdx < 26) return String.fromCharCode(65 + zeroBasedIdx);
+  const first  = Math.floor(zeroBasedIdx / 26) - 1;
+  const second = zeroBasedIdx % 26;
+  return String.fromCharCode(65 + first) + String.fromCharCode(65 + second);
+}
 
 const B = {
   purple:      '#5A3D7A',
@@ -155,23 +179,57 @@ function MCQCard({
 }
 
 // ── Reading section ────────────────────────────────────────────────────────
+//
+// Real-TOEFL UX: paragraph markers (¶A, ¶B, …) with jump-scroll from the
+// question header, question-type friendly labels, back navigation, review
+// screen listing all answered/unanswered questions with jump-to buttons.
 
 function ReadingSection({
-  passages, onDone,
+  passages, onDone, initial, onSnapshot,
 }: {
-  passages: TOEFLReadingPassage[];
-  onDone: (answers: ReadingAnswer[]) => void;
+  passages:    TOEFLReadingPassage[];
+  onDone:      (answers: ReadingAnswer[], timeLeftSec: number) => void;
+  initial?:    { outerIdx: number; innerIdx: number; timeLeftSec?: number; answers?: ReadingAnswer[] };
+  onSnapshot?: (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
 }) {
-  const [pIdx, setPIdx] = useState(0);
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, ReadingAnswer>>({});
-  const startRef = useRef(Date.now());
+  const [pIdx, setPIdx] = useState(initial?.outerIdx ?? 0);
+  const [qIdx, setQIdx] = useState(initial?.innerIdx ?? 0);
+  const [answers, setAnswers] = useState<Record<string, ReadingAnswer>>(() => {
+    const map: Record<string, ReadingAnswer> = {};
+    for (const a of initial?.answers ?? []) map[a.questionId] = a;
+    return map;
+  });
+  const [reviewing, setReviewing] = useState(false);
+  const passageRef = useRef<HTMLDivElement>(null);
+
   const totalSec = 35 * 60;
-  const left = useCountdown(totalSec, true, () => finish());
+  const initialTimeLeft = initial?.timeLeftSec && initial.timeLeftSec > 0 ? initial.timeLeftSec : totalSec;
+  const left = useCountdown(initialTimeLeft, true, () => finish());
 
   const passage = passages[pIdx];
   const q = passage.questions[qIdx];
   const selected = answers[q.id]?.selected ?? null;
+
+  // Emit snapshot whenever anything meaningful changes.
+  useEffect(() => {
+    if (!onSnapshot) return;
+    onSnapshot({
+      outerIdx:       pIdx,
+      innerIdx:       qIdx,
+      timeLeftSec:    left,
+      readingAnswers: Object.values(answers),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pIdx, qIdx, answers]);
+
+  // Scroll to the referenced paragraph when the current question changes.
+  useEffect(() => {
+    if (!q.refPara || !passageRef.current) return;
+    const el = passageRef.current.querySelector(`[data-para-idx="${q.refPara - 1}"]`);
+    if (el instanceof HTMLElement) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [q.refPara, pIdx]);
 
   function record(idx: number) {
     const ans: ReadingAnswer = {
@@ -183,71 +241,202 @@ function ReadingSection({
     setAnswers(prev => ({ ...prev, [q.id]: ans }));
   }
 
+  function jumpTo(newPIdx: number, newQIdx: number) {
+    setPIdx(newPIdx);
+    setQIdx(newQIdx);
+    setReviewing(false);
+  }
+
   function nextQuestion() {
-    if (qIdx < passage.questions.length - 1) {
-      setQIdx(i => i + 1);
-      return;
-    }
-    if (pIdx < passages.length - 1) {
-      setPIdx(i => i + 1);
-      setQIdx(0);
-      return;
-    }
-    finish();
+    if (qIdx < passage.questions.length - 1) { setQIdx(i => i + 1); return; }
+    if (pIdx < passages.length - 1)          { setPIdx(i => i + 1); setQIdx(0); return; }
+    setReviewing(true);   // last question → jump to review screen
+  }
+  function prevQuestion() {
+    if (qIdx > 0)                { setQIdx(i => i - 1); return; }
+    if (pIdx > 0)                { setPIdx(i => i - 1); setQIdx(passages[pIdx - 1].questions.length - 1); return; }
   }
 
   function finish() {
     const full: ReadingAnswer[] = passages.flatMap(p =>
       p.questions.map(qu => answers[qu.id] ?? {
-        questionId: qu.id,
-        passageId:  p.id,
-        selected:   null,
-        correct:    false,
+        questionId: qu.id, passageId: p.id, selected: null, correct: false,
       }),
     );
-    onDone(full);
+    onDone(full, left);
   }
+
+  const totalQ = passages.reduce((acc, p) => acc + p.questions.length, 0);
+  const answeredCount = passages.reduce((acc, p) =>
+    acc + p.questions.filter(qu => answers[qu.id]?.selected !== undefined).length, 0);
+
+  // ── Review screen ────────────────────────────────────────────────────
+  if (reviewing) {
+    return (
+      <>
+        <div className="w-full max-w-3xl space-y-4 pb-24">
+          <div className="bg-white rounded-2xl p-6 shadow-lg"
+            style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+            <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Review</span>
+                <h2 className="font-serif text-2xl font-bold mt-1" style={{ color: B.purpleDark }}>
+                  Reading · {answeredCount}/{totalQ} answered
+                </h2>
+              </div>
+              <button
+                onClick={finish}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: '#059669' }}
+              >
+                ✓ Submit Reading
+              </button>
+            </div>
+
+            {passages.map((p, pi) => (
+              <div key={p.id} className="mt-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: B.purple }}>
+                  Passage {pi + 1} — {p.title}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {p.questions.map((qu, qi) => {
+                    const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
+                    return (
+                      <button
+                        key={qu.id}
+                        onClick={() => jumpTo(pi, qi)}
+                        className={`w-9 h-9 rounded-lg text-xs font-bold border-2 transition-colors ${
+                          answered
+                            ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
+                            : 'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
+                        }`}
+                        title={`Q${qi + 1} · ${READING_TYPE_LABEL[qu.type]}`}
+                      >
+                        {qi + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <p className="text-[11px] text-gray-500 italic mt-4">
+              💡 Podés hacer click en cualquier número para volver a esa pregunta. Al Submit se calculan tus puntos y no podés modificar respuestas.
+            </p>
+          </div>
+        </div>
+        <TimerBar label="Reading · 35 min" seconds={left} totalSec={totalSec} warn={120} />
+      </>
+    );
+  }
+
+  // ── Main question view ──────────────────────────────────────────────
+  const isLast = qIdx === passage.questions.length - 1 && pIdx === passages.length - 1;
+  const isFirst = qIdx === 0 && pIdx === 0;
 
   return (
     <>
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
-        {/* Passage */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg max-h-[80vh] overflow-y-auto"
+        {/* Passage with paragraph markers */}
+        <div ref={passageRef} className="bg-white rounded-2xl p-6 shadow-lg max-h-[80vh] overflow-y-auto"
           style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
               Passage {pIdx + 1} of {passages.length}
             </span>
-            <span className="text-[10px] text-gray-400">{passage.wordCount} words</span>
+            <span className="text-[10px] text-gray-400 tabular-nums">{passage.wordCount} words</span>
           </div>
           <h2 className="font-serif text-2xl font-bold mb-4" style={{ color: B.purpleDark }}>{passage.title}</h2>
           <div className="space-y-3 text-sm leading-relaxed text-gray-800">
-            {passage.paragraphs.map((p, i) => (
-              <p key={i} className={q.refPara === i + 1 ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3 -ml-3' : ''}>{p}</p>
-            ))}
+            {passage.paragraphs.map((p, i) => {
+              const highlighted = q.refPara === i + 1;
+              return (
+                <p
+                  key={i}
+                  data-para-idx={i}
+                  className={`flex gap-3 rounded-lg px-2 py-1 -mx-2 transition-colors ${
+                    highlighted ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3' : ''
+                  }`}
+                >
+                  <span
+                    className="shrink-0 font-black text-[11px] tracking-widest tabular-nums select-none"
+                    style={{ color: highlighted ? '#B45309' : B.purpleMed }}
+                  >
+                    ¶{paraTag(i)}
+                  </span>
+                  <span className="flex-1">{p}</span>
+                </p>
+              );
+            })}
           </div>
         </div>
 
         {/* Question */}
         <div className="bg-white rounded-2xl p-6 shadow-lg self-start"
           style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Question {qIdx + 1} of {passage.questions.length} · {q.type}
+              Question {qIdx + 1} of {passage.questions.length}
             </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: B.lavender, color: B.purple }}>
+                {READING_TYPE_LABEL[q.type]}
+              </span>
+              {q.refPara && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">
+                  → ¶{paraTag(q.refPara - 1)}
+                </span>
+              )}
+            </div>
           </div>
           <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
-          <div className="mt-5 flex justify-end">
+
+          {/* Question dots for this passage */}
+          <div className="mt-5 flex flex-wrap gap-1.5">
+            {passage.questions.map((qu, qi) => {
+              const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
+              const active   = qi === qIdx;
+              return (
+                <button
+                  key={qu.id}
+                  onClick={() => setQIdx(qi)}
+                  className={`w-7 h-7 rounded text-[10px] font-bold border-2 transition-colors ${
+                    active    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+                    : answered ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
+                    :            'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
+                  }`}
+                >
+                  {qi + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex justify-between gap-2">
             <button
-              onClick={nextQuestion}
-              disabled={selected === null}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
-              style={{ background: B.purple }}
+              onClick={prevQuestion}
+              disabled={isFirst}
+              className="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50 transition-colors"
             >
-              {qIdx === passage.questions.length - 1 && pIdx === passages.length - 1
-                ? 'Finish Reading →'
-                : 'Next →'}
+              ← Back
             </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setReviewing(true)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors"
+              >
+                Review all
+              </button>
+              <button
+                onClick={nextQuestion}
+                disabled={selected === null}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
+                style={{ background: B.purple }}
+              >
+                {isLast ? 'Review →' : 'Next →'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -259,23 +448,48 @@ function ReadingSection({
 // ── Listening section ─────────────────────────────────────────────────────
 
 function ListeningSection({
-  audios, audioUrls, onDone,
+  audios, audioUrls, onDone, onGenerateAudio, initial, onSnapshot,
 }: {
-  audios:    TOEFLListeningAudio[];
-  audioUrls: Record<string, string>;
-  onDone:    (answers: ListeningAnswer[]) => void;
+  audios:          TOEFLListeningAudio[];
+  audioUrls:       Record<string, string>;
+  onDone:          (answers: ListeningAnswer[], timeLeftSec: number, notes: Record<string, string>) => void;
+  onGenerateAudio: (audioId: string) => Promise<string | null>;
+  initial?:        { outerIdx: number; innerIdx: number; audioPhase?: 'play' | 'quiz'; timeLeftSec?: number; answers?: ListeningAnswer[]; notes?: Record<string, string> };
+  onSnapshot?:     (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
 }) {
-  const [aIdx, setAIdx] = useState(0);
-  const [phase, setPhase] = useState<'play' | 'quiz'>('play');
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, ListeningAnswer>>({});
+  const [aIdx, setAIdx] = useState(initial?.outerIdx ?? 0);
+  const [phase, setPhase] = useState<'play' | 'quiz'>(initial?.audioPhase ?? 'play');
+  const [qIdx, setQIdx] = useState(initial?.innerIdx ?? 0);
+  const [answers, setAnswers] = useState<Record<string, ListeningAnswer>>(() => {
+    const map: Record<string, ListeningAnswer> = {};
+    for (const a of initial?.answers ?? []) map[a.questionId] = a;
+    return map;
+  });
+  const [notes, setNotes] = useState<Record<string, string>>(initial?.notes ?? {});
+  const [generating, setGenerating] = useState(false);
+  const [genError,   setGenError]   = useState('');
+
   const totalSec = 20 * 60;
-  const left = useCountdown(totalSec, true, () => finish());
+  const initialTimeLeft = initial?.timeLeftSec && initial.timeLeftSec > 0 ? initial.timeLeftSec : totalSec;
+  const left = useCountdown(initialTimeLeft, true, () => finish());
 
   const audio = audios[aIdx];
   const q = audio.questions[qIdx];
   const url = audioUrls[audio.id];
   const selected = phase === 'quiz' ? answers[q.id]?.selected ?? null : null;
+
+  useEffect(() => {
+    if (!onSnapshot) return;
+    onSnapshot({
+      outerIdx:         aIdx,
+      innerIdx:         qIdx,
+      audioPhase:       phase,
+      timeLeftSec:      left,
+      listeningAnswers: Object.values(answers),
+      listeningNotes:   notes,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aIdx, qIdx, phase, answers, notes]);
 
   function record(idx: number) {
     const ans: ListeningAnswer = {
@@ -287,12 +501,14 @@ function ListeningSection({
     setAnswers(prev => ({ ...prev, [q.id]: ans }));
   }
 
+  function setNotesFor(audioId: string, value: string) {
+    setNotes(prev => ({ ...prev, [audioId]: value }));
+  }
+
   function nextQuestion() {
     if (qIdx < audio.questions.length - 1) { setQIdx(i => i + 1); return; }
     if (aIdx < audios.length - 1) {
-      setAIdx(i => i + 1);
-      setQIdx(0);
-      setPhase('play');
+      setAIdx(i => i + 1); setQIdx(0); setPhase('play');
       return;
     }
     finish();
@@ -304,12 +520,20 @@ function ListeningSection({
         questionId: qu.id, audioId: a.id, selected: null, correct: false,
       }),
     );
-    onDone(full);
+    onDone(full, left, notes);
+  }
+
+  async function requestGeneration() {
+    setGenerating(true);
+    setGenError('');
+    const url = await onGenerateAudio(audio.id);
+    setGenerating(false);
+    if (!url) setGenError('No se pudo generar el audio. Avisale al profesor.');
   }
 
   return (
     <>
-      <div className="w-full max-w-2xl space-y-4 pb-24">
+      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4 pb-24">
         <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
           <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
@@ -323,34 +547,32 @@ function ListeningSection({
             <>
               {url ? (
                 <div className="bg-[#F0E5FF] rounded-xl p-3 mb-3">
-                  <audio src={url} controls className="w-full" />
+                  <audio src={url} controls className="w-full" preload="auto" />
                   <p className="text-[10px] text-gray-500 mt-2 text-center italic">
                     Escuchá el audio con atención. Después vas a contestar {audio.questions.length} preguntas.
+                    Podés tomar notas en el panel de la derecha.
                   </p>
                 </div>
               ) : (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
-                  <p className="text-xs text-amber-800 font-semibold">⚠ Audio no generado todavía</p>
+                  <p className="text-xs text-amber-800 font-semibold">⚠ Audio pendiente de generar</p>
                   <p className="text-[11px] text-amber-700 mt-1 leading-relaxed">
-                    Ejecutá <code className="bg-white/60 px-1 rounded">node scripts/generate-toefl-audios.js</code> para
-                    generar el audio con ElevenLabs y bindearlo. Mientras tanto, podés leer el script para simular.
+                    Podés generarlo ahora mismo con TTS. Tarda ~30-60 segundos según la duración del clip.
                   </p>
-                  <details className="mt-2">
-                    <summary className="text-[11px] font-semibold text-amber-800 cursor-pointer">Ver script</summary>
-                    <div className="mt-2 max-h-64 overflow-y-auto text-[11px] text-gray-700 space-y-1.5">
-                      {audio.script.map((line, i) => {
-                        const speaker = audio.speakers.find(s => s.id === line.speakerId)?.name ?? line.speakerId;
-                        return (
-                          <p key={i}><strong className="text-[#5A3D7A]">{speaker}:</strong> {line.text}</p>
-                        );
-                      })}
-                    </div>
-                  </details>
+                  <button
+                    onClick={requestGeneration}
+                    disabled={generating}
+                    className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-60 transition-colors"
+                  >
+                    {generating ? '⏳ Generando audio…' : '🎙 Generar audio ahora'}
+                  </button>
+                  {genError && <p className="text-[11px] text-red-600 mt-2">{genError}</p>}
                 </div>
               )}
               <button
                 onClick={() => setPhase('quiz')}
-                className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                disabled={!url}
+                className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: B.purple }}
               >
                 Continuar a las preguntas →
@@ -360,12 +582,40 @@ function ListeningSection({
 
           {phase === 'quiz' && (
             <>
-              <div className="mb-3">
+              <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
                   Question {qIdx + 1} of {audio.questions.length}
                 </span>
+                <button
+                  onClick={() => setPhase('play')}
+                  className="text-[10px] font-semibold text-[#5A3D7A] hover:underline"
+                >
+                  ↩ volver al audio
+                </button>
               </div>
               <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
+
+              {/* Question dots for this audio */}
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {audio.questions.map((qu, qi) => {
+                  const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
+                  const active   = qi === qIdx;
+                  return (
+                    <button
+                      key={qu.id}
+                      onClick={() => setQIdx(qi)}
+                      className={`w-7 h-7 rounded text-[10px] font-bold border-2 transition-colors ${
+                        active    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+                        : answered ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
+                        :            'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
+                      }`}
+                    >
+                      {qi + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="mt-5 flex justify-end">
                 <button
                   onClick={nextQuestion}
@@ -380,6 +630,26 @@ function ListeningSection({
               </div>
             </>
           )}
+        </div>
+
+        {/* Notes sidebar — always visible, per-audio */}
+        <div className="bg-white rounded-2xl p-4 shadow-lg self-start"
+          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+              📝 Notas — audio {aIdx + 1}
+            </p>
+          </div>
+          <textarea
+            value={notes[audio.id] ?? ''}
+            onChange={e => setNotesFor(audio.id, e.target.value)}
+            rows={14}
+            placeholder="Escribí las palabras clave que escuchás. En el TOEFL real podés tomar notas mientras suena el audio."
+            className="w-full text-xs px-3 py-2 rounded-lg border border-[#E8D5F0] focus:outline-none focus:border-[#9B7CB8] focus:ring-1 focus:ring-[#C8A8DC] leading-snug resize-y font-mono text-gray-700"
+          />
+          <p className="text-[9px] text-gray-400 mt-1.5 italic">
+            Tus notas se guardan solas y se mantienen entre audios.
+          </p>
         </div>
       </div>
       <TimerBar label="Listening · 20 min" seconds={left} totalSec={totalSec} warn={60} />
@@ -749,6 +1019,7 @@ export default function TOEFLMockPage() {
   const nameParam = searchParams.get('name') ?? '';
   const emailParam = searchParams.get('email') ?? '';
   const sectionsParam = searchParams.get('sections') ?? '';
+  const resumeSessionIdParam = searchParams.get('resumeSessionId') ?? '';
 
   // Selected sections come from ?sections=reading,writing (defaults to all
   // four for backwards-compat when the query param is absent).
@@ -777,6 +1048,10 @@ export default function TOEFLMockPage() {
   const sessionIdRef = useRef<string>('');
   const [scores, setScores] = useState<Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>>({});
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({});
+  const [resumeCandidate, setResumeCandidate] = useState<TOEFLSession | null>(null);
+  const [hydration, setHydration] = useState<TOEFLLiveSnapshot | null>(null);
+  const debouncedSaveRef = useRef<ReturnType<typeof debouncedSnapshot> | null>(null);
+  if (!debouncedSaveRef.current) debouncedSaveRef.current = debouncedSnapshot(800);
 
   // Load audio bindings once we know the teacherId and mock
   useEffect(() => {
@@ -796,6 +1071,68 @@ export default function TOEFLMockPage() {
     })();
   }, [teacherId, mock]);
 
+  // If URL carries ?resumeSessionId=… (teacher clicked "Continuar" from the
+  // dashboard), load that session doc directly and jump straight into the
+  // right section with the saved snapshot.
+  useEffect(() => {
+    if (!resumeSessionIdParam) return;
+    (async () => {
+      const sess = await loadSession(resumeSessionIdParam);
+      if (!sess || sess.status !== 'in_progress') return;
+      sessionIdRef.current = sess.id;
+      setName(sess.studentName);
+      if (sess.studentEmail) setEmail(sess.studentEmail);
+      if (sess.liveSnapshot) {
+        setHydration(sess.liveSnapshot);
+        setPhase(sess.liveSnapshot.section as Phase);
+      } else {
+        setPhase('intro');
+      }
+    })();
+  }, [resumeSessionIdParam]);
+
+  // On landing → after name entered → look for an in-progress session with
+  // this teacherId + mockId + studentName so we can offer to resume.
+  useEffect(() => {
+    if (phase !== 'landing') return;
+    if (!teacherId || !name.trim()) return;
+    if (resumeSessionIdParam) return; // already resuming via explicit id
+    const t = setTimeout(async () => {
+      const found = await findResumableSession(teacherId, mock?.id ?? mockId, name.trim());
+      setResumeCandidate(found);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [phase, teacherId, name, mock, mockId, resumeSessionIdParam]);
+
+  /** Persist the currently-in-flight section's snapshot to Firestore. */
+  function persistLiveSnapshot(section: TOEFLSection, snap: Omit<TOEFLLiveSnapshot, 'section'>) {
+    if (!sessionIdRef.current) return;
+    debouncedSaveRef.current!(sessionIdRef.current, { section, ...snap });
+  }
+
+  /** Request on-demand ElevenLabs generation for a listening audio. Returns
+   *  the URL on success, or null on error. */
+  async function generateAudioOnDemand(audioId: string): Promise<string | null> {
+    if (!teacherId || !mock) return null;
+    try {
+      const res = await fetch('/api/toefl-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teacherId, mockId: mock.id, audioId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.audioUrl) {
+        console.error('[toefl-mock] generate audio failed:', data);
+        return null;
+      }
+      setAudioUrls(prev => ({ ...prev, [audioId]: data.audioUrl }));
+      return data.audioUrl as string;
+    } catch (err) {
+      console.error('[toefl-mock] generate audio err:', err);
+      return null;
+    }
+  }
+
   async function ensureSession(): Promise<string> {
     if (sessionIdRef.current) return sessionIdRef.current;
     const ref = doc(collection(db, 'toeflSessions'));
@@ -805,8 +1142,9 @@ export default function TOEFLMockPage() {
       studentName:  name.trim(),
       studentEmail: email.trim() || null,
       mockId:       mock?.id ?? mockId,
+      enabledSections,
       results:      {},
-      progress:     { reading: 'pending', listening: 'pending', speaking: 'pending', writing: 'pending' },
+      progress:     Object.fromEntries(enabledSections.map(s => [s, 'pending'])),
       status:       'in_progress',
       startedAt:    Timestamp.now(),
       createdAt:    serverTimestamp(),
@@ -869,10 +1207,12 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, reading: score }));
     await persistSection('reading', { answers, score });
+    if (sessionIdRef.current) await clearLiveSnapshot(sessionIdRef.current);
+    setHydration(null);
     await advanceFrom('reading', score);
   }
 
-  async function onListeningDone(answers: ListeningAnswer[]) {
+  async function onListeningDone(answers: ListeningAnswer[], _timeLeftSec: number, _notes: Record<string, string>) {
     const correct = answers.filter(a => a.correct).length;
     const score: SectionScore = {
       section: 'listening',
@@ -882,6 +1222,8 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, listening: score }));
     await persistSection('listening', { answers, score });
+    if (sessionIdRef.current) await clearLiveSnapshot(sessionIdRef.current);
+    setHydration(null);
     await advanceFrom('listening', score);
   }
 
@@ -1001,6 +1343,45 @@ export default function TOEFLMockPage() {
                 style={{ border: `2px solid ${B.lavenderDark}`, background: '#FDFAFF', color: B.purple }} />
             </div>
             {formError && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{formError}</p>}
+
+            {resumeCandidate && (
+              <div className="rounded-xl border border-[#5A3D7A]/40 bg-[#F0E5FF] p-3">
+                <p className="text-[11px] font-black uppercase tracking-widest text-[#5A3D7A]">
+                  📌 Test en curso
+                </p>
+                <p className="text-[11px] text-[#5A3D7A]/80 mt-1">
+                  Encontramos una sesión sin terminar para <strong>{resumeCandidate.studentName}</strong>. Podés continuar donde quedaste.
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sessionIdRef.current = resumeCandidate.id;
+                      if (resumeCandidate.studentEmail) setEmail(resumeCandidate.studentEmail);
+                      if (resumeCandidate.liveSnapshot) {
+                        setHydration(resumeCandidate.liveSnapshot);
+                        setPhase(resumeCandidate.liveSnapshot.section as Phase);
+                      } else {
+                        setPhase('intro');
+                      }
+                      setResumeCandidate(null);
+                    }}
+                    className="flex-1 text-[11px] font-bold py-2 rounded-lg text-white transition-opacity hover:opacity-90"
+                    style={{ background: B.purple }}
+                  >
+                    ▶ Continuar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResumeCandidate(null)}
+                    className="text-[11px] font-semibold text-[#5A3D7A] px-3 py-2 rounded-lg border border-[#5A3D7A]/40 hover:bg-white"
+                  >
+                    Empezar nuevo
+                  </button>
+                </div>
+              </div>
+            )}
+
             <button type="submit" className="w-full font-bold py-3.5 rounded-xl text-white text-sm transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
               Continuar →
@@ -1063,8 +1444,48 @@ export default function TOEFLMockPage() {
     );
   }
 
-  if (phase === 'reading') return <PageBg><ReadingSection passages={mock!.reading} onDone={onReadingDone} /></PageBg>;
-  if (phase === 'listening') return <PageBg><ListeningSection audios={mock!.listening} audioUrls={audioUrls} onDone={onListeningDone} /></PageBg>;
+  if (phase === 'reading') {
+    void ensureSession();
+    const readingHydration = hydration?.section === 'reading' ? {
+      outerIdx:    hydration.outerIdx,
+      innerIdx:    hydration.innerIdx,
+      timeLeftSec: hydration.timeLeftSec,
+      answers:     hydration.readingAnswers,
+    } : undefined;
+    return (
+      <PageBg>
+        <ReadingSection
+          passages={mock!.reading}
+          onDone={onReadingDone}
+          initial={readingHydration}
+          onSnapshot={(snap) => persistLiveSnapshot('reading', snap)}
+        />
+      </PageBg>
+    );
+  }
+  if (phase === 'listening') {
+    void ensureSession();
+    const listeningHydration = hydration?.section === 'listening' ? {
+      outerIdx:    hydration.outerIdx,
+      innerIdx:    hydration.innerIdx,
+      audioPhase:  hydration.audioPhase,
+      timeLeftSec: hydration.timeLeftSec,
+      answers:     hydration.listeningAnswers,
+      notes:       hydration.listeningNotes,
+    } : undefined;
+    return (
+      <PageBg>
+        <ListeningSection
+          audios={mock!.listening}
+          audioUrls={audioUrls}
+          onDone={onListeningDone}
+          onGenerateAudio={generateAudioOnDemand}
+          initial={listeningHydration}
+          onSnapshot={(snap) => persistLiveSnapshot('listening', snap)}
+        />
+      </PageBg>
+    );
+  }
   if (phase === 'speaking') return <PageBg><SpeakingSection prompts={mock!.speaking} teacherId={teacherId} sessionId={sessionIdRef.current || 'anon'} onDone={onSpeakingDone} /></PageBg>;
   if (phase === 'writing') return <PageBg><WritingSection prompt={mock!.writing} onDone={onWritingDone} /></PageBg>;
 

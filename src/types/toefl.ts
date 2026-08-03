@@ -173,6 +173,25 @@ export interface WritingSubmission {
 
 export type TOEFLSessionStatus = 'in_progress' | 'completed' | 'partial';
 
+/** Live progress inside the current section — written on every answer /
+ *  navigation event so the runner can rehydrate mid-attempt. */
+export interface TOEFLLiveSnapshot {
+  section:      TOEFLSection;         // which section is in flight
+  /** Reading: passage index. Listening: audio index. Others unused. */
+  outerIdx:     number;
+  /** Question index within the passage / audio (or task index for speaking). */
+  innerIdx:     number;
+  /** For listening: which phase inside the current audio ('play' | 'quiz'). */
+  audioPhase?:  'play' | 'quiz';
+  /** Seconds remaining on the section timer. */
+  timeLeftSec:  number;
+  /** Partial answers keyed by questionId — merged into results at finalise. */
+  readingAnswers?:   ReadingAnswer[];
+  listeningAnswers?: ListeningAnswer[];
+  /** Listening notes textarea, keyed by audioId. */
+  listeningNotes?:   Record<string, string>;
+}
+
 export interface TOEFLSession {
   id:              string;
   teacherId:       string;
@@ -180,6 +199,8 @@ export interface TOEFLSession {
   studentEmail?:   string;
   linkedStudentId?: string;
   mockId:          string;
+  /** Sections enabled at start (from ?sections=). Persisted so resume respects it. */
+  enabledSections?: TOEFLSection[];
   results: {
     reading?:   { answers: ReadingAnswer[];    score: SectionScore };
     listening?: { answers: ListeningAnswer[];  score: SectionScore };
@@ -189,6 +210,9 @@ export interface TOEFLSession {
   progress:        Partial<Record<TOEFLSection, 'pending' | 'in_progress' | 'completed' | 'skipped'>>;
   overallScore?:   number;   // 0-120 sum of section scores
   status:          TOEFLSessionStatus;
+  /** Latest live snapshot for the in-flight section. Cleared on completion. */
+  liveSnapshot?:          TOEFLLiveSnapshot;
+  liveSnapshotUpdatedAt?: Timestamp;
   startedAt:       Timestamp;
   completedAt?:    Timestamp;
   createdAt:       Timestamp;
