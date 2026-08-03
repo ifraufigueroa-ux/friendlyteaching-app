@@ -16,7 +16,7 @@ import type {
 } from '@/types/placement';
 import type {
   ComponentId, ComponentResult, PlacementSuiteSession,
-  ReadingPassage,
+  ReadingPassage, SerializableAdaptiveState,
 } from '@/types/placement-suite';
 import {
   computeSectionScores, determineLevel, computeWeakAreas,
@@ -433,4 +433,51 @@ export function deriveSuiteStatus(
   if (done === 0) return 'in_progress';
   if (done === requested.length) return 'completed';
   return 'partially_completed';
+}
+
+// ── Adaptive state serialization (mid-component resume) ──────────────────
+//
+// AdaptiveState uses Set<> for askedIds/passedLevels/failedLevels and holds
+// full PlacementQuestion objects in tierAsked. Firestore doesn't take Sets,
+// and re-storing the full questions bloats the doc. We store ids and rebuild
+// on hydration from the bank.
+
+export function serializeAdaptiveState(
+  s: AdaptiveState,
+): SerializableAdaptiveState {
+  return {
+    currentLevel:      s.currentLevel,
+    tierAskedIds:      s.tierAsked.map((q) => q.id),
+    tierAnswers:       s.tierAnswers,
+    passedLevels:      [...s.passedLevels],
+    failedLevels:      [...s.failedLevels],
+    askedIds:          [...s.askedIds],
+    totalAsked:        s.totalAsked,
+    consecCorrectTier: s.consecCorrectTier,
+    consecWrongTier:   s.consecWrongTier,
+    direction:         s.direction,
+    done:              s.done,
+    placedLevel:       s.placedLevel,
+  };
+}
+
+export function deserializeAdaptiveState(
+  s: SerializableAdaptiveState,
+  bank: PlacementQuestion[],
+): AdaptiveState {
+  const byId = new Map(bank.map((q) => [q.id, q]));
+  return {
+    currentLevel:      s.currentLevel,
+    tierAsked:         s.tierAskedIds.map((id) => byId.get(id)).filter(Boolean) as PlacementQuestion[],
+    tierAnswers:       s.tierAnswers,
+    passedLevels:      new Set(s.passedLevels),
+    failedLevels:      new Set(s.failedLevels),
+    askedIds:          new Set(s.askedIds),
+    totalAsked:        s.totalAsked,
+    consecCorrectTier: s.consecCorrectTier,
+    consecWrongTier:   s.consecWrongTier,
+    direction:         s.direction,
+    done:              s.done,
+    placedLevel:       s.placedLevel,
+  };
 }

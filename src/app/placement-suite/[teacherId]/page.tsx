@@ -11,11 +11,12 @@
 // power outage mid-suite only loses the *current* component's answers.
 
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
-  collection, doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp,
+  collection, doc, getDoc, getDocs, setDoc, updateDoc, serverTimestamp, Timestamp,
+  query, where, orderBy, limit,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 
@@ -32,11 +33,13 @@ import {
   aggregateSuite, deriveSuiteStatus, scoreMCQComponent, scoreReadingComponent,
   initAdaptiveState, pickNextAdaptiveQuestion, recordAdaptiveAnswer,
   pickCalibratedQuestions, pickCalibratedPassages,
+  serializeAdaptiveState, deserializeAdaptiveState,
   type AdaptiveState,
 } from '@/lib/placementSuite';
 import {
   COMPONENT_META, PRESETS, VOCAB_TOPIC_LABELS, READING_TYPE_LABELS,
   type ComponentId, type ComponentResult, type SuiteMode, type Budgets, type GrammarMode,
+  type LiveSnapshot,
 } from '@/types/placement-suite';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementQuestion, PlacementAnswer, LearningProgram, WeakArea } from '@/types/placement';
@@ -213,7 +216,7 @@ function ProgressBar({ current, total, label }: { current: number; total: number
 // ── Grammar runner (reused for Vocabulary too) ─────────────────────────────
 
 function MCQRunner({
-  componentId, bank, teacherLed, allowAutoStop, onComplete, label,
+  componentId, bank, teacherLed, allowAutoStop, onComplete, label, onProgress, initialSnapshot,
 }: {
   componentId: ComponentId;
   bank: PlacementQuestion[];
@@ -221,9 +224,11 @@ function MCQRunner({
   allowAutoStop: boolean;    // grammar = true, vocab = false
   onComplete: (result: ComponentResult) => void;
   label: string;
+  onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'linear-mcq' }>) => void;
+  initialSnapshot?: Extract<LiveSnapshot, { kind: 'linear-mcq' }>;
 }) {
-  const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  const [idx, setIdx] = useState(() => initialSnapshot?.currentIndex ?? 0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.answers ?? []);
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const startRef = useRef<Date>(new Date());
@@ -248,6 +253,17 @@ function MCQRunner({
   }
 
   const pending = useRef<PlacementAnswer | null>(null);
+
+  function emitProgress(nextAnswers: PlacementAnswer[], nextIdx: number) {
+    if (!onProgress || componentId !== 'vocabulary') return;
+    onProgress({
+      kind:         'linear-mcq',
+      componentId:  'vocabulary',
+      answers:      nextAnswers,
+      questionIds:  bank.map((b) => b.id),
+      currentIndex: nextIdx,
+    });
+  }
 
   function next() {
     if (!confirmed || !pending.current) return;
@@ -275,6 +291,7 @@ function MCQRunner({
     setSelected(null);
     setConfirmed(false);
     questionStart.current = Date.now();
+    emitProgress(newAnswers, idx + 1);
   }
 
   return (
@@ -344,15 +361,17 @@ function MCQRunner({
 // so we don't waste 6 questions warming up.
 
 function AdaptiveMCQRunner({
-  componentId, bank, hardCap, anchorLevel, teacherLed, label, onComplete,
+  componentId, bank, hardCap, anchorLevel, teacherLed, label, onComplete, onProgress, initialSnapshot,
 }: {
-  componentId: 'grammar' | 'vocabulary';
-  bank:        PlacementQuestion[];
-  hardCap:     number;
-  anchorLevel: LessonLevel;
-  teacherLed:  boolean;
-  label:       string;
-  onComplete:  (result: ComponentResult) => void;
+  componentId:      'grammar' | 'vocabulary';
+  bank:             PlacementQuestion[];
+  hardCap:          number;
+  anchorLevel:      LessonLevel;
+  teacherLed:       boolean;
+  label:            string;
+  onComplete:       (result: ComponentResult) => void;
+  onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'adaptive-mcq' }>) => void;
+  initialSnapshot?: Extract<LiveSnapshot, { kind: 'adaptive-mcq' }>;
 }) {
   const cfg = useMemo(() => ({
     hardCap,
@@ -364,9 +383,21 @@ function AdaptiveMCQRunner({
     failThreshold:    0.4,
   }), [hardCap, anchorLevel]);
 
-  const [state, setState] = useState<AdaptiveState>(() => initAdaptiveState(cfg));
-  const [currentQ, setCurrentQ] = useState<PlacementQuestion | null>(() => pickNextAdaptiveQuestion(bank, initAdaptiveState(cfg)));
-  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  // Hydrate from snapshot if present, otherwise fresh state.
+  const [state, setState] = useState<AdaptiveState>(() =>
+    initialSnapshot ? deserializeAdaptiveState(initialSnapshot.state, bank) : initAdaptiveState(cfg),
+  );
+  const [currentQ, setCurrentQ] = useState<PlacementQuestion | null>(() => {
+    if (initialSnapshot) {
+      const rehydrated = deserializeAdaptiveState(initialSnapshot.state, bank);
+      // Try to resurface the same current Q; fall back to a fresh draw.
+      const savedId = initialSnapshot.currentQId;
+      const saved = savedId != null ? bank.find((q) => q.id === savedId) : null;
+      return saved ?? pickNextAdaptiveQuestion(bank, rehydrated);
+    }
+    return pickNextAdaptiveQuestion(bank, initAdaptiveState(cfg));
+  });
+  const [answers, setAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.answers ?? []);
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const startRef = useRef<Date>(new Date());
@@ -374,6 +405,17 @@ function AdaptiveMCQRunner({
   const pending = useRef<PlacementAnswer | null>(null);
 
   const completedRef = useRef(false);
+
+  function emitProgress(nextState: AdaptiveState, nextAnswers: PlacementAnswer[], nextQ: PlacementQuestion | null) {
+    if (!onProgress) return;
+    onProgress({
+      kind:        'adaptive-mcq',
+      componentId,
+      answers:     nextAnswers,
+      currentQId:  nextQ?.id,
+      state:       serializeAdaptiveState(nextState),
+    });
+  }
 
   function confirm() {
     if (selected === null || confirmed || !currentQ) return;
@@ -424,6 +466,7 @@ function AdaptiveMCQRunner({
     setSelected(null);
     setConfirmed(false);
     questionStart.current = Date.now();
+    emitProgress(newState, newAnswers, nextQ);
   }
 
   if (!currentQ) return null;
@@ -496,15 +539,17 @@ function AdaptiveMCQRunner({
 // ── Reading runner ─────────────────────────────────────────────────────────
 
 function ReadingRunner({
-  passages, teacherLed, onComplete,
+  passages, teacherLed, onComplete, onProgress, initialSnapshot,
 }: {
-  passages:   ReadingPassage[];
-  teacherLed: boolean;
-  onComplete: (result: ComponentResult) => void;
+  passages:         ReadingPassage[];
+  teacherLed:       boolean;
+  onComplete:       (result: ComponentResult) => void;
+  onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'linear-reading' }>) => void;
+  initialSnapshot?: Extract<LiveSnapshot, { kind: 'linear-reading' }>;
 }) {
-  const [pIdx, setPIdx] = useState(0);
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
+  const [pIdx, setPIdx] = useState(() => initialSnapshot?.currentPassageIdx ?? 0);
+  const [qIdx, setQIdx] = useState(() => initialSnapshot?.currentQIdx ?? 0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.answers ?? []);
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const startRef = useRef<Date>(new Date());
@@ -517,6 +562,18 @@ function ReadingRunner({
   const answeredCount  = answers.length;
 
   const pending = useRef<PlacementAnswer | null>(null);
+
+  function emitProgress(nextAnswers: PlacementAnswer[], nextPIdx: number, nextQIdx: number) {
+    if (!onProgress) return;
+    onProgress({
+      kind:              'linear-reading',
+      componentId:       'reading',
+      answers:           nextAnswers,
+      passageIds:        passages.map((p) => p.id),
+      currentPassageIdx: nextPIdx,
+      currentQIdx:       nextQIdx,
+    });
+  }
 
   function confirm() {
     if (selected === null || confirmed) return;
@@ -552,15 +609,14 @@ function ReadingRunner({
     }
 
     setAnswers(newAnswers);
-    if (isLastQInPassage) {
-      setPIdx(p => p + 1);
-      setQIdx(0);
-    } else {
-      setQIdx(qidx => qidx + 1);
-    }
+    const nextPIdx = isLastQInPassage ? pIdx + 1 : pIdx;
+    const nextQIdx = isLastQInPassage ? 0 : qIdx + 1;
+    setPIdx(nextPIdx);
+    setQIdx(nextQIdx);
     setSelected(null);
     setConfirmed(false);
     questionStart.current = Date.now();
+    emitProgress(newAnswers, nextPIdx, nextQIdx);
   }
 
   return (
@@ -648,12 +704,14 @@ function ReadingRunner({
 // Runs until `budget` passages are shown or the bank is drained.
 
 function AdaptiveReadingRunner({
-  budget, anchorLevel, teacherLed, onComplete,
+  budget, anchorLevel, teacherLed, onComplete, onProgress, initialSnapshot,
 }: {
-  budget:      number;   // number of passages to show
-  anchorLevel: LessonLevel;
-  teacherLed:  boolean;
-  onComplete:  (result: ComponentResult) => void;
+  budget:           number;   // number of passages to show
+  anchorLevel:      LessonLevel;
+  teacherLed:       boolean;
+  onComplete:       (result: ComponentResult) => void;
+  onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'adaptive-reading' }>) => void;
+  initialSnapshot?: Extract<LiveSnapshot, { kind: 'adaptive-reading' }>;
 }) {
   const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
@@ -677,19 +735,54 @@ function AdaptiveReadingRunner({
     return PLACEMENT_READING[0];   // last-resort — should never happen
   };
 
-  const [currentPassage, setCurrentPassage] = useState<ReadingPassage>(() => pickInitial(anchorLevel));
-  const [usedIds, setUsedIds] = useState<Set<string>>(() => new Set([pickInitial(anchorLevel).id]));
-  const [passagesDone, setPassagesDone] = useState(0);
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
-  const [currentPassageAnswers, setCurrentPassageAnswers] = useState<PlacementAnswer[]>([]);
-  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() => new Set());
+  const initialPassage = useMemo<ReadingPassage>(() => {
+    if (initialSnapshot) {
+      const p = PLACEMENT_READING.find((x) => x.id === initialSnapshot.currentPassageId);
+      if (p) return p;
+    }
+    return pickInitial(anchorLevel);
+  }, [initialSnapshot, anchorLevel]);
+
+  const [currentPassage, setCurrentPassage] = useState<ReadingPassage>(() => initialPassage);
+  const [usedIds, setUsedIds] = useState<Set<string>>(() =>
+    initialSnapshot ? new Set(initialSnapshot.usedIds) : new Set([initialPassage.id]),
+  );
+  const [passagesDone, setPassagesDone] = useState(() => initialSnapshot?.passagesDone ?? 0);
+  const [qIdx, setQIdx] = useState(() => initialSnapshot?.qIdx ?? 0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.answers ?? []);
+  const [currentPassageAnswers, setCurrentPassageAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.currentPassageAnswers ?? []);
+  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() =>
+    initialSnapshot ? new Set(initialSnapshot.passedLevels) : new Set(),
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const startRef = useRef<Date>(new Date());
   const questionStart = useRef<number>(Date.now());
   const pending = useRef<PlacementAnswer | null>(null);
   const completedRef = useRef(false);
+
+  function emitProgress(patch: {
+    answers:               PlacementAnswer[];
+    currentPassageId:      string;
+    currentPassageAnswers: PlacementAnswer[];
+    usedIds:               Set<string>;
+    passagesDone:          number;
+    qIdx:                  number;
+    passedLevels:          Set<LessonLevel>;
+  }) {
+    if (!onProgress) return;
+    onProgress({
+      kind:                  'adaptive-reading',
+      componentId:           'reading',
+      answers:               patch.answers,
+      currentPassageId:      patch.currentPassageId,
+      currentPassageAnswers: patch.currentPassageAnswers,
+      usedIds:               [...patch.usedIds],
+      passagesDone:          patch.passagesDone,
+      qIdx:                  patch.qIdx,
+      passedLevels:          [...patch.passedLevels],
+    });
+  }
 
   const q = currentPassage.questions[qIdx];
 
@@ -738,10 +831,20 @@ function AdaptiveReadingRunner({
 
     const isLastQ = qIdx === currentPassage.questions.length - 1;
     if (!isLastQ) {
-      setQIdx(i => i + 1);
+      const nextQIdx = qIdx + 1;
+      setQIdx(nextQIdx);
       setSelected(null);
       setConfirmed(false);
       questionStart.current = Date.now();
+      emitProgress({
+        answers:               newAnswers,
+        currentPassageId:      currentPassage.id,
+        currentPassageAnswers: newPassageAnswers,
+        usedIds,
+        passagesDone,
+        qIdx:                  nextQIdx,
+        passedLevels,
+      });
       return;
     }
 
@@ -778,13 +881,23 @@ function AdaptiveReadingRunner({
       onComplete(result);
       return;
     }
-    setUsedIds(prev => new Set([...prev, nextPassage.id]));
+    const newUsed = new Set([...usedIds, nextPassage.id]);
+    setUsedIds(newUsed);
     setCurrentPassage(nextPassage);
     setCurrentPassageAnswers([]);
     setQIdx(0);
     setSelected(null);
     setConfirmed(false);
     questionStart.current = Date.now();
+    emitProgress({
+      answers:               newAnswers,
+      currentPassageId:      nextPassage.id,
+      currentPassageAnswers: [],
+      usedIds:               newUsed,
+      passagesDone:          donePassages,
+      qIdx:                  0,
+      passedLevels:          newPassed,
+    });
   }
 
   return (
@@ -1054,13 +1167,15 @@ function ResultsScreen({
 // ── Placement Listening runner (adaptive at clip level) ───────────────────
 
 function PlacementListeningRunner({
-  budget, anchorLevel, teacherId, teacherLed, onComplete,
+  budget, anchorLevel, teacherId, teacherLed, onComplete, onProgress, initialSnapshot,
 }: {
-  budget:      number;
-  anchorLevel: LessonLevel;
-  teacherId:   string;
-  teacherLed:  boolean;
-  onComplete:  (result: ComponentResult) => void;
+  budget:           number;
+  anchorLevel:      LessonLevel;
+  teacherId:        string;
+  teacherLed:       boolean;
+  onComplete:       (result: ComponentResult) => void;
+  onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'adaptive-listening' }>) => void;
+  initialSnapshot?: Extract<LiveSnapshot, { kind: 'adaptive-listening' }>;
 }) {
   const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
@@ -1082,20 +1197,57 @@ function PlacementListeningRunner({
     return PLACEMENT_LISTENING[0];
   };
 
-  const [currentClip, setCurrentClip] = useState<ListeningClip>(() => pickInitial(anchorLevel));
-  const [usedIds, setUsedIds] = useState<Set<string>>(() => new Set([pickInitial(anchorLevel).id]));
-  const [phase, setPhase] = useState<'play' | 'quiz'>('play');
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
-  const [clipAnswers, setClipAnswers] = useState<PlacementAnswer[]>([]);
-  const [clipsDone, setClipsDone] = useState(0);
-  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() => new Set());
+  const initialClip = useMemo<ListeningClip>(() => {
+    if (initialSnapshot) {
+      const c = PLACEMENT_LISTENING.find((x) => x.id === initialSnapshot.currentClipId);
+      if (c) return c;
+    }
+    return pickInitial(anchorLevel);
+  }, [initialSnapshot, anchorLevel]);
+
+  const [currentClip, setCurrentClip] = useState<ListeningClip>(() => initialClip);
+  const [usedIds, setUsedIds] = useState<Set<string>>(() =>
+    initialSnapshot ? new Set(initialSnapshot.usedIds) : new Set([initialClip.id]),
+  );
+  const [phase, setPhase] = useState<'play' | 'quiz'>(() => initialSnapshot?.phase ?? 'play');
+  const [qIdx, setQIdx] = useState(() => initialSnapshot?.qIdx ?? 0);
+  const [answers, setAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.answers ?? []);
+  const [clipAnswers, setClipAnswers] = useState<PlacementAnswer[]>(() => initialSnapshot?.clipAnswers ?? []);
+  const [clipsDone, setClipsDone] = useState(() => initialSnapshot?.clipsDone ?? 0);
+  const [passedLevels, setPassedLevels] = useState<Set<LessonLevel>>(() =>
+    initialSnapshot ? new Set(initialSnapshot.passedLevels) : new Set(),
+  );
   const [selected, setSelected] = useState<number | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [audioLoading, setAudioLoading] = useState(true);
   const startRef = useRef<Date>(new Date());
   const questionStart = useRef<number>(Date.now());
   const completedRef = useRef(false);
+
+  function emitProgress(patch: {
+    answers:       PlacementAnswer[];
+    clipId:        string;
+    clipAnswers:   PlacementAnswer[];
+    usedIds:       Set<string>;
+    clipsDone:     number;
+    qIdx:          number;
+    phase:         'play' | 'quiz';
+    passedLevels:  Set<LessonLevel>;
+  }) {
+    if (!onProgress) return;
+    onProgress({
+      kind:          'adaptive-listening',
+      componentId:   'listening',
+      answers:       patch.answers,
+      currentClipId: patch.clipId,
+      clipAnswers:   patch.clipAnswers,
+      usedIds:       [...patch.usedIds],
+      clipsDone:     patch.clipsDone,
+      qIdx:          patch.qIdx,
+      phase:         patch.phase,
+      passedLevels:  [...patch.passedLevels],
+    });
+  }
 
   // Fetch audio binding for the current clip
   useEffect(() => {
@@ -1159,8 +1311,13 @@ function PlacementListeningRunner({
 
     const isLastQ = qIdx === currentClip.questions.length - 1;
     if (!isLastQ) {
-      setQIdx(i => i + 1);
+      const nextQIdx = qIdx + 1;
+      setQIdx(nextQIdx);
       questionStart.current = Date.now();
+      emitProgress({
+        answers: newAnswers, clipId: currentClip.id, clipAnswers: newClipAnswers,
+        usedIds, clipsDone, qIdx: nextQIdx, phase: 'quiz', passedLevels,
+      });
       return;
     }
 
@@ -1187,12 +1344,17 @@ function PlacementListeningRunner({
       finalize(newAnswers, newPassed);
       return;
     }
-    setUsedIds(prev => new Set([...prev, nextClip.id]));
+    const newUsed = new Set([...usedIds, nextClip.id]);
+    setUsedIds(newUsed);
     setCurrentClip(nextClip);
     setClipAnswers([]);
     setQIdx(0);
     setPhase('play');
     questionStart.current = Date.now();
+    emitProgress({
+      answers: newAnswers, clipId: nextClip.id, clipAnswers: [],
+      usedIds: newUsed, clipsDone: doneClips, qIdx: 0, phase: 'play', passedLevels: newPassed,
+    });
   }
 
   function finalize(finalAnswers: PlacementAnswer[], passed: Set<LessonLevel>) {
@@ -1613,7 +1775,19 @@ function PlacementSpeakingRunner({
 
 // ── Main page ──────────────────────────────────────────────────────────────
 
-type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading';
+type Phase = 'landing' | 'roadmap' | 'running' | 'transition' | 'results' | 'loading' | 'resume';
+
+interface ResumeState {
+  sessionId:    string;
+  studentName:  string;
+  studentEmail: string;
+  studentPhone: string;
+  componentIdx: number;
+  snapshot:     LiveSnapshot | null;
+  updatedAt:    Date | null;
+  results:      Partial<Record<ComponentId, ComponentResult>>;
+  config:       SuiteConfig;
+}
 
 interface SuiteConfig {
   components:  ComponentId[];
@@ -1626,19 +1800,26 @@ export default function PlacementSuitePage() {
   const { teacherId } = useParams<{ teacherId: string }>();
   const searchParams  = useSearchParams();
 
-  const assignmentIdParam = searchParams.get('assignmentId') ?? '';
-  const nameParam         = searchParams.get('name') ?? '';
-  const emailParam        = searchParams.get('email') ?? '';
-  const modeParam         = (searchParams.get('mode') as SuiteMode | null) ?? null;
+  const assignmentIdParam   = searchParams.get('assignmentId') ?? '';
+  const resumeSessionIdParam = searchParams.get('resumeSessionId') ?? '';
+  const nameParam           = searchParams.get('name') ?? '';
+  const emailParam          = searchParams.get('email') ?? '';
+  const modeParam           = (searchParams.get('mode') as SuiteMode | null) ?? null;
 
-  // URL-driven config (for teacher-led launches without an assignment doc).
+  // URL-driven config (for teacher-led launches without an assignment doc,
+  // and for personalised share links).
   const componentsParam = searchParams.get('components') ?? '';
   const gParam = Number(searchParams.get('g') ?? '');
   const vParam = Number(searchParams.get('v') ?? '');
   const rParam = Number(searchParams.get('r') ?? '');
+  const lParam = Number(searchParams.get('l') ?? '');
+  const wParam = Number(searchParams.get('w') ?? '');
+  const sParam = Number(searchParams.get('s') ?? '');
   const grammarModeParam = (searchParams.get('grammarMode') as GrammarMode | null) ?? null;
 
-  const [phase, setPhase] = useState<Phase>(assignmentIdParam ? 'loading' : 'landing');
+  const [phase, setPhase] = useState<Phase>(
+    assignmentIdParam || resumeSessionIdParam ? 'loading' : 'landing',
+  );
   const [name, setName]   = useState(nameParam);
   const [email, setEmail] = useState(emailParam);
   const [phone, setPhone] = useState('');
@@ -1655,9 +1836,9 @@ export default function PlacementSuitePage() {
       grammar:    isFinite(gParam) && gParam > 0 ? gParam : standard.budgets.grammar,
       vocabulary: isFinite(vParam) && vParam > 0 ? vParam : standard.budgets.vocabulary,
       reading:    isFinite(rParam) && rParam > 0 ? rParam : standard.budgets.reading,
-      listening:  standard.budgets.listening,
-      writing:    standard.budgets.writing,
-      speaking:   standard.budgets.speaking,
+      listening:  isFinite(lParam) && lParam > 0 ? lParam : standard.budgets.listening,
+      writing:    isFinite(wParam) && wParam > 0 ? wParam : standard.budgets.writing,
+      speaking:   isFinite(sParam) && sParam > 0 ? sParam : standard.budgets.speaking,
     };
     return {
       components:  urlComponents && urlComponents.length > 0 ? urlComponents : standard.components,
@@ -1676,13 +1857,75 @@ export default function PlacementSuitePage() {
   const sessionPending = useRef<Promise<string> | null>(null);
   const startTimeRef = useRef<Date>(new Date());
   const [assignmentRef, setAssignmentRef] = useState<string>(assignmentIdParam);
+  const [resumeState, setResumeState] = useState<ResumeState | null>(null);
+  // Snapshot to hand to the currently rendered runner. Cleared after the
+  // student answers their first Q post-resume so a rendering re-mount doesn't
+  // reload the snapshot on top of newer local state.
+  const [pendingHydration, setPendingHydration] = useState<LiveSnapshot | null>(null);
 
   const ordered = useMemo(() => sortComponents(config.components), [config.components]);
 
-  // If we have an assignmentId, hydrate config from Firestore before showing anything.
+  // If the URL has ?resumeSessionId=…, load that session doc directly and
+  // go straight to the resume prompt. Used by the dashboard "Continuar" button
+  // for teacher-led (live) sessions that don't have an assignmentId.
+  useEffect(() => {
+    if (!resumeSessionIdParam) return;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'placementSuiteSessions', resumeSessionIdParam));
+        if (!snap.exists()) {
+          setPhase('landing');
+          return;
+        }
+        const data = snap.data();
+        const standard = PRESETS.find(p => p.id === 'standard')!;
+        const savedConfig: SuiteConfig = {
+          components:  Array.isArray(data.components) && data.components.length > 0
+                          ? sortComponents(data.components as ComponentId[])
+                          : standard.components,
+          budgets:     (data.budgets as Budgets) ?? standard.budgets,
+          mode:        (data.mode as SuiteMode) ?? 'teacher-led',
+          grammarMode: (data.grammarMode as GrammarMode) ?? 'adaptive',
+        };
+        const live = (data.liveSnapshot ?? null) as LiveSnapshot | null;
+        const orderedComps = savedConfig.components;
+        let compIdx = 0;
+        if (live) {
+          const idx = orderedComps.indexOf(live.componentId);
+          if (idx >= 0) compIdx = idx;
+        } else {
+          const progress = (data.progress ?? {}) as Record<ComponentId, string>;
+          const nextIdx = orderedComps.findIndex((c) => progress[c] !== 'completed');
+          if (nextIdx >= 0) compIdx = nextIdx;
+        }
+        const updatedAt = data.liveSnapshotUpdatedAt?.toDate?.() ?? data.updatedAt?.toDate?.() ?? null;
+        setResumeState({
+          sessionId:    snap.id,
+          studentName:  String(data.studentName ?? ''),
+          studentEmail: String(data.studentEmail ?? ''),
+          studentPhone: String(data.studentPhone ?? ''),
+          componentIdx: compIdx,
+          snapshot:     live,
+          updatedAt,
+          results:      (data.results ?? {}) as Partial<Record<ComponentId, ComponentResult>>,
+          config:       savedConfig,
+        });
+        setPhase('resume');
+      } catch (err) {
+        console.warn('[placement-suite] resumeSessionId load failed:', err);
+        setPhase('landing');
+      }
+    })();
+  }, [resumeSessionIdParam]);
+
+  // If we have an assignmentId, hydrate config from Firestore before showing
+  // anything. Also check whether there's an in-progress session for this
+  // assignment so we can offer "Continuar donde quedaste".
   useEffect(() => {
     if (!assignmentIdParam) return;
+    if (resumeSessionIdParam) return;  // handled by the dedicated effect above
     (async () => {
+      let hydratedConfig: SuiteConfig | null = null;
       try {
         const snap = await getDoc(doc(db, 'placementAssignments', assignmentIdParam));
         if (snap.exists()) {
@@ -1702,22 +1945,78 @@ export default function PlacementSuitePage() {
             writing:    rawBudgets.writing    ?? standard.budgets.writing,
             speaking:   rawBudgets.speaking   ?? standard.budgets.speaking,
           };
-          setConfig({
+          hydratedConfig = {
             components:  sortComponents(comps),
             budgets:     budgetsFromDoc,
             mode:        (data.mode as SuiteMode) ?? modeParam ?? 'student-self',
             grammarMode: (data.grammarMode as GrammarMode) ?? grammarModeParam ?? 'adaptive',
-          });
+          };
+          setConfig(hydratedConfig);
           if (!name && data.studentName)  setName(String(data.studentName));
           if (!email && data.studentEmail) setEmail(String(data.studentEmail));
         }
       } catch (err) {
         console.error('[placement-suite] failed to load assignment:', err);
-      } finally {
-        setPhase(nameParam ? 'roadmap' : 'landing');
       }
+
+      // Look for an in-progress session tied to this assignment. If one
+      // exists (and hasn't been finalised), offer resume before the landing.
+      try {
+        const sessQ = query(
+          collection(db, 'placementSuiteSessions'),
+          where('assignmentId', '==', assignmentIdParam),
+          where('status',       'in',  ['in_progress', 'partially_completed']),
+          orderBy('createdAt', 'desc'),
+          limit(1),
+        );
+        const sessSnap = await getDocs(sessQ);
+        if (!sessSnap.empty) {
+          const doc0 = sessSnap.docs[0];
+          const data = doc0.data();
+          const savedConfig: SuiteConfig = hydratedConfig ?? {
+            components:  Array.isArray(data.components) ? data.components as ComponentId[] : config.components,
+            budgets:     (data.budgets as Budgets) ?? config.budgets,
+            mode:        (data.mode as SuiteMode) ?? config.mode,
+            grammarMode: (data.grammarMode as GrammarMode) ?? config.grammarMode,
+          };
+          const snap = (data.liveSnapshot ?? null) as LiveSnapshot | null;
+          const orderedComps = sortComponents(savedConfig.components);
+          // Where were they? liveSnapshot.componentId if we have it, else
+          // the first non-completed component from the session's progress.
+          let compIdx = 0;
+          if (snap) {
+            const idx = orderedComps.indexOf(snap.componentId);
+            if (idx >= 0) compIdx = idx;
+          } else {
+            const progress = (data.progress ?? {}) as Record<ComponentId, string>;
+            const nextIdx = orderedComps.findIndex((c) => progress[c] !== 'completed');
+            if (nextIdx >= 0) compIdx = nextIdx;
+          }
+          const updatedAt = data.liveSnapshotUpdatedAt?.toDate?.() ?? data.updatedAt?.toDate?.() ?? null;
+          setResumeState({
+            sessionId:    doc0.id,
+            studentName:  String(data.studentName ?? ''),
+            studentEmail: String(data.studentEmail ?? ''),
+            studentPhone: String(data.studentPhone ?? ''),
+            componentIdx: compIdx,
+            snapshot:     snap,
+            updatedAt,
+            results:      (data.results ?? {}) as Partial<Record<ComponentId, ComponentResult>>,
+            config:       savedConfig,
+          });
+          setPhase('resume');
+          return;
+        }
+      } catch (err) {
+        // A missing composite index shows up as failed-precondition; log +
+        // continue to landing so a broken lookup never blocks the flow.
+        console.warn('[placement-suite] resume lookup failed (probably missing index):', err);
+      }
+
+      setPhase(nameParam ? 'roadmap' : 'landing');
     })();
-  }, [assignmentIdParam, modeParam, name, email, nameParam]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignmentIdParam, modeParam, nameParam]);
 
   // ── Session helpers ──────────────────────────────────────────────────────
 
@@ -1752,14 +2051,37 @@ export default function PlacementSuitePage() {
     return p;
   }
 
+  /** Fire-and-forget snapshot write after each answer inside a runner.
+   *  Also bumps `progress.{cid}` to 'in_progress' if it isn't already. */
+  function persistSnapshot(cid: ComponentId, snap: LiveSnapshot): void {
+    (async () => {
+      const sid = await ensureSession();
+      try {
+        await updateDoc(doc(db, 'placementSuiteSessions', sid), {
+          liveSnapshot:          snap,
+          liveSnapshotUpdatedAt: serverTimestamp(),
+          [`progress.${cid}`]:   'in_progress',
+          updatedAt:             serverTimestamp(),
+        });
+      } catch (err) {
+        console.warn('[placement-suite] snapshot save failed (non-fatal):', err);
+      }
+    })();
+    // Once we've handed a snapshot to the runner it owns state — don't
+    // re-hydrate on subsequent renders.
+    if (pendingHydration) setPendingHydration(null);
+  }
+
   async function persistComponentResult(cid: ComponentId, res: ComponentResult) {
     const sid = await ensureSession();
     const newProgress = { ...(await getCurrentProgress(sid)), [cid]: 'completed' as const };
     for (const c of ordered) if (!newProgress[c]) newProgress[c] = 'pending';
     try {
       await updateDoc(doc(db, 'placementSuiteSessions', sid), {
-        [`results.${cid}`]: res,
+        [`results.${cid}`]:  res,
         [`progress.${cid}`]: 'completed',
+        // Clear the live snapshot — the component is done, no more mid-Q resume.
+        liveSnapshot:        null,
         status: deriveSuiteStatus(ordered, newProgress),
         updatedAt: serverTimestamp(),
       });
@@ -1832,6 +2154,41 @@ export default function PlacementSuitePage() {
     setPhase('running');
   }
 
+  // ── Resume flow ─────────────────────────────────────────────────────────
+
+  function acceptResume() {
+    if (!resumeState) return;
+    // Adopt the existing session doc so subsequent snapshot writes land on
+    // it rather than creating a new one.
+    sessionIdRef.current    = resumeState.sessionId;
+    sessionPending.current  = Promise.resolve(resumeState.sessionId);
+    if (resumeState.studentName)  setName(resumeState.studentName);
+    if (resumeState.studentEmail) setEmail(resumeState.studentEmail);
+    if (resumeState.studentPhone) setPhone(resumeState.studentPhone);
+    setConfig(resumeState.config);
+    setResults(resumeState.results);
+    setComponentIdx(resumeState.componentIdx);
+    setPendingHydration(resumeState.snapshot);
+    setResumeState(null);
+    setPhase('running');
+  }
+
+  async function restartSession() {
+    if (!resumeState) { setPhase('landing'); return; }
+    // Mark the old session as abandoned so it doesn't show up on future
+    // resume lookups; then drop back to the landing form.
+    try {
+      await updateDoc(doc(db, 'placementSuiteSessions', resumeState.sessionId), {
+        status:    'abandoned',
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.warn('[placement-suite] could not mark old session abandoned:', err);
+    }
+    setResumeState(null);
+    setPhase(nameParam ? 'roadmap' : 'landing');
+  }
+
   // ── Landing form submit ──────────────────────────────────────────────────
 
   function handleLandingSubmit(e: React.FormEvent) {
@@ -1853,6 +2210,68 @@ export default function PlacementSuitePage() {
         <div className="text-center py-24">
           <div className="w-10 h-10 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
           <p className="text-sm font-bold text-[#5A3D7A]">Cargando…</p>
+        </div>
+      </PageBg>
+    );
+  }
+
+  if (phase === 'resume' && resumeState) {
+    const currentComp = resumeState.config.components[resumeState.componentIdx];
+    const meta = currentComp ? COMPONENT_META[currentComp] : null;
+    const snapAns = resumeState.snapshot && 'answers' in resumeState.snapshot ? resumeState.snapshot.answers : null;
+    const answered = snapAns?.length ?? 0;
+    const timeAgo = resumeState.updatedAt
+      ? new Date(resumeState.updatedAt).toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' })
+      : null;
+    return (
+      <PageBg>
+        <div className="w-full max-w-md rounded-3xl overflow-hidden bg-white" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
+          <div className="px-8 py-7" style={{ background: 'linear-gradient(135deg, #3D2558 0%, #5A3D7A 55%, #9B7CB8 100%)' }}>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#C8A8DC] mb-2">
+              Sesión en curso
+            </p>
+            <h1 className="text-2xl font-black text-white leading-tight">
+              ¿Retomar donde quedaste{resumeState.studentName ? `, ${resumeState.studentName.split(' ')[0]}` : ''}?
+            </h1>
+            {timeAgo && (
+              <p className="text-white/60 text-xs mt-1">Última actividad: {timeAgo}</p>
+            )}
+          </div>
+          <div className="px-8 py-6 space-y-4">
+            {meta && (
+              <div className="rounded-xl border border-[#E8D5F0] bg-[#FBF7FF] p-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]">
+                  Componente en progreso
+                </p>
+                <p className="text-base font-bold text-[#2D1B4E] mt-1">
+                  {meta.icon} {meta.label}
+                </p>
+                {answered > 0 && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Llevabas {answered} pregunta{answered === 1 ? '' : 's'} respondida{answered === 1 ? '' : 's'}.
+                  </p>
+                )}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={acceptResume}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: B.purple }}
+              >
+                Continuar donde quedé →
+              </button>
+              <button
+                onClick={restartSession}
+                className="w-full py-2.5 rounded-xl text-sm font-bold text-[#5A3D7A] border border-[#C8A8DC] hover:bg-[#F0E5FF] transition-colors"
+              >
+                Empezar de nuevo
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400 text-center leading-relaxed pt-1">
+              &quot;Empezar de nuevo&quot; archiva el intento anterior y crea uno limpio.
+            </p>
+          </div>
         </div>
       </PageBg>
     );
@@ -2037,6 +2456,10 @@ export default function PlacementSuitePage() {
         // Linear mode: take the first N questions from the level-balanced
         // bank (proportional slice) and run sequentially with the standard
         // 6-consecutive-wrong auto-stop.
+        //
+        // On resume, rebuild the bank in the saved order so the student sees
+        // the same next question (grammar linear has no snapshot support yet
+        // — snapshots only fire for vocabulary in this variant).
         const bank = pickLinearGrammar(PLACEMENT_QUESTIONS, config.budgets.grammar);
         return (
           <PageBg>
@@ -2061,6 +2484,12 @@ export default function PlacementSuitePage() {
             teacherLed={teacherLed}
             label="Grammar"
             onComplete={handleComponentComplete}
+            onProgress={(snap) => persistSnapshot('grammar', snap)}
+            initialSnapshot={
+              pendingHydration?.kind === 'adaptive-mcq' && pendingHydration.componentId === 'grammar'
+                ? pendingHydration
+                : undefined
+            }
           />
         </PageBg>
       );
@@ -2069,7 +2498,16 @@ export default function PlacementSuitePage() {
     if (cid === 'vocabulary') {
       if (config.grammarMode === 'linear') {
         // Linear = calibrated slice + sequential run (previous behaviour).
-        const bank = pickCalibratedQuestions(PLACEMENT_VOCABULARY_QUESTIONS, anchor, config.budgets.vocabulary);
+        // If we're resuming, use the saved question order verbatim so the
+        // student picks up on the exact question they were on.
+        const resumeSnap = pendingHydration?.kind === 'linear-mcq' && pendingHydration.componentId === 'vocabulary'
+          ? pendingHydration
+          : null;
+        const bank = resumeSnap
+          ? (resumeSnap.questionIds
+              .map((id) => PLACEMENT_VOCABULARY_QUESTIONS.find((q) => q.id === id))
+              .filter(Boolean) as PlacementQuestion[])
+          : pickCalibratedQuestions(PLACEMENT_VOCABULARY_QUESTIONS, anchor, config.budgets.vocabulary);
         return (
           <PageBg>
             <MCQRunner
@@ -2079,6 +2517,8 @@ export default function PlacementSuitePage() {
               allowAutoStop={false}
               label={`Vocabulary · calibrated to ${anchor}`}
               onComplete={handleComponentComplete}
+              onProgress={(snap) => persistSnapshot('vocabulary', snap)}
+              initialSnapshot={resumeSnap ?? undefined}
             />
           </PageBg>
         );
@@ -2093,6 +2533,12 @@ export default function PlacementSuitePage() {
             teacherLed={teacherLed}
             label="Vocabulary"
             onComplete={handleComponentComplete}
+            onProgress={(snap) => persistSnapshot('vocabulary', snap)}
+            initialSnapshot={
+              pendingHydration?.kind === 'adaptive-mcq' && pendingHydration.componentId === 'vocabulary'
+                ? pendingHydration
+                : undefined
+            }
           />
         </PageBg>
       );
@@ -2100,13 +2546,20 @@ export default function PlacementSuitePage() {
 
     if (cid === 'reading') {
       if (config.grammarMode === 'linear') {
-        const passages = pickCalibratedPassages(PLACEMENT_READING, anchor, config.budgets.reading);
+        const resumeSnap = pendingHydration?.kind === 'linear-reading' ? pendingHydration : null;
+        const passages = resumeSnap
+          ? (resumeSnap.passageIds
+              .map((id) => PLACEMENT_READING.find((p) => p.id === id))
+              .filter(Boolean) as ReadingPassage[])
+          : pickCalibratedPassages(PLACEMENT_READING, anchor, config.budgets.reading);
         return (
           <PageBg>
             <ReadingRunner
               passages={passages}
               teacherLed={teacherLed}
               onComplete={handleComponentComplete}
+              onProgress={(snap) => persistSnapshot('reading', snap)}
+              initialSnapshot={resumeSnap ?? undefined}
             />
           </PageBg>
         );
@@ -2118,6 +2571,10 @@ export default function PlacementSuitePage() {
             anchorLevel={anchor}
             teacherLed={teacherLed}
             onComplete={handleComponentComplete}
+            onProgress={(snap) => persistSnapshot('reading', snap)}
+            initialSnapshot={
+              pendingHydration?.kind === 'adaptive-reading' ? pendingHydration : undefined
+            }
           />
         </PageBg>
       );
@@ -2132,6 +2589,10 @@ export default function PlacementSuitePage() {
             teacherId={teacherId}
             teacherLed={teacherLed}
             onComplete={handleComponentComplete}
+            onProgress={(snap) => persistSnapshot('listening', snap)}
+            initialSnapshot={
+              pendingHydration?.kind === 'adaptive-listening' ? pendingHydration : undefined
+            }
           />
         </PageBg>
       );

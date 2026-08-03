@@ -11,6 +11,15 @@
       ]
     },
     {
+      "collectionGroup": "placementSuiteSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignmentId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "bookingRequests",
       "queryScope": "COLLECTION",
       "fields": [

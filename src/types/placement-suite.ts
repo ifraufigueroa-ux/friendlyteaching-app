@@ -146,7 +146,7 @@ export interface ComponentResult {
 // ── Session ────────────────────────────────────────────────────────────────
 
 export type SuiteMode = 'student-self' | 'teacher-led';
-export type SuiteStatus = 'in_progress' | 'completed' | 'partially_completed';
+export type SuiteStatus = 'in_progress' | 'completed' | 'partially_completed' | 'abandoned';
 
 export interface PlacementSuiteSession {
   id:               string;
@@ -172,7 +172,79 @@ export interface PlacementSuiteSession {
   completedAt?:     Timestamp;
   createdAt:        Timestamp;
   updatedAt?:       Timestamp;
+  // Live snapshot of the in-flight component (Grammar/Vocab/Reading/Listening).
+  // Written on every answer. Consumed to resume mid-component. Cleared or
+  // ignored once the session is `completed`.
+  liveSnapshot?:          LiveSnapshot;
+  liveSnapshotUpdatedAt?: Timestamp;
 }
+
+// ── Live snapshots (mid-component resume) ─────────────────────────────────
+//
+// One discriminated variant per runner. Runners emit their variant on every
+// answered question; the top-level session doc holds only the latest.
+
+export interface SerializableAdaptiveState {
+  currentLevel:      LessonLevel;
+  tierAskedIds:      number[];
+  tierAnswers:       PlacementAnswer[];
+  passedLevels:      LessonLevel[];
+  failedLevels:      LessonLevel[];
+  askedIds:          number[];
+  totalAsked:        number;
+  consecCorrectTier: number;
+  consecWrongTier:   number;
+  direction:         'up' | 'down' | 'settle';
+  done:              boolean;
+  placedLevel:       LessonLevel;
+}
+
+export type LiveSnapshot =
+  | {
+      kind:        'adaptive-mcq';
+      componentId: 'grammar' | 'vocabulary';
+      answers:     PlacementAnswer[];
+      currentQId?: number;
+      state:       SerializableAdaptiveState;
+    }
+  | {
+      kind:         'linear-mcq';
+      componentId:  'vocabulary';
+      answers:      PlacementAnswer[];
+      questionIds:  number[];      // pre-picked order (from pickCalibratedQuestions)
+      currentIndex: number;
+    }
+  | {
+      kind:              'linear-reading';
+      componentId:       'reading';
+      answers:           PlacementAnswer[];
+      passageIds:        string[]; // pre-picked order
+      currentPassageIdx: number;
+      currentQIdx:       number;
+    }
+  | {
+      kind:                  'adaptive-reading';
+      componentId:           'reading';
+      answers:               PlacementAnswer[];
+      currentPassageId:      string;
+      currentPassageAnswers: PlacementAnswer[];
+      usedIds:               string[];
+      passagesDone:          number;
+      qIdx:                  number;
+      passedLevels:          LessonLevel[];
+    }
+  | {
+      kind:          'adaptive-listening';
+      componentId:   'listening';
+      answers:       PlacementAnswer[];
+      currentClipId: string;
+      clipAnswers:   PlacementAnswer[];
+      usedIds:       string[];
+      clipsDone:     number;
+      qIdx:          number;
+      phase:         'play' | 'quiz';
+      passedLevels:  LessonLevel[];
+    };
 
 // ── Reading passage bank ───────────────────────────────────────────────────
 

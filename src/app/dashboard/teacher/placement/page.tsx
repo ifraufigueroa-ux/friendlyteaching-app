@@ -893,6 +893,9 @@ function LiveTestSetupModal({
       g:           String(cfg.budgets.grammar),
       v:           String(cfg.budgets.vocabulary),
       r:           String(cfg.budgets.reading),
+      l:           String(cfg.budgets.listening),
+      w:           String(cfg.budgets.writing),
+      s:           String(cfg.budgets.speaking),
       grammarMode: cfg.grammarMode,
     });
     window.open(`/placement-suite/${teacherId}?${params.toString()}`, '_blank', 'noopener,noreferrer');
@@ -928,6 +931,118 @@ function LiveTestSetupModal({
               style={{ background: '#5A3D7A' }}
             >
               ▶ Iniciar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Personalise share link ────────────────────────────────────────────────
+//
+// Same URL scheme as LiveTestSetupModal but without `mode=teacher-led`, so
+// the recipient hits the landing page and enters their name/email themselves.
+// Copy-to-clipboard is the primary action.
+
+function PersonalizeLinkModal({
+  teacherId, onClose,
+}: {
+  teacherId: string;
+  onClose: () => void;
+}) {
+  const standard = PRESETS.find(p => p.id === 'standard')!;
+  const [cfg, setCfg] = useState<{ components: ComponentId[]; budgets: Budgets; presetId: string; grammarMode: GrammarMode }>({
+    components:  standard.components,
+    budgets:     standard.budgets,
+    presetId:    standard.id,
+    grammarMode: 'adaptive',
+  });
+  const [copied, setCopied] = useState(false);
+
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+  const url = useMemo(() => {
+    if (!teacherId || cfg.components.length === 0) return '';
+    const params = new URLSearchParams({
+      components:  cfg.components.join(','),
+      g:           String(cfg.budgets.grammar),
+      v:           String(cfg.budgets.vocabulary),
+      r:           String(cfg.budgets.reading),
+      l:           String(cfg.budgets.listening),
+      w:           String(cfg.budgets.writing),
+      s:           String(cfg.budgets.speaking),
+      grammarMode: cfg.grammarMode,
+    });
+    return `${appUrl}/placement-suite/${teacherId}?${params.toString()}`;
+  }, [teacherId, cfg, appUrl]);
+
+  async function handleCopy() {
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
+
+  function handlePreview() {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ background: 'rgba(45,27,78,0.45)', backdropFilter: 'blur(2px)' }}>
+      <div className="w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl bg-white my-8">
+        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-base font-bold text-white">🔗 Personalizar link para compartir</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                Configurá qué componentes incluir. El estudiante ingresa sus datos al abrir.
+              </p>
+            </div>
+            <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <SuiteConfigForm value={cfg} onChange={setCfg} />
+
+          {/* Live URL preview */}
+          <div className="mb-4">
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
+              Link generado
+            </label>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={url || 'Seleccioná al menos un componente'}
+                className="flex-1 rounded-xl px-3 py-2 text-xs outline-none font-mono"
+                style={{ border: `1px solid ${B.lavenderDark}`, background: B.lavender, color: B.purpleMed }}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <button
+                onClick={handleCopy}
+                disabled={!url}
+                className="text-xs font-bold px-4 py-2 rounded-xl transition-all hover:opacity-80 disabled:opacity-40"
+                style={{ background: copied ? '#DCFCE7' : B.purple, color: copied ? '#15803D' : 'white' }}
+              >
+                {copied ? '✓ Copiado' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
+              Cerrar
+            </button>
+            <button
+              onClick={handlePreview}
+              disabled={!url}
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold border-2 disabled:opacity-40 transition-opacity hover:opacity-90"
+              style={{ background: 'white', color: B.purple, borderColor: B.purple }}
+            >
+              👁 Preview
             </button>
           </div>
         </div>
@@ -1105,6 +1220,7 @@ export default function PlacementDashboardPage() {
   const [selectedSession, setSelected] = useState<PlacementSession | null>(null);
   const [showAssignModal, setShowAssign] = useState(false);
   const [showLiveModal, setShowLive]     = useState(false);
+  const [showLinkModal, setShowLink]     = useState(false);
   const [selectedSuite, setSelectedSuite] = useState<PlacementSuiteSession | null>(null);
 
   const approvedStudents = (students ?? [])
@@ -1153,6 +1269,13 @@ export default function PlacementDashboardPage() {
             className="text-sm font-bold px-4 py-2.5 rounded-xl text-white transition-all hover:opacity-90"
             style={{ background: B.purple }}>
             + Asignar a estudiante
+          </button>
+          <button
+            onClick={() => uid && setShowLink(true)}
+            disabled={!uid}
+            className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white"
+            style={{ background: B.purpleMed }}>
+            🔗 Personalizar link
           </button>
           <button
             onClick={() => uid && setShowLive(true)}
@@ -1375,13 +1498,32 @@ export default function PlacementDashboardPage() {
                         : <span style={{ color: B.purpleLight }}>—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-[10px] font-semibold px-2 py-1 rounded-full"
-                        style={{
-                          background: s.status === 'completed' ? '#DCFCE7' : s.status === 'partially_completed' ? '#FEF3C7' : B.lavender,
-                          color: s.status === 'completed' ? '#15803D' : s.status === 'partially_completed' ? '#92400E' : B.purple,
-                        }}>
-                        {s.status === 'completed' ? 'Completed' : s.status === 'partially_completed' ? 'Partial' : 'In progress'}
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-semibold px-2 py-1 rounded-full"
+                          style={{
+                            background: s.status === 'completed' ? '#DCFCE7' : s.status === 'partially_completed' ? '#FEF3C7' : s.status === 'abandoned' ? '#FEE2E2' : B.lavender,
+                            color: s.status === 'completed' ? '#15803D' : s.status === 'partially_completed' ? '#92400E' : s.status === 'abandoned' ? '#991B1B' : B.purple,
+                          }}>
+                          {s.status === 'completed' ? 'Completed' : s.status === 'partially_completed' ? 'Partial' : s.status === 'abandoned' ? 'Abandoned' : 'In progress'}
+                        </span>
+                        {(s.status === 'in_progress' || s.status === 'partially_completed') && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(
+                                `/placement-suite/${uid}?resumeSessionId=${s.id}`,
+                                '_blank',
+                                'noopener,noreferrer',
+                              );
+                            }}
+                            className="text-[10px] font-bold px-2 py-1 rounded-full hover:opacity-80 transition-opacity"
+                            style={{ background: B.purple, color: 'white' }}
+                            title="Continuar donde quedó el estudiante"
+                          >
+                            ▶ Continuar
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1412,6 +1554,13 @@ export default function PlacementDashboardPage() {
         <LiveTestSetupModal
           teacherId={uid}
           onClose={() => setShowLive(false)}
+        />
+      )}
+
+      {showLinkModal && (
+        <PersonalizeLinkModal
+          teacherId={uid}
+          onClose={() => setShowLink(false)}
         />
       )}
 
