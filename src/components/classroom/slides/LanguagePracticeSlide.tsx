@@ -14,6 +14,8 @@
 'use client';
 import { useMemo, useRef, useState } from 'react';
 import type { Slide, PracticeItem } from '@/types/firebase';
+import SlideThemeToggle from '../SlideThemeToggle';
+import { useSlideThemeMode } from '@/lib/hooks/useSlideThemeMode';
 
 interface Props {
   slide: Slide;
@@ -846,7 +848,8 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
     setWrongs(0);
   }
 
-  const isTales = brand === 'FriendlyTales';
+  const { mode } = useSlideThemeMode('language_practice', brand);
+  const isTales = brand === 'FriendlyTales' && mode === 'dark';
 
   if (total === 0) {
     return (
@@ -870,6 +873,7 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
         ? 'bg-transparent text-[#F8F5FC]'
         : 'bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]'
     }`}>
+      <SlideThemeToggle slideType="language_practice" brand={brand} />
       <style>{`
         @keyframes lpFloatUp {
           0%   { transform: translate(-50%, 0)     scale(0.7); opacity: 0; }
@@ -893,10 +897,18 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
           <span className="text-6xl">{isTales ? '🎭' : '🎯'}</span>
         </div>
 
-        {/* Title */}
-        <h1 className={`font-bold text-4xl md:text-5xl leading-tight max-w-3xl ${
-          isTales ? 'ft-title-gold' : 'font-serif text-[#2D1B4E]'
-        }`}>
+        {/* Title — cinematic uses cyan Cinzel per screenshot spec */}
+        <h1
+          className={`font-bold text-3xl md:text-4xl leading-tight max-w-4xl ${
+            isTales ? '' : 'font-serif text-[#2D1B4E]'
+          }`}
+          style={isTales ? {
+            fontFamily: 'var(--font-cinzel), Cinzel, Georgia, serif',
+            color: '#7ED6E0',
+            textShadow: '0 2px 20px rgba(0,0,0,0.6), 0 0 32px rgba(126,214,224,0.20)',
+            letterSpacing: '0.06em',
+          } : undefined}
+        >
           {slide.title ?? "Let's practice!"}
         </h1>
 

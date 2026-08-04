@@ -168,7 +168,7 @@ function renderSlide(
       return <TextCoverSlide slide={slide} />;
     case 'text_comprehension':
     case 'text_reading':  // legacy — pre-rename docs still land here
-      return <TextReadingSlide slide={slide} youtubeUrl={youtubeUrl} />;
+      return <TextReadingSlide slide={slide} youtubeUrl={youtubeUrl} brand={brand} />;
     case 'friendlytext_end':
       return <FriendlytextEndSlide slide={slide} />;
     default:

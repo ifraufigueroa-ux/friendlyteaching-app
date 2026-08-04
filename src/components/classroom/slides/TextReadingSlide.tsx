@@ -26,8 +26,10 @@ import DictionaryPanel from './reading/DictionaryPanel';
 import IPAPopover from './reading/IPAPopover';
 import WhiteboardOverlay from './reading/WhiteboardOverlay';
 import { useWordLookup } from './reading/WordLookup';
+import SlideThemeToggle from '../SlideThemeToggle';
+import { useSlideThemeMode } from '@/lib/hooks/useSlideThemeMode';
 
-interface Props { slide: Slide; youtubeUrl?: string }
+interface Props { slide: Slide; youtubeUrl?: string; brand?: 'Friendlyrics' | 'FriendlyTales' | 'Friendlyflix' }
 
 function toEmbedUrl(url: string): string {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{11})/);
@@ -59,7 +61,9 @@ function tokenise(line: string): { text: string; isWord: boolean }[] {
   return out;
 }
 
-export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
+export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
+  const { mode: themeMode } = useSlideThemeMode('text_comprehension', brand);
+  const useCinematic = brand === 'FriendlyTales' && themeMode === 'dark';
   const txt = slide.textData;
   const text = slide.content ?? txt?.text ?? '';
   const timings = txt?.timings;
@@ -176,14 +180,33 @@ export default function TextReadingSlide({ slide, youtubeUrl }: Props) {
   const wordCursor = activeTool === 'dictionary' || activeTool === 'ipa' || activeTool === 'pen';
 
   return (
-    <div className="relative flex flex-col h-full overflow-hidden bg-transparent">
-      {/* Cinematic wash — subtle magenta + gold breath over the dark scene */}
+    <div
+      className={`relative flex flex-col h-full overflow-hidden ${
+        brand === 'FriendlyTales' && !useCinematic ? 'bg-[#F5EFE1]' : 'bg-transparent'
+      }`}
+    >
+      {brand === 'FriendlyTales' && <SlideThemeToggle slideType="text_comprehension" brand={brand} />}
+
+      {/* Cinematic mode — soften the base radial with a warm purple wash so
+          the reader isn't staring into a near-black hole. The subtle
+          magenta + gold breath sits on top for atmosphere. */}
+      {useCinematic && (
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 30%, rgba(90,55,130,0.55) 0%, rgba(30,20,50,0.35) 55%, transparent 100%)',
+          }}
+        />
+      )}
       <div
         aria-hidden
         className="absolute inset-0 opacity-40 pointer-events-none"
         style={{
-          backgroundImage:
-            'radial-gradient(circle at 15% 25%, rgba(236,0,140,0.10) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(249,240,168,0.08) 0%, transparent 50%)',
+          backgroundImage: useCinematic
+            ? 'radial-gradient(circle at 15% 25%, rgba(236,0,140,0.10) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(249,240,168,0.08) 0%, transparent 50%)'
+            : 'radial-gradient(circle at 15% 25%, rgba(232,181,71,0.12) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(75,106,133,0.08) 0%, transparent 50%)',
         }}
       />
 
