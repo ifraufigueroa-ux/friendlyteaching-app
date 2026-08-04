@@ -6,8 +6,8 @@
 //
 // Ordering (7 slides, wrap around teacher-authored dialogue_game + comprehension):
 //   1. clip_cover
-//   2. clip_predictions
-//   3. clip_vocab_match
+//   2. clip_vocab_match
+//   3. clip_predictions
 //   [teacher: clip_dialogue_game]
 //   [teacher: clip_comprehension]
 //   4. clip_language_focus
@@ -465,8 +465,8 @@ export async function generateClipLessonAlgorithmically(
 
   return [
     buildCover(title, source, level, clipData),
-    buildPredictions(title, source, clipData),
     vocab,
+    buildPredictions(title, source, clipData),
     buildLanguageFocus(dialogue, focus),
     buildControlledPractice(dialogue, focus),
     buildProduction(title, clipData),
