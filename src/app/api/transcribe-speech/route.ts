@@ -51,22 +51,51 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let form: FormData;
-  try {
-    form = await req.formData();
-  } catch {
-    return NextResponse.json({ error: 'Expected multipart/form-data' }, { status: 400 });
-  }
+  // Accept either multipart/form-data (audio file directly) or JSON with an
+  // { audioUrl, language? } body. The JSON form lets the browser hand us a
+  // Firebase Storage URL without hitting cross-origin fetch restrictions —
+  // we download it server-side (no CORS) and pass the blob to Whisper.
+  const contentType = req.headers.get('content-type') ?? '';
+  let audioBlob: Blob;
+  let audioName = 'audio.webm';
+  let language = 'en';
 
-  const audio = form.get('audio');
-  const language = (form.get('language') as string | null) ?? 'en';
-
-  if (!(audio instanceof File)) {
-    return NextResponse.json({ error: 'Missing audio file' }, { status: 400 });
+  if (contentType.includes('application/json')) {
+    let body: { audioUrl?: string; language?: string };
+    try { body = await req.json(); }
+    catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+    if (!body.audioUrl) {
+      return NextResponse.json({ error: 'Missing audioUrl' }, { status: 400 });
+    }
+    language = body.language ?? 'en';
+    try {
+      const audioResp = await fetch(body.audioUrl);
+      if (!audioResp.ok) {
+        return NextResponse.json(
+          { error: `Failed to fetch audio: ${audioResp.status}` },
+          { status: 502 },
+        );
+      }
+      audioBlob = await audioResp.blob();
+    } catch (err) {
+      console.error('[whisper] audio fetch error:', err);
+      return NextResponse.json({ error: 'Failed to download audio from storage' }, { status: 502 });
+    }
+  } else {
+    let form: FormData;
+    try { form = await req.formData(); }
+    catch { return NextResponse.json({ error: 'Expected multipart/form-data or JSON' }, { status: 400 }); }
+    const audio = form.get('audio');
+    if (!(audio instanceof File)) {
+      return NextResponse.json({ error: 'Missing audio file' }, { status: 400 });
+    }
+    audioBlob = audio;
+    audioName = audio.name || 'audio.webm';
+    language = (form.get('language') as string | null) ?? 'en';
   }
 
   const upstream = new FormData();
-  upstream.append('file', audio, audio.name || 'audio.webm');
+  upstream.append('file', audioBlob, audioName);
   upstream.append('model', provider.model);
   upstream.append('language', language);
   upstream.append('response_format', 'verbose_json');

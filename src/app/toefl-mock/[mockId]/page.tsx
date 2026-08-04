@@ -1525,12 +1525,14 @@ export default function TOEFLMockPage() {
 
       try {
         // ── Transcribe ────────────────────────────────────────────────
+        // Send the audioUrl to the server and let it download from Firebase
+        // Storage (no browser CORS on server-to-server fetches).
         setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'transcribing' } : p));
-        const blob = await fetch(rec.audioUrl).then((r) => r.blob());
-        const form = new FormData();
-        form.append('audio', blob, 'audio.webm');
-        form.append('language', 'en');
-        const tRes = await fetch('/api/transcribe-speech', { method: 'POST', body: form });
+        const tRes = await fetch('/api/transcribe-speech', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ audioUrl: rec.audioUrl, language: 'en' }),
+        });
         const tJson = await tRes.json().catch(() => ({}));
         if (!tRes.ok) {
           throw new Error(`Transcribe ${tRes.status}: ${tJson?.error ?? 'sin respuesta'}`);
