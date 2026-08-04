@@ -1,0 +1,4058 @@
+{
+  "runId": "2026-08-04T19-53-30-850Z",
+  "capturedAt": "2026-08-04T19:53:30.850Z",
+  "student": "joselin",
+  "rule": "dedup-same-slot-same-week",
+  "deleted": [
+    {
+      "id": "8KpKTfcrDQjmdVDUp2GB",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797217200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "0FbIk1JNu6na3EnjJrVc",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806289200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Aqd5neK3sszSgPjqY8lK",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789354800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "jG9BOeLj474zHXNxGZF6",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789354800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "1VlmxLJQ2SEh3bYAGqLO",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792983600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "HoYgGS8FpI2nc4eLx5m4",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792983600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "1WC0EkTKQeFmGICGAT7q",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1804474800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "5kNWaCfrRCa0IxxZ23kZ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1804474800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "mWi3hngHAGtg4p6ycnD3",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1780286400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ZurJbYzq8kcc5jpyWlOh",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799031600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "2n3N5Hf5duO3Cak51M5v",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791169200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "3ULj7dHrT1bPBmE3Zbtm",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1790564400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Hvakg4hpvbxq9I4BYJm6",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1790564400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "3WnGGskgj33IAMS5K36b",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802055600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "uKw7lsNd8oidRt8NF6gJ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802055600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "3Z9EJiojNCMS4j26VBUM",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802660400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "q3B6epABTW0KxgVR7e7O",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802660400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "lfOozpGZgU3UdmmVhu7f",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1783310400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "769MufMLdKxOO8OZFtLp",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1795402800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Og0mFDxskA5xczMEmJ0r",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1795402800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "BKateTmtKo4Q2la3t2oX",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796612400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "goPaTNkQu0GD8D8SCTos",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796612400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "4fNW8FF7JxfsxFTpZJ5i",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803870000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "xTIyosZagwv6hroBwUkG",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803870000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "yQR96QSGLTM7yC7nagc5",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799031600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "zZMoQ3cXlAbJaaBhzTQI",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799031600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Ba7zW6b5aU4RWGNcrYQ0",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785124800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "C0LzJfINhKofwsxGcU2H",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785124800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "KGJZOef7hwv3W1yEmUQN",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": false,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785124800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1785254616,
+        "_nanoseconds": 73000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1785254621,
+        "_nanoseconds": 664000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "58GxvG6y0Al9sMAuqIPq",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1793588400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ncP2NBosEmiVYJylIEE9",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1793588400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "5R80EKFJNvbymTBnXfSZ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803265200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "73uPmMXYpQ4pl6uEZRlS",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803265200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "bY5L8rtnlhjL0eG9eb9V",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802660400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "5w9y9hTjAzzjcbIFr4jE",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794798000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "66ZExEM4fDxeBqEIHuaW",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1807502400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "w6FSbuJ5mcD0gGvXH2Ve",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1807502400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "6OHPVedWEVABLXruAJ4U",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1782100800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "6cFjpOzn2zcjUVfjxC12",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794798000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "p0lhn1iZsK3HW0yyNxJB",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794798000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "nVgw4YLUb6P1jC1XwV6w",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786939200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "JBj4GkHBTeYhdc8Z6tFS",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792378800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "XLTDSnVazrMPFC9u8qs6",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792378800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "7isyDXDNiH2V5ok8kW01",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789959600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "WIrlN4WkPo6GA0cptOR3",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1802055600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "9coapZPZJJqMAs3QYOrT",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1787544000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "nPS3HSXv5FY5ABbRyWK8",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1787544000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ynYcMhn4Up6Tru8K2WKM",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1783915200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "9v5JTfuG3lDhf8qpy6te",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805684400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "yaasbwfbD1WuSHcykWjg",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805684400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ArUZKyr5m7Tv6ULrvtZi",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792378800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "BkEbi0ZvxEr5wKJdsrE4",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789959600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "fR4qSy8uorlJzxmn043l",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789959600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "BvJcBcBk9qyPGVIHRZ0Y",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808712000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "gQAkXnScMuDPdh42DIAy",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808712000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "QtFgZ3xOE8bau3ykqfh6",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800241200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "DDloxF6T5yepW2VYMyaT",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1809316800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "yJy7LandCKYSNJ5Ejon1",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808107200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "fsndBTZ0tnm5LPeuPGMD",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1801450800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "lGHmH3AEpnQFkvWSEftH",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1801450800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ERAudWeXoB0NoNZKzz4T",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791774000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "yL0DczGrDSR7V3ryxN9U",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1784520000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "EtBrxky3w7BGZ8oldHRE",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796007600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "UvH1HGHHAGbvNzCtiBbK",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796007600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ZeV7DMNy8z67ssCMXtxh",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1783915200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "kmHFwaw9jFW4YGspMNbQ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800846000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "xuvquRsufqXnTpK2vguD",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800846000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Gn58Tf1dESRCrhI03FGY",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799636400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "hKbFTidcya4HQNya6D4V",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1779076800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "hQAThBgrcZPpXcr7Hvxg",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788750000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "PdL9flZTpjSJZfefFwgy",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1793588400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Tn42q2dM7Md8jHoPEbQs",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803265200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ICzpOLRjbpTFM6XixYx4",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1783310400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "KiQ6Jtx127FUmoQqbMgQ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796007600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Iw0t7zNpPMrMyyuuwPwE",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1798426800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "SGEEvBnm8wwXgBZZWC2a",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1798426800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "JgHjiNPnlwibipOM1qBb",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1781496000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "TV4hTnPTKlH3aPdmLkOx",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1790564400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "KQhIasjEFBmnMCK6Y3fz",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808107200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "q9hhZv3n2oDguYlnqZSv",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808107200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "KXLOtNNW9YAQaRD3DgaI",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806897600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "U11kKcm7zCI5g9R5zVoo",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806897600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "t0Jb9Gqdh3WFV9N5ItYg",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1781496000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "VJtPp3h60YZBD36xCgqG",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805079600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Mruq1XtmX1gaRxbKz0pR",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1787544000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "nw7Ln28sG4JPhUL9yJn5",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1789354800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "MUX15LYgvlrwSm48MR3E",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1796612400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "oSpqz5FLNbJXlWGgmfK4",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1804474800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "UPyGogWKc0mfFoHbX0Pi",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786334400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "q0NX8O1goNEDifpugNZA",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786334400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "OLQadUL5uY0bzUHPCA2a",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1798426800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "VoLH6B1EhiXL3pm2pEhu",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786939200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "XXr2JstRKIzWvaishbpw",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786939200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "OzjTfio2it4vKFsTTzOp",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791774000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "nwROt1G9AXE91g94Htwp",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791774000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "QQoaE3914x1JWDWR5ggA",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1803870000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "vFGMjyM3mUqcdD00e6DK",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1782705600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "RI4n1Yc4XJh7BQu3w3uN",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794193200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "Rb76gEmryYHD0tHt47aY",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788750000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "jRWI9S6Q2Je3nJpvPsuj",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788750000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "edbR0QIHvxtNus2SF38M",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805079600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "mDrlBHNFnjm5Ef0p28h3",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805079600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "SL7NxkRYzHmATW19MLci",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785729600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "btnVYVFpF4OKfQBFiaE7",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785729600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "VeJMZtrrBBPXcqGgWQmL",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806289200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "i95IUK6dPsmJXg4kijbh",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806289200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "T7R1QaskPaZLE2FQk7ak",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788148800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "w3c4XbK2WyLMXjCamvYJ",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788148800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "d405WQkebPpbDDIZP6ed",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794193200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "fZY2TqTNGLr19FCarvFg",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1794193200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "qUH4QzJL0KGo49khw7uT",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1780891200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "TQ6SZ7PBDkIjBSgwjRn9",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1801450800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "VAd6hAM05ASjULntNuHf",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800846000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "W9ZsJ33aKC6y79GIX5sN",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800241200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "gHNpy7AylNV0tYmg8UGp",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1800241200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "WIhlkYLBNaxweLrHFVod",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797822000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "hWubSn8vx77Qnn23A823",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797822000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "YNHeZTeA8EXnnpFOoDaI",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1795402800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "YltcBQPXN5XvrKLHFmDc",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791169200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "yuy9LnS8ISKJFhxxQ5uW",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1791169200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ZpkBu1ZpSMdLT57W9VJh",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1807502400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ZqPbHsekSJMXfixvCejF",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797217200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "w5G2LMKU0klpBU2VV0Fq",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797217200,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "qALF0zHSEvamxXjg6fqp",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1782705600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "akyUMqMUVF2zlkdGUIkn",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1792983600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "dBqbQGy0VOAtq3z1ErWd",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1805684400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "i63TXCYESu8hYfNLkUwa",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1806897600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "dyA1zNT8ACGuUT3Ipw78",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1788148800,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "tS2S0es4vgnldNWZpNuK",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1779681600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "jzYj4BcklOTdaCUAFr7I",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1785729600,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ssGmBJXXXvlLVwG7zicH",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799636400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778609757,
+        "_nanoseconds": 814000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "ycWxEq0Ek3e9sgmOePMM",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 2,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1799636400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778646215,
+        "_nanoseconds": 728000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1784581397,
+        "_nanoseconds": 292000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "vHfUGbHiq080wtDuu9K8",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1808712000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "r1QiVkqJgT8WOsVWXKUf",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1786334400,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    },
+    {
+      "id": "zOYZcPlRKyWpIhOvXov0",
+      "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+      "studentName": "Joselin",
+      "studentEmail": "",
+      "studentId": null,
+      "dayOfWeek": 4,
+      "hour": 20,
+      "minute": 0,
+      "bookingType": "class",
+      "isRecurring": true,
+      "recurringName": null,
+      "notes": null,
+      "lessonId": null,
+      "timezone": "America/Santiago",
+      "weekStart": {
+        "_seconds": 1797822000,
+        "_nanoseconds": 0
+      },
+      "createdAt": {
+        "_seconds": 1778610835,
+        "_nanoseconds": 122000000
+      },
+      "cancellationReason": "Removido del horario",
+      "cancelledAt": {
+        "_seconds": 1780342359,
+        "_nanoseconds": 515000000
+      },
+      "status": "cancelled"
+    }
+  ]
+}
