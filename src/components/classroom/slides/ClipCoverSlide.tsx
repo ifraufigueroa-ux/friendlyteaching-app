@@ -5,6 +5,7 @@
 // Comprehension slide so the cover reads as part of the same product,
 // not the generic CLT curriculum.
 'use client';
+import { useState } from 'react';
 import type { Slide } from '@/types/firebase';
 
 interface Props { slide: Slide; source?: string }
@@ -19,35 +20,49 @@ const LEVEL_PALETTE: Record<string, { bg: string; ring: string }> = {
 };
 const DEFAULT_LEVEL = { bg: '#7C3AED', ring: '#C4B5FD' };
 
-function youtubeThumbnail(url?: string): string | null {
+function extractYouTubeId(url?: string): string | null {
   if (!url) return null;
   const m = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return m?.[1] ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+  return m?.[1] ?? null;
 }
 
 export default function ClipCoverSlide({ slide, source }: Props) {
   const level = (slide.content ?? '').trim();
   const levelStyle = LEVEL_PALETTE[level] ?? DEFAULT_LEVEL;
   const clipSource = source || slide.subtitle?.split('—')[0]?.trim();
-  const backgroundImage =
+  const ytId = extractYouTubeId(slide.clipData?.youtubeUrl);
+  const initialImage =
     slide.imageUrl ||
     slide.clipData?.posterUrl ||
-    youtubeThumbnail(slide.clipData?.youtubeUrl);
+    (ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : null);
+  const [imgSrc, setImgSrc] = useState<string | null>(initialImage);
+
+  function handleImgError() {
+    // maxresdefault isn't available for every video — fall back to hq (always exists)
+    if (ytId && imgSrc?.includes('maxresdefault')) {
+      setImgSrc(`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`);
+    } else {
+      setImgSrc(null);
+    }
+  }
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#0A0A12] text-white">
 
       {/* ── Full-bleed thumbnail background ──────────────────────── */}
-      {backgroundImage && (
-        <div
-          className="absolute inset-0"
+      {imgSrc && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imgSrc}
+          alt=""
+          aria-hidden
+          onError={handleImgError}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundImage: `url(${backgroundImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
             filter: 'saturate(1.05) contrast(1.05)',
             animation: 'fcCoverZoom 20s ease-in-out infinite alternate',
           }}
+          draggable={false}
         />
       )}
 
