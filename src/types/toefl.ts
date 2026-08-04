@@ -154,6 +154,14 @@ export interface SpeakingRecording {
   transcript?:   string;
   aiScore?:      number;   // 0-4 raw, then mapped to 0-30 section-wide
   aiFeedback?:   string;
+  aiRubric?: {
+    delivery:         number;
+    languageUse:      number;
+    topicDevelopment: number;
+  };
+  aiStrengths?:    string[];
+  aiImprovements?: string[];
+  aiError?:        string;   // captured HTTP/network error message when grading failed
 }
 
 export interface WritingSubmission {

@@ -1056,12 +1056,14 @@ function WritingSection({
 // ── Results ───────────────────────────────────────────────────────────────
 
 function ResultsScreen({
-  studentName, scores, overall, enabledSections,
+  studentName, scores, overall, enabledSections, speakingResults, speakingPrompts,
 }: {
   studentName:     string;
   scores:          Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>;
   overall:         number;
   enabledSections: TOEFLSection[];
+  speakingResults?: SpeakingRecording[];
+  speakingPrompts?: TOEFLSpeakingPrompt[];
 }) {
   const [downloading, setDownloading] = useState(false);
   const isPartial = enabledSections.length < 4;
@@ -1144,6 +1146,13 @@ function ResultsScreen({
             </div>
           </div>
 
+          {/* Per-task Speaking breakdown — only shown if we actually ran
+              Speaking and have per-task results (transcript + rubric + AI
+              feedback or captured error). */}
+          {speakingResults && speakingResults.length > 0 && speakingPrompts && (
+            <SpeakingBreakdown recordings={speakingResults} prompts={speakingPrompts} />
+          )}
+
           <div className="flex flex-wrap gap-2 pt-2">
             <button
               onClick={downloadPdf}
@@ -1159,6 +1168,110 @@ function ResultsScreen({
             Los detalles completos con feedback de AI están guardados en el dashboard del docente.
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SpeakingBreakdown({
+  recordings, prompts,
+}: {
+  recordings: SpeakingRecording[];
+  prompts:    TOEFLSpeakingPrompt[];
+}) {
+  const anyError = recordings.some(r => r.aiError);
+  return (
+    <div>
+      <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
+        🎤 Detalle por task
+      </p>
+      {anyError && (
+        <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-700">
+          Al menos una task falló al calificarse. Se ven los detalles debajo. Contactá a tu profesor si esto se repite.
+        </div>
+      )}
+      <div className="space-y-3">
+        {recordings.map((r, i) => {
+          const prompt = prompts.find(p => p.id === r.promptId);
+          const errored = !!r.aiError;
+          return (
+            <details
+              key={r.promptId}
+              className="rounded-xl border overflow-hidden bg-white"
+              style={{ borderColor: errored ? '#FCA5A5' : B.lavenderDark }}
+              open={errored}
+            >
+              <summary className="cursor-pointer px-3 py-2 flex items-center justify-between gap-2 select-none"
+                style={{ background: errored ? '#FEF2F2' : '#FDFAFF' }}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A] shrink-0">
+                    Task {i + 1}
+                  </span>
+                  <span className="text-[10px] text-gray-500 truncate">
+                    {prompt?.category ?? ''} · {r.durationSec.toFixed(0)}s
+                  </span>
+                </div>
+                <span className={`text-sm font-black tabular-nums shrink-0 ${errored ? 'text-red-600' : 'text-[#5A3D7A]'}`}>
+                  {errored ? '⚠' : `${r.aiScore ?? 0}/4`}
+                </span>
+              </summary>
+              <div className="p-3 space-y-2 border-t" style={{ borderColor: errored ? '#FECACA' : B.lavenderDark }}>
+                {prompt && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Prompt</p>
+                    <p className="text-[11px] text-gray-600 leading-snug">{prompt.prompt}</p>
+                  </div>
+                )}
+                {r.aiRubric && (
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    {(['delivery', 'languageUse', 'topicDevelopment'] as const).map((k) => (
+                      <div key={k} className="rounded-lg border p-2 text-center" style={{ borderColor: B.lavenderDark }}>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-[#5A3D7A]/60">
+                          {k === 'delivery' ? 'Delivery' : k === 'languageUse' ? 'Language' : 'Topic dev'}
+                        </p>
+                        <p className="text-lg font-black tabular-nums" style={{ color: B.purple }}>{r.aiRubric![k]}/4</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {r.transcript && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Transcripción</p>
+                    <p className="text-[11px] text-gray-700 italic leading-snug">&ldquo;{r.transcript}&rdquo;</p>
+                  </div>
+                )}
+                {r.aiFeedback && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Feedback</p>
+                    <p className={`text-[11px] leading-snug ${errored ? 'text-red-700' : 'text-gray-700'}`}>{r.aiFeedback}</p>
+                  </div>
+                )}
+                {r.aiStrengths && r.aiStrengths.length > 0 && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-emerald-700 mb-0.5">✓ Fortalezas</p>
+                    <ul className="text-[11px] text-emerald-800 list-disc pl-4 space-y-0.5">
+                      {r.aiStrengths.map((s, si) => <li key={si}>{s}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {r.aiImprovements && r.aiImprovements.length > 0 && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-amber-700 mb-0.5">↗ Para mejorar</p>
+                    <ul className="text-[11px] text-amber-800 list-disc pl-4 space-y-0.5">
+                      {r.aiImprovements.map((s, si) => <li key={si}>{s}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {r.audioUrl && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-1">Tu audio</p>
+                    <audio src={r.audioUrl} controls className="w-full h-8" />
+                  </div>
+                )}
+              </div>
+            </details>
+          );
+        })}
       </div>
     </div>
   );
@@ -1200,6 +1313,14 @@ export default function TOEFLMockPage() {
   const [teacherId] = useState(teacherIdParam);
   const [formError, setFormError] = useState('');
   const [gradingMsg, setGradingMsg] = useState('Calificando…');
+  const [speakingProgress, setSpeakingProgress] = useState<Array<{
+    promptId: string;
+    status:   'pending' | 'transcribing' | 'grading' | 'done' | 'error' | 'skipped';
+    message?: string;
+  }>>([]);
+  // Full per-task Speaking details (transcript + rubric + feedback + errors)
+  // used to render the detailed breakdown on the Results screen.
+  const [speakingResults, setSpeakingResults] = useState<SpeakingRecording[]>([]);
 
   const sessionIdRef = useRef<string>('');
   const [scores, setScores] = useState<Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>>({});
@@ -1385,43 +1506,81 @@ export default function TOEFLMockPage() {
 
   async function onSpeakingDone(recordings: SpeakingRecording[]) {
     setPhase('grading');
-    setGradingMsg('Transcribiendo y calificando Speaking…');
+    setSpeakingProgress(recordings.map((r) => ({ promptId: r.promptId, status: 'pending' })));
     const enriched: SpeakingRecording[] = [];
     const rawScores: number[] = [];
-    for (const rec of recordings) {
+    for (let i = 0; i < recordings.length; i++) {
+      const rec = recordings[i];
       const prompt = mock!.speaking.find(p => p.id === rec.promptId);
       if (!prompt) { enriched.push(rec); continue; }
+
       // Explicit skips (from the "Saltar task" button) carry an empty audioUrl.
       // Score them 0 without hitting Whisper/Claude.
       if (!rec.audioUrl) {
         rawScores.push(0);
         enriched.push({ ...rec, aiScore: 0, aiFeedback: 'Task saltada por el estudiante.' });
+        setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'skipped' } : p));
         continue;
       }
+
       try {
-        // Fetch the audio blob for Whisper
-        const blob = await fetch(rec.audioUrl).then(r => r.blob());
+        // ── Transcribe ────────────────────────────────────────────────
+        setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'transcribing' } : p));
+        const blob = await fetch(rec.audioUrl).then((r) => r.blob());
         const form = new FormData();
         form.append('audio', blob, 'audio.webm');
         form.append('language', 'en');
         const tRes = await fetch('/api/transcribe-speech', { method: 'POST', body: form });
-        const tJson = await tRes.json();
-        const transcript = String(tJson.text ?? '');
+        const tJson = await tRes.json().catch(() => ({}));
+        if (!tRes.ok) {
+          throw new Error(`Transcribe ${tRes.status}: ${tJson?.error ?? 'sin respuesta'}`);
+        }
+        const transcript = String(tJson.text ?? '').trim();
+        if (!transcript) {
+          // Whisper returned empty — likely silent recording or unsupported format.
+          rawScores.push(0);
+          enriched.push({
+            ...rec, transcript: '', aiScore: 0,
+            aiFeedback: 'No se detectó voz en el audio grabado. Revisá el micrófono.',
+            aiError: 'Empty transcript',
+          });
+          setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'error', message: 'Sin voz detectada' } : p));
+          continue;
+        }
 
-        // Score
+        // ── Grade ─────────────────────────────────────────────────────
+        setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'grading' } : p));
         const gRes = await fetch('/api/ai-grade-toefl-speaking', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt.prompt, transcript, durationSec: rec.durationSec }),
         });
-        const gJson = await gRes.json();
+        const gJson = await gRes.json().catch(() => ({}));
+        if (!gRes.ok) {
+          throw new Error(`Grade ${gRes.status}: ${gJson?.error ?? 'sin respuesta'}`);
+        }
         const rawScore = Number(gJson.rawScore04 ?? 0);
         rawScores.push(rawScore);
-        enriched.push({ ...rec, transcript, aiScore: rawScore, aiFeedback: gJson.feedback });
+        enriched.push({
+          ...rec, transcript,
+          aiScore:        rawScore,
+          aiFeedback:     String(gJson.feedback ?? ''),
+          aiRubric:       gJson.rubric,
+          aiStrengths:    Array.isArray(gJson.strengths)    ? gJson.strengths    : undefined,
+          aiImprovements: Array.isArray(gJson.improvements) ? gJson.improvements : undefined,
+        });
+        setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'done', message: `Score ${rawScore}/4` } : p));
       } catch (err) {
-        console.error('[toefl-mock] speaking grade err:', err);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[toefl-mock] speaking grade err:', msg);
         rawScores.push(0);
-        enriched.push(rec);
+        enriched.push({
+          ...rec,
+          aiScore:    0,
+          aiFeedback: `Error al calificar: ${msg}`,
+          aiError:    msg,
+        });
+        setSpeakingProgress((prev) => prev.map((p, idx) => idx === i ? { ...p, status: 'error', message: msg } : p));
       }
     }
     // If some tasks were skipped (fewer than 4), pad with 0 so the sum still
@@ -1432,6 +1591,7 @@ export default function TOEFLMockPage() {
       score:   speakingRawToScaled(rawScores),
     };
     setScores(prev => ({ ...prev, speaking: score }));
+    setSpeakingResults(enriched);
     await persistSection('speaking', { recordings: enriched, score });
     if (sessionIdRef.current) await clearLiveSnapshot(sessionIdRef.current);
     setHydration(null);
@@ -1675,14 +1835,65 @@ export default function TOEFLMockPage() {
   if (phase === 'grading') {
     return (
       <PageBg>
-        <div className="text-center py-24">
-          <div className="w-12 h-12 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
-          <p className="text-sm font-bold" style={{ color: B.purple }}>{gradingMsg}</p>
-          <p className="text-xs text-gray-500 mt-1">Puede tardar 1-2 min.</p>
+        <div className="w-full max-w-md space-y-4">
+          <div className="text-center py-8">
+            <div className="w-12 h-12 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
+            <p className="text-sm font-bold" style={{ color: B.purple }}>{gradingMsg}</p>
+            <p className="text-xs text-gray-500 mt-1">Puede tardar 1-2 min.</p>
+          </div>
+
+          {speakingProgress.length > 0 && (
+            <div className="bg-white rounded-2xl p-4 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-3" style={{ color: B.purpleMed }}>
+                🎤 Speaking tasks
+              </p>
+              <ul className="space-y-1.5">
+                {speakingProgress.map((p, i) => {
+                  const icon =
+                    p.status === 'done'         ? '✓'
+                    : p.status === 'error'      ? '✗'
+                    : p.status === 'skipped'    ? '↷'
+                    : p.status === 'pending'    ? '·'
+                    :                             '⏳';
+                  const color =
+                    p.status === 'done'         ? 'text-emerald-600'
+                    : p.status === 'error'      ? 'text-red-600'
+                    : p.status === 'skipped'    ? 'text-amber-600'
+                    : p.status === 'pending'    ? 'text-gray-300'
+                    :                             'text-purple-600';
+                  const label =
+                    p.status === 'transcribing' ? 'Transcribiendo audio…'
+                    : p.status === 'grading'    ? 'Calificando con IA…'
+                    : p.status === 'done'       ? (p.message ?? 'Listo')
+                    : p.status === 'skipped'    ? 'Saltada'
+                    : p.status === 'error'      ? (p.message ?? 'Error')
+                    :                             'Esperando';
+                  return (
+                    <li key={p.promptId} className="flex items-center gap-3 text-xs">
+                      <span className={`w-5 text-center font-black ${color}`}>{icon}</span>
+                      <span className="text-[#5A3D7A] font-semibold w-16 shrink-0">Task {i + 1}</span>
+                      <span className={`flex-1 truncate ${p.status === 'error' ? 'text-red-600' : 'text-gray-500'}`}>{label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </div>
       </PageBg>
     );
   }
 
-  return <PageBg><ResultsScreen studentName={name} scores={scores} overall={overallLive} enabledSections={enabledSections} /></PageBg>;
+  return (
+    <PageBg>
+      <ResultsScreen
+        studentName={name}
+        scores={scores}
+        overall={overallLive}
+        enabledSections={enabledSections}
+        speakingResults={speakingResults}
+        speakingPrompts={mock!.speaking}
+      />
+    </PageBg>
+  );
 }
