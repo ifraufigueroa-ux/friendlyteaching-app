@@ -39,19 +39,19 @@ export const passage2: TOEFLReadingPassage = {
     {
       id: 'q2', type: 'vocabulary', refPara: 2,
       prompt: 'The word "concentration" in paragraph 2 is closest in meaning to',
-      options: ['attention', 'gathering into one place', 'strength of a liquid', 'careful thought'],
-      correct: 1,
+      options: ['attention', 'careful thought', 'strength of a liquid', 'gathering into one place'],
+      correct: 3,
     },
     {
       id: 'q3', type: 'factual', refPara: 2,
       prompt: 'Why does the author mention a Genoese merchant travelling to Champagne?',
       options: [
-        'To show that Italian merchants were the most important customers of Flemish cloth',
         'To illustrate how the fairs reduced both transport costs and risk',
+        'To show that Italian merchants were the most important customers of Flemish cloth',
         'To argue that Bruges and Ghent lost most of their long-distance trade',
         'To demonstrate that all trade routes led through northern France',
       ],
-      correct: 1,
+      correct: 0,
     },
     {
       id: 'q4', type: 'factual', refPara: 3,
@@ -86,11 +86,11 @@ export const passage2: TOEFLReadingPassage = {
       prompt: 'Which sentence best expresses the essential information in this highlighted text: "The Champagne fairs became clearing houses where these bills were accepted, transferred, and cancelled against one another."',
       options: [
         'Champagne fairs sold bills of exchange to merchants from many countries',
-        'The fairs served as centres where merchants processed and offset written payment orders among each other',
-        'Merchants had to attend Champagne to obtain valid bills of exchange',
         'Clearing houses were physical buildings owned by fair officials',
+        'Merchants had to attend Champagne to obtain valid bills of exchange',
+        'The fairs served as centres where merchants processed and offset written payment orders among each other',
       ],
-      correct: 1,
+      correct: 3,
     },
     {
       id: 'q8', type: 'negative-factual', refPara: 5,
@@ -108,11 +108,11 @@ export const passage2: TOEFLReadingPassage = {
       prompt: 'What does the more recent view described in paragraph 6 suggest about the decline of the fairs?',
       options: [
         'The fairs never really declined at all',
-        'The fairs\' functions were absorbed into other institutions rather than simply disappearing',
         'Political troubles were the sole cause of decline',
+        'The fairs\' functions were absorbed into other institutions rather than simply disappearing',
         'Fairs at Frankfurt and Leipzig replaced Champagne almost immediately',
       ],
-      correct: 1,
+      correct: 2,
     },
     {
       id: 'q10', type: 'rhetorical-purpose', refPara: 7,

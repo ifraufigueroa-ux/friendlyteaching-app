@@ -50,22 +50,22 @@ export const conversation1: TOEFLListeningAudio = {
       prompt: 'Why does the student go to the library help desk?',
       options: [
         'To renew books he has already checked out',
-        'To ask for help figuring out which edition of a primary source to cite',
         'To request access to a restricted archive',
+        'To ask for help figuring out which edition of a primary source to cite',
         'To recommend that the library purchase new titles',
       ],
-      correct: 1,
+      correct: 2,
     },
     {
       id: 'c1-q2',
       prompt: 'According to the librarian, how should the student cite an ancient text?',
       options: [
-        'By the title of the modern edition he used',
         'By the ancient reference numbers, with the specific edition listed in the bibliography',
+        'By the title of the modern edition he used',
         'By the publication date of the earliest available translation',
         'By the name of the translator only',
       ],
-      correct: 1,
+      correct: 0,
     },
     {
       id: 'c1-q3',
@@ -94,11 +94,11 @@ export const conversation1: TOEFLListeningAudio = {
       prompt: 'Why does the librarian recommend using the Loeb volumes in the library rather than checking them out?',
       options: [
         'They cannot legally be removed from the building',
-        'They are a shared resource that other classics students also need',
-        'They are too heavy for casual transport',
         'The library charges a fee for checking them out',
+        'They are too heavy for casual transport',
+        'They are a shared resource that other classics students also need',
       ],
-      correct: 1,
+      correct: 3,
     },
   ],
 };

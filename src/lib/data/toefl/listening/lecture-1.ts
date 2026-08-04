@@ -31,11 +31,11 @@ export const lecture1: TOEFLListeningAudio = {
       prompt: 'What is the lecture mainly about?',
       options: [
         'A comparison of the world\'s largest cave systems',
-        'How large cave systems are formed and shaped over time',
-        'The chemical composition of limestone',
         'Methods used to date cave features',
+        'The chemical composition of limestone',
+        'How large cave systems are formed and shaped over time',
       ],
-      correct: 1,
+      correct: 3,
     },
     {
       id: 'l1-q2',
@@ -74,12 +74,12 @@ export const lecture1: TOEFLListeningAudio = {
       id: 'l1-q5',
       prompt: 'According to the professor, what causes stalactites and stalagmites to grow?',
       options: [
-        'Continued dissolution of limestone by acidic water',
         'Precipitation of calcium carbonate as dripping water releases carbon dioxide',
+        'Continued dissolution of limestone by acidic water',
         'Vibrations from earthquakes reshaping the cave interior',
         'Deposits left behind by cave-dwelling animals',
       ],
-      correct: 1,
+      correct: 0,
     },
     {
       id: 'l1-q6',
