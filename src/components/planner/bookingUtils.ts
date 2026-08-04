@@ -97,8 +97,15 @@ export function dedupeBookingsForWeek(bookings: Booking[], weekStartMs: number):
     // student as no longer scheduled — this drops old completed classes
     // from students who left the platform (Constanza, Abdón, etc.),
     // instead of resurrecting them as "templates".
-    const thisWeek = arr.find(b => toMs(b.weekStart) === weekStartMs);
-    if (!thisWeek) continue;
+    //
+    // Legacy data can hold multiple docs for the same slot+week (older
+    // reschedules left cancelled duplicates behind). Prefer a live status
+    // (confirmed/completed) over cancelled so the class doesn't disappear
+    // just because a stale cancelled doc happens to sort first.
+    const thisWeekDocs = arr.filter(b => toMs(b.weekStart) === weekStartMs);
+    if (thisWeekDocs.length === 0) continue;
+    const thisWeek =
+      thisWeekDocs.find(b => b.status !== 'cancelled') ?? thisWeekDocs[0];
     if (thisWeek.status === 'cancelled') continue;
     out.push(thisWeek);
   }
