@@ -19,20 +19,30 @@ const LEVEL_PALETTE: Record<string, { bg: string; ring: string }> = {
 };
 const DEFAULT_LEVEL = { bg: '#7C3AED', ring: '#C4B5FD' };
 
+function youtubeThumbnail(url?: string): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:v=|\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?.[1] ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+}
+
 export default function ClipCoverSlide({ slide, source }: Props) {
   const level = (slide.content ?? '').trim();
   const levelStyle = LEVEL_PALETTE[level] ?? DEFAULT_LEVEL;
   const clipSource = source || slide.subtitle?.split('—')[0]?.trim();
+  const backgroundImage =
+    slide.imageUrl ||
+    slide.clipData?.posterUrl ||
+    youtubeThumbnail(slide.clipData?.youtubeUrl);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#0A0A12] text-white">
 
       {/* ── Full-bleed thumbnail background ──────────────────────── */}
-      {slide.imageUrl && (
+      {backgroundImage && (
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(${slide.imageUrl})`,
+            backgroundImage: `url(${backgroundImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             filter: 'saturate(1.05) contrast(1.05)',
