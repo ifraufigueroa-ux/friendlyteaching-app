@@ -1,0 +1,461 @@
+{
+  "lessonId": "pWkEupdXGiRLXJnEfJuR",
+  "capturedAt": "2026-08-04T22:24:03.594Z",
+  "note": "pre-add-verb-form",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B2",
+    "assignedTo": [],
+    "title": "Friendly Teaching CL – The Last Bus to San Pedro",
+    "createdAt": {
+      "_seconds": 1784672095,
+      "_nanoseconds": 812000000
+    },
+    "text": {
+      "audioSource": "hosted",
+      "source": "Friendly Teaching CL",
+      "posterPosition": "52% 0%",
+      "audioUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/audio%2Ffriendlytext-upload-upRMjey4VSg4bAgGzLWn2SlcFg82-1784671870898.mp3?alt=media&token=8946e845-a394-48de-860b-1e53ab344211",
+      "posterUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/images%2Ffriendlytext-poster-upRMjey4VSg4bAgGzLWn2SlcFg82-1784672362718.png?alt=media&token=9f1c060e-d79d-4b2e-a499-583b4df9d683",
+      "title": "The Last Bus to San Pedro",
+      "comprehensionMode": "both",
+      "text": "The Last Bus to San Pedro\n\nEvery evening at 8:30 p.m., the last bus left the small town of San Pedro. It followed the same mountain road every day, carrying workers, students, and tourists.\n\nOn a rainy Thursday in October, twenty-four passengers boarded the bus.\n\nOnly twenty-three arrived.\n\nAt first, everyone believed it was a mistake.\n\nThe missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash. Several passengers remembered seeing her sitting near the back of the bus, writing in a notebook.\n\nThen she simply disappeared.\n\nThe driver insisted that the bus had never stopped between towns.\n\n\"There was nowhere to go,\" he told the police. \"Just mountains.\"\n\nDetective Nicolás Rojas was assigned to the case.\n\nHe questioned every passenger.\n\nMost of them remembered Camila.\n\nOne elderly woman even described her jacket and backpack.\n\nBut when detectives checked the security cameras at the bus terminal, something strange happened.\n\nCamila entered the station.\n\nShe bought her ticket.\n\nShe walked toward the bus.\n\nBut no camera showed her getting on.\n\nThe police searched the road for days.\n\nDrones flew over the hills.\n\nRescue teams checked rivers, forests, and abandoned buildings.\n\nNothing.\n\nNo backpack.\n\nNo notebook.\n\nNo body.\n\nWhile investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.\n\nSeveral local officials denied knowing anything about it.\n\nOthers refused to answer questions.\n\nThen another surprise appeared.\n\nOne week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.\n\nInside was a memory card.\n\nIt contained photographs of buried chemical barrels, secret company documents, and one short video.\n\nThe video lasted only eight seconds.\n\nCamila was recording herself.\n\nBehind her, a yellow bus drove past.\n\nShe looked directly into the camera.\n\n\"If anything happens to me,\" she whispered, \"they already know.\"\n\nThe video ended.\n\nThe bus company confirmed that the vehicle in the recording was the same bus Camila had planned to take.\n\nBut according to its GPS records...\n\nit had never been there.\n\nMonths later, investigators proved that several GPS files had been altered before being handed to the police.\n\nThe company was fined.\n\nTwo executives were arrested for environmental crimes.\n\nHowever, nobody was ever charged with Camila's disappearance.\n\nToday, the last bus still leaves San Pedro every evening at 8:30.\n\nSome passengers say they always choose a seat near the front.\n\nOthers refuse to take that route after dark.\n\nAs for Detective Rojas, he still keeps Camila's notebook on his office shelf.\n\nThe strange thing is...\n\nit was never found.\n\nSomeone left it outside his door three years after the case was closed."
+    },
+    "publishStatus": "published",
+    "updatedAt": {
+      "_seconds": 1785360645,
+      "_nanoseconds": 199000000
+    },
+    "slides": [
+      {
+        "id": "ai-slide-0",
+        "title": "The Last Bus to San Pedro",
+        "subtitle": "A CLT text lesson — Friendly Teaching CL",
+        "type": "text_cover",
+        "textData": {
+          "text": "The Last Bus to San Pedro\n\nEvery evening at 8:30 p.m., the last bus left the small town of San Pedro. It followed the same mountain road every day, carrying workers, students, and tourists.\n\nOn a rainy Thursday in October, twenty-four passengers boarded the bus.\n\nOnly twenty-three arrived.\n\nAt first, everyone believed it was a mistake.\n\nThe missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash. Several passengers remembered seeing her sitting near the back of the bus, writing in a notebook.\n\nThen she simply disappeared.\n\nThe driver insisted that the bus had never stopped between towns.\n\n\"There was nowhere to go,\" he told the police. \"Just mountains.\"\n\nDetective Nicolás Rojas was assigned to the case.\n\nHe questioned every passenger.\n\nMost of them remembered Camila.\n\nOne elderly woman even described her jacket and backpack.\n\nBut when detectives checked the security cameras at the bus terminal, something strange happened.\n\nCamila entered the station.\n\nShe bought her ticket.\n\nShe walked toward the bus.\n\nBut no camera showed her getting on.\n\nThe police searched the road for days.\n\nDrones flew over the hills.\n\nRescue teams checked rivers, forests, and abandoned buildings.\n\nNothing.\n\nNo backpack.\n\nNo notebook.\n\nNo body.\n\nWhile investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.\n\nSeveral local officials denied knowing anything about it.\n\nOthers refused to answer questions.\n\nThen another surprise appeared.\n\nOne week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.\n\nInside was a memory card.\n\nIt contained photographs of buried chemical barrels, secret company documents, and one short video.\n\nThe video lasted only eight seconds.\n\nCamila was recording herself.\n\nBehind her, a yellow bus drove past.\n\nShe looked directly into the camera.\n\n\"If anything happens to me,\" she whispered, \"they already know.\"\n\nThe video ended.\n\nThe bus company confirmed that the vehicle in the recording was the same bus Camila had planned to take.\n\nBut according to its GPS records...\n\nit had never been there.\n\nMonths later, investigators proved that several GPS files had been altered before being handed to the police.\n\nThe company was fined.\n\nTwo executives were arrested for environmental crimes.\n\nHowever, nobody was ever charged with Camila's disappearance.\n\nToday, the last bus still leaves San Pedro every evening at 8:30.\n\nSome passengers say they always choose a seat near the front.\n\nOthers refuse to take that route after dark.\n\nAs for Detective Rojas, he still keeps Camila's notebook on his office shelf.\n\nThe strange thing is...\n\nit was never found.\n\nSomeone left it outside his door three years after the case was closed.",
+          "comprehensionMode": "both",
+          "title": "The Last Bus to San Pedro",
+          "posterPosition": "52% 0%",
+          "audioUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/audio%2Ffriendlytext-upload-upRMjey4VSg4bAgGzLWn2SlcFg82-1784671870898.mp3?alt=media&token=8946e845-a394-48de-860b-1e53ab344211",
+          "posterUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/images%2Ffriendlytext-poster-upRMjey4VSg4bAgGzLWn2SlcFg82-1784672362718.png?alt=media&token=9f1c060e-d79d-4b2e-a499-583b4df9d683",
+          "audioSource": "hosted",
+          "source": "Friendly Teaching CL"
+        },
+        "phase": "pre"
+      },
+      {
+        "title": "Key Vocabulary",
+        "type": "vocab_match",
+        "phase": "pre",
+        "id": "ai-slide-1",
+        "words": [
+          {
+            "word": "vanished",
+            "translation": "disappeared suddenly and completely, with no explanation",
+            "pronunciation": "/ˈvænɪʃt/",
+            "example": "One week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago."
+          },
+          {
+            "pronunciation": "/əˈnɒnɪməs/",
+            "example": "One week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.",
+            "word": "anonymous",
+            "translation": "made or done by someone whose identity is not known or revealed"
+          },
+          {
+            "translation": "changed in some way, often secretly or dishonestly",
+            "word": "altered",
+            "example": "Months later, investigators proved that several GPS files had been altered before being handed to the police.",
+            "pronunciation": "/ˈɔːltəd/"
+          },
+          {
+            "word": "assigned",
+            "translation": "officially given a particular job, task, or role",
+            "example": "Detective Nicolás Rojas was assigned to the case.",
+            "pronunciation": "/əˈsaɪnd/"
+          },
+          {
+            "translation": "poisonous and harmful to living things or the environment",
+            "word": "toxic",
+            "example": "Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.",
+            "pronunciation": "/ˈtɒksɪk/"
+          },
+          {
+            "word": "insisted",
+            "translation": "stated or demanded something firmly and repeatedly, refusing to accept disagreement",
+            "example": "The driver insisted that the bus had never stopped between towns.",
+            "pronunciation": "/ɪnˈsɪstɪd/"
+          },
+          {
+            "example": "However, nobody was ever charged with Camila's disappearance.",
+            "pronunciation": "/tʃɑːdʒd/",
+            "word": "charged",
+            "translation": "formally accused of a crime by the authorities"
+          },
+          {
+            "word": "uneasy",
+            "translation": "nervous, worried, or unable to relax because something feels wrong",
+            "pronunciation": "ʌnˈiːzi",
+            "example": "She felt uneasy walking alone through the dark station."
+          }
+        ]
+      },
+      {
+        "title": "Before You Read...",
+        "type": "predictions",
+        "phase": "pre",
+        "content": "• Imagine you are on 'The Last Bus to San Pedro' on a rainy night. Describe the scene, the passengers, and the feeling inside the bus.\n• Tell us about a time you experienced something unsettling on a journey — a moment that made you feel uneasy or suspicious.\n• Think of a story or film from your own culture that shares the mystery of 'The Last Bus to San Pedro'. What does it explore about disappearance or injustice?",
+        "id": "ai-slide-2",
+        "prompt": "Picture the last bus leaving a mountain town at night — who is on it, and what might go wrong?"
+      },
+      {
+        "id": "ai-slide-3",
+        "content": "The Last Bus to San Pedro\n\nEvery evening at 8:30 p.m., the last bus left the small town of San Pedro. It followed the same mountain road every day, carrying workers, students, and tourists.\n\nOn a rainy Thursday in October, twenty-four passengers boarded the bus.\n\nOnly twenty-three arrived.\n\nAt first, everyone believed it was a mistake.\n\nThe missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash. Several passengers remembered seeing her sitting near the back of the bus, writing in a notebook.\n\nThen she simply disappeared.\n\nThe driver insisted that the bus had never stopped between towns.\n\n\"There was nowhere to go,\" he told the police. \"Just mountains.\"\n\nDetective Nicolás Rojas was assigned to the case.\n\nHe questioned every passenger.\n\nMost of them remembered Camila.\n\nOne elderly woman even described her jacket and backpack.\n\nBut when detectives checked the security cameras at the bus terminal, something strange happened.\n\nCamila entered the station.\n\nShe bought her ticket.\n\nShe walked toward the bus.\n\nBut no camera showed her getting on.\n\nThe police searched the road for days.\n\nDrones flew over the hills.\n\nRescue teams checked rivers, forests, and abandoned buildings.\n\nNothing.\n\nNo backpack.\n\nNo notebook.\n\nNo body.\n\nWhile investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.\n\nSeveral local officials denied knowing anything about it.\n\nOthers refused to answer questions.\n\nThen another surprise appeared.\n\nOne week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.\n\nInside was a memory card.\n\nIt contained photographs of buried chemical barrels, secret company documents, and one short video.\n\nThe video lasted only eight seconds.\n\nCamila was recording herself.\n\nBehind her, a yellow bus drove past.\n\nShe looked directly into the camera.\n\n\"If anything happens to me,\" she whispered, \"they already know.\"\n\nThe video ended.\n\nThe bus company confirmed that the vehicle in the recording was the same bus Camila had planned to take.\n\nBut according to its GPS records...\n\nit had never been there.\n\nMonths later, investigators proved that several GPS files had been altered before being handed to the police.\n\nThe company was fined.\n\nTwo executives were arrested for environmental crimes.\n\nHowever, nobody was ever charged with Camila's disappearance.\n\nToday, the last bus still leaves San Pedro every evening at 8:30.\n\nSome passengers say they always choose a seat near the front.\n\nOthers refuse to take that route after dark.\n\nAs for Detective Rojas, he still keeps Camila's notebook on his office shelf.\n\nThe strange thing is...\n\nit was never found.\n\nSomeone left it outside his door three years after the case was closed.",
+        "phase": "while",
+        "title": "Read + Listen",
+        "type": "text_comprehension",
+        "textData": {
+          "audioSource": "hosted",
+          "source": "Friendly Teaching CL",
+          "audioUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/audio%2Ffriendlytext-upload-upRMjey4VSg4bAgGzLWn2SlcFg82-1784671870898.mp3?alt=media&token=8946e845-a394-48de-860b-1e53ab344211",
+          "posterUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/images%2Ffriendlytext-poster-upRMjey4VSg4bAgGzLWn2SlcFg82-1784672362718.png?alt=media&token=9f1c060e-d79d-4b2e-a499-583b4df9d683",
+          "posterPosition": "52% 0%",
+          "title": "The Last Bus to San Pedro",
+          "comprehensionMode": "both",
+          "text": "The Last Bus to San Pedro\n\nEvery evening at 8:30 p.m., the last bus left the small town of San Pedro. It followed the same mountain road every day, carrying workers, students, and tourists.\n\nOn a rainy Thursday in October, twenty-four passengers boarded the bus.\n\nOnly twenty-three arrived.\n\nAt first, everyone believed it was a mistake.\n\nThe missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash. Several passengers remembered seeing her sitting near the back of the bus, writing in a notebook.\n\nThen she simply disappeared.\n\nThe driver insisted that the bus had never stopped between towns.\n\n\"There was nowhere to go,\" he told the police. \"Just mountains.\"\n\nDetective Nicolás Rojas was assigned to the case.\n\nHe questioned every passenger.\n\nMost of them remembered Camila.\n\nOne elderly woman even described her jacket and backpack.\n\nBut when detectives checked the security cameras at the bus terminal, something strange happened.\n\nCamila entered the station.\n\nShe bought her ticket.\n\nShe walked toward the bus.\n\nBut no camera showed her getting on.\n\nThe police searched the road for days.\n\nDrones flew over the hills.\n\nRescue teams checked rivers, forests, and abandoned buildings.\n\nNothing.\n\nNo backpack.\n\nNo notebook.\n\nNo body.\n\nWhile investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.\n\nSeveral local officials denied knowing anything about it.\n\nOthers refused to answer questions.\n\nThen another surprise appeared.\n\nOne week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.\n\nInside was a memory card.\n\nIt contained photographs of buried chemical barrels, secret company documents, and one short video.\n\nThe video lasted only eight seconds.\n\nCamila was recording herself.\n\nBehind her, a yellow bus drove past.\n\nShe looked directly into the camera.\n\n\"If anything happens to me,\" she whispered, \"they already know.\"\n\nThe video ended.\n\nThe bus company confirmed that the vehicle in the recording was the same bus Camila had planned to take.\n\nBut according to its GPS records...\n\nit had never been there.\n\nMonths later, investigators proved that several GPS files had been altered before being handed to the police.\n\nThe company was fined.\n\nTwo executives were arrested for environmental crimes.\n\nHowever, nobody was ever charged with Camila's disappearance.\n\nToday, the last bus still leaves San Pedro every evening at 8:30.\n\nSome passengers say they always choose a seat near the front.\n\nOthers refuse to take that route after dark.\n\nAs for Detective Rojas, he still keeps Camila's notebook on his office shelf.\n\nThe strange thing is...\n\nit was never found.\n\nSomeone left it outside his door three years after the case was closed."
+        }
+      },
+      {
+        "type": "listening_quiz",
+        "title": "Comprehension Check",
+        "questions": [
+          {
+            "correctAnswer": "Camila was seen entering the station and buying a ticket, but no camera showed her boarding the bus.",
+            "options": [
+              {
+                "isCorrect": false,
+                "text": "The cameras were broken and recorded nothing that night.",
+                "id": "a"
+              },
+              {
+                "id": "b",
+                "text": "Camila was seen entering the station and buying a ticket, but no camera showed her boarding the bus.",
+                "isCorrect": true
+              },
+              {
+                "text": "Camila appeared on camera speaking to another passenger before disappearing.",
+                "isCorrect": false,
+                "id": "c"
+              },
+              {
+                "id": "d",
+                "text": "The cameras confirmed she never entered the station at all.",
+                "isCorrect": false
+              }
+            ],
+            "question": "What is the most significant detail about the security camera footage of Camila at the bus terminal?"
+          },
+          {
+            "question": "What does the phrase 'they already know' in Camila's video most likely suggest?",
+            "options": [
+              {
+                "text": "She was warning her family about a personal matter.",
+                "isCorrect": false,
+                "id": "a"
+              },
+              {
+                "isCorrect": true,
+                "text": "She suspected that powerful people were aware of her investigation and considered her a threat.",
+                "id": "b"
+              },
+              {
+                "text": "She was informing the police about the bus schedule.",
+                "isCorrect": false,
+                "id": "c"
+              },
+              {
+                "text": "She had already published her findings and was celebrating.",
+                "isCorrect": false,
+                "id": "d"
+              }
+            ],
+            "correctAnswer": "She suspected that powerful people were aware of her investigation and considered her a threat."
+          },
+          {
+            "options": [
+              {
+                "text": "It showed the bus had taken a completely different route that night.",
+                "isCorrect": false,
+                "id": "a"
+              },
+              {
+                "id": "b",
+                "isCorrect": false,
+                "text": "It confirmed that the bus company had no GPS system installed."
+              },
+              {
+                "text": "It revealed that evidence had been deliberately tampered with to mislead the investigation.",
+                "isCorrect": true,
+                "id": "c"
+              },
+              {
+                "id": "d",
+                "isCorrect": false,
+                "text": "It proved that Camila had never boarded any vehicle that evening."
+              }
+            ],
+            "question": "Why is the detail about the GPS records particularly disturbing?",
+            "correctAnswer": "It revealed that evidence had been deliberately tampered with to mislead the investigation."
+          },
+          {
+            "options": [
+              {
+                "isCorrect": false,
+                "text": "Mountain roads in Chile are dangerous and should be avoided at night.",
+                "id": "a"
+              },
+              {
+                "id": "b",
+                "isCorrect": true,
+                "text": "Journalists who investigate powerful companies risk their safety, and full justice is rarely achieved."
+              },
+              {
+                "text": "Technology like GPS and security cameras always helps solve crimes efficiently.",
+                "isCorrect": false,
+                "id": "c"
+              },
+              {
+                "isCorrect": false,
+                "text": "Detective Rojas was ultimately responsible for failing to find Camila.",
+                "id": "d"
+              }
+            ],
+            "question": "Which statement best captures the main message of 'The Last Bus to San Pedro'?",
+            "correctAnswer": "Journalists who investigate powerful companies risk their safety, and full justice is rarely achieved."
+          },
+          {
+            "options": [
+              {
+                "isCorrect": false,
+                "text": "It resolves the mystery completely and brings the reader relief.",
+                "id": "a"
+              },
+              {
+                "id": "b",
+                "text": "It suggests Camila is still alive and hiding somewhere safe.",
+                "isCorrect": false
+              },
+              {
+                "text": "It deepens the unease, implying that someone with knowledge of the case is still active.",
+                "isCorrect": true,
+                "id": "c"
+              },
+              {
+                "text": "It confirms that the bus driver was responsible for her disappearance.",
+                "isCorrect": false,
+                "id": "d"
+              }
+            ],
+            "question": "How does the ending — with Camila's notebook appearing on Rojas's doorstep — affect the tone of the story?",
+            "correctAnswer": "It deepens the unease, implying that someone with knowledge of the case is still active."
+          },
+          {
+            "options": [
+              {
+                "id": "a",
+                "isCorrect": false,
+                "text": "Full justice was served — those responsible for both crimes were punished."
+              },
+              {
+                "id": "b",
+                "isCorrect": true,
+                "text": "Environmental crimes were partially addressed, but Camila's disappearance remained officially unpunished."
+              },
+              {
+                "text": "The police closed the case because they found no evidence of any wrongdoing.",
+                "isCorrect": false,
+                "id": "c"
+              },
+              {
+                "isCorrect": false,
+                "text": "The company was shut down and all executives were imprisoned.",
+                "id": "d"
+              }
+            ],
+            "question": "What does the story imply about the outcome of the legal case?",
+            "correctAnswer": "Environmental crimes were partially addressed, but Camila's disappearance remained officially unpunished."
+          }
+        ],
+        "phase": "while",
+        "id": "ai-slide-4"
+      },
+      {
+        "id": "ai-slide-5",
+        "words": [
+          {
+            "example": "Pattern: had bought her ticket with cash",
+            "translation": "Past perfect to show earlier hidden events",
+            "word": "The missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash."
+          },
+          {
+            "example": "Pattern: had spent months researching illegal toxic waste",
+            "translation": "Past perfect to show earlier hidden events",
+            "word": "Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company."
+          },
+          {
+            "example": "Pattern: had been altered before being handed to the police",
+            "translation": "Past perfect to show earlier hidden events",
+            "word": "Months later, investigators proved that several GPS files had been altered before being handed to the police."
+          },
+          {
+            "word": "Someone left it outside his door three years after the case was closed.",
+            "translation": "Past perfect to show earlier hidden events",
+            "example": "Pattern: three years after the case was closed"
+          }
+        ],
+        "content": "In 'The Last Bus to San Pedro', the writer uses the past perfect to reveal actions that happened before another past moment — often to expose secrets or hidden timelines.\n\n• had + past participle → signals a completed action that came before the main story event, building suspense by revealing what was already in motion\n• Past perfect in witness/investigator speech → shows that crucial facts were concealed or unknown until discovered later, deepening the mystery\n• Past perfect combined with passive voice → distances the subject from responsibility, reflecting how wrongdoing was hidden in official records\n\nNotice how each past perfect construction pulls the timeline backwards, forcing the reader to reconsider what they thought they knew.",
+        "phase": "while",
+        "type": "language_focus",
+        "title": "Language Focus: Past perfect to show earlier hidden events"
+      },
+      {
+        "content": "Unscramble the sentences or match the two halves — all taken directly from the story.",
+        "id": "ai-slide-6",
+        "practiceItems": [
+          {
+            "answer": "The driver insisted that the bus had never stopped between towns.",
+            "type": "unscramble",
+            "prompt": "The / driver / insisted / that / the / bus / had / never / stopped / between / towns."
+          },
+          {
+            "type": "match_halves",
+            "answer": "before being handed to the police.",
+            "prompt": "Months later, investigators proved that several GPS files had been altered",
+            "options": [
+              "before being handed to the police.",
+              "and the company denied everything.",
+              "three years after the case was closed.",
+              "but no camera showed her getting on."
+            ]
+          },
+          {
+            "answer": "She looked directly into the camera.",
+            "type": "unscramble",
+            "prompt": "She / looked / directly / into / the / camera."
+          },
+          {
+            "prompt": "The bus company confirmed that the vehicle in the recording",
+            "options": [
+              "was the same bus Camila had planned to take.",
+              "had never stopped between towns.",
+              "arrived three years after the case was closed.",
+              "contained photographs of buried chemical barrels."
+            ],
+            "type": "match_halves",
+            "answer": "was the same bus Camila had planned to take."
+          }
+        ],
+        "title": "Let's Practice!",
+        "type": "language_practice",
+        "phase": "while"
+      },
+      {
+        "id": "ai-slide-7",
+        "content": "Mientras {{investigaba}} el trabajo de Camila, el detective Rojas {{descubrió}} que ella había pasado meses investigando residuos tóxicos ilegales {{arrojados}} en las montañas por una empresa privada. Varios funcionarios locales {{negaron}} saber algo al respecto. Otros se negaron a {{responder}} preguntas. Entonces apareció otra {{sorpresa}}. Una semana después de que Camila {{desapareciera}}, un sobre anónimo llegó a las oficinas de un periódico en Santiago.",
+        "translationText": "While investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company. Several local officials denied knowing anything about it. Others refused to answer questions. Then another surprise appeared. One week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.",
+        "blanksData": [
+          {
+            "word": "investigaba",
+            "options": [
+              "investigaba",
+              "revisaba",
+              "ignoraba",
+              "cancelaba"
+            ]
+          },
+          {
+            "word": "descubrió",
+            "options": [
+              "descubrió",
+              "olvidó",
+              "confirmó",
+              "rechazó"
+            ]
+          },
+          {
+            "word": "arrojados",
+            "options": [
+              "arrojados",
+              "hallados",
+              "vendidos",
+              "guardados"
+            ]
+          },
+          {
+            "word": "negaron",
+            "options": [
+              "negaron",
+              "dudaron",
+              "aceptaron",
+              "exigieron"
+            ]
+          },
+          {
+            "word": "responder",
+            "options": [
+              "responder",
+              "escuchar",
+              "formular",
+              "recordar"
+            ]
+          },
+          {
+            "options": [
+              "sorpresa",
+              "victoria",
+              "pregunta",
+              "evidencia"
+            ],
+            "word": "sorpresa"
+          },
+          {
+            "options": [
+              "desapareciera",
+              "regresara",
+              "viajara",
+              "grabara"
+            ],
+            "word": "desapareciera"
+          }
+        ],
+        "title": "Translate It!",
+        "type": "translation_game",
+        "phase": "post"
+      },
+      {
+        "content": "→ Describe the exact moment in 'The Last Bus to San Pedro' that hit you hardest — the line, the image, or the detail you cannot stop thinking about.\n→ Compare the prediction you made before reading with what 'The Last Bus to San Pedro' turned out to be. What surprised or unsettled you most?\n→ Pick one line from 'The Last Bus to San Pedro' you want to carry with you this week. Say it out loud and explain why it matters — in your life, in your country, or in the world right now.",
+        "id": "ai-slide-8",
+        "prompt": "Now that you have read 'The Last Bus to San Pedro', what does this story make you feel — and what does it make you think about your own world?",
+        "type": "wrapup",
+        "title": "Wrap Up",
+        "phase": "post"
+      },
+      {
+        "type": "friendlytext_end",
+        "textData": {
+          "comprehensionMode": "both",
+          "text": "The Last Bus to San Pedro\n\nEvery evening at 8:30 p.m., the last bus left the small town of San Pedro. It followed the same mountain road every day, carrying workers, students, and tourists.\n\nOn a rainy Thursday in October, twenty-four passengers boarded the bus.\n\nOnly twenty-three arrived.\n\nAt first, everyone believed it was a mistake.\n\nThe missing passenger, a 32-year-old journalist named Camila Torres, had bought her ticket with cash. Several passengers remembered seeing her sitting near the back of the bus, writing in a notebook.\n\nThen she simply disappeared.\n\nThe driver insisted that the bus had never stopped between towns.\n\n\"There was nowhere to go,\" he told the police. \"Just mountains.\"\n\nDetective Nicolás Rojas was assigned to the case.\n\nHe questioned every passenger.\n\nMost of them remembered Camila.\n\nOne elderly woman even described her jacket and backpack.\n\nBut when detectives checked the security cameras at the bus terminal, something strange happened.\n\nCamila entered the station.\n\nShe bought her ticket.\n\nShe walked toward the bus.\n\nBut no camera showed her getting on.\n\nThe police searched the road for days.\n\nDrones flew over the hills.\n\nRescue teams checked rivers, forests, and abandoned buildings.\n\nNothing.\n\nNo backpack.\n\nNo notebook.\n\nNo body.\n\nWhile investigating Camila's work, Detective Rojas discovered that she had spent months researching illegal toxic waste dumped in the mountains by a private company.\n\nSeveral local officials denied knowing anything about it.\n\nOthers refused to answer questions.\n\nThen another surprise appeared.\n\nOne week after Camila vanished, an anonymous envelope arrived at a newspaper office in Santiago.\n\nInside was a memory card.\n\nIt contained photographs of buried chemical barrels, secret company documents, and one short video.\n\nThe video lasted only eight seconds.\n\nCamila was recording herself.\n\nBehind her, a yellow bus drove past.\n\nShe looked directly into the camera.\n\n\"If anything happens to me,\" she whispered, \"they already know.\"\n\nThe video ended.\n\nThe bus company confirmed that the vehicle in the recording was the same bus Camila had planned to take.\n\nBut according to its GPS records...\n\nit had never been there.\n\nMonths later, investigators proved that several GPS files had been altered before being handed to the police.\n\nThe company was fined.\n\nTwo executives were arrested for environmental crimes.\n\nHowever, nobody was ever charged with Camila's disappearance.\n\nToday, the last bus still leaves San Pedro every evening at 8:30.\n\nSome passengers say they always choose a seat near the front.\n\nOthers refuse to take that route after dark.\n\nAs for Detective Rojas, he still keeps Camila's notebook on his office shelf.\n\nThe strange thing is...\n\nit was never found.\n\nSomeone left it outside his door three years after the case was closed.",
+          "title": "The Last Bus to San Pedro",
+          "audioSource": "hosted",
+          "source": "Friendly Teaching CL",
+          "audioUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/audio%2Ffriendlytext-upload-upRMjey4VSg4bAgGzLWn2SlcFg82-1784671870898.mp3?alt=media&token=8946e845-a394-48de-860b-1e53ab344211",
+          "posterUrl": "https://firebasestorage.googleapis.com/v0/b/friendly-scheduling.firebasestorage.app/o/images%2Ffriendlytext-poster-upRMjey4VSg4bAgGzLWn2SlcFg82-1784672362718.png?alt=media&token=9f1c060e-d79d-4b2e-a499-583b4df9d683",
+          "posterPosition": "52% 0%"
+        },
+        "title": "¡Lección completada!",
+        "phase": "post",
+        "id": "ai-slide-9"
+      }
+    ]
+  }
+}
