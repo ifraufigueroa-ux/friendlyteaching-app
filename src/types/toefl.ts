@@ -190,6 +190,8 @@ export interface TOEFLLiveSnapshot {
   listeningAnswers?: ListeningAnswer[];
   /** Listening notes textarea, keyed by audioId. */
   listeningNotes?:   Record<string, string>;
+  /** Uploaded speaking recordings so a mid-section refresh keeps them. */
+  speakingRecordings?: SpeakingRecording[];
 }
 
 export interface TOEFLSession {

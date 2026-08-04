@@ -691,19 +691,30 @@ function ListeningSection({
 }
 
 // ── Speaking section ──────────────────────────────────────────────────────
+//
+// Flow per task: read → prep (15s) → speak (45s, MediaRecorder) → saving
+// (blob upload to Storage + URL binding). Between tasks we emit a snapshot
+// so a refresh keeps all previously-uploaded recordings. Mid-recording is
+// intentionally NOT saved — the browser can't resume a MediaRecorder chunk
+// stream across a page reload.
+
+type MicStatus = 'unknown' | 'checking' | 'ok' | 'denied' | 'unsupported';
 
 function SpeakingSection({
-  prompts, teacherId, sessionId, onDone,
+  prompts, teacherId, sessionId, onDone, initial, onSnapshot,
 }: {
-  prompts:  TOEFLSpeakingPrompt[];
-  teacherId: string;
-  sessionId: string;
-  onDone:   (recordings: SpeakingRecording[]) => void;
+  prompts:    TOEFLSpeakingPrompt[];
+  teacherId:  string;
+  sessionId:  string;
+  onDone:     (recordings: SpeakingRecording[]) => void;
+  initial?:   { outerIdx: number; recordings?: SpeakingRecording[] };
+  onSnapshot?: (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
 }) {
-  const [pIdx, setPIdx] = useState(0);
+  const [pIdx, setPIdx] = useState(initial?.outerIdx ?? 0);
   const [phase, setPhase] = useState<'read' | 'prep' | 'speak' | 'saving'>('read');
-  const [recordings, setRecordings] = useState<SpeakingRecording[]>([]);
+  const [recordings, setRecordings] = useState<SpeakingRecording[]>(initial?.recordings ?? []);
   const [error, setError] = useState('');
+  const [micStatus, setMicStatus] = useState<MicStatus>('unknown');
   const chunks = useRef<Blob[]>([]);
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -711,6 +722,37 @@ function SpeakingSection({
 
   const prepLeft = useCountdown(prompt.prepSec, phase === 'prep', () => startSpeaking());
   const speakLeft = useCountdown(prompt.speakSec, phase === 'speak', () => stopSpeaking());
+
+  // Emit snapshot on every task advance (not mid-recording).
+  useEffect(() => {
+    if (!onSnapshot) return;
+    onSnapshot({
+      outerIdx:           pIdx,
+      innerIdx:           0,
+      timeLeftSec:        0,
+      speakingRecordings: recordings,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pIdx, recordings]);
+
+  // Pre-flight mic check on mount — surface permission problems BEFORE the
+  // student burns a task on a denied prompt.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setMicStatus('unsupported'); return;
+    }
+    setMicStatus('checking');
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then((s) => {
+        // Release the check stream immediately; we'll re-request on record.
+        s.getTracks().forEach(t => t.stop());
+        setMicStatus('ok');
+      })
+      .catch((err) => {
+        console.warn('[speaking] mic preflight denied:', err);
+        setMicStatus('denied');
+      });
+  }, []);
 
   async function startRecording() {
     try {
@@ -725,6 +767,8 @@ function SpeakingSection({
     } catch (err) {
       console.error('[speaking] mic error:', err);
       setError('No se pudo acceder al micrófono. Revisá permisos del navegador.');
+      setPhase('read');
+      setMicStatus('denied');
     }
   }
 
@@ -775,8 +819,18 @@ function SpeakingSection({
   }
 
   function skip() {
-    // Mark as missing; advance
-    const next = [...recordings];
+    // Persist a placeholder so the grading pipeline knows the task was
+    // consciously skipped (score 0), and so save/resume doesn't jump the
+    // student back onto a task they already gave up on.
+    const placeholder: SpeakingRecording = {
+      promptId:    prompt.id,
+      storagePath: '',
+      audioUrl:    '',
+      durationSec: 0,
+    };
+    const next = [...recordings, placeholder];
+    setRecordings(next);
+    setError('');
     if (pIdx < prompts.length - 1) {
       setPIdx(i => i + 1);
       setPhase('read');
@@ -785,17 +839,69 @@ function SpeakingSection({
     }
   }
 
+  const doneIds = new Set(recordings.map(r => r.promptId));
+
   return (
     <div className="w-full max-w-2xl">
       <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
           <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
             Speaking · Task {pIdx + 1} of {prompts.length} · {prompt.category}
           </span>
+          {/* Task navigator dots (read-only — you can't jump back in Speaking) */}
+          <div className="flex gap-1.5">
+            {prompts.map((p, i) => {
+              const done = doneIds.has(p.id);
+              const active = i === pIdx;
+              return (
+                <span
+                  key={p.id}
+                  title={`Task ${i + 1}${done ? ' · grabada' : active ? ' · actual' : ' · pendiente'}`}
+                  className={`w-6 h-6 rounded text-[10px] font-bold border-2 flex items-center justify-center ${
+                    active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
+                    : done  ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
+                    :         'border-gray-200 bg-white text-gray-400'
+                  }`}
+                >
+                  {i + 1}
+                </span>
+              );
+            })}
+          </div>
         </div>
         <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl p-4 mb-4">
           <p className="text-sm text-[#2D1B4E] leading-relaxed">{prompt.prompt}</p>
         </div>
+
+        {/* Mic status banner — visible whenever we're not actively recording */}
+        {phase !== 'speak' && phase !== 'saving' && micStatus !== 'ok' && (
+          <div className={`mb-3 rounded-xl px-3 py-2 text-xs flex items-center justify-between gap-2 border ${
+            micStatus === 'checking'    ? 'bg-blue-50 border-blue-200 text-blue-800'
+            : micStatus === 'denied'    ? 'bg-red-50 border-red-200 text-red-700'
+            : micStatus === 'unsupported' ? 'bg-red-50 border-red-200 text-red-700'
+            :                              'bg-amber-50 border-amber-200 text-amber-800'
+          }`}>
+            <span>
+              {micStatus === 'checking'    && '🎙 Verificando micrófono…'}
+              {micStatus === 'denied'      && '⚠ Micrófono bloqueado. Habilitá permisos en el candado de la barra de direcciones y recargá.'}
+              {micStatus === 'unsupported' && '⚠ Tu navegador no soporta grabación. Usá Chrome/Edge/Firefox actualizado.'}
+              {micStatus === 'unknown'     && '⚠ Estado del micrófono desconocido.'}
+            </span>
+            {micStatus === 'denied' && (
+              <button
+                onClick={() => {
+                  setMicStatus('checking');
+                  navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then((s) => { s.getTracks().forEach(t => t.stop()); setMicStatus('ok'); })
+                    .catch(() => setMicStatus('denied'));
+                }}
+                className="text-red-700 underline whitespace-nowrap"
+              >
+                Reintentar
+              </button>
+            )}
+          </div>
+        )}
 
         {phase === 'read' && (
           <div className="text-center space-y-3">
@@ -804,10 +910,22 @@ function SpeakingSection({
             </p>
             <button
               onClick={startPrep}
-              className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all"
+              disabled={micStatus !== 'ok'}
+              className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: B.purple }}
             >
               ▶ Empezar preparación
+            </button>
+            {recordings.length > 0 && (
+              <p className="text-[10px] text-gray-400">
+                {recordings.length} de {prompts.length} tasks completadas — al final el AI las califica todas juntas.
+              </p>
+            )}
+            <button
+              onClick={skip}
+              className="text-[10px] text-gray-400 hover:text-red-500 underline block mx-auto mt-2"
+            >
+              Saltar esta task
             </button>
           </div>
         )}
@@ -839,13 +957,18 @@ function SpeakingSection({
           <div className="text-center py-8">
             <div className="w-10 h-10 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-sm font-bold" style={{ color: B.purple }}>Guardando audio…</p>
+            <p className="text-[11px] text-gray-500 mt-1">
+              {pIdx < prompts.length - 1
+                ? 'Cuando termine, pasamos a la próxima task.'
+                : 'Última task. Al terminar arranca la calificación con AI (~1-2 min).'}
+            </p>
           </div>
         )}
 
         {error && (
           <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-700 flex items-center justify-between gap-2">
             <span>{error}</span>
-            <button onClick={skip} className="text-red-600 underline whitespace-nowrap">Skip task →</button>
+            <button onClick={skip} className="text-red-600 underline whitespace-nowrap">Saltar task →</button>
           </div>
         )}
       </div>
@@ -1268,6 +1391,13 @@ export default function TOEFLMockPage() {
     for (const rec of recordings) {
       const prompt = mock!.speaking.find(p => p.id === rec.promptId);
       if (!prompt) { enriched.push(rec); continue; }
+      // Explicit skips (from the "Saltar task" button) carry an empty audioUrl.
+      // Score them 0 without hitting Whisper/Claude.
+      if (!rec.audioUrl) {
+        rawScores.push(0);
+        enriched.push({ ...rec, aiScore: 0, aiFeedback: 'Task saltada por el estudiante.' });
+        continue;
+      }
       try {
         // Fetch the audio blob for Whisper
         const blob = await fetch(rec.audioUrl).then(r => r.blob());
@@ -1303,6 +1433,8 @@ export default function TOEFLMockPage() {
     };
     setScores(prev => ({ ...prev, speaking: score }));
     await persistSection('speaking', { recordings: enriched, score });
+    if (sessionIdRef.current) await clearLiveSnapshot(sessionIdRef.current);
+    setHydration(null);
     await advanceFrom('speaking', score);
   }
 
@@ -1519,7 +1651,25 @@ export default function TOEFLMockPage() {
       </PageBg>
     );
   }
-  if (phase === 'speaking') return <PageBg><SpeakingSection prompts={mock!.speaking} teacherId={teacherId} sessionId={sessionIdRef.current || 'anon'} onDone={onSpeakingDone} /></PageBg>;
+  if (phase === 'speaking') {
+    void ensureSession();
+    const speakingHydration = hydration?.section === 'speaking' ? {
+      outerIdx:   hydration.outerIdx,
+      recordings: hydration.speakingRecordings,
+    } : undefined;
+    return (
+      <PageBg>
+        <SpeakingSection
+          prompts={mock!.speaking}
+          teacherId={teacherId}
+          sessionId={sessionIdRef.current || 'anon'}
+          onDone={onSpeakingDone}
+          initial={speakingHydration}
+          onSnapshot={(snap) => persistLiveSnapshot('speaking', snap)}
+        />
+      </PageBg>
+    );
+  }
   if (phase === 'writing') return <PageBg><WritingSection prompt={mock!.writing} onDone={onWritingDone} /></PageBg>;
 
   if (phase === 'grading') {
