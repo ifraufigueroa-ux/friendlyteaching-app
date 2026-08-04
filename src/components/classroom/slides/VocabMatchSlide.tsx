@@ -217,13 +217,17 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
     setShake(false);
   }
 
+  const isTales = brand === 'FriendlyTales';
+
   if (words.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E]">
+      <div className={`h-full flex items-center justify-center ${isTales ? 'bg-transparent text-[#F8F5FC]' : 'bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E]'}`}>
         <div className="text-center max-w-md p-8">
-          <p className="text-5xl mb-3">🎼</p>
-          <p className="text-lg font-bold mb-1">No vocabulary configured</p>
-          <p className="text-sm text-[#5A3D7A]/50">The teacher has not added vocab to this song yet.</p>
+          <p className="text-5xl mb-3">{isTales ? '🔮' : '🎼'}</p>
+          <p className={`text-lg font-bold mb-1 ${isTales ? 'ft-title-gold' : ''}`}>No vocabulary configured</p>
+          <p className={`text-sm ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>
+            The teacher has not added vocab to this {isTales ? 'text' : 'song'} yet.
+          </p>
         </div>
       </div>
     );
@@ -231,10 +235,14 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
 
   const progressPct = total > 0 ? (done / total) * 100 : 0;
 
+  const wrapperBg = isTales
+    ? 'bg-transparent text-[#F8F5FC]'
+    : 'bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E]';
+
   return (
     <div
       ref={containerRef}
-      className={`relative h-full flex flex-col bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#FFE8F0] text-[#2D1B4E] overflow-hidden ${shake ? 'animate-[vmShake_400ms_ease-in-out]' : ''}`}
+      className={`relative h-full flex flex-col ${wrapperBg} overflow-hidden ${shake ? 'animate-[vmShake_400ms_ease-in-out]' : ''}`}
     >
       <style>{`
         @keyframes vmShake {
@@ -257,38 +265,58 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
       `}</style>
 
       {/* ── Header ───────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b border-[#C8A8DC]/30 bg-white/40 backdrop-blur flex items-center justify-between gap-4">
+      <div className={`flex-shrink-0 px-6 pt-5 pb-3 border-b flex items-center justify-between gap-4 ${
+        isTales
+          ? 'border-[#9B72B8]/25 bg-[rgba(15,10,28,0.65)] backdrop-blur'
+          : 'border-[#C8A8DC]/30 bg-white/40 backdrop-blur'
+      }`}>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#9B5DE5]">{brand} · Vocabulary match</p>
-          <h2 className="text-base font-bold text-[#2D1B4E]">{slide.title ?? 'Key Vocabulary'}</h2>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${isTales ? 'text-[#F9F0A8]' : 'text-[#9B5DE5]'}`}>
+            {brand} · Vocabulary match
+          </p>
+          <h2 className={`text-base font-bold ${isTales ? 'ft-title-gold' : 'text-[#2D1B4E]'}`}>
+            {slide.title ?? 'Key Vocabulary'}
+          </h2>
         </div>
         <div className="flex items-center gap-2">
-          <div className="text-center px-3 py-1.5 rounded-xl bg-white/70 border border-[#C8A8DC]/40">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/50">Time</p>
-            <p className="text-sm font-mono font-bold text-[#5A3D7A]">{fmt(elapsed)}</p>
+          <div className={`text-center px-3 py-1.5 rounded-xl ${isTales ? 'bg-[rgba(30,20,50,0.75)] border border-[#9B72B8]/30' : 'bg-white/70 border border-[#C8A8DC]/40'}`}>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>Time</p>
+            <p className={`text-sm font-mono font-bold ${isTales ? 'text-[#F8F5FC]' : 'text-[#5A3D7A]'}`}>{fmt(elapsed)}</p>
           </div>
-          <div className="text-center px-3 py-1.5 rounded-xl bg-white/70 border border-[#C8A8DC]/40">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#9B5DE5]">Score</p>
-            <p className="text-sm font-bold text-[#5A3D7A]">{score}</p>
+          <div className={`text-center px-3 py-1.5 rounded-xl ${isTales ? 'bg-[rgba(30,20,50,0.75)] border border-[#9B72B8]/30' : 'bg-white/70 border border-[#C8A8DC]/40'}`}>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#F9F0A8]' : 'text-[#9B5DE5]'}`}>Score</p>
+            <p className={`text-sm font-bold ${isTales ? 'text-[#F9F0A8]' : 'text-[#5A3D7A]'}`}>{score}</p>
           </div>
           {streak >= 2 && (
-            <div className="text-center px-3 py-1.5 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-300/60">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-orange-600">Streak</p>
-              <p className="text-sm font-bold text-orange-600">🔥 {streak}</p>
+            <div className={`text-center px-3 py-1.5 rounded-xl ${
+              isTales
+                ? 'bg-[rgba(236,0,140,0.20)] border border-[#EC008C]/60'
+                : 'bg-gradient-to-br from-orange-100 to-amber-100 border border-orange-300/60'
+            }`}>
+              <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#EC008C]' : 'text-orange-600'}`}>Streak</p>
+              <p className={`text-sm font-bold ${isTales ? 'text-[#F9F0A8]' : 'text-orange-600'}`}>🔥 {streak}</p>
             </div>
           )}
-          <div className="text-center px-3 py-1.5 rounded-xl bg-gradient-to-br from-[#F0E5FF] to-[#FFE8F0] border border-[#C8A8DC]/60">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#9B5DE5]">Done</p>
-            <p className="text-sm font-bold text-[#5A3D7A]">{done}/{total}</p>
+          <div className={`text-center px-3 py-1.5 rounded-xl ${
+            isTales
+              ? 'bg-[rgba(30,20,50,0.75)] border border-[#9B72B8]/40'
+              : 'bg-gradient-to-br from-[#F0E5FF] to-[#FFE8F0] border border-[#C8A8DC]/60'
+          }`}>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#7ED6E0]' : 'text-[#9B5DE5]'}`}>Done</p>
+            <p className={`text-sm font-bold ${isTales ? 'text-[#F8F5FC]' : 'text-[#5A3D7A]'}`}>{done}/{total}</p>
           </div>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="flex-shrink-0 px-6 py-2 bg-white/40 border-b border-[#C8A8DC]/20">
-        <div className="h-1.5 bg-[#E0D5FF]/60 rounded-full overflow-hidden">
+      <div className={`flex-shrink-0 px-6 py-2 border-b ${isTales ? 'bg-[rgba(15,10,28,0.5)] border-[#9B72B8]/25' : 'bg-white/40 border-[#C8A8DC]/20'}`}>
+        <div className={`h-1.5 rounded-full overflow-hidden ${isTales ? 'bg-[rgba(30,20,50,0.8)]' : 'bg-[#E0D5FF]/60'}`}>
           <div
-            className="h-full bg-gradient-to-r from-[#9B5DE5] via-[#C8A8DC] to-[#F472B6] rounded-full transition-all duration-500"
+            className={`h-full rounded-full transition-all duration-500 ${
+              isTales
+                ? 'bg-gradient-to-r from-[#EC008C] via-[#F9F0A8] to-[#7ED6E0]'
+                : 'bg-gradient-to-r from-[#9B5DE5] via-[#C8A8DC] to-[#F472B6]'
+            }`}
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -297,11 +325,11 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
       {/* Active word banner */}
       <div className="flex-shrink-0 px-6 py-2 text-center">
         {allDone ? null : selectedWord ? (
-          <p className="text-sm font-semibold text-[#5A3D7A]">
-            Matching <span className="text-[#9B5DE5] font-bold">&ldquo;{selectedWord}&rdquo;</span> — tap its definition →
+          <p className={`text-sm font-semibold ${isTales ? 'text-[#F8F5FC]' : 'text-[#5A3D7A]'}`}>
+            Matching <span className={`font-bold ${isTales ? 'text-[#F9F0A8]' : 'text-[#9B5DE5]'}`}>&ldquo;{selectedWord}&rdquo;</span> — tap its definition →
           </p>
         ) : (
-          <p className="text-xs text-[#5A3D7A]/50">Tap a word on the left to start matching.</p>
+          <p className={`text-xs ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>Tap a word on the left to start matching.</p>
         )}
       </div>
 
@@ -311,32 +339,40 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
         {allDone ? (
           <div className="h-full flex flex-col items-center justify-center text-center gap-4 max-w-2xl mx-auto">
             <p className="text-6xl mb-1">{stars().emoji}</p>
-            <h3 className="text-2xl font-bold text-[#2D1B4E]">All matched!</h3>
+            <h3 className={`text-2xl font-bold ${isTales ? 'ft-title-gold' : 'text-[#2D1B4E]'}`}>All matched!</h3>
             <div className="grid grid-cols-3 gap-3 max-w-md w-full">
-              <div className="bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#5A3D7A]/50">Score</p>
-                <p className="text-xl font-bold text-[#9B5DE5]">{score}</p>
+              <div className={isTales ? 'ft-glass-card p-3' : 'bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3'}>
+                <p className={`text-[10px] uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>Score</p>
+                <p className={`text-xl font-bold ${isTales ? 'text-[#F9F0A8]' : 'text-[#9B5DE5]'}`}>{score}</p>
               </div>
-              <div className="bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#5A3D7A]/50">Time</p>
-                <p className="text-xl font-bold text-[#5A3D7A]">{fmt(elapsed)}</p>
+              <div className={isTales ? 'ft-glass-card p-3' : 'bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3'}>
+                <p className={`text-[10px] uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>Time</p>
+                <p className={`text-xl font-bold ${isTales ? 'text-[#F8F5FC]' : 'text-[#5A3D7A]'}`}>{fmt(elapsed)}</p>
               </div>
-              <div className="bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#5A3D7A]/50">Best streak</p>
-                <p className="text-xl font-bold text-orange-500">🔥 {bestStreak}</p>
+              <div className={isTales ? 'ft-glass-card p-3' : 'bg-white/80 border border-[#C8A8DC]/50 rounded-xl p-3'}>
+                <p className={`text-[10px] uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/50'}`}>Best streak</p>
+                <p className={`text-xl font-bold ${isTales ? 'text-[#EC008C]' : 'text-orange-500'}`}>🔥 {bestStreak}</p>
               </div>
             </div>
-            <p className="text-sm text-[#5A3D7A]/60 mt-2">
+            <p className={`text-sm mt-2 ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/60'}`}>
               {wrongs} mistake{wrongs !== 1 && 's'}
             </p>
             {wrongs === 0 && (
-              <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 rounded-2xl px-5 py-2 text-green-700 font-bold mt-1">
+              <div className={`rounded-2xl px-5 py-2 font-bold mt-1 ${
+                isTales
+                  ? 'bg-[rgba(126,214,224,0.15)] border border-[#7ED6E0]/60 text-[#7ED6E0]'
+                  : 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 text-green-700'
+              }`}>
                 🎉 Perfect round — no mistakes!
               </div>
             )}
             <button
               onClick={restart}
-              className="mt-3 px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B5DE5] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/30 active:scale-95"
+              className={`mt-3 px-6 py-2.5 rounded-full text-sm font-bold active:scale-95 ${
+                isTales
+                  ? 'ft-cta'
+                  : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B5DE5] text-white shadow-lg shadow-[#5A3D7A]/30'
+              }`}
             >
               ↻ Play again
             </button>
@@ -345,9 +381,9 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
         ) : (
           <div className="grid grid-cols-[1fr_36px_1fr] gap-x-4 gap-y-3 items-stretch max-w-5xl mx-auto">
 
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]/50 col-start-1 self-end pb-1 px-1">Words</p>
+            <p className={`text-[10px] font-bold uppercase tracking-widest col-start-1 self-end pb-1 px-1 ${isTales ? 'text-[#F9F0A8]' : 'text-[#5A3D7A]/50'}`}>Words</p>
             <span />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]/50 col-start-3 self-end pb-1 px-1">Definitions</p>
+            <p className={`text-[10px] font-bold uppercase tracking-widest col-start-3 self-end pb-1 px-1 ${isTales ? 'text-[#F9F0A8]' : 'text-[#5A3D7A]/50'}`}>Definitions</p>
 
             {words.map((w, i) => {
               const def         = shuffledDefs[i];
@@ -357,47 +393,71 @@ export default function VocabMatchSlide({ slide, brand = 'Friendlyrics' }: Props
               const defClickable = !!selectedWord && !defMatched;
               const isWrong     = wrongFlash === def.word;
 
+              const talesWordClass = wordMatched
+                ? 'bg-[rgba(126,214,224,0.18)] border-[#7ED6E0] text-[#7ED6E0] cursor-default'
+                : isSelected
+                  ? 'bg-gradient-to-br from-[#EC008C] to-[#A70066] border-[#F9F0A8] text-white scale-[1.04] shadow-[0_0_28px_rgba(236,0,140,0.55)]'
+                  : 'ft-vocab-row';
+
+              const legacyWordClass = wordMatched
+                ? 'bg-green-100 border-green-300 text-green-700 cursor-default'
+                : isSelected
+                  ? 'bg-gradient-to-br from-[#9B5DE5] to-[#5A3D7A] border-[#9B5DE5] text-white shadow-2xl shadow-[#5A3D7A]/40 scale-[1.04]'
+                  : 'bg-white/90 border-[#E0D5FF] text-[#2D1B4E] hover:bg-white hover:border-[#C8A8DC] hover:scale-[1.01]';
+
+              const talesDefClass = defMatched
+                ? 'bg-[rgba(126,214,224,0.18)] border-[#7ED6E0] text-[#7ED6E0] text-base font-medium cursor-default'
+                : isWrong
+                  ? 'bg-[rgba(239,68,68,0.2)] border-red-500 text-red-300 scale-[0.98] text-base'
+                  : defClickable
+                    ? 'bg-[rgba(30,20,50,0.75)] border-[#F9F0A8]/40 text-[#F8F5FC] hover:bg-[rgba(236,0,140,0.20)] hover:border-[#EC008C] hover:text-white cursor-pointer text-base font-medium hover:scale-[1.02]'
+                    : 'bg-[rgba(30,20,50,0.4)] border-[#9B72B8]/25 text-[#A69BB8]/50 cursor-default text-base';
+
+              const legacyDefClass = defMatched
+                ? 'bg-green-100 border-green-300 text-green-700 text-base font-medium cursor-default'
+                : isWrong
+                  ? 'bg-red-100 border-red-400 text-red-600 scale-[0.98] text-base'
+                  : defClickable
+                    ? 'bg-[#FFF8E8] border-[#F0C040] text-[#2D1B4E] hover:bg-gradient-to-br hover:from-[#9B5DE5] hover:to-[#5A3D7A] hover:text-white hover:border-[#5A3D7A] cursor-pointer text-base font-medium hover:scale-[1.02]'
+                    : 'bg-white/60 border-[#E0D5FF] text-[#5A3D7A]/40 cursor-default text-base';
+
               return [
                 <button
                   key={`w-${w.word}`}
                   onClick={(e) => handleWordClick(w.word, e)}
                   disabled={wordMatched}
-                  className={`relative py-4 px-5 rounded-2xl text-left border-2 w-full flex flex-col gap-0.5 transition-all duration-200
-                    ${wordMatched
-                      ? 'bg-green-100 border-green-300 text-green-700 cursor-default'
-                      : isSelected
-                        ? 'bg-gradient-to-br from-[#9B5DE5] to-[#5A3D7A] border-[#9B5DE5] text-white shadow-2xl shadow-[#5A3D7A]/40 scale-[1.04]'
-                        : 'bg-white/90 border-[#E0D5FF] text-[#2D1B4E] hover:bg-white hover:border-[#C8A8DC] hover:scale-[1.01]'
-                    }`}
+                  className={`relative py-4 px-5 rounded-2xl text-left border-2 w-full flex flex-col gap-0.5 transition-all duration-200 ${
+                    isTales ? talesWordClass : legacyWordClass
+                  }`}
                   style={isSelected ? { animation: 'vmPulse 1.4s ease-out infinite' } : undefined}
                 >
                   <span className="text-lg font-bold leading-tight">
                     {wordMatched ? '✓ ' : ''}{w.word}
                   </span>
                   {w.pronunciation && (
-                    <span className={`text-xs font-normal ${wordMatched ? 'text-green-600' : isSelected ? 'text-white/80' : 'text-[#9B7CB8]'}`}>
+                    <span className={`text-xs font-normal ${
+                      wordMatched
+                        ? isTales ? 'text-[#7ED6E0]/70' : 'text-green-600'
+                        : isSelected
+                          ? 'text-white/80'
+                          : isTales ? 'text-[#A69BB8]' : 'text-[#9B7CB8]'
+                    }`}>
                       /{w.pronunciation}/
                     </span>
                   )}
                 </button>,
 
                 <div key={`arr-${w.word}`} className="flex items-center justify-center">
-                  {isSelected && <span className="text-[#9B5DE5] font-bold text-xl animate-pulse">→</span>}
+                  {isSelected && <span className={`font-bold text-xl animate-pulse ${isTales ? 'text-[#F9F0A8]' : 'text-[#9B5DE5]'}`}>→</span>}
                 </div>,
 
                 <button
                   key={`d-${def.word}`}
                   onClick={(e) => handleDefClick(def.word, e)}
                   disabled={defMatched || !defClickable}
-                  className={`py-4 px-5 rounded-2xl text-left border-2 leading-snug w-full transition-all duration-200
-                    ${defMatched
-                      ? 'bg-green-100 border-green-300 text-green-700 text-base font-medium cursor-default'
-                      : isWrong
-                        ? 'bg-red-100 border-red-400 text-red-600 scale-[0.98] text-base'
-                        : defClickable
-                          ? 'bg-[#FFF8E8] border-[#F0C040] text-[#2D1B4E] hover:bg-gradient-to-br hover:from-[#9B5DE5] hover:to-[#5A3D7A] hover:text-white hover:border-[#5A3D7A] cursor-pointer text-base font-medium hover:scale-[1.02]'
-                          : 'bg-white/60 border-[#E0D5FF] text-[#5A3D7A]/40 cursor-default text-base'
-                    }`}
+                  className={`py-4 px-5 rounded-2xl text-left border-2 leading-snug w-full transition-all duration-200 ${
+                    isTales ? talesDefClass : legacyDefClass
+                  }`}
                 >
                   {def.translation}
                 </button>,

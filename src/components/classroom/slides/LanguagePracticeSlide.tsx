@@ -846,13 +846,17 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
     setWrongs(0);
   }
 
+  const isTales = brand === 'FriendlyTales';
+
   if (total === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0]">
+      <div className={`h-full flex items-center justify-center ${
+        isTales ? 'bg-transparent text-[#F8F5FC]' : 'bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0]'
+      }`}>
         <div className="text-center max-w-md p-8">
           <p className="text-5xl mb-3">🎯</p>
-          <p className="text-lg font-bold text-[#EC4899] mb-1">No practice configured</p>
-          <p className="text-sm text-[#EC4899]/70">
+          <p className={`text-lg font-bold mb-1 ${isTales ? 'ft-title-gold' : 'text-[#EC4899]'}`}>No practice configured</p>
+          <p className={`text-sm ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>
             The teacher has not added practice items to this {brand === 'FriendlyTales' ? 'text' : brand === 'Friendlyflix' ? 'clip' : 'song'} yet.
           </p>
         </div>
@@ -861,7 +865,11 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
   }
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]">
+    <div className={`relative h-full overflow-y-auto ${
+      isTales
+        ? 'bg-transparent text-[#F8F5FC]'
+        : 'bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]'
+    }`}>
       <style>{`
         @keyframes lpFloatUp {
           0%   { transform: translate(-50%, 0)     scale(0.7); opacity: 0; }
@@ -875,41 +883,57 @@ export default function LanguagePracticeSlide({ slide, brand = 'Friendlyrics' }:
 
         {/* Eyebrow + hero icon */}
         <div className="flex flex-col items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#EC4899]/80 bg-white/70 border border-[#F472B6]/40 px-3 py-1 rounded-full backdrop-blur">
+          <span className={`text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full backdrop-blur border ${
+            isTales
+              ? 'text-[#F9F0A8] bg-[rgba(30,20,50,0.75)] border-[#F9F0A8]/40'
+              : 'text-[#EC4899]/80 bg-white/70 border-[#F472B6]/40'
+          }`}>
             {brand} · Practice
           </span>
-          <span className="text-6xl">🎯</span>
+          <span className="text-6xl">{isTales ? '🎭' : '🎯'}</span>
         </div>
 
         {/* Title */}
-        <h1 className="font-serif font-bold text-[#2D1B4E] text-4xl md:text-5xl leading-tight max-w-3xl">
+        <h1 className={`font-bold text-4xl md:text-5xl leading-tight max-w-3xl ${
+          isTales ? 'ft-title-gold' : 'font-serif text-[#2D1B4E]'
+        }`}>
           {slide.title ?? "Let's practice!"}
         </h1>
 
         {slide.subtitle && (
-          <p className="text-base md:text-lg text-[#5A3D7A]/85 leading-relaxed max-w-2xl">
+          <p className={`text-base md:text-lg leading-relaxed max-w-2xl ${
+            isTales ? 'text-[#F8F5FC]/90' : 'text-[#5A3D7A]/85'
+          }`}>
             {slide.subtitle}
           </p>
         )}
 
         {/* Scoreboard */}
-        <div className="w-full max-w-3xl bg-white/70 backdrop-blur rounded-2xl border border-[#F472B6]/40 shadow px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div className={`w-full max-w-3xl rounded-2xl px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center ${
+          isTales
+            ? 'ft-glass-card'
+            : 'bg-white/70 backdrop-blur border border-[#F472B6]/40 shadow'
+        }`}>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70">Done</p>
-            <p className="text-lg font-bold text-[#EC4899]">{doneCount}/{total}</p>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>Done</p>
+            <p className={`text-lg font-bold ${isTales ? 'text-[#7ED6E0]' : 'text-[#EC4899]'}`}>{doneCount}/{total}</p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70">Score</p>
-            <p className="text-lg font-bold text-[#EC4899]">{score}</p>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>Score</p>
+            <p className={`text-lg font-bold ${isTales ? 'text-[#F9F0A8]' : 'text-[#EC4899]'}`}>{score}</p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70">Streak</p>
-            <p className={`text-lg font-bold ${streak >= 2 ? 'text-orange-500' : 'text-[#EC4899]/40'}`}>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>Streak</p>
+            <p className={`text-lg font-bold ${
+              streak >= 2
+                ? isTales ? 'text-[#EC008C]' : 'text-orange-500'
+                : isTales ? 'text-[#A69BB8]/50' : 'text-[#EC4899]/40'
+            }`}>
               {streak >= 2 ? `🔥 ${streak}` : streak}
             </p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#EC4899]/70">Rating</p>
+            <p className={`text-[9px] font-bold uppercase tracking-widest ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>Rating</p>
             <p className="text-lg leading-none">{stars()}</p>
           </div>
         </div>

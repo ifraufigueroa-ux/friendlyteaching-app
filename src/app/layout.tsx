@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Nunito } from 'next/font/google';
+import { Nunito, Cinzel, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import PWAProvider from '@/components/pwa/PWAProvider';
@@ -8,6 +8,22 @@ const nunito = Nunito({
   subsets: ['latin'],
   weight: ['400', '600', '700', '800'],
   variable: '--font-nunito',
+  display: 'swap',
+});
+
+// FriendlyTales theme fonts — Cinzel for titles/headers, Plus Jakarta Sans
+// for body/inputs. Loaded here so <html> exposes the CSS variables and the
+// `.theme-friendly-tales` scope in globals.css can consume them.
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-cinzel',
+  display: 'swap',
+});
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
   display: 'swap',
 });
 
@@ -55,7 +71,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-CL" className={nunito.variable}>
+    <html lang="es-CL" className={`${nunito.variable} ${cinzel.variable} ${jakarta.variable}`}>
       <body className="antialiased">
         <AuthProvider>
           {children}

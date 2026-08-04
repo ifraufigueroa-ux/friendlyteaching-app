@@ -57,7 +57,7 @@ export default function TeacherTextLessonPage() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center text-white/60 text-sm">
+      <div className="theme-friendly-tales fixed inset-0 z-50 flex items-center justify-center text-[#A69BB8] text-sm">
         Cargando lección…
       </div>
     );
@@ -65,13 +65,13 @@ export default function TeacherTextLessonPage() {
 
   if (notFound || !lesson) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-3 text-center px-6">
+      <div className="theme-friendly-tales fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 text-center px-6">
         <p className="text-5xl">📖</p>
-        <p className="text-white/90 font-bold text-lg">Lección no encontrada</p>
-        <p className="text-white/50 text-sm">El link puede estar roto o la lección fue eliminada.</p>
+        <p className="text-[#F8F5FC] font-bold text-lg">Lección no encontrada</p>
+        <p className="text-[#A69BB8] text-sm">El link puede estar roto o la lección fue eliminada.</p>
         <button
           onClick={closeToList}
-          className="mt-2 px-5 py-2 rounded-full text-sm font-bold bg-white/10 border border-white/20 text-white hover:bg-white/20"
+          className="mt-2 px-5 py-2 rounded-full text-sm font-bold bg-white/10 border border-white/20 text-[#F8F5FC] hover:bg-white/20"
         >
           ← Volver al listado
         </button>
@@ -87,12 +87,12 @@ export default function TeacherTextLessonPage() {
 
   if (!slide) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-3 text-center px-6">
+      <div className="theme-friendly-tales fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 text-center px-6">
         <p className="text-5xl">🚧</p>
-        <p className="text-white/90 font-bold text-lg">Esta lección no tiene slides</p>
+        <p className="text-[#F8F5FC] font-bold text-lg">Esta lección no tiene slides</p>
         <button
           onClick={closeToList}
-          className="mt-2 px-5 py-2 rounded-full text-sm font-bold bg-white/10 border border-white/20 text-white hover:bg-white/20"
+          className="mt-2 px-5 py-2 rounded-full text-sm font-bold bg-white/10 border border-white/20 text-[#F8F5FC] hover:bg-white/20"
         >
           ← Volver al listado
         </button>
@@ -101,11 +101,11 @@ export default function TeacherTextLessonPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/95">
+    <div className="theme-friendly-tales fixed inset-0 z-50 flex flex-col">
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-[#9B72B8]/20 bg-[rgba(15,10,28,0.95)] backdrop-blur">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#7EC8E3] flex-shrink-0">
+          <div className="text-[#F8F5FC] text-sm font-semibold truncate">{lesson.title}</div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#F9F0A8] flex-shrink-0">
             {SLIDE_LABEL[slide.type] ?? slide.type}{multi ? ` · ${slideIdx + 1}/${slides.length}` : ''}
           </span>
         </div>
@@ -117,8 +117,8 @@ export default function TeacherTextLessonPage() {
                 disabled={!canPrev}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                   canPrev
-                    ? 'bg-white/8 hover:bg-white/15 text-white/80 border-white/10 cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                    ? 'bg-white/10 hover:bg-white/20 text-[#F8F5FC] border-white/10 cursor-pointer'
+                    : 'bg-white/5 text-white/25 border-white/5 cursor-not-allowed'
                 }`}
                 title="Previous slide"
               >
@@ -129,8 +129,8 @@ export default function TeacherTextLessonPage() {
                 disabled={!canNext}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                   canNext
-                    ? 'bg-gradient-to-r from-[#1B2C3F] to-[#4B6A85] hover:opacity-90 text-white border-[#4B6A85] cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-[#EC008C] to-[#A70066] hover:opacity-90 text-white border-[#EC008C]/60 cursor-pointer shadow-[0_0_16px_rgba(236,0,140,0.35)]'
+                    : 'bg-white/5 text-white/25 border-white/5 cursor-not-allowed'
                 }`}
                 title="Next slide"
               >
@@ -138,7 +138,7 @@ export default function TeacherTextLessonPage() {
               </button>
             </>
           )}
-          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30" />
+          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-[#F8F5FC] hover:!bg-white/20 hover:!border-white/30" />
           <button
             onClick={closeToList}
             className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none"
@@ -148,7 +148,7 @@ export default function TeacherTextLessonPage() {
           </button>
         </div>
       </div>
-      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto bg-white">
+      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto">
         <SlideRenderer slide={slide} youtubeUrl={lesson.text?.youtubeUrl} brand="FriendlyTales" />
       </div>
     </div>

@@ -23,13 +23,22 @@ function extractVideoId(url: string): string | null {
 }
 
 // Pink → purple → magenta gradients so each card back feels like a
-// different vinyl sleeve.
+// different vinyl sleeve (Friendlyrics / Friendlyflix).
 const BACK_GRADIENTS = [
   'from-[#EC4899] via-[#F472B6] to-[#9B5DE5]',
   'from-[#F472B6] via-[#EC4899] to-[#5A3D7A]',
   'from-[#9B5DE5] via-[#F472B6] to-[#EC4899]',
   'from-[#5A3D7A] via-[#EC4899] to-[#F472B6]',
   'from-[#EC4899] via-[#9B5DE5] to-[#5A3D7A]',
+];
+
+// FriendlyTales — Cinematic Mystery card backs (magenta → dark purple void)
+const BACK_GRADIENTS_TALES = [
+  'from-[#EC008C] via-[#7B1E5A] to-[#0F0A1C]',
+  'from-[#7B1E5A] via-[#EC008C] to-[#25133A]',
+  'from-[#25133A] via-[#EC008C] to-[#0F0A1C]',
+  'from-[#EC008C] via-[#25133A] to-[#0F0A1C]',
+  'from-[#0F0A1C] via-[#7B1E5A] to-[#EC008C]',
 ];
 
 interface AnsweredCard { idx: number; chosen: string; correct: boolean }
@@ -160,6 +169,7 @@ function QuestionCard({
 export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Props) {
   const questions: QuizQuestion[] = useMemo(() => slide.questions ?? [], [slide.questions]);
   const total = questions.length;
+  const isTales = brand === 'FriendlyTales';
 
   // Song can be re-listened via the YouTube URL saved on songData / clipData.
   const youtubeUrl = slide.songData?.youtubeUrl ?? slide.clipData?.youtubeUrl ?? null;
@@ -189,8 +199,11 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
   }
 
   const backGradients = useMemo(
-    () => questions.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
-    [questions],
+    () => {
+      const pool = isTales ? BACK_GRADIENTS_TALES : BACK_GRADIENTS;
+      return questions.map((_, i) => pool[i % pool.length]);
+    },
+    [questions, isTales],
   );
 
   const correctCount = Array.from(answeredByIdx.values()).filter(a => a.correct).length;
@@ -238,12 +251,12 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
 
   if (total === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]">
+      <div className={`h-full flex items-center justify-center ${isTales ? 'bg-transparent text-[#F8F5FC]' : 'bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]'}`}>
         <div className="text-center max-w-md p-8">
-          <p className="text-5xl mb-3">🎼</p>
-          <p className="text-lg font-bold mb-1">Sin preguntas configuradas</p>
-          <p className="text-sm text-[#EC4899]/70">
-            El profesor todavía no agregó preguntas de comprensión a esta canción.
+          <p className="text-5xl mb-3">{isTales ? '🔮' : '🎼'}</p>
+          <p className={`text-lg font-bold mb-1 ${isTales ? 'ft-title-gold' : ''}`}>Sin preguntas configuradas</p>
+          <p className={`text-sm ${isTales ? 'text-[#A69BB8]' : 'text-[#EC4899]/70'}`}>
+            El profesor todavía no agregó preguntas de comprensión.
           </p>
         </div>
       </div>
@@ -251,13 +264,21 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E] overflow-hidden">
+    <div className={`h-full flex flex-col overflow-hidden ${
+      isTales
+        ? 'bg-transparent text-[#F8F5FC]'
+        : 'bg-gradient-to-br from-[#F9F5FF] via-[#FFF0F7] to-[#FFE8F0] text-[#2D1B4E]'
+    }`}>
 
       {/* Header ─────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b border-[#F472B6]/30 bg-white/50 backdrop-blur flex items-center justify-between gap-4">
+      <div className={`flex-shrink-0 px-6 pt-5 pb-3 border-b backdrop-blur flex items-center justify-between gap-4 ${
+        isTales ? 'border-[#9B72B8]/25 bg-[rgba(15,10,28,0.65)]' : 'border-[#F472B6]/30 bg-white/50'
+      }`}>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#EC4899]">{brand} · Comprehension</p>
-          <h2 className="text-base font-bold text-[#2D1B4E]">
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${isTales ? 'text-[#F9F0A8]' : 'text-[#EC4899]'}`}>
+            {brand} · Comprehension
+          </p>
+          <h2 className={`text-base font-bold ${isTales ? 'ft-title-gold' : 'text-[#2D1B4E]'}`}>
             {answeredByIdx.size} / {total} answered · {correctCount} correct
           </h2>
         </div>
@@ -266,24 +287,35 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
             <button
               onClick={() => setAudioOpen(o => !o)}
               className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
-                audioOpen
-                  ? 'bg-[#EC4899] text-white border-[#EC4899] shadow'
-                  : 'bg-white/70 text-[#EC4899] border-[#EC4899]/40 hover:bg-[#FFE8F0]'
+                isTales
+                  ? audioOpen
+                    ? 'ft-badge-magenta border-[#EC008C]'
+                    : 'bg-[rgba(30,20,50,0.75)] text-[#F9F0A8] border-[#F9F0A8]/40 hover:bg-[rgba(236,0,140,0.15)]'
+                  : audioOpen
+                    ? 'bg-[#EC4899] text-white border-[#EC4899] shadow'
+                    : 'bg-white/70 text-[#EC4899] border-[#EC4899]/40 hover:bg-[#FFE8F0]'
               }`}
             >
-              🎵 {audioOpen ? 'Hide song' : 'Re-listen'}
+              🎵 {audioOpen ? 'Hide' : 'Re-listen'}
             </button>
           )}
           <div className="flex items-center gap-1.5">
             {questions.map((_, i) => {
               const a = answeredByIdx.get(i);
+              const dot = isTales
+                ? a
+                  ? a.correct ? 'bg-[#7ED6E0]' : 'bg-red-500'
+                  : 'bg-[#9B72B8]/50'
+                : a
+                  ? a.correct ? 'bg-green-500' : 'bg-red-500'
+                  : 'bg-[#F472B6]/40';
               return (
                 <div
                   key={i}
                   title={a ? (a.correct ? 'Correct' : 'Wrong') : 'Pending'}
-                  className={`w-2 h-2 rounded-full ${
-                    a ? (a.correct ? 'bg-green-500' : 'bg-red-500') : 'bg-[#F472B6]/40'
-                  } ${i === pickedIdx ? 'ring-2 ring-[#EC4899]' : ''}`}
+                  className={`w-2 h-2 rounded-full ${dot} ${
+                    i === pickedIdx ? (isTales ? 'ring-2 ring-[#F9F0A8]' : 'ring-2 ring-[#EC4899]') : ''
+                  }`}
                 />
               );
             })}
@@ -313,24 +345,39 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
           // ── Score summary ─────────────────────────────────────────
           <div className="text-center space-y-4 max-w-md">
             <p className="text-7xl">🎯</p>
-            <p className="text-2xl font-bold text-[#2D1B4E]">Comprehension complete!</p>
-            <p className="text-[#5A3D7A]/80">
-              You got <strong className="text-green-600">{correctCount}</strong> out of <strong className="text-[#EC4899]">{total}</strong> right.
+            <p className={`text-2xl font-bold ${isTales ? 'ft-title-gold' : 'text-[#2D1B4E]'}`}>Comprehension complete!</p>
+            <p className={isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/80'}>
+              You got <strong className={isTales ? 'text-[#7ED6E0]' : 'text-green-600'}>{correctCount}</strong> out of{' '}
+              <strong className={isTales ? 'text-[#F9F0A8]' : 'text-[#EC4899]'}>{total}</strong> right.
             </p>
-            <div className="w-full bg-white/70 border border-[#F472B6]/40 rounded-full h-3 overflow-hidden">
+            <div className={`w-full rounded-full h-3 overflow-hidden ${
+              isTales ? 'bg-[rgba(30,20,50,0.8)] border border-[#9B72B8]/30' : 'bg-white/70 border border-[#F472B6]/40'
+            }`}>
               <div
-                className="h-full bg-gradient-to-r from-[#EC4899] via-[#F472B6] to-[#9B5DE5] rounded-full transition-[width] duration-700"
+                className={`h-full rounded-full transition-[width] duration-700 ${
+                  isTales
+                    ? 'bg-gradient-to-r from-[#EC008C] via-[#F9F0A8] to-[#7ED6E0]'
+                    : 'bg-gradient-to-r from-[#EC4899] via-[#F472B6] to-[#9B5DE5]'
+                }`}
                 style={{ width: `${(correctCount / total) * 100}%` }}
               />
             </div>
             {correctCount === total && (
-              <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 rounded-2xl px-5 py-2 text-green-700 font-bold">
+              <div className={`rounded-2xl px-5 py-2 font-bold ${
+                isTales
+                  ? 'bg-[rgba(126,214,224,0.15)] border border-[#7ED6E0]/60 text-[#7ED6E0]'
+                  : 'bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 text-green-700'
+              }`}>
                 🎉 Perfect score — every question right!
               </div>
             )}
             <button
               onClick={restart}
-              className="mt-4 px-6 py-2.5 bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white rounded-full text-sm font-bold shadow-lg shadow-pink-900/20 active:scale-95"
+              className={`mt-4 px-6 py-2.5 rounded-full text-sm font-bold active:scale-95 ${
+                isTales
+                  ? 'ft-cta'
+                  : 'bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow-lg shadow-pink-900/20'
+              }`}
             >
               ↻ Try again
             </button>
@@ -351,12 +398,20 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
             />
             {answeredByIdx.has(pickedIdx) && (
               <div className="flex flex-col items-center gap-3">
-                <p className={`text-sm font-bold ${answeredByIdx.get(pickedIdx)!.correct ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-sm font-bold ${
+                  answeredByIdx.get(pickedIdx)!.correct
+                    ? isTales ? 'text-[#7ED6E0]' : 'text-green-600'
+                    : 'text-red-500'
+                }`}>
                   {answeredByIdx.get(pickedIdx)!.correct ? '✓ Correct!' : `✗ Correct answer: ${pickedQuestion.correctAnswer}`}
                 </p>
                 <button
                   onClick={nextCard}
-                  className="px-6 py-2.5 bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white rounded-full text-sm font-bold shadow-lg shadow-pink-900/20 active:scale-95"
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold active:scale-95 ${
+                    isTales
+                      ? 'ft-cta'
+                      : 'bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow-lg shadow-pink-900/20'
+                  }`}
                 >
                   {answeredByIdx.size === total ? '🎯 Complete' : '🎴 Next question'}
                 </button>
@@ -367,12 +422,16 @@ export default function ListeningQuizSlide({ slide, brand = 'Friendlyrics' }: Pr
         ) : (
           // ── Deck of face-down REMAINING cards ─────────────────────
           <div className="flex flex-col items-center gap-5">
-            <p className="text-center text-[#5A3D7A]/70 text-sm">
+            <p className={`text-center text-sm ${isTales ? 'text-[#A69BB8]' : 'text-[#5A3D7A]/70'}`}>
               Pick a question card to reveal it.
             </p>
             <button
               onClick={pickRandom}
-              className="px-5 py-2.5 bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white rounded-full text-sm font-bold shadow-lg hover:shadow-xl active:scale-95"
+              className={`px-5 py-2.5 rounded-full text-sm font-bold hover:shadow-xl active:scale-95 ${
+                isTales
+                  ? 'ft-cta'
+                  : 'bg-gradient-to-r from-[#EC4899] to-[#F472B6] text-white shadow-lg'
+              }`}
             >
               🎲 Random
             </button>

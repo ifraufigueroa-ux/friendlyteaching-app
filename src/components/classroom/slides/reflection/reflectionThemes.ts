@@ -42,72 +42,36 @@ export interface ReflectionTheme {
 }
 
 // ────────────────────────────────────────────────────────────────
-// Friendlytext — amber (paper), ocean (analytical), rose (personal)
+// FriendlyTales — Cinematic Mystery & Editorial Dark
+//
+// Deep purple + gold + neon magenta. Only one variant now — the
+// entire product line reads as a single cinematic universe. The
+// three-variant rotation stays for Friendlyrics and Friendlyflix.
 // ────────────────────────────────────────────────────────────────
 
 export const TEXT_THEMES: readonly ReflectionTheme[] = [
   {
-    id: 'text-amber',
-    bgWrapper:     'bg-gradient-to-br from-[#FFF8EC] via-[#FEF3D9] to-[#FBE8B8]',
-    textColor:     'text-[#3A2A0F]',
-    headingColor:  'text-[#3A2A0F]',
-    eyebrowText:   'text-[#8A6D2A]',
-    eyebrowBg:     'bg-white/70',
-    eyebrowBorder: 'border-[#E8B547]/40',
+    id: 'text-cinematic-mystery',
+    // Wrapper is transparent so it inherits the radial-gradient from the
+    // .theme-friendly-tales scope (see globals.css).
+    bgWrapper:     'bg-transparent',
+    textColor:     'text-[#F8F5FC]',
+    headingColor:  'text-[#F9F0A8]',
+    eyebrowText:   'text-[#F9F0A8]',
+    eyebrowBg:     'bg-[rgba(30,20,50,0.75)]',
+    eyebrowBorder: 'border-[#EC008C]/40',
     brandLabel:    'FriendlyTales',
-    heroPredictions: '📖',
+    heroPredictions: '🔮',
     heroWrapup:      '✨',
-    floaters:      ['✧', '❊', '✦'] as const,
-    floaterColor:  'text-[#E8B547]/40',
-    cardShadow:    'shadow-[#E8B547]/20',
-    badgeGradient: 'bg-gradient-to-br from-[#B45309] to-[#E8B547]',
-    ctaGradient:   'bg-gradient-to-r from-[#B45309] to-[#E8B547]',
-    ctaShadow:     'shadow-[#B45309]/30',
-    focusBorder:   'focus:border-[#E8B547]',
-    mutedText:     'text-[#8A6D2A]/70',
-    mutedHover:    'hover:text-[#8A6D2A]',
-  },
-  {
-    id: 'text-ocean',
-    bgWrapper:     'bg-gradient-to-br from-[#EEF6F9] via-[#DDECF3] to-[#C8DFEC]',
-    textColor:     'text-[#1B2C3F]',
-    headingColor:  'text-[#1B2C3F]',
-    eyebrowText:   'text-[#2C4159]',
-    eyebrowBg:     'bg-white/70',
-    eyebrowBorder: 'border-[#7EB8D8]/40',
-    brandLabel:    'FriendlyTales',
-    heroPredictions: '🌊',
-    heroWrapup:      '🗣️',
-    floaters:      ['◈', '◆', '◇'] as const,
-    floaterColor:  'text-[#4B6A85]/40',
-    cardShadow:    'shadow-[#7EB8D8]/25',
-    badgeGradient: 'bg-gradient-to-br from-[#1B2C3F] to-[#4B6A85]',
-    ctaGradient:   'bg-gradient-to-r from-[#1B2C3F] to-[#4B6A85]',
-    ctaShadow:     'shadow-[#1B2C3F]/30',
-    focusBorder:   'focus:border-[#4B6A85]',
-    mutedText:     'text-[#4B6A85]/70',
-    mutedHover:    'hover:text-[#4B6A85]',
-  },
-  {
-    id: 'text-rose',
-    bgWrapper:     'bg-gradient-to-br from-[#FFF0F0] via-[#FFE1E1] to-[#FFCACA]',
-    textColor:     'text-[#3A0F14]',
-    headingColor:  'text-[#3A0F14]',
-    eyebrowText:   'text-[#7F1D1D]',
-    eyebrowBg:     'bg-white/70',
-    eyebrowBorder: 'border-[#F472B6]/40',
-    brandLabel:    'FriendlyTales',
-    heroPredictions: '💌',
-    heroWrapup:      '❤️',
-    floaters:      ['✿', '❀', '❁'] as const,
-    floaterColor:  'text-[#F472B6]/40',
-    cardShadow:    'shadow-[#F472B6]/25',
-    badgeGradient: 'bg-gradient-to-br from-[#B91C1C] to-[#F472B6]',
-    ctaGradient:   'bg-gradient-to-r from-[#B91C1C] to-[#F472B6]',
-    ctaShadow:     'shadow-[#B91C1C]/30',
-    focusBorder:   'focus:border-[#F472B6]',
-    mutedText:     'text-[#7F1D1D]/70',
-    mutedHover:    'hover:text-[#7F1D1D]',
+    floaters:      ['✦', '✧', '✵'] as const,
+    floaterColor:  'text-[#F9F0A8]/40',
+    cardShadow:    'shadow-[#EC008C]/25',
+    badgeGradient: 'bg-gradient-to-br from-[#EC008C] to-[#7B1E5A]',
+    ctaGradient:   'bg-gradient-to-r from-[#EC008C] to-[#A70066]',
+    ctaShadow:     'shadow-[#EC008C]/40',
+    focusBorder:   'focus:border-[#F9F0A8]',
+    mutedText:     'text-[#A69BB8]',
+    mutedHover:    'hover:text-[#F9F0A8]',
   },
 ];
 

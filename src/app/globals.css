@@ -257,3 +257,147 @@ body {
 
 /* ── Fullscreen mode: hide layout chrome ── */
 :fullscreen [data-hide-in-fullscreen] { display: none !important; }
+
+/* ============================================================
+   FriendlyTales Theme — Cinematic Mystery & Editorial Dark
+   ============================================================
+   Applied ONLY on FriendlyTales lesson pages (see the wrappers
+   in src/app/dashboard/{teacher,student}/texts/[id]/page.tsx).
+   All other lesson types (Friendlyrics, Friendlyflix, English
+   for Devs, etc.) keep the light purple base above. */
+
+.theme-friendly-tales {
+  --bg-dark:        #0F0A1C;
+  --bg-card:        rgba(30, 20, 50, 0.75);
+  --purple-base:    #9B72B8;
+  --accent-gold:    #F9F0A8;
+  --accent-magenta: #EC008C;
+  --accent-cyan:    #7ED6E0;
+  --text-light:     #F8F5FC;
+  --text-muted:     #A69BB8;
+
+  background: radial-gradient(circle at 50% 20%, #25133A 0%, #0F0A1C 100%);
+  color: var(--text-light);
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Serif accent font for cinematic titles + brand marks */
+.theme-friendly-tales .font-cinzel,
+.theme-friendly-tales h1,
+.theme-friendly-tales h2,
+.theme-friendly-tales h3 {
+  font-family: var(--font-cinzel), 'Cinzel', 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.01em;
+}
+
+/* Scrollbar tuned for the dark scene */
+.theme-friendly-tales ::-webkit-scrollbar-thumb {
+  background: rgba(155, 114, 184, 0.5);
+}
+
+/* Utility classes used across FriendlyTales slides */
+.ft-glass-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(155, 114, 184, 0.3);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-radius: 18px;
+  color: var(--text-light);
+  transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
+}
+.ft-glass-card:hover {
+  border-color: var(--accent-magenta);
+  background: rgba(236, 0, 140, 0.15);
+}
+.ft-title-gold {
+  color: var(--accent-gold);
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  text-shadow: 0 2px 24px rgba(249, 240, 168, 0.15);
+}
+.ft-badge-magenta {
+  background: var(--accent-magenta);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(236, 0, 140, 0.5);
+}
+.ft-badge-cyan {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+}
+.ft-focus-input {
+  background: rgba(15, 10, 28, 0.85);
+  border: 1px solid rgba(155, 114, 184, 0.35);
+  color: var(--text-light);
+  border-radius: 12px;
+  transition: border-color 180ms ease;
+}
+.ft-focus-input::placeholder { color: rgba(166, 155, 184, 0.5); }
+.ft-focus-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(249, 240, 168, 0.12);
+}
+.ft-cta {
+  background: linear-gradient(135deg, var(--accent-magenta), #A70066);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(236, 0, 140, 0.35);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.ft-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(236, 0, 140, 0.5); }
+.ft-cta:disabled { opacity: 0.4; transform: none; box-shadow: none; }
+
+/* Vocab-match hover row spec */
+.ft-vocab-row {
+  background: var(--bg-card);
+  border: 1px solid rgba(155, 114, 184, 0.3);
+  color: var(--text-light);
+  border-radius: 14px;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+.ft-vocab-row:hover {
+  border-color: var(--accent-magenta);
+  background: rgba(236, 0, 140, 0.15);
+  transform: translateX(4px);
+}
+
+/* Grammar highlight inside the reading */
+.theme-friendly-tales .ft-grammar-hit {
+  background: rgba(236, 0, 140, 0.25);
+  border-bottom: 2px solid var(--accent-magenta);
+  color: #fff;
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
+/* Cinematic reader — comfortable line height for the text_comprehension slide */
+.theme-friendly-tales .ft-reader-body {
+  line-height: 1.8;
+}
+
+/* Kill any inherited amber/paper background so the dark cinema wins */
+.theme-friendly-tales [data-ft-neutralize-light] {
+  background: transparent !important;
+}
+
+/* Practice slide — highlight the correct answer with neon cyan per spec.
+   These Tailwind classes are baked into the shared LanguagePracticeSlide;
+   inside the FriendlyTales scope we override to cyan #7ED6E0 on dark text. */
+.theme-friendly-tales button.bg-green-100.border-green-500,
+.theme-friendly-tales button.bg-green-500\/20.border-green-500,
+.theme-friendly-tales div.bg-green-500\/20.border-green-500 {
+  background: #7ED6E0 !important;
+  color: #0F0A1C !important;
+  border-color: #7ED6E0 !important;
+  box-shadow: 0 0 22px rgba(126, 214, 224, 0.55) !important;
+}
+/* Wrong picks stay red but calibrated to the dark palette */
+.theme-friendly-tales button.bg-red-100.border-red-400,
+.theme-friendly-tales button.bg-red-500\/15.border-red-400 {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #FCA5A5 !important;
+  border-color: #EF4444 !important;
+}

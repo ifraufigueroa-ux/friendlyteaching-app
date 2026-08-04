@@ -48,10 +48,10 @@ export default function TextLessonPlayerPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
+      <div className="theme-friendly-tales flex flex-col min-h-screen">
         <TopBar title="📖 FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-[#D9E6F0] border-t-[#1B2C3F] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#9B72B8]/30 border-t-[#F9F0A8] rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -59,13 +59,13 @@ export default function TextLessonPlayerPage() {
 
   if (!lesson) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
+      <div className="theme-friendly-tales flex flex-col min-h-screen">
         <TopBar title="📖 FriendlyTales®" />
-        <div className="flex-1 flex items-center justify-center text-gray-400">
+        <div className="flex-1 flex items-center justify-center text-[#A69BB8]">
           <div className="text-center">
             <p className="text-4xl mb-2">📖</p>
             <p>Lección no encontrada.</p>
-            <button onClick={() => router.back()} className="mt-3 text-sm text-[#1B2C3F] underline">Volver</button>
+            <button onClick={() => router.back()} className="mt-3 text-sm text-[#F9F0A8] underline">Volver</button>
           </div>
         </div>
       </div>
@@ -78,17 +78,17 @@ export default function TextLessonPlayerPage() {
 
   if (completed) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
+      <div className="theme-friendly-tales flex flex-col min-h-screen">
         <TopBar title="📖 FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="bg-white rounded-3xl shadow-lg p-8 max-w-sm w-full text-center border border-[#D9E6F0]">
+          <div className="ft-glass-card p-8 max-w-sm w-full text-center">
             <p className="text-3xl mb-2">🎉</p>
-            <h2 className="text-xl font-bold text-[#1B2C3F] mb-1">¡Lección completada!</h2>
-            <p className="text-gray-500 text-sm mb-1">{lesson.text?.title ?? lesson.title}</p>
-            <p className="text-gray-400 text-xs mb-6">— {lesson.text?.source ?? ''}</p>
+            <h2 className="text-xl font-bold ft-title-gold mb-1">¡Lección completada!</h2>
+            <p className="text-[#A69BB8] text-sm mb-1">{lesson.text?.title ?? lesson.title}</p>
+            <p className="text-[#A69BB8]/70 text-xs mb-6">— {lesson.text?.source ?? ''}</p>
             <button
               onClick={() => router.push('/dashboard/student/texts')}
-              className="w-full py-3 rounded-xl bg-[#1B2C3F] text-white font-semibold hover:bg-[#0D1A29] transition-colors"
+              className="ft-cta w-full"
             >
               Volver a FriendlyTales®
             </button>
@@ -101,25 +101,25 @@ export default function TextLessonPlayerPage() {
   return (
     <div
       ref={playerRef}
-      className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]"
+      className="theme-friendly-tales flex flex-col h-screen overflow-hidden"
     >
       {!isFullscreen && <TopBar title={`📖 ${lesson.text?.title ?? lesson.title}`} />}
 
-      <div className="w-full h-1.5 bg-[#EEF3F8] flex-shrink-0">
+      <div className="w-full h-1.5 bg-[rgba(30,20,50,0.6)] flex-shrink-0">
         <div
-          className="h-full bg-gradient-to-r from-[#1B2C3F] to-[#4B6A85] transition-all duration-500"
+          className="h-full bg-gradient-to-r from-[#EC008C] via-[#F9F0A8] to-[#7ED6E0] transition-all duration-500"
           style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}
         />
       </div>
 
-      <div className="flex items-center justify-between px-4 py-1 text-xs text-gray-400 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-1 text-xs text-[#A69BB8] flex-shrink-0">
         <span>{currentSlide + 1} / {slides.length}</span>
         <div className="flex items-center gap-2">
           <span className="capitalize">{slide.type?.replace(/_/g, ' ')}</span>
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-            className="px-2 py-0.5 rounded-md border border-[#D9E6F0] text-[#1B2C3F] hover:bg-[#EEF3F8] transition-colors text-[11px] font-semibold"
+            className="px-2 py-0.5 rounded-md border border-[#9B72B8]/40 text-[#F8F5FC] hover:bg-white/10 transition-colors text-[11px] font-semibold"
           >
             {isFullscreen ? '⊠ Salir' : '⛶ Full'}
           </button>
@@ -127,7 +127,7 @@ export default function TextLessonPlayerPage() {
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden px-8 pb-6">
-        <div className="h-full rounded-2xl overflow-hidden shadow-sm">
+        <div className="h-full rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
           <SlideRenderer
             slide={slide}
             isTeacher={false}
@@ -138,11 +138,11 @@ export default function TextLessonPlayerPage() {
         </div>
       </div>
 
-      <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-t border-[#D9E6F0] px-4 py-2.5 flex gap-3 w-full">
+      <div className="flex-shrink-0 bg-[rgba(15,10,28,0.85)] backdrop-blur-sm border-t border-[#9B72B8]/25 px-4 py-2.5 flex gap-3 w-full">
         <button
           onClick={() => setCurrentSlide(v => Math.max(0, v - 1))}
           disabled={currentSlide === 0}
-          className="flex-1 py-2 rounded-xl text-sm font-medium border border-[#D9E6F0] text-gray-600 hover:bg-[#F5F9FC] disabled:opacity-30 transition-all"
+          className="flex-1 py-2 rounded-xl text-sm font-medium border border-[#9B72B8]/40 text-[#A69BB8] hover:bg-white/5 hover:text-[#F8F5FC] disabled:opacity-30 transition-all"
         >
           ← Back
         </button>
@@ -151,7 +151,7 @@ export default function TextLessonPlayerPage() {
             if (isLast) setCompleted(true);
             else setCurrentSlide(v => v + 1);
           }}
-          className="flex-1 py-2 rounded-xl text-sm font-semibold bg-[#1B2C3F] text-white hover:bg-[#0D1A29] transition-colors"
+          className="flex-1 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-[#EC008C] to-[#A70066] text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(236,0,140,0.35)]"
         >
           {isLast ? '🎉 Finish' : 'Next →'}
         </button>

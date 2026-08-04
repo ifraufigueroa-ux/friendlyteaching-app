@@ -28,10 +28,8 @@ export default function WrapupSlide({ slide, brand }: Props) {
     [slide.content],
   );
 
-  // Same theming approach as PredictionsSlide: text lessons pick from
-  // TEXT_THEMES, music lessons pick from MUSIC_THEMES. Both cycle through
-  // 3 variants deterministically by title hash.
-  const isText = brand ? brand === 'FriendlyTales' : Boolean(slide.textData);
+  const isText  = brand ? brand === 'FriendlyTales' : Boolean(slide.textData);
+  const isTales = isText;
   const seed   = (isText ? slide.textData?.title : slide.songData?.title) ?? slide.title ?? '';
   const theme  = isText ? pickTextTheme(seed) : pickMusicTheme(seed);
 
@@ -129,26 +127,57 @@ export default function WrapupSlide({ slide, brand }: Props) {
             {questions.map((q, i) => (
               <div
                 key={i}
-                className={`relative bg-white rounded-3xl shadow-xl border border-white p-7 flex flex-col items-center text-center gap-3 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ${theme.cardShadow}`}
+                className={`relative rounded-3xl p-7 flex flex-col items-center text-center gap-3 hover:-translate-y-1 transition-all duration-300 ${
+                  isTales
+                    ? 'ft-glass-card hover:shadow-[0_20px_45px_rgba(236,0,140,0.35)]'
+                    : `bg-white shadow-xl border border-white hover:shadow-2xl ${theme.cardShadow}`
+                }`}
                 style={{
                   animation: `fwuCardIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both`,
                   animationDelay: `${i * 120}ms`,
                 }}
               >
-                <span className={`absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full text-white font-bold text-base flex items-center justify-center shadow-lg ${theme.badgeGradient}`}>
+                <span className={`absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full text-white font-bold text-base flex items-center justify-center shadow-lg ${
+                  isTales ? 'ft-badge-magenta' : theme.badgeGradient
+                }`}>
                   {i + 1}
                 </span>
-                <p className={`font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm ${theme.headingColor}`}>
+                <p className={`font-semibold text-lg md:text-xl leading-snug pt-2 max-w-sm ${
+                  isTales ? 'text-[#F8F5FC]' : theme.headingColor
+                }`}>
                   {q}
                 </p>
                 {submitted && (
                   <span
-                    className="absolute top-3 right-3 w-7 h-7 rounded-full bg-green-500 text-white text-sm font-bold flex items-center justify-center"
+                    className={`absolute top-3 right-3 w-7 h-7 rounded-full text-white text-sm font-bold flex items-center justify-center ${
+                      isTales ? 'bg-[#7ED6E0] text-[#0F0A1C]' : 'bg-green-500'
+                    }`}
                     style={{ animation: 'fwuCheckPop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
                   >
                     ✓
                   </span>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Wrap-up takeaways (Grammar · Vocab · Speaking) — FriendlyTales only ── */}
+        {isTales && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-4xl mt-2">
+            {[
+              { icon: '📚', label: 'Grammar',  copy: 'The pattern you noticed' },
+              { icon: '🔤', label: 'Vocab',    copy: 'New words made yours'    },
+              { icon: '🗣️', label: 'Speaking', copy: 'The line you can steal'  },
+            ].map((t, i) => (
+              <div
+                key={i}
+                className="ft-glass-card px-4 py-4 text-center"
+                style={{ animation: `fwuCardIn 500ms cubic-bezier(0.16, 1, 0.3, 1) ${i * 100 + 300}ms both` }}
+              >
+                <div className="text-2xl mb-1">{t.icon}</div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#F9F0A8]">{t.label}</p>
+                <p className="text-xs text-[#A69BB8] mt-1">{t.copy}</p>
               </div>
             ))}
           </div>
@@ -169,16 +198,26 @@ export default function WrapupSlide({ slide, brand }: Props) {
               onChange={e => setReflection(e.target.value)}
               rows={5}
               placeholder={isText ? 'After reading, I felt…' : 'After listening, I felt…'}
-              className={`w-full p-5 rounded-3xl border-2 border-white bg-white/80 backdrop-blur shadow-xl focus:outline-none focus:bg-white text-base md:text-lg resize-none leading-relaxed placeholder:text-gray-400 ${theme.cardShadow} ${theme.focusBorder}`}
+              className={`w-full p-5 rounded-3xl border-2 text-base md:text-lg resize-none leading-relaxed ${
+                isTales
+                  ? 'ft-focus-input placeholder:text-[#A69BB8]/60'
+                  : `border-white bg-white/80 backdrop-blur shadow-xl focus:outline-none focus:bg-white placeholder:text-gray-400 ${theme.cardShadow} ${theme.focusBorder}`
+              }`}
             />
             <div className="flex items-center justify-between gap-3">
-              <span className={`text-xs font-bold uppercase tracking-widest ${wordCount >= 20 ? 'text-green-600' : 'text-gray-400'}`}>
+              <span className={`text-xs font-bold uppercase tracking-widest ${
+                wordCount >= 20
+                  ? isTales ? 'text-[#7ED6E0]' : 'text-green-600'
+                  : isTales ? 'text-[#A69BB8]/60' : 'text-gray-400'
+              }`}>
                 {wordCount} {wordCount === 1 ? 'word' : 'words'} {wordCount >= 20 && '· nice depth'}
               </span>
               <button
                 onClick={handleSubmit}
                 disabled={!reflection.trim()}
-                className={`px-7 py-3 rounded-full text-white font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0 ${theme.ctaGradient} ${theme.ctaShadow}`}
+                className={`px-7 py-3 rounded-full text-white font-bold text-sm hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0 ${
+                  isTales ? 'ft-cta' : `shadow-lg hover:shadow-xl ${theme.ctaGradient} ${theme.ctaShadow}`
+                }`}
               >
                 Save reflection ✓
               </button>
@@ -186,24 +225,41 @@ export default function WrapupSlide({ slide, brand }: Props) {
           </div>
         ) : (
           <div
-            className="w-full max-w-3xl mt-2 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-3xl p-6 shadow-xl space-y-3"
+            className={`w-full max-w-3xl mt-2 rounded-3xl p-6 space-y-3 ${
+              isTales
+                ? 'ft-glass-card'
+                : 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 shadow-xl'
+            }`}
             style={{ animation: 'fwuCardIn 600ms cubic-bezier(0.16, 1, 0.3, 1) both' }}
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-green-700">Your reflection</p>
+              <p className={`text-xs font-bold uppercase tracking-widest ${isTales ? 'text-[#7ED6E0]' : 'text-green-700'}`}>Your reflection</p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="text-[11px] font-bold uppercase tracking-widest text-green-700/70 hover:text-green-700"
+                className={`text-[11px] font-bold uppercase tracking-widest ${
+                  isTales ? 'text-[#A69BB8] hover:text-[#F9F0A8]' : 'text-green-700/70 hover:text-green-700'
+                }`}
               >
                 ✎ Edit
               </button>
             </div>
-            <p className={`text-lg md:text-xl leading-relaxed italic ${theme.headingColor}`}>
+            <p className={`text-lg md:text-xl leading-relaxed italic ${isTales ? 'text-[#F8F5FC]' : theme.headingColor}`}>
               &ldquo;{reflection}&rdquo;
             </p>
-            <p className="text-sm font-medium text-green-700 pt-1 border-t border-green-200">
+            <p className={`text-sm font-medium pt-1 border-t ${
+              isTales ? 'text-[#F9F0A8] border-[#F9F0A8]/25' : 'text-green-700 border-green-200'
+            }`}>
               {isText ? '📖 Beautifully done — carry this one with you.' : '🎵 Beautifully done — carry this one with you.'}
             </p>
+            {isTales && (
+              <div className="flex justify-center mt-2">
+                <span
+                  className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] ft-badge-magenta px-4 py-2 rounded-full"
+                >
+                  🏅 Story completed
+                </span>
+              </div>
+            )}
           </div>
         )}
 
