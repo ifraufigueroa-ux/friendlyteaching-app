@@ -305,7 +305,12 @@ body {
   color: var(--text-light);
   transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
 }
-.ft-glass-card:hover {
+/* Only interactive cards should react to hover. Attach .ft-glass-card
+   directly to buttons/links, or add .ft-hoverable to a container to opt
+   into the neon glow effect. */
+.ft-glass-card.ft-hoverable:hover,
+button.ft-glass-card:hover,
+a.ft-glass-card:hover {
   border-color: var(--accent-magenta);
   background: rgba(236, 0, 140, 0.15);
 }

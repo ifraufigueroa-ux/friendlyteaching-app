@@ -213,22 +213,34 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
       <div className="relative z-10 flex flex-col h-full overflow-auto p-4 md:p-6 gap-4">
 
         {/* ── Header card (title + current details) ─────────────── */}
-        <div className="flex items-center justify-between gap-4 ft-glass-card p-4 flex-shrink-0">
+        <div className={`flex items-center justify-between gap-4 p-4 flex-shrink-0 rounded-2xl ${
+          useCinematic ? 'ft-glass-card' : 'bg-white/90 backdrop-blur-sm border border-[#E8D9BE] shadow-md'
+        }`}>
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className="w-11 h-11 rounded-xl bg-[#F9F0A8] text-[#0F0A1C] flex items-center justify-center text-xl flex-shrink-0"
-              style={{ boxShadow: '0 0 20px rgba(249,240,168,0.35)' }}
+              className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
+                useCinematic ? 'bg-[#F9F0A8] text-[#0F0A1C]' : 'bg-gradient-to-br from-[#E8B547] to-[#C89234] text-[#3A2A0F] shadow-md'
+              }`}
+              style={useCinematic ? { boxShadow: '0 0 20px rgba(249,240,168,0.35)' } : undefined}
             >
               📖
             </div>
             <div className="min-w-0">
-              <p className="ft-title-gold font-bold text-lg leading-tight truncate">
+              <p className={`font-bold text-lg leading-tight truncate ${
+                useCinematic ? 'ft-title-gold' : 'font-serif text-[#1B2C3F]'
+              }`}>
                 {txt?.title ?? slide.title ?? 'Reading'}
               </p>
-              <p className="text-[#A69BB8] text-sm truncate italic">{txt?.source ?? ''}</p>
+              <p className={`text-sm truncate italic ${useCinematic ? 'text-[#A69BB8]' : 'text-[#4B6A85]'}`}>
+                {txt?.source ?? ''}
+              </p>
             </div>
           </div>
-          <span className="flex-shrink-0 text-[10px] font-extrabold uppercase tracking-[0.25em] text-white ft-badge-magenta px-3 py-1.5 rounded-full">
+          <span className={`flex-shrink-0 text-[10px] font-extrabold uppercase tracking-[0.25em] px-3 py-1.5 rounded-full ${
+            useCinematic
+              ? 'text-white ft-badge-magenta'
+              : 'text-[#3A2A0F] bg-[#E8B547] border border-[#C89234] shadow-sm'
+          }`}>
             FriendlyTales®
           </span>
         </div>
@@ -237,7 +249,9 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
         {embedUrl && (
           <div
             className="rounded-2xl overflow-hidden aspect-video bg-black flex-shrink-0"
-            style={{ boxShadow: '0 20px 50px rgba(0,0,0,0.6)', border: '1px solid rgba(236,0,140,0.3)' }}
+            style={useCinematic
+              ? { boxShadow: '0 20px 50px rgba(0,0,0,0.6)', border: '1px solid rgba(236,0,140,0.3)' }
+              : { boxShadow: '0 12px 32px rgba(0,0,0,0.25)' }}
           >
             <iframe
               src={embedUrl}
@@ -250,29 +264,51 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
 
         {hostedAudioUrl && (
           <div
-            className="rounded-full ft-glass-card px-4 py-3 text-white flex-shrink-0"
-            style={{ boxShadow: '0 12px 32px rgba(236,0,140,0.25)' }}
+            className={`rounded-full px-4 py-3 flex-shrink-0 ${
+              useCinematic
+                ? 'ft-glass-card text-white'
+                : 'bg-gradient-to-r from-[#1B2C3F] to-[#2C4159] text-white shadow-lg'
+            }`}
+            style={useCinematic ? { boxShadow: '0 12px 32px rgba(236,0,140,0.25)' } : undefined}
           >
             <audio ref={audioRef} src={hostedAudioUrl} preload="metadata" className="hidden" />
             <div className="flex items-center gap-3">
               <button
                 onClick={togglePlay}
-                className="w-11 h-11 rounded-full ft-badge-magenta flex items-center justify-center text-lg font-bold hover:scale-105 active:scale-95 transition-transform flex-shrink-0"
+                className={`w-11 h-11 rounded-full flex items-center justify-center text-lg font-bold hover:scale-105 active:scale-95 transition-transform flex-shrink-0 ${
+                  useCinematic ? 'ft-badge-magenta' : 'bg-[#E8B547] text-[#3A2A0F] shadow-md'
+                }`}
                 aria-label={playing ? 'Pause' : 'Play'}
               >
                 {playing ? '❚❚' : '▶'}
               </button>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest text-[#A69BB8] mb-1">
+                <div className={`flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                  useCinematic ? 'text-[#A69BB8]' : 'text-white/70'
+                }`}>
                   <span>{txt?.audioSource === 'tts' ? '🎙 ElevenLabs voice' : 'Audio narration'}</span>
-                  <span className="text-[#F9F0A8] font-mono normal-case tracking-normal">
+                  <span className={`font-mono normal-case tracking-normal ${
+                    useCinematic ? 'text-[#F9F0A8]' : 'text-white/90'
+                  }`}>
                     {fmtTime(progress)}{totalLabel ? ` / ${totalLabel}` : ''}
                   </span>
                 </div>
-                <div onClick={scrub} className="relative h-2 bg-[rgba(15,10,28,0.7)] rounded-full cursor-pointer group">
+                <div
+                  onClick={scrub}
+                  className={`relative h-2 rounded-full cursor-pointer group ${
+                    useCinematic ? 'bg-[rgba(15,10,28,0.7)]' : 'bg-white/15'
+                  }`}
+                >
                   <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F9F0A8] to-[#EC008C] transition-[width] duration-100"
-                    style={{ width: `${progressPct}%`, boxShadow: '0 0 12px rgba(249,240,168,0.5)' }}
+                    className={`absolute inset-y-0 left-0 rounded-full transition-[width] duration-100 ${
+                      useCinematic
+                        ? 'bg-gradient-to-r from-[#F9F0A8] to-[#EC008C]'
+                        : 'bg-gradient-to-r from-[#E8B547] to-[#F4CC6C]'
+                    }`}
+                    style={{
+                      width: `${progressPct}%`,
+                      boxShadow: useCinematic ? '0 0 12px rgba(249,240,168,0.5)' : undefined,
+                    }}
                   />
                   <div
                     className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
@@ -288,24 +324,34 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
         <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 gap-4">
 
           {/* Reading pane — spans 2 columns on md+ */}
-          <div className="md:col-span-2 relative ft-glass-card min-h-0 flex flex-col">
-            <div aria-hidden className="absolute left-6 top-6 bottom-6 w-px bg-[#F9F0A8]/25 hidden md:block" />
+          <div className={`md:col-span-2 relative min-h-0 flex flex-col rounded-2xl ${
+            useCinematic ? 'ft-glass-card' : 'bg-white border border-[#E8D9BE] shadow-md'
+          }`}>
+            <div aria-hidden className={`absolute left-6 top-6 bottom-6 w-px hidden md:block ${
+              useCinematic ? 'bg-[#F9F0A8]/25' : 'bg-[#E8B547]/40'
+            }`} />
             <div className="flex items-center justify-between px-5 md:px-8 pt-5 flex-shrink-0">
-              <p className="text-[10px] font-extrabold text-[#F9F0A8] uppercase tracking-[0.25em]">
+              <p className={`text-[10px] font-extrabold uppercase tracking-[0.25em] ${
+                useCinematic ? 'text-[#F9F0A8]' : 'text-[#4B6A85]'
+              }`}>
                 {mode === 'audio' ? 'Listening' : mode === 'text' ? 'Reading' : 'Read + Listen'}
               </p>
               <div className="flex items-center gap-3">
                 {mode === 'audio' && (
                   <button
                     onClick={() => setTextRevealed(v => !v)}
-                    className="text-[11px] font-semibold text-[#A69BB8] hover:text-[#F9F0A8] transition-colors"
+                    className={`text-[11px] font-semibold transition-colors ${
+                      useCinematic ? 'text-[#A69BB8] hover:text-[#F9F0A8]' : 'text-[#4B6A85] hover:text-[#1B2C3F]'
+                    }`}
                   >
                     {textRevealed ? 'Ocultar texto 🙈' : 'Revelar texto 👀'}
                   </button>
                 )}
                 <button
                   onClick={() => setShowTips(v => !v)}
-                  className="text-[11px] font-semibold text-[#A69BB8] hover:text-[#F9F0A8] transition-colors"
+                  className={`text-[11px] font-semibold transition-colors ${
+                    useCinematic ? 'text-[#A69BB8] hover:text-[#F9F0A8]' : 'text-[#4B6A85] hover:text-[#1B2C3F]'
+                  }`}
                 >
                   {showTips ? 'Ocultar tips ▲' : 'Tips ▼'}
                 </button>
@@ -314,26 +360,37 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
             <div className="px-5 md:px-8 pb-8 pt-4 overflow-y-auto flex-1">
               {!showText && (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-3 py-12">
-                  <div className="w-14 h-14 rounded-2xl bg-[rgba(15,10,28,0.85)] border border-[#9B72B8]/30 flex items-center justify-center text-2xl">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
+                    useCinematic ? 'bg-[rgba(15,10,28,0.85)] border border-[#9B72B8]/30' : 'bg-[#F5EFE1] border border-[#E8D9BE]'
+                  }`}>
                     🎧
                   </div>
-                  <p className="text-[13px] font-semibold text-[#F8F5FC]">Listen without reading.</p>
-                  <p className="text-[11px] text-[#A69BB8] max-w-xs">
+                  <p className={`text-[13px] font-semibold ${useCinematic ? 'text-[#F8F5FC]' : 'text-[#1B2C3F]'}`}>
+                    Listen without reading.
+                  </p>
+                  <p className={`text-[11px] max-w-xs ${useCinematic ? 'text-[#A69BB8]' : 'text-[#4B6A85]'}`}>
                     Este modo entrena la comprensión auditiva pura. Cuando estés listo, presiona
-                    <span className="mx-1 font-semibold text-[#F9F0A8]">Revelar texto</span>
+                    <span className={`mx-1 font-semibold ${useCinematic ? 'text-[#F9F0A8]' : 'text-[#1B2C3F]'}`}>
+                      Revelar texto
+                    </span>
                     para chequear.
                   </p>
                 </div>
               )}
               {showText && (
               <div className={[
-                'ft-reader-body text-[17px] md:text-[19px] text-[#F8F5FC] whitespace-pre-wrap',
+                useCinematic ? 'ft-reader-body text-[17px] md:text-[19px] text-[#F8F5FC]' : 'font-serif text-[17px] md:text-[19px] text-[#1F2937] leading-[1.85]',
+                'whitespace-pre-wrap',
                 wordCursor ? 'select-none' : '',
               ].join(' ')}>
                 {lines.map((line, i) => {
                   const isBlank = line.trim() === '';
                   const isActive = i === currentIdx;
                   const wasActive = timings && timings.length > 0 && i < currentIdx;
+                  const activeClass = useCinematic
+                    ? 'bg-[rgba(236,0,140,0.20)] text-white font-semibold shadow-[inset_3px_0_0_#EC008C]'
+                    : 'bg-gradient-to-r from-[#FFF6D6] via-[#FEF3C7] to-[#FFF6D6] text-[#1B2C3F] font-semibold shadow-[inset_3px_0_0_#E8B547]';
+                  const wasActiveClass = useCinematic ? 'text-[#A69BB8]' : 'text-[#4B6A85]/85';
                   return (
                     <div
                       key={i}
@@ -341,9 +398,7 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
                       className={[
                         'transition-all duration-300 rounded-lg px-2 -mx-2',
                         isBlank ? 'h-3' : '',
-                        isActive
-                          ? 'bg-[rgba(236,0,140,0.20)] text-white font-semibold shadow-[inset_3px_0_0_#EC008C]'
-                          : wasActive ? 'text-[#A69BB8]' : '',
+                        isActive ? activeClass : wasActive ? wasActiveClass : '',
                       ].join(' ')}
                     >
                       {isBlank ? ' ' : tokenise(line).map((tok, j) => {
@@ -351,13 +406,19 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
                         const markKey = `${i}:${j}`;
                         const marked  = penMarks.has(markKey);
                         if (!wordCursor && !marked) return <span key={j}>{tok.text}</span>;
-                        const hoverClass =
-                          activeTool === 'dictionary' ? 'hover:bg-[rgba(126,214,224,0.2)] hover:text-[#7ED6E0]'
-                          : activeTool === 'ipa'       ? 'hover:bg-[rgba(155,114,184,0.25)] hover:text-[#F9F0A8]'
-                          : activeTool === 'pen'       ? 'hover:bg-[rgba(249,240,168,0.2)] hover:text-[#F9F0A8]'
-                          : '';
+                        const hoverClass = useCinematic
+                          ? activeTool === 'dictionary' ? 'hover:bg-[rgba(126,214,224,0.2)] hover:text-[#7ED6E0]'
+                            : activeTool === 'ipa'       ? 'hover:bg-[rgba(155,114,184,0.25)] hover:text-[#F9F0A8]'
+                            : activeTool === 'pen'       ? 'hover:bg-[rgba(249,240,168,0.2)] hover:text-[#F9F0A8]'
+                            : ''
+                          : activeTool === 'dictionary' ? 'hover:bg-[#EEF3F8] hover:text-[#1B2C3F]'
+                            : activeTool === 'ipa'       ? 'hover:bg-[#F1E7F7] hover:text-[#5A3D7A]'
+                            : activeTool === 'pen'       ? 'hover:bg-yellow-100 hover:text-[#7A5A00]'
+                            : '';
                         const markClass = marked
-                          ? 'bg-[rgba(249,240,168,0.25)] rounded px-0.5 shadow-[inset_0_-2px_0_#F9F0A8]'
+                          ? useCinematic
+                            ? 'bg-[rgba(249,240,168,0.25)] rounded px-0.5 shadow-[inset_0_-2px_0_#F9F0A8]'
+                            : 'bg-yellow-200/80 rounded px-0.5 shadow-[inset_0_-2px_0_#EAB308]'
                           : '';
                         return (
                           <span
@@ -380,8 +441,12 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
               )}
 
               {showTips && (
-                <div className="mt-6 p-4 rounded-xl bg-[rgba(15,10,28,0.6)] border border-[#F9F0A8]/25 text-[13px] text-[#A69BB8] leading-relaxed">
-                  💡 <span className="font-semibold text-[#F9F0A8]">Read it twice.</span>{' '}
+                <div className={`mt-6 p-4 rounded-xl text-[13px] leading-relaxed ${
+                  useCinematic
+                    ? 'bg-[rgba(15,10,28,0.6)] border border-[#F9F0A8]/25 text-[#A69BB8]'
+                    : 'bg-[#F5EFE1] border border-[#E8D9BE] text-[#4B6A85]'
+                }`}>
+                  💡 <span className={`font-semibold ${useCinematic ? 'text-[#F9F0A8]' : 'text-[#1B2C3F]'}`}>Read it twice.</span>{' '}
                   First pass — for the gist and the emotional shape. Second pass — mark
                   any word you don&apos;t know, then guess its meaning from context before
                   you check it. Notice what the writer chose to <em>show</em> vs <em>tell</em>.
@@ -393,7 +458,9 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
           {/* Right column: image + tools */}
           <div className="flex flex-col gap-4 min-h-0">
             {/* Picture card */}
-            <div className="flex-1 min-h-[200px] rounded-2xl overflow-hidden ft-glass-card flex items-center justify-center">
+            <div className={`flex-1 min-h-[200px] rounded-2xl overflow-hidden flex items-center justify-center ${
+              useCinematic ? 'ft-glass-card' : 'bg-white/70 border border-[#E8D9BE] shadow-md'
+            }`}>
               {txt?.posterUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -404,13 +471,19 @@ export default function TextReadingSlide({ slide, youtubeUrl, brand }: Props) {
                 />
               ) : (
                 <div className="text-center px-6 py-8">
-                  <div className="w-14 h-14 rounded-2xl bg-[rgba(15,10,28,0.85)] border border-[#9B72B8]/30 flex items-center justify-center text-2xl mx-auto mb-3">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 ${
+                    useCinematic
+                      ? 'bg-[rgba(15,10,28,0.85)] border border-[#9B72B8]/30'
+                      : 'bg-[#F5EFE1] border border-[#E8D9BE]'
+                  }`}>
                     🖼️
                   </div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#F9F0A8] mb-1">
+                  <p className={`text-[11px] font-bold uppercase tracking-widest mb-1 ${
+                    useCinematic ? 'text-[#F9F0A8]' : 'text-[#4B6A85]'
+                  }`}>
                     Picture related to the text
                   </p>
-                  <p className="text-[10px] text-[#A69BB8]">
+                  <p className={`text-[10px] ${useCinematic ? 'text-[#A69BB8]' : 'text-[#4B6A85]/70'}`}>
                     Add a <code className="font-mono">posterUrl</code> in el editor para que aparezca aquí.
                   </p>
                 </div>
