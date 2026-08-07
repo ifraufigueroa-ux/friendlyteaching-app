@@ -416,17 +416,26 @@ a.ft-glass-card:hover {
    while carrying its own cinema-noir identity, separate from the
    FriendlyTales theme above. */
 
+/* Paleta Oficial FriendlyTeaching CL — shared with FriendlyTales magenta
+   accent so the whole product line stays coherent. The FriendlyFlix look
+   differs from FriendlyTales in the *treatment* (bright yellow spotlight,
+   gamified chips, brighter cyan) rather than in the underlying accent
+   colors. */
 .theme-friendly-flix {
-  --ff-bg-dark:    #1A0F2E;
-  --ff-bg-card:    rgba(45, 27, 78, 0.75);
-  --ff-purple:     #9B7CB8;
-  --ff-spotlight:  #F0C040;
-  --ff-magenta:    #D946EF;
-  --ff-teal:       #4CD8CC;
+  --ff-bg-dark:    #0F0A1C;
+  --ff-bg-card:    rgba(33, 11, 48, 0.85);
+  --ff-purple:     #9B72B8;
+  --ff-purple-soft: #4B2D6E;
+  --ff-magenta:    #EC008C;
+  --ff-pink-soft:  #FBE7F1;
+  --ff-yellow:     #FCEE21;
+  --ff-yellow-soft:#FCF7D8;
+  --ff-cyan:       #00A8E8;
+  --ff-green:      #7BC67E;
   --ff-text:       #F8F5FC;
-  --ff-text-muted: #B8A9D4;
+  --ff-text-muted: #A69BB8;
 
-  background: radial-gradient(circle at 50% 20%, #3A1F55 0%, #1A0F2E 100%);
+  background: radial-gradient(circle at 50% 20%, #2A1246 0%, #0F0A1C 100%);
   color: var(--ff-text);
   font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
 }
@@ -446,7 +455,7 @@ a.ft-glass-card:hover {
 /* Static glass card — passive containers (no hover glow). */
 .ff-glass-card {
   background: var(--ff-bg-card);
-  border: 1px solid rgba(155, 124, 184, 0.3);
+  border: 1px solid rgba(155, 114, 184, 0.3);
   backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   border-radius: 18px;
@@ -457,83 +466,181 @@ a.ft-glass-card:hover {
 .ff-glass-card.ff-hoverable:hover,
 button.ff-glass-card:hover,
 a.ff-glass-card:hover {
-  border-color: var(--ff-spotlight);
-  background: rgba(240, 192, 64, 0.12);
+  border-color: var(--ff-yellow);
+  background: rgba(252, 238, 33, 0.10);
 }
 
 .ff-title-spotlight {
-  color: var(--ff-spotlight);
+  color: var(--ff-yellow);
   font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
-  text-shadow: 0 2px 24px rgba(240, 192, 64, 0.15);
+  text-shadow: 0 2px 24px rgba(252, 238, 33, 0.20);
 }
 .ff-title-teal {
-  color: var(--ff-teal);
+  color: var(--ff-cyan);
   font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
-  text-shadow: 0 2px 24px rgba(76, 216, 204, 0.15);
+  text-shadow: 0 2px 24px rgba(0, 168, 232, 0.15);
+}
+.ff-title-magenta {
+  color: var(--ff-magenta);
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  text-shadow: 0 2px 24px rgba(236, 0, 140, 0.25);
 }
 .ff-badge-magenta {
   background: var(--ff-magenta);
   color: #fff;
-  box-shadow: 0 0 20px rgba(217, 70, 239, 0.45);
+  box-shadow: 0 0 20px rgba(236, 0, 140, 0.45);
 }
 .ff-badge-spotlight {
-  background: var(--ff-spotlight);
-  color: #1A0F2E;
-  box-shadow: 0 0 20px rgba(240, 192, 64, 0.5);
+  background: var(--ff-yellow);
+  color: #0F0A1C;
+  box-shadow: 0 0 20px rgba(252, 238, 33, 0.5);
 }
-.ff-badge-teal {
-  background: var(--ff-teal);
-  color: #1A0F2E;
+.ff-badge-cyan {
+  background: var(--ff-cyan);
+  color: #0F0A1C;
 }
+.ff-badge-green {
+  background: var(--ff-green);
+  color: #0F0A1C;
+}
+
+/* Score / streak / accuracy chips (Listening Challenge header) */
+.ff-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  background: rgba(33, 11, 48, 0.75);
+}
+.ff-stat-chip.is-score    { border-color: rgba(252, 238, 33, 0.55); color: var(--ff-yellow); box-shadow: 0 0 14px rgba(252,238,33,0.20); }
+.ff-stat-chip.is-streak   { border-color: rgba(236, 0, 140, 0.55);  color: var(--ff-magenta); box-shadow: 0 0 14px rgba(236,0,140,0.25); }
+.ff-stat-chip.is-accuracy { border-color: rgba(123, 198, 126, 0.55); color: var(--ff-green); box-shadow: 0 0 14px rgba(123,198,126,0.20); }
+
 .ff-focus-input {
-  background: rgba(26, 15, 46, 0.85);
-  border: 1px solid rgba(155, 124, 184, 0.35);
+  background: rgba(15, 10, 28, 0.85);
+  border: 1px solid rgba(155, 114, 184, 0.35);
   color: var(--ff-text);
   border-radius: 12px;
   transition: border-color 180ms ease;
 }
-.ff-focus-input::placeholder { color: rgba(184, 169, 212, 0.45); }
+.ff-focus-input::placeholder { color: rgba(166, 155, 184, 0.5); }
 .ff-focus-input:focus {
   outline: none;
-  border-color: var(--ff-spotlight);
-  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.12);
+  border-color: var(--ff-yellow);
+  box-shadow: 0 0 0 3px rgba(252, 238, 33, 0.14);
 }
+
+/* Primary CTA — magenta gradient (project accent) */
 .ff-cta {
-  background: linear-gradient(135deg, var(--ff-magenta), #9333EA);
+  background: linear-gradient(135deg, var(--ff-magenta), #A70066);
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 14px 28px;
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(217, 70, 239, 0.35);
+  box-shadow: 0 8px 24px rgba(236, 0, 140, 0.35);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
-.ff-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(217, 70, 239, 0.5); }
+.ff-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(236, 0, 140, 0.5); }
 .ff-cta:disabled { opacity: 0.4; transform: none; box-shadow: none; }
 
 .ff-cta-spotlight {
-  background: linear-gradient(135deg, var(--ff-spotlight), #C89234);
-  color: #1A0F2E;
+  background: linear-gradient(135deg, var(--ff-yellow), #E5C400);
+  color: #0F0A1C;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 14px 28px;
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(240, 192, 64, 0.35);
+  box-shadow: 0 8px 24px rgba(252, 238, 33, 0.35);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
-.ff-cta-spotlight:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(240, 192, 64, 0.5); }
+.ff-cta-spotlight:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(252, 238, 33, 0.55); }
+
+/* Hero prompt card — magenta neon border around the target sentence */
+.ff-question-hero {
+  background: rgba(30, 20, 50, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--ff-magenta);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 24px rgba(236, 0, 140, 0.20);
+  color: var(--ff-text);
+}
+
+/* Blank drop zone — yellow highlight for the missing word */
+.ff-blank-drop {
+  display: inline-block;
+  min-width: 96px;
+  background: var(--ff-yellow-soft);
+  border: 2.5px dashed var(--ff-yellow);
+  border-radius: 10px;
+  padding: 2px 14px;
+  color: #0F0A1C;
+  font-weight: 800;
+  font-size: 1.15rem;
+  box-shadow: 0 0 15px rgba(252, 238, 33, 0.35);
+  text-align: center;
+}
+/* Answered state — swap yellow for green success. */
+.ff-blank-drop.is-answered {
+  background: rgba(123, 198, 126, 0.85);
+  border-color: var(--ff-green);
+  color: #0F0A1C;
+  box-shadow: 0 0 15px rgba(123, 198, 126, 0.45);
+}
+.ff-blank-drop.is-wrong {
+  background: rgba(239, 68, 68, 0.20);
+  border-color: #F87171;
+  color: #FCA5A5;
+  animation: ffBlankShake 380ms ease-in-out;
+}
+@keyframes ffBlankShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-3px); }
+}
+
+/* Gamified option button */
+.ff-option-btn {
+  background: rgba(30, 20, 50, 0.8);
+  border: 2px solid rgba(155, 114, 184, 0.4);
+  border-radius: 16px;
+  padding: 18px 12px;
+  color: #fff;
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ff-option-btn:hover:not(:disabled) {
+  transform: translateY(-4px);
+  border-color: var(--ff-magenta);
+  background: rgba(236, 0, 140, 0.15);
+  box-shadow: 0 10px 24px rgba(236, 0, 140, 0.3);
+}
+.ff-option-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* Practice slide correctness — override the shared green baked into
-   PracticeCardShell with a teal spotlight while inside FriendlyFlix. */
+   PracticeCardShell with a bright cyan while inside FriendlyFlix. */
 .theme-friendly-flix button.bg-green-100.border-green-500,
 .theme-friendly-flix button.bg-green-500\/20.border-green-500,
 .theme-friendly-flix div.bg-green-500\/20.border-green-500 {
-  background: var(--ff-teal) !important;
-  color: #1A0F2E !important;
-  border-color: var(--ff-teal) !important;
-  box-shadow: 0 0 22px rgba(76, 216, 204, 0.5) !important;
+  background: var(--ff-cyan) !important;
+  color: #0F0A1C !important;
+  border-color: var(--ff-cyan) !important;
+  box-shadow: 0 0 22px rgba(0, 168, 232, 0.5) !important;
 }
 .theme-friendly-flix button.bg-red-100.border-red-400,
 .theme-friendly-flix button.bg-red-500\/15.border-red-400 {

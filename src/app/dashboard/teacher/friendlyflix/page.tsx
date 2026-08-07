@@ -72,10 +72,10 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
   return (
     <div className="theme-friendly-flix fixed inset-0 z-50 flex flex-col">
       {/* Top nav — sticks above the slide content with an explicit z-index */}
-      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-[#9B7CB8]/25 bg-[rgba(26,15,46,0.95)] backdrop-blur">
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-[#9B7CB8]/25 bg-[rgba(15,10,28,0.95)] backdrop-blur">
         <div className="flex items-center gap-3 min-w-0">
           <div className="text-[#F8F5FC] text-sm font-semibold truncate">{lesson.title}</div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#F0C040] flex-shrink-0">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#FCEE21] flex-shrink-0">
             {SLIDE_LABEL[slide.type] ?? slide.type}{multi ? ` · ${slideIdx + 1}/${slides.length}` : ''}
           </span>
         </div>
@@ -100,7 +100,7 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
                 disabled={!canNext}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                   canNext
-                    ? 'bg-gradient-to-r from-[#D946EF] to-[#9333EA] hover:opacity-90 text-white border-[#D946EF]/60 cursor-pointer shadow-[0_0_16px_rgba(217,70,239,0.35)]'
+                    ? 'bg-gradient-to-r from-[#EC008C] to-[#9333EA] hover:opacity-90 text-white border-[#EC008C]/60 cursor-pointer shadow-[0_0_16px_rgba(236,0,140,0.35)]'
                     : 'bg-white/5 text-white/25 border-white/5 cursor-not-allowed'
                 }`}
                 title="Next slide"

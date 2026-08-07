@@ -74,9 +74,9 @@ export default function ClipPredictionsSlide({ slide }: Props) {
         <div
           className="relative rounded-2xl overflow-hidden px-6 md:px-10 py-6 md:py-8 text-center"
           style={{
-            background: 'linear-gradient(90deg, rgba(75,45,110,0.6) 0%, rgba(26,15,46,0.85) 60%, rgba(26,15,46,0.9) 100%)',
+            background: 'linear-gradient(90deg, rgba(75,45,110,0.6) 0%, rgba(15,10,28,0.85) 60%, rgba(15,10,28,0.9) 100%)',
             border: '1.5px solid rgba(240, 192, 64, 0.55)',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.55), 0 0 40px rgba(240,192,64,0.10) inset',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.55), 0 0 40px rgba(252,238,33,0.10) inset',
           }}
         >
           <span
@@ -84,7 +84,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
             style={{
               background: 'rgba(45, 27, 78, 0.75)',
               border: '1px solid rgba(240, 192, 64, 0.35)',
-              color: '#F0C040',
+              color: '#FCEE21',
             }}
           >
             {eyebrowText}
@@ -101,8 +101,8 @@ export default function ClipPredictionsSlide({ slide }: Props) {
             className="mt-3 text-2xl md:text-3xl lg:text-4xl font-black leading-tight tracking-wide max-w-4xl mx-auto"
             style={{
               fontFamily: 'var(--font-cinzel), Cinzel, Georgia, serif',
-              color: '#F0C040',
-              textShadow: '0 2px 20px rgba(0,0,0,0.6), 0 0 32px rgba(240,192,64,0.18)',
+              color: '#FCEE21',
+              textShadow: '0 2px 20px rgba(0,0,0,0.6), 0 0 32px rgba(252,238,33,0.18)',
               letterSpacing: '0.05em',
             }}
           >
@@ -131,8 +131,8 @@ export default function ClipPredictionsSlide({ slide }: Props) {
                 <span
                   className="absolute -top-3 left-4 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white"
                   style={{
-                    background: '#D946EF',
-                    boxShadow: '0 0 18px rgba(217,70,239,0.55)',
+                    background: '#EC008C',
+                    boxShadow: '0 0 18px rgba(236,0,140,0.55)',
                   }}
                 >
                   {i + 1}
@@ -141,7 +141,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
                   className="font-bold text-[15px] md:text-base mb-1.5"
                   style={{
                     fontFamily: 'var(--font-jakarta), sans-serif',
-                    color: '#F0C040',
+                    color: '#FCEE21',
                   }}
                 >
                   {q.title}
@@ -151,8 +151,8 @@ export default function ClipPredictionsSlide({ slide }: Props) {
                 </p>
                 {submitted && (
                   <span
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full text-[#1A0F2E] flex items-center justify-center text-xs font-bold"
-                    style={{ background: '#4CD8CC', boxShadow: '0 0 12px rgba(76,216,204,0.65)' }}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full text-[#0F0A1C] flex items-center justify-center text-xs font-bold"
+                    style={{ background: '#7BC67E', boxShadow: '0 0 12px rgba(123,198,126,0.65)' }}
                   >
                     ✓
                   </span>
@@ -173,8 +173,8 @@ export default function ClipPredictionsSlide({ slide }: Props) {
                 boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
               }}
             >
-              <div className="flex items-center gap-2 px-5 pt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#F0C040]">
-                ✍️ <span className="text-[#F0C040]/85 normal-case tracking-normal font-medium text-[13px]">
+              <div className="flex items-center gap-2 px-5 pt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[#FCEE21]">
+                ✍️ <span className="text-[#FCEE21]/85 normal-case tracking-normal font-medium text-[13px]">
                   {isProduction ? 'Write your idea…' : 'I think this scene is about…'}
                 </span>
               </div>
@@ -189,7 +189,7 @@ export default function ClipPredictionsSlide({ slide }: Props) {
               />
             </div>
             <div className="flex items-center justify-between gap-3 mt-3">
-              <span className={`text-xs font-bold uppercase tracking-widest ${wordCount >= 20 ? 'text-[#4CD8CC]' : 'text-[#B8A9D4]/60'}`}>
+              <span className={`text-xs font-bold uppercase tracking-widest ${wordCount >= 20 ? 'text-[#7BC67E]' : 'text-[#B8A9D4]/60'}`}>
                 {wordCount} {wordCount === 1 ? 'word' : 'words'} {wordCount >= 20 && '· nice depth'}
               </span>
               <button
@@ -207,22 +207,22 @@ export default function ClipPredictionsSlide({ slide }: Props) {
             style={{
               background: 'rgba(45, 27, 78, 0.75)',
               border: '1.5px solid rgba(76, 216, 204, 0.55)',
-              boxShadow: '0 16px 40px rgba(76,216,204,0.10)',
+              boxShadow: '0 16px 40px rgba(123,198,126,0.10)',
             }}
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#4CD8CC]">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#7BC67E]">
                 {isProduction ? 'Your answer' : 'Your theory'}
               </p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="text-[11px] font-bold uppercase tracking-widest text-[#B8A9D4] hover:text-[#F0C040]"
+                className="text-[11px] font-bold uppercase tracking-widest text-[#B8A9D4] hover:text-[#FCEE21]"
               >
                 ✎ Edit
               </button>
             </div>
             <p className="text-lg leading-relaxed italic text-[#F8F5FC]">&ldquo;{prediction}&rdquo;</p>
-            <p className="text-sm font-medium pt-2 border-t border-[#F0C040]/25 text-[#F0C040]">
+            <p className="text-sm font-medium pt-2 border-t border-[#FCEE21]/25 text-[#FCEE21]">
               {followUp}
             </p>
           </div>

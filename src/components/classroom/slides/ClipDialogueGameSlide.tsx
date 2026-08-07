@@ -543,26 +543,39 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
   })();
 
   // ── JSX ────────────────────────────────────────────────────────────────
+  // Accuracy % for the header chip.
+  const accuracyPct = numBlanks > 0 && (correct + wrong) > 0
+    ? Math.round((correct / (correct + wrong)) * 100)
+    : 100;
+  const streakBadge = correct >= 2 ? correct : 0;
+
   return (
     <div
-      className="relative flex flex-col bg-[#0A0A12] text-white overflow-hidden"
+      className="relative flex flex-col bg-transparent text-[#F8F5FC] overflow-hidden"
       style={{ height: '100%', minHeight: 520 }}
     >
-      {/* Top thin bar */}
-      <div className="flex-shrink-0 flex items-center gap-3 px-4 py-1.5 bg-black/70 border-b border-white/10">
+      {/* Top thin bar — brand strip + yellow progress + stat chips */}
+      <div className="flex-shrink-0 flex items-center gap-3 px-4 py-1.5 bg-[rgba(15,10,28,0.85)] backdrop-blur border-b border-[#EC008C]/20">
         <div className="flex-1 min-w-0">
           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#E50914] to-[#FF6B6B] transition-all duration-300 rounded-full"
-              style={{ width: `${progress * 100}%` }}
+              className="h-full bg-gradient-to-r from-[#FCEE21] to-[#FFB800] transition-all duration-300 rounded-full"
+              style={{ width: `${progress * 100}%`, boxShadow: '0 0 8px rgba(252,238,33,0.55)' }}
             />
           </div>
         </div>
-        <p className="text-[10px] text-white/50 flex-shrink-0 truncate max-w-[260px]">
+        <p className="text-[10px] text-[#A69BB8] flex-shrink-0 truncate max-w-[260px]">
           {slide.clipData?.title} · {slide.clipData?.source}
         </p>
+        <span className="ff-stat-chip is-score">⭐ {score}<span className="opacity-70 font-normal ml-0.5">pts</span></span>
+        {streakBadge > 0 && (
+          <span className="ff-stat-chip is-streak">🔥 {streakBadge}x</span>
+        )}
+        {(correct + wrong) > 0 && (
+          <span className="ff-stat-chip is-accuracy">🎯 {accuracyPct}%</span>
+        )}
         <span className={`text-[9px] font-semibold flex-shrink-0 px-1.5 py-0.5 rounded-full
-          ${syncStatus === 'manual'    ? 'bg-green-500/20 text-green-400'
+          ${syncStatus === 'manual'    ? 'bg-[#7BC67E]/25 text-[#7BC67E]'
           : syncStatus === 'estimated' ? 'bg-white/10 text-white/30'
                                        : 'bg-white/5 text-white/20'}`}>
           {syncStatus === 'manual' ? '♪ sync' : syncStatus === 'estimated' ? '~ est' : '…'}
@@ -585,7 +598,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               key={videoKey}
               ref={iframeRef}
               src={`https://www.youtube.com/embed/${videoId}?${videoAutoplay ? 'autoplay=1&' : ''}controls=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1${slide.clipData?.startTime ? `&start=${Math.floor(slide.clipData.startTime)}` : ''}${slide.clipData?.endTime ? `&end=${Math.floor(slide.clipData.endTime)}` : ''}&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
-              className="absolute inset-0 w-full h-full rounded-xl shadow-2xl shadow-red-900/20"
+              className="absolute inset-0 w-full h-full rounded-xl shadow-2xl shadow-[#EC008C]/25"
               style={{ border: 'none' }}
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
@@ -600,7 +613,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
                 href={`https://www.youtube.com/watch?v=${videoId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl"
+                className="px-4 py-2 bg-[#EC008C] hover:bg-[#D0007D] text-white text-xs font-bold rounded-xl"
               >
                 Abrir en YouTube ↗
               </a>
@@ -651,10 +664,10 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
                     className={`inline-block min-w-[80px] text-center px-3 py-0.5 mx-1.5 rounded-xl font-bold transition-all duration-300
                       ${isActive ? 'text-lg' : 'text-base'}
                       ${answered
-                        ? 'bg-green-500 text-white shadow-md'
+                        ? 'bg-[#7BC67E] text-[#0F0A1C] shadow-[0_0_18px_rgba(123,198,126,0.55)]'
                         : isCurrent
-                          ? `bg-yellow-300 text-[#1E0F35] shadow-lg scale-105 ${wrongFlash ? 'ring-2 ring-red-400' : 'ring-2 ring-yellow-100/60'}`
-                          : i < currentBlankIdx ? 'bg-white/5 text-white/20' : 'bg-white/10 text-white/30'
+                          ? `bg-[#FCF7D8] text-[#0F0A1C] shadow-[0_0_18px_rgba(252,238,33,0.5)] scale-105 border-2 border-dashed ${wrongFlash ? 'border-red-400 animate-[ffBlankShake_380ms_ease-in-out]' : 'border-[#FCEE21]'}`
+                          : i < currentBlankIdx ? 'bg-white/5 text-white/25' : 'bg-white/10 text-white/35'
                       }`}
                   >
                     {answered ? answers[i] : isCurrent ? '?' : '···'}
@@ -669,22 +682,25 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
 
       {/* ── Bottom row — diagram block 3 ───────────────────────────────── */}
       {/* alternatives (left, 4 buttons) + control botones (right) */}
-      <div className="flex-shrink-0 flex items-stretch gap-3 px-4 py-3 bg-[#0F0F18] border-t border-white/10">
+      <div className="flex-shrink-0 flex items-stretch gap-3 px-4 py-3 bg-[rgba(15,10,28,0.85)] backdrop-blur border-t border-[#EC008C]/20">
 
         {/* ── Alternatives (left, takes the remaining space) ───────────── */}
         <div className="flex-1 min-w-0">
           {allDone ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-2">
-              <p className="text-green-400 font-bold text-xl">🎬 ¡Completado!</p>
-              <p className="text-white/40 text-sm mt-1">{score} pts · {correct}/{numBlanks} correctas</p>
+              <p className="ff-title-spotlight font-bold text-xl">🎬 ¡Completado!</p>
+              <p className="text-[#A69BB8] text-sm mt-1">
+                <span className="text-[#FCEE21] font-bold">{score}</span> pts ·{' '}
+                <span className="text-[#7BC67E] font-bold">{correct}</span>/{numBlanks} correctas
+              </p>
             </div>
           ) : currentOptions.length > 0 ? (
             <div className="h-full flex flex-col justify-center">
               {canAnswerNow && currentBlankLineText && (
-                <p className="text-center text-white/55 text-xs mb-2 px-2 leading-snug truncate">
+                <p className="text-center text-[#A69BB8] text-xs mb-2 px-2 leading-snug truncate">
                   &ldquo;{currentBlankLineText.trim()}&rdquo;
                   {earlyChance && (
-                    <span className="ml-2 text-[9px] text-[#FF6B6B]/70 uppercase tracking-widest">
+                    <span className="ml-2 text-[9px] text-[#EC008C] uppercase tracking-widest">
                       · responde antes
                     </span>
                   )}
@@ -696,15 +712,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
                     key={i}
                     onClick={() => handleAnswer(opt)}
                     disabled={!canAnswerNow}
-                    className={`py-4 px-3 rounded-xl text-sm font-bold transition-all duration-150 border-2
-                      ${canAnswerNow
-                        ? wrongFlash
-                          ? 'bg-red-900/30 border-red-500/50 text-white/50 scale-95'
-                          : earlyChance
-                            ? 'bg-white/8 hover:bg-[#7B1F23] hover:border-[#E50914] hover:scale-[1.03] border-[#7B1F23]/60 text-white/90 active:scale-95 cursor-pointer shadow'
-                            : 'bg-white/10 hover:bg-[#7B1F23] hover:border-[#E50914] hover:scale-[1.03] border-white/20 text-white active:scale-95 cursor-pointer shadow-lg'
-                        : 'bg-white/4 border-white/8 text-white/20 cursor-default'
-                      }`}
+                    className={`ff-option-btn ${wrongFlash ? 'opacity-60 scale-95' : ''} ${earlyChance ? 'opacity-90' : ''}`}
                   >
                     {opt}
                   </button>
@@ -712,22 +720,22 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-white/30 text-xs">
+            <div className="h-full flex items-center justify-center text-[#A69BB8]/60 text-xs">
               {started ? 'Esperando la siguiente línea con blank…' : 'Presiona ▶ Iniciar para comenzar'}
             </div>
           )}
         </div>
 
         {/* ── Botones (right column, control cluster + score chip) ────── */}
-        <div className="flex-shrink-0 flex flex-col items-stretch justify-between gap-2 w-[260px] border-l border-white/10 pl-3">
+        <div className="flex-shrink-0 flex flex-col items-stretch justify-between gap-2 w-[260px] border-l border-[#EC008C]/20 pl-3">
 
           {/* Score + counters mini-row */}
           <div className="flex items-center justify-between text-[11px] flex-wrap gap-2">
-            <span className="text-white/40 uppercase tracking-widest text-[9px]">Puntaje</span>
-            <span className="font-bold text-white text-base">{score}<span className="text-[9px] font-normal text-white/40"> pts</span></span>
-            <span className="text-green-400 font-semibold">✓ {correct}</span>
+            <span className="text-[#A69BB8]/70 uppercase tracking-widest text-[9px]">Puntaje</span>
+            <span className="font-bold text-[#FCEE21] text-base">{score}<span className="text-[9px] font-normal text-[#A69BB8]/60"> pts</span></span>
+            <span className="text-[#7BC67E] font-semibold">✓ {correct}</span>
             <span className="text-red-400 font-semibold">✗ {wrong}</span>
-            <span className="text-[9px] text-white/30">{answeredCount}/{numBlanks}</span>
+            <span className="text-[9px] text-[#A69BB8]/50">{answeredCount}/{numBlanks}</span>
           </div>
 
           {/* Transport row */}
@@ -736,7 +744,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               onClick={handleRewind}
               disabled={!started}
               title="Retroceder 5 s"
-              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
+              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25 text-[#F8F5FC]"
             >
               ↺ 5s
             </button>
@@ -744,25 +752,25 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
             {!started ? (
               <button
                 onClick={handleStart}
-                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-lg text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#EC008C] to-[#A70066] rounded-lg text-sm font-bold shadow-lg shadow-[#EC008C]/40 transition-all active:scale-95 text-white"
               >
                 ▶ Iniciar
               </button>
             ) : timerRunning ? (
               <button
                 onClick={handlePause}
-                className="flex-1 px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold border border-white/15 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold border border-white/15 transition-all active:scale-95 text-[#F8F5FC]"
               >
                 ⏸
               </button>
             ) : waiting ? (
-              <span className="flex-1 text-center text-yellow-300 text-[10px] font-semibold animate-pulse px-2">
+              <span className="flex-1 text-center text-[#FCEE21] text-[10px] font-semibold animate-pulse px-2">
                 ← elige
               </span>
             ) : (
               <button
                 onClick={handleResume}
-                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#E50914] to-[#FF6B6B] rounded-lg text-sm font-bold shadow-lg shadow-red-900/30 transition-all active:scale-95"
+                className="flex-1 px-4 py-1.5 bg-gradient-to-r from-[#EC008C] to-[#A70066] rounded-lg text-sm font-bold shadow-lg shadow-[#EC008C]/40 transition-all active:scale-95 text-white"
               >
                 ▶
               </button>
@@ -772,7 +780,7 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
               onClick={handleForward}
               disabled={!started}
               title="Avanzar 5 s"
-              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25"
+              className="px-2 py-1.5 rounded-lg bg-white/8 hover:bg-white/15 text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-25 text-[#F8F5FC]"
             >
               5s →
             </button>
@@ -785,23 +793,23 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
                 onClick={() => applySyncOffsetDelta(-1)}
                 disabled={!started}
                 title="Preguntas 1 s antes (recordado para este clip)"
-                className="px-1.5 py-1 rounded bg-[#E50914]/15 hover:bg-[#E50914]/30 font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
+                className="px-1.5 py-1 rounded bg-[#EC008C]/15 hover:bg-[#EC008C]/30 font-bold border border-[#EC008C]/30 transition-all active:scale-95 disabled:opacity-25 text-[#EC008C]"
               >
                 −1s
               </button>
-              <span className="text-[9px] text-[#FF6B6B] min-w-[28px] text-center font-mono">
+              <span className="text-[9px] text-[#EC008C] min-w-[28px] text-center font-mono">
                 {syncOffset > 0 ? '+' : ''}{syncOffset}s
               </span>
               <button
                 onClick={() => applySyncOffsetDelta(1)}
                 disabled={!started}
                 title="Preguntas 1 s después (recordado para este clip)"
-                className="px-1.5 py-1 rounded bg-[#E50914]/15 hover:bg-[#E50914]/30 font-bold border border-[#E50914]/30 transition-all active:scale-95 disabled:opacity-25 text-[#FF6B6B]"
+                className="px-1.5 py-1 rounded bg-[#EC008C]/15 hover:bg-[#EC008C]/30 font-bold border border-[#EC008C]/30 transition-all active:scale-95 disabled:opacity-25 text-[#EC008C]"
               >
                 +1s
               </button>
             </div>
-            <div className="font-mono font-bold text-white">{fmt(elapsed)}</div>
+            <div className="font-mono font-bold text-[#F8F5FC]">{fmt(elapsed)}</div>
           </div>
         </div>
       </div>
