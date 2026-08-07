@@ -112,7 +112,7 @@ function UnscrambleCard({
   return (
     <div
       ref={cardRef}
-      className={`relative bg-white rounded-3xl shadow-md shadow-[#C8A8DC]/20 border border-white p-6 space-y-3 transition-shadow hover:shadow-xl
+      className={`relative ff-glass-card p-6 space-y-3
         ${checked && !isCorrect ? 'animate-[cpShake_400ms_ease-in-out]' : ''}`}
       style={{
         animation: 'cpCardIn 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -134,11 +134,11 @@ function UnscrambleCard({
       `}</style>
 
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#5A3D7A]/60">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#F0C040]">
           Exercise {index + 1} · Unscramble
         </span>
         {checked && (
-          <span className={`text-xs font-bold uppercase ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-xs font-bold uppercase ${isCorrect ? 'text-[#4CD8CC]' : 'text-red-400'}`}>
             {isCorrect ? '✓ Correct' : '✗ Try again'}
           </span>
         )}
@@ -147,11 +147,11 @@ function UnscrambleCard({
       {/* Sentence builder */}
       <div className={`min-h-14 rounded-2xl border-2 border-dashed p-3 flex flex-wrap gap-1.5 items-center transition-colors
         ${checked
-          ? isCorrect ? 'border-green-400 bg-green-50' : 'border-red-300 bg-red-50'
-          : 'border-[#C8A8DC]/40 bg-[#F9F5FF]'
+          ? isCorrect ? 'border-[#4CD8CC]/60 bg-[rgba(76,216,204,0.10)]' : 'border-red-400/60 bg-red-500/10'
+          : 'border-[#F0C040]/40 bg-[rgba(15,10,28,0.55)]'
         }`}>
         {placed.length === 0 ? (
-          <span className="text-xs text-[#5A3D7A]/50 italic px-1">Tap a word below to start the sentence…</span>
+          <span className="text-xs text-[#B8A9D4]/60 italic px-1">Tap a word below to start the sentence…</span>
         ) : (
           placed.map((wIdx, slot) => (
             <button
@@ -162,9 +162,9 @@ function UnscrambleCard({
               className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-all border
                 ${checked
                   ? isCorrect
-                    ? 'bg-green-100 border-green-300 text-green-800 cursor-default'
-                    : 'bg-red-100 border-red-300 text-red-800 cursor-default'
-                  : 'bg-gradient-to-br from-[#5A3D7A] to-[#7B5EA7] border-[#5A3D7A] text-white hover:opacity-90 active:scale-95'
+                    ? 'bg-[#4CD8CC] border-[#4CD8CC] text-[#1A0F2E] cursor-default'
+                    : 'bg-red-500/20 border-red-400 text-red-200 cursor-default'
+                  : 'bg-gradient-to-br from-[#D946EF] to-[#9333EA] border-[#D946EF] text-white hover:opacity-90 active:scale-95 shadow-[0_0_16px_rgba(217,70,239,0.35)]'
                 }`}
             >
               {shuffled[wIdx]}
@@ -181,26 +181,26 @@ function UnscrambleCard({
             type="button"
             onClick={() => placeWord(wIdx)}
             disabled={checked}
-            className="px-3 py-1.5 rounded-xl text-sm font-semibold border-2 border-[#E8D5F0] bg-white hover:bg-[#F0E5FF] hover:border-[#9B7CB8] active:scale-95 text-[#2D1B4E] transition-all disabled:opacity-40"
+            className="px-3 py-1.5 rounded-xl text-sm font-semibold border-2 border-[#9B7CB8]/40 bg-[rgba(26,15,46,0.7)] hover:bg-[rgba(217,70,239,0.18)] hover:border-[#D946EF] active:scale-95 text-[#F8F5FC] transition-all disabled:opacity-40"
           >
             {shuffled[wIdx]}
           </button>
         ))}
         {available.length === 0 && !checked && (
-          <span className="text-[11px] text-[#5A3D7A]/50 italic px-1 py-2">All words placed — tap Check.</span>
+          <span className="text-[11px] text-[#B8A9D4]/60 italic px-1 py-2">All words placed — tap Check.</span>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[11px] text-[#5A3D7A]/50">
+        <span className="text-[11px] text-[#B8A9D4]/70">
           {placed.length}/{shuffled.length} placed
         </span>
         {checked ? (
           isCorrect ? null : (
             <button
               onClick={retry}
-              className="px-4 py-2 rounded-full text-xs font-bold bg-white border-2 border-[#9B7CB8] text-[#5A3D7A] hover:bg-[#F0E5FF] active:scale-95"
+              className="px-4 py-2 rounded-full text-xs font-bold bg-[rgba(26,15,46,0.75)] border-2 border-[#F0C040]/50 text-[#F0C040] hover:bg-[rgba(240,192,64,0.15)] active:scale-95"
             >
               ↻ Try again
             </button>
@@ -209,7 +209,7 @@ function UnscrambleCard({
           <button
             onClick={check}
             disabled={placed.length === 0}
-            className="px-5 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white shadow disabled:opacity-40 active:scale-95"
+            className="ff-cta text-[11px] px-5 py-2 disabled:opacity-40"
           >
             ✓ Check
           </button>
@@ -217,7 +217,7 @@ function UnscrambleCard({
       </div>
 
       {checked && !isCorrect && (
-        <p className="text-[11px] text-red-600 leading-snug pt-1">
+        <p className="text-[11px] text-red-300 leading-snug pt-1">
           Hint: re-read the sentence and check the order of cause and effect.
         </p>
       )}
@@ -258,7 +258,7 @@ function MatchHalvesCard({
   return (
     <div
       ref={cardRef}
-      className={`relative bg-white rounded-3xl shadow-md shadow-[#C8A8DC]/20 border border-white p-6 space-y-3
+      className={`relative ff-glass-card p-6 space-y-3
         ${chosen && !correct ? 'animate-[cpShake_400ms_ease-in-out]' : ''}`}
       style={{
         animation: 'cpCardIn 480ms cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -266,16 +266,16 @@ function MatchHalvesCard({
       }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#5A3D7A]/60">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#F0C040]">
           Exercise {index + 1} · Match halves
         </span>
         {chosen && (
-          <span className={`text-xs font-bold uppercase ${correct ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`text-xs font-bold uppercase ${correct ? 'text-[#4CD8CC]' : 'text-red-400'}`}>
             {correct ? '✓ Correct' : '✗ Wrong'}
           </span>
         )}
       </div>
-      <p className="text-base md:text-lg font-serif italic text-[#2D1B4E] leading-relaxed">
+      <p className="text-base md:text-lg italic text-[#F8F5FC] leading-relaxed" style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}>
         &ldquo;{item.prompt}&rdquo; …
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -293,11 +293,11 @@ function MatchHalvesCard({
               className={`text-left px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all
                 ${chosen
                   ? showRight
-                    ? 'bg-green-100 border-green-500 text-green-900'
+                    ? 'bg-[#4CD8CC] border-[#4CD8CC] text-[#1A0F2E] shadow-[0_0_22px_rgba(76,216,204,0.5)]'
                     : showWrong
-                      ? 'bg-red-100 border-red-400 text-red-900 line-through'
-                      : 'bg-white border-gray-200 text-gray-400'
-                  : 'bg-white border-[#E8D5F0] text-[#2D1B4E] hover:bg-[#F0E5FF] hover:border-[#9B7CB8] hover:scale-[1.01] active:scale-95'
+                      ? 'bg-red-500/20 border-red-400 text-red-300 line-through'
+                      : 'bg-[rgba(26,15,46,0.4)] border-[#9B7CB8]/25 text-[#B8A9D4]/50'
+                  : 'bg-[rgba(45,27,78,0.65)] border-[#9B7CB8]/40 text-[#F8F5FC] hover:bg-[rgba(217,70,239,0.20)] hover:border-[#D946EF] hover:scale-[1.01] active:scale-95'
                 }`}
             >
               {chosen && showRight && '✓ '}
@@ -373,18 +373,18 @@ export default function ClipControlledPracticeSlide({ slide }: Props) {
 
   if (total === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-[#F9F5FF] to-[#FBF8F0]">
+      <div className="h-full flex items-center justify-center bg-transparent text-[#F8F5FC]">
         <div className="text-center max-w-md p-8">
           <p className="text-5xl mb-3">🎯</p>
-          <p className="text-lg font-bold text-[#5A3D7A] mb-1">No practice configured</p>
-          <p className="text-sm text-[#5A3D7A]/60">The teacher has not added controlled practice items yet.</p>
+          <p className="text-lg font-bold ff-title-teal mb-1">No practice configured</p>
+          <p className="text-sm text-[#B8A9D4]">The teacher has not added controlled practice items yet.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full overflow-y-auto bg-gradient-to-br from-[#F9F5FF] via-[#FBF8F0] to-[#FFE8F0] text-[#2D1B4E]">
+    <div className="relative h-full overflow-y-auto bg-transparent text-[#F8F5FC]">
       <style>{`
         @keyframes cpFloatUp {
           0%   { transform: translate(-50%, 0)    scale(0.7); opacity: 0; }
@@ -394,45 +394,60 @@ export default function ClipControlledPracticeSlide({ slide }: Props) {
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto px-[2cm] py-[3cm] flex flex-col items-center text-center gap-7">
+      <div className="max-w-4xl mx-auto px-6 md:px-10 py-10 md:py-14 flex flex-col items-center text-center gap-6">
 
         {/* Eyebrow + hero icon */}
         <div className="flex flex-col items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#5A3D7A]/60 bg-white/60 border border-[#C8A8DC]/40 px-3 py-1 rounded-full backdrop-blur">
+          <span
+            className="text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full backdrop-blur"
+            style={{
+              background: 'rgba(45, 27, 78, 0.75)',
+              border: '1px solid rgba(76, 216, 204, 0.4)',
+              color: '#4CD8CC',
+            }}
+          >
             Friendlyflix · Controlled practice
           </span>
-          <span className="text-6xl">🎯</span>
+          <span className="text-5xl md:text-6xl">🎯</span>
         </div>
 
-        {/* Title */}
-        <h1 className="font-serif font-bold text-[#2D1B4E] text-4xl md:text-5xl leading-tight max-w-3xl">
+        {/* Title — teal Cinzel per Twilight Reel practice spec */}
+        <h1
+          className="text-3xl md:text-4xl font-black leading-tight tracking-wide max-w-3xl"
+          style={{
+            fontFamily: 'var(--font-cinzel), Cinzel, Georgia, serif',
+            color: '#4CD8CC',
+            textShadow: '0 2px 20px rgba(0,0,0,0.6), 0 0 32px rgba(76,216,204,0.20)',
+            letterSpacing: '0.05em',
+          }}
+        >
           {slide.title ?? 'Controlled practice'}
         </h1>
 
         {slide.subtitle && (
-          <p className="text-base md:text-lg text-[#5A3D7A]/85 leading-relaxed max-w-2xl">
+          <p className="text-base md:text-lg text-[#D9CFE6] leading-relaxed max-w-2xl">
             {slide.subtitle}
           </p>
         )}
 
         {/* Scoreboard */}
-        <div className="w-full max-w-3xl bg-white/70 backdrop-blur rounded-2xl border border-[#C8A8DC]/40 shadow px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div className="w-full max-w-3xl ff-glass-card px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/60">Done</p>
-            <p className="text-lg font-bold text-[#5A3D7A]">{doneCount}/{total}</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#B8A9D4]">Done</p>
+            <p className="text-lg font-bold text-[#4CD8CC]">{doneCount}/{total}</p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/60">Score</p>
-            <p className="text-lg font-bold text-[#5A3D7A]">{score}</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#B8A9D4]">Score</p>
+            <p className="text-lg font-bold text-[#F0C040]">{score}</p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/60">Streak</p>
-            <p className={`text-lg font-bold ${streak >= 2 ? 'text-orange-500' : 'text-[#5A3D7A]/40'}`}>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#B8A9D4]">Streak</p>
+            <p className={`text-lg font-bold ${streak >= 2 ? 'text-[#D946EF]' : 'text-[#B8A9D4]/40'}`}>
               {streak >= 2 ? `🔥 ${streak}` : streak}
             </p>
           </div>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/60">Rating</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-[#B8A9D4]">Rating</p>
             <p className="text-lg leading-none">{stars()}</p>
           </div>
         </div>
@@ -460,16 +475,23 @@ export default function ClipControlledPracticeSlide({ slide }: Props) {
 
         {/* Completion */}
         {allDone && (
-          <div className="w-full max-w-2xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-3xl p-6 shadow-xl space-y-3 text-center">
+          <div
+            className="w-full max-w-2xl rounded-3xl p-6 space-y-3 text-center"
+            style={{
+              background: 'rgba(45, 27, 78, 0.75)',
+              border: '1.5px solid rgba(76, 216, 204, 0.6)',
+              boxShadow: '0 16px 40px rgba(76,216,204,0.15)',
+            }}
+          >
             <p className="text-5xl">{stars()}</p>
-            <p className="text-xl font-bold text-[#2D1B4E]">All exercises complete!</p>
-            <p className="text-sm text-[#2D1B4E]/70">
-              You got <strong className="text-green-700">{correctCount}</strong> of <strong>{total}</strong> right
-              {bestStreak >= 2 && <> · best streak <strong className="text-orange-500">🔥 {bestStreak}</strong></>}
+            <p className="text-xl font-bold ff-title-spotlight">All exercises complete!</p>
+            <p className="text-sm text-[#D9CFE6]">
+              You got <strong className="text-[#4CD8CC]">{correctCount}</strong> of <strong className="text-[#F0C040]">{total}</strong> right
+              {bestStreak >= 2 && <> · best streak <strong className="text-[#D946EF]">🔥 {bestStreak}</strong></>}
             </p>
             <button
               onClick={restart}
-              className="mt-2 px-6 py-2.5 bg-white border-2 border-[#9B7CB8] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+              className="mt-2 px-6 py-2.5 bg-[rgba(26,15,46,0.75)] border-2 border-[#F0C040]/50 text-[#F0C040] rounded-full text-sm font-bold hover:bg-[rgba(240,192,64,0.15)] active:scale-95"
             >
               ↻ Try again
             </button>
@@ -495,8 +517,8 @@ export default function ClipControlledPracticeSlide({ slide }: Props) {
           className="pointer-events-none absolute font-bold text-2xl select-none z-50"
           style={{
             left: f.x, top: f.y,
-            color: f.pts >= 0 ? '#16a34a' : '#dc2626',
-            textShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            color: f.pts >= 0 ? '#4CD8CC' : '#F87171',
+            textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 0 12px currentColor',
             animation: 'cpFloatUp 1100ms ease-out forwards',
           }}
         >

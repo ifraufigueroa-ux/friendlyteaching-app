@@ -406,3 +406,138 @@ a.ft-glass-card:hover {
   color: #FCA5A5 !important;
   border-color: #EF4444 !important;
 }
+
+/* ============================================================
+   FriendlyFlix Theme — "Twilight Reel"
+   ============================================================
+   Applied on FriendlyFlix (clip lesson) player. Deep twilight
+   purple base + warm amber spotlight + violet-magenta CTA +
+   cinemascope teal accent. Respects the project's purple family
+   while carrying its own cinema-noir identity, separate from the
+   FriendlyTales theme above. */
+
+.theme-friendly-flix {
+  --ff-bg-dark:    #1A0F2E;
+  --ff-bg-card:    rgba(45, 27, 78, 0.75);
+  --ff-purple:     #9B7CB8;
+  --ff-spotlight:  #F0C040;
+  --ff-magenta:    #D946EF;
+  --ff-teal:       #4CD8CC;
+  --ff-text:       #F8F5FC;
+  --ff-text-muted: #B8A9D4;
+
+  background: radial-gradient(circle at 50% 20%, #3A1F55 0%, #1A0F2E 100%);
+  color: var(--ff-text);
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+.theme-friendly-flix .font-cinzel,
+.theme-friendly-flix h1,
+.theme-friendly-flix h2,
+.theme-friendly-flix h3 {
+  font-family: var(--font-cinzel), 'Cinzel', 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.01em;
+}
+
+.theme-friendly-flix ::-webkit-scrollbar-thumb {
+  background: rgba(155, 124, 184, 0.5);
+}
+
+/* Static glass card — passive containers (no hover glow). */
+.ff-glass-card {
+  background: var(--ff-bg-card);
+  border: 1px solid rgba(155, 124, 184, 0.3);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-radius: 18px;
+  color: var(--ff-text);
+  transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
+}
+/* Interactive glass — only for <button>/<a> or opt-in .ff-hoverable. */
+.ff-glass-card.ff-hoverable:hover,
+button.ff-glass-card:hover,
+a.ff-glass-card:hover {
+  border-color: var(--ff-spotlight);
+  background: rgba(240, 192, 64, 0.12);
+}
+
+.ff-title-spotlight {
+  color: var(--ff-spotlight);
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  text-shadow: 0 2px 24px rgba(240, 192, 64, 0.15);
+}
+.ff-title-teal {
+  color: var(--ff-teal);
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  text-shadow: 0 2px 24px rgba(76, 216, 204, 0.15);
+}
+.ff-badge-magenta {
+  background: var(--ff-magenta);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.45);
+}
+.ff-badge-spotlight {
+  background: var(--ff-spotlight);
+  color: #1A0F2E;
+  box-shadow: 0 0 20px rgba(240, 192, 64, 0.5);
+}
+.ff-badge-teal {
+  background: var(--ff-teal);
+  color: #1A0F2E;
+}
+.ff-focus-input {
+  background: rgba(26, 15, 46, 0.85);
+  border: 1px solid rgba(155, 124, 184, 0.35);
+  color: var(--ff-text);
+  border-radius: 12px;
+  transition: border-color 180ms ease;
+}
+.ff-focus-input::placeholder { color: rgba(184, 169, 212, 0.45); }
+.ff-focus-input:focus {
+  outline: none;
+  border-color: var(--ff-spotlight);
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.12);
+}
+.ff-cta {
+  background: linear-gradient(135deg, var(--ff-magenta), #9333EA);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(217, 70, 239, 0.35);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.ff-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(217, 70, 239, 0.5); }
+.ff-cta:disabled { opacity: 0.4; transform: none; box-shadow: none; }
+
+.ff-cta-spotlight {
+  background: linear-gradient(135deg, var(--ff-spotlight), #C89234);
+  color: #1A0F2E;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(240, 192, 64, 0.35);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.ff-cta-spotlight:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(240, 192, 64, 0.5); }
+
+/* Practice slide correctness — override the shared green baked into
+   PracticeCardShell with a teal spotlight while inside FriendlyFlix. */
+.theme-friendly-flix button.bg-green-100.border-green-500,
+.theme-friendly-flix button.bg-green-500\/20.border-green-500,
+.theme-friendly-flix div.bg-green-500\/20.border-green-500 {
+  background: var(--ff-teal) !important;
+  color: #1A0F2E !important;
+  border-color: var(--ff-teal) !important;
+  box-shadow: 0 0 22px rgba(76, 216, 204, 0.5) !important;
+}
+.theme-friendly-flix button.bg-red-100.border-red-400,
+.theme-friendly-flix button.bg-red-500\/15.border-red-400 {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #FCA5A5 !important;
+  border-color: #EF4444 !important;
+}

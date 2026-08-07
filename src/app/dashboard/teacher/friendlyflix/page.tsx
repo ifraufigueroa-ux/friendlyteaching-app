@@ -70,12 +70,12 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
   const multi = slides.length > 1;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="theme-friendly-flix fixed inset-0 z-50 flex flex-col">
       {/* Top nav — sticks above the slide content with an explicit z-index */}
-      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-white/10 bg-black/95">
+      <div className="relative z-10 flex items-center justify-between gap-3 px-4 py-2 border-b border-[#9B7CB8]/25 bg-[rgba(26,15,46,0.95)] backdrop-blur">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="text-white/80 text-sm font-semibold truncate">{lesson.title}</div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF6B6B] flex-shrink-0">
+          <div className="text-[#F8F5FC] text-sm font-semibold truncate">{lesson.title}</div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#F0C040] flex-shrink-0">
             {SLIDE_LABEL[slide.type] ?? slide.type}{multi ? ` · ${slideIdx + 1}/${slides.length}` : ''}
           </span>
         </div>
@@ -88,8 +88,8 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
                 disabled={!canPrev}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                   canPrev
-                    ? 'bg-white/8 hover:bg-white/15 text-white/80 border-white/10 cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                    ? 'bg-white/10 hover:bg-white/20 text-[#F8F5FC] border-white/10 cursor-pointer'
+                    : 'bg-white/5 text-white/25 border-white/5 cursor-not-allowed'
                 }`}
                 title="Previous slide"
               >
@@ -100,8 +100,8 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
                 disabled={!canNext}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
                   canNext
-                    ? 'bg-gradient-to-r from-[#E50914] to-[#FF6B6B] hover:opacity-90 text-white border-[#E50914] cursor-pointer'
-                    : 'bg-white/4 text-white/25 border-white/5 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-[#D946EF] to-[#9333EA] hover:opacity-90 text-white border-[#D946EF]/60 cursor-pointer shadow-[0_0_16px_rgba(217,70,239,0.35)]'
+                    : 'bg-white/5 text-white/25 border-white/5 cursor-not-allowed'
                 }`}
                 title="Next slide"
               >
@@ -109,11 +109,11 @@ function PlayModal({ lesson, onClose }: { lesson: MovieLesson; onClose: () => vo
               </button>
             </>
           )}
-          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 hover:!border-white/30" />
+          <FullscreenButton variant="inline" className="!bg-white/10 !border-white/20 !text-[#F8F5FC] hover:!bg-white/20 hover:!border-white/30" />
           <button onClick={onClose} className="ml-2 text-white/60 hover:text-white text-2xl px-2 leading-none" title="Close">×</button>
         </div>
       </div>
-      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto bg-white">
+      <div className="flex-1 min-h-0 relative z-0 overflow-y-auto">
         <SlideRenderer slide={slide} youtubeUrl={lesson.clip?.youtubeUrl} brand="Friendlyflix" />
       </div>
     </div>
