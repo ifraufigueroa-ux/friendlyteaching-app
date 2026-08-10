@@ -232,28 +232,30 @@ function buildPredictionsSlide(title: string, source: string, text: string, leve
 
   const simple = ['A0','A1'].includes(level);
 
+  // Each bullet follows "Label — Question" so PredictionsSlide's parser
+  // renders a punchy title above the question instead of one long line.
+  // Questions stay ≤ ~14 words to keep them speakable.
   const bullet1 = simple
-    ? `Picture "${title}". Who do you see, and where are they?`
-    : `Just from the title "${title}", picture ${sig.sceneHint}. Describe it in your own words — who is there and what has just happened?`;
+    ? `The Scene — Who do you see when you read "${title}"?`
+    : `First Impression — Picture ${sig.sceneHint}. Who is there?`;
 
-  // Bullet 2 — prior experience. When source is our own platform we
-  // pivot to the reader's own life (never ask them about FriendlyTeaching
-  // itself); otherwise we can reference a real external author/outlet.
+  // Bullet 2 — prior experience. Internal sources pivot to the reader's
+  // own life so we never ask them about FriendlyTeaching itself.
   const bullet2 = internal
     ? (simple
-        ? `Tell us about a time you were in a similar situation to "${title}".`
-        : `Tell us about a moment in your own life that a text called "${title}" might describe.`)
+        ? `In Your Life — Have you lived a moment like "${title}"?`
+        : `In Your Life — Tell me about a time this title could describe.`)
     : (simple
-        ? `Do you know "${source}"? Tell us one thing you expect from a text with that source.`
+        ? `The Source — What do you expect from something by ${source}?`
         : sig.isPersonal
-          ? `"${title}" reads personally. Tell us about a text (a book, article, or story) that felt like it was written for you.`
-          : `Tell us about a text by "${source}" — or a similar author/outlet — that stayed with you. What made it stick?`);
+          ? `Made For You — Name a text that felt written for you.`
+          : `Same Author — Anything by ${source} that stayed with you?`);
 
   const bullet3 = simple
-    ? `Do you know a story or text in Spanish with a similar theme to "${title}"? Tell us about it.`
+    ? `In Spanish — Do you know a story with a similar theme?`
     : sig.asksQuestions
-      ? `"${title}" seems to raise questions. Tell us about a question you have carried around for a while — the kind a text like this could answer.`
-      : `Think of a text in Spanish that shares the theme of "${title}" — how would you describe the link to someone who only speaks English?`;
+      ? `Your Question — What question have you carried for a while?`
+      : `In Spanish — A text with this theme: how would you describe it in English?`;
 
   return {
     id: 'predictions',
@@ -1469,19 +1471,21 @@ function buildWrapupSlide(title: string, source: string, text: string, level: Le
 
   const simple = ['A0','A1'].includes(level);
 
+  // Wrap-up bullets follow the "Label — Question" format like predictions,
+  // so PredictionsSlide/WrapupSlide render short labels above short questions.
   const bulletFelt = simple
-    ? `Tell us your favourite line from "${title}" — say it out loud and explain why.`
-    : `Describe the moment in "${title}" that stayed with you — the line, the image, the tone — and why.`;
+    ? `The Line — Your favourite line from "${title}"? Say it out loud.`
+    : `The Moment — Which moment stayed with you? Why?`;
 
   const bulletPrediction = simple
-    ? `Before you read, what did you think "${title}" would be about? Was it that?`
-    : `Compare your prediction from the start with what "${title}" actually turned out to be. Where were you right, and where did it take you somewhere else?`;
+    ? `You Predicted — Was "${title}" what you expected?`
+    : `Prediction vs Reality — Where were you right? Where did it surprise you?`;
 
   const bulletCarry = simple
-    ? `Pick one word from "${title}" you want to use this week. Make one sentence with it now.`
+    ? `Steal It — Pick one word from "${title}" and use it in a sentence.`
     : sig.isPersonal
-      ? `Pick one line from "${title}" that could be about you. Say it out loud and explain the connection.`
-      : `Pick one line from "${title}" you want to remember this week. Say it out loud and tell us why it earned that spot.`;
+      ? `Steal It — Pick one line that could be about you. Explain the link.`
+      : `Steal It — Pick one line you want to remember this week. Why?`;
 
   return {
     id: 'wrapup',

@@ -41,18 +41,23 @@ SLIDE 1 — type: "clip_cover"
 
 SLIDE 2 — type: "clip_predictions"
 { type, title: "Before you watch", phase: "pre",
-  prompt: "One hook question that pushes the student to IMAGINE what happens in the scene BEFORE watching. Never yes/no.",
-  content: "Exactly 3 bullets separated by \\n• — one from EACH category below, in order:
-    1. IMAGINATIVE PREDICTION from title + series — e.g. 'Imagine the moment before this scene starts. Who is in the room and what just happened?'
-    2. PRIOR EXPERIENCE — e.g. 'Tell us about a scene from {Series/Movie} (or a similar show) that made you feel tense.'
-    3. PERSONAL BRIDGE — e.g. 'Describe a moment in your own life when you had to say something difficult to someone.'"
+  prompt: "A short hook (≤ 14 words) inviting the student to imagine the scene before watching. Open with a verb, never yes/no.",
+  content: "Exactly 3 bullets separated by \\n• — each in the format \"Label — Question\". The label is 2-4 words in Title Case; the question is ≤ 12 words:
+    1. THE SETUP — imagine what happens right before the scene starts.
+    2. THE MOOD / A KEY DETAIL — tension? humor? one visual element?
+    3. A PERSONAL BRIDGE — connect the scene's situation to the student's own life.
+  Example bullet lines:
+    • The Setup — What just happened before this scene?
+    • The Mood — Tense, funny, or something quieter?
+    • Been There? — Have you lived a moment like this?"
 }
 HARD RULES for slide 2:
-- Every bullet must OPEN with Imagine / Describe / Tell us / Picture / Why / How / What — never Do you / Is it / Have you.
-- Bullets must be answerable in 2+ sentences of English (production-first).
-- Weave the scene title and/or series name into at least 2 bullets so it never feels generic.
+- Each bullet uses the "Label — Question" format with an em dash. Question ≤ 12 words after the em dash.
+- The label is a punchy 2-4 word tag (Title Case), NOT the question itself.
+- Weave the scene title or series name into at most ONE bullet — brevity wins, not thickness.
 - Adapt vocabulary to the CEFR level.
 - Never reveal what happens in the dialogue — the student has NOT watched yet.
+- Bullets open with a verb (Imagine / Describe / Tell / Pick / What / How / Which). The third label may be a short question like "Been There?".
 
 SLIDE 3 — type: "clip_vocab_match"
 { type, title: "Key vocabulary", phase: "pre",
@@ -99,18 +104,22 @@ HARD RULES for slide 5:
 
 SLIDE 6 — type: "clip_production"
 { type, title: "Over to you", phase: "post",
-  prompt: "One hook question that pulls the student BACK to their own life or opinion after watching the scene. Push production.",
-  content: "Exactly 3 bullets separated by \\n• — one from EACH category below, in order:
-    1. FELT MOMENT in the scene — e.g. 'Describe the exact moment in the scene that made you feel most tense. What was said and how was it said?'
-    2. PREDICTION vs. REALITY — e.g. 'Compare your prediction from before you watched with what actually happened. Where were you right? Where did the scene surprise you?'
-    3. CARRY-FORWARD — one phrase or line from the dialogue to use in the student's own English — e.g. 'Pick one line from the dialogue you want to remember. Say it out loud and explain when you might use it.'"
+  prompt: "A short hook (≤ 14 words) pulling the student back to their own life or opinion after watching.",
+  content: "Exactly 3 bullets separated by \\n• — each in the format \"Label — Question\". The label is 2-4 words in Title Case; the question is ≤ 14 words:
+    1. THE LINE / MOMENT — a specific line, look or moment from the scene that stayed with them.
+    2. IN YOUR LIFE — a personal-experience question that EXPLICITLY invites the student to reuse the grammar structure from slide 4 (append \"Try using {grammar name}.\").
+    3. STEAL IT — a phrase from the dialogue the student wants to use this week.
+  Example bullet lines (if grammar focus in slide 4 is 'Past perfect'):
+    • The Line — Which line stayed with you? Why?
+    • In Your Life — Tell me about a time you felt the same. Try using Past perfect.
+    • Steal It — Pick one phrase from the clip you want to use this week."
 }
 HARD RULES for slide 6:
-- POST-viewing, so the student CAN reference specific lines / characters / moments — use that.
-- No yes/no stems. Open triggers only (Describe / Tell / Compare / Pick / Why / How).
-- One bullet MUST tie back to the predictions from slide 2.
-- One bullet MUST push the student to reuse language from the dialogue in their own speech.
-- Adapt vocabulary of the bullets to the CEFR level, weave the scene title into at least one bullet.
+- Each bullet uses the "Label — Question" format with an em dash. Question ≤ 14 words after the em dash.
+- The middle bullet MUST reference the exact grammar-structure name from slide 4 (e.g. "Try using Past perfect.") — this is the through-line to the class objective.
+- POST-viewing, so the student CAN reference specific lines / characters / moments.
+- No yes/no stems. Open triggers only (Describe / Tell / Pick / Which / Why / How).
+- Adapt vocabulary of the bullets to the CEFR level.
 
 SLIDE 7 — type: "friendlyflix_end"
 { type, title: "¡Lección completada!", phase: "post" }

@@ -216,15 +216,18 @@ function buildCover(title: string, source: string, level: LessonLevel, clipData:
 }
 
 function buildPredictions(title: string, source: string, clipData: ClipData): Slide {
+  // Each bullet uses "Title — Question" so the ClipPredictionsSlide parser
+  // renders a compact label + short question instead of one wall of text.
+  // Prompts are intentionally minimal so the student does the talking.
   return {
     type: 'clip_predictions',
     title: 'Before you watch',
     phase: 'pre',
-    prompt: `Imagine the moment right before this scene from ${source} — what do you think just happened?`,
+    prompt: `A scene from ${source} — what do you think is about to happen?`,
     content: [
-      `• Imagine the room where "${title}" starts. Describe who is there, how they feel, and what just happened before the camera rolls.`,
-      `• Tell us about a scene from ${source} (or a show like it) that made you feel tense or surprised. What made it stick?`,
-      '• Describe a moment in your own life when you had to say something difficult to someone. What was hard about it?',
+      `• The Setup — What just happened right before this scene?`,
+      `• The Mood — Do you expect tension, humor, or something quieter?`,
+      `• Been There? — Have you lived a moment like the one in "${title}"?`,
     ].join('\n'),
     clipData,
   };
@@ -425,16 +428,19 @@ function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
   };
 }
 
-function buildProduction(title: string, clipData: ClipData): Slide {
+function buildProduction(title: string, focus: GrammarFocus, clipData: ClipData): Slide {
+  // Free production must (a) hook back to the class topic, (b) invite a
+  // personal-experience answer, and (c) push the student to actually use
+  // the grammar structure taught earlier. One bullet does each job.
   return {
     type: 'clip_production',
     title: 'Over to you',
     phase: 'post',
-    prompt: `Now that you have watched "${title}", tell us what stayed with you and why.`,
+    prompt: `Now you have seen "${title}" — over to you.`,
     content: [
-      `• Describe the exact moment in "${title}" that hit you hardest — the line, the look, the pause. What was said and how was it said?`,
-      '• Compare your prediction from before you watched with what actually happened. Where were you right? Where did the scene take you somewhere else?',
-      '• Pick ONE line from the dialogue you want to remember. Say it out loud and explain when you might use it in your own English.',
+      `• The Line — Which line from the scene stayed with you? Why?`,
+      `• In Your Life — Tell me about a time you felt the same. Try using ${focus.name}.`,
+      `• Steal It — Pick one phrase from the clip you want to use this week.`,
     ].join('\n'),
     clipData,
   };
@@ -469,7 +475,7 @@ export async function generateClipLessonAlgorithmically(
     buildPredictions(title, source, clipData),
     buildLanguageFocus(dialogue, focus),
     buildControlledPractice(dialogue, focus),
-    buildProduction(title, clipData),
+    buildProduction(title, focus, clipData),
     buildEnd(),
   ];
 }
