@@ -91,6 +91,38 @@ export function useStudentClassHistory(studentId: string, teacherId: string, stu
 }
 
 // ── Write: record a class session ─────────────────────────────────
+//
+// Uses a DETERMINISTIC document id keyed by (teacher, booking, local date,
+// slot) so re-marking the same class the same day overwrites the existing
+// entry instead of creating a duplicate. This closed the bug where
+// classes were counted 2x-3x in billing because the teacher had to remark
+// them after they reappeared in the carousel.
+//
+// The date part uses the teacher's LOCAL calendar day (en-CA "YYYY-MM-DD")
+// because that is what the carousel filter compares against; using UTC
+// here would drift after 21:00 in Chile.
+
+function localDateStr(d: Date): string {
+  return d.toLocaleDateString('en-CA'); // YYYY-MM-DD in local tz
+}
+
+function classHistoryDocId(data: {
+  teacherId: string;
+  bookingId?: string;
+  date: Date;
+  hour: number;
+  minute?: number;
+}): string {
+  const parts = [
+    data.teacherId,
+    data.bookingId || 'nobk',
+    localDateStr(data.date),
+    `${data.hour}-${data.minute ?? 0}`,
+  ];
+  // Firestore doc ids cannot contain `/` and must be under 1500 bytes; our
+  // parts are short + slash-free so a raw join is enough.
+  return parts.join('_');
+}
 
 export async function recordClassSession(data: {
   teacherId: string;
@@ -104,7 +136,8 @@ export async function recordClassSession(data: {
   isRecurring: boolean;
   bookingId?: string;
 }): Promise<string> {
-  const ref = doc(collection(db, 'classHistory'));
+  const id = classHistoryDocId(data);
+  const ref = doc(db, 'classHistory', id);
   await setDoc(ref, {
     teacherId: data.teacherId,
     ...(data.studentId ? { studentId: data.studentId } : {}),
@@ -117,7 +150,8 @@ export async function recordClassSession(data: {
     isRecurring: data.isRecurring,
     bookingId: data.bookingId ?? null,
     createdAt: serverTimestamp(),
-  });
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
   return ref.id;
 }
 

@@ -68,6 +68,10 @@ export default function TeacherDashboardPage() {
   const [historyOpen, setHistoryOpen]     = useState(false);
   const [studentsOpen, setStudentsOpen]   = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
+  // Banner shown when the class-registration write partially fails. Used to
+  // be a silent console.warn — surfacing it prevents the invisible-desync
+  // bug (booking stays 'confirmed' while history says attended).
+  const [recordError, setRecordError] = useState<string | null>(null);
   // Carousel state for "Clases de hoy" card
   // dismissedSlots uses "dow-hour" keys so the same slot never reappears
   // even if Firestore returns a different booking document for the same slot.
@@ -151,11 +155,14 @@ export default function TeacherDashboardPage() {
   }, []);
 
   // Helper: get calendar date for a given dow in the current week
+  // Legacy helper — kept because a few callers still resolve calendar
+  // dates by weekday. handleRecord no longer uses it (see comment there).
   const getClassDate = useCallback((dow: number): Date => {
     const d = new Date(currentWeekStart);
     d.setDate(d.getDate() + (dow - 1)); // weekStart is Monday (dow=1)
     return d;
   }, [currentWeekStart]);
+  void getClassDate;
 
   // Mark a class as attended or absent, dismiss from carousel, optionally open notes
   const handleRecord = useCallback(async (booking: Booking, attended: boolean) => {
@@ -166,50 +173,77 @@ export default function TeacherDashboardPage() {
     const key = `${booking.dayOfWeek}-${booking.hour}-${min}`;
     setRecordingKey(key);
     setCarouselExiting(true);
+    setRecordError(null);
 
     const slotKey = `${booking.dayOfWeek}-${booking.hour}-${min}`;
+    // The carousel only ever surfaces today's classes, so the class date is
+    // literally `now`. Using getClassDate(dow) here caused the "class
+    // reappears" bug when currentWeekStart in the store was pointing at
+    // another week (e.g. the teacher had navigated to the next week and
+    // never came back to today before marking).
+    const classDate = new Date();
+    let bookingFailed = false;
+    let historyFailed: unknown = null;
     try {
-      // completeBooking updates the booking doc — may fail if Firestore rules
-      // aren't deployed yet. Wrap independently so history always gets recorded.
       if (!booking.id.startsWith('local-')) {
         try {
           await completeBooking(booking.id, { attendance: attended ? 'attended' : 'absent' });
         } catch (e) {
-          console.warn('[handleRecord] completeBooking failed (deploy rules?):', e);
+          console.error('[handleRecord] completeBooking failed:', e);
+          bookingFailed = true;
         }
       }
 
       // recordClassSession writes to classHistory — this is the source of truth
       // for the carousel filter and the history drawer.
-      const entryId = await recordClassSession({
-        teacherId: tid,
-        studentId: booking.studentId ?? undefined,
-        studentName: booking.studentName,
-        dayOfWeek: booking.dayOfWeek,
-        hour: booking.hour,
-        minute: booking.minute ?? 0,
-        date: getClassDate(booking.dayOfWeek),
-        attended,
-        isRecurring: booking.isRecurring,
-        bookingId: booking.id,
-      });
-      if (attended) {
-        setPendingNotesEntryId(entryId);
-        setPendingNotesStudentName(booking.studentName);
+      try {
+        const entryId = await recordClassSession({
+          teacherId: tid,
+          studentId: booking.studentId ?? undefined,
+          studentName: booking.studentName,
+          dayOfWeek: booking.dayOfWeek,
+          hour: booking.hour,
+          minute: booking.minute ?? 0,
+          date: classDate,
+          attended,
+          isRecurring: booking.isRecurring,
+          bookingId: booking.id,
+        });
+        if (attended) {
+          setPendingNotesEntryId(entryId);
+          setPendingNotesStudentName(booking.studentName);
+        }
+      } catch (e) {
+        console.error('[handleRecord] recordClassSession failed:', e);
+        historyFailed = e;
+      }
+
+      // Surface the failure state so the teacher notices instead of the
+      // click looking successful while the write silently failed.
+      if (bookingFailed && historyFailed) {
+        setRecordError(`No pudimos registrar la clase de ${booking.studentName}. Revisa tu conexión e intenta de nuevo.`);
+      } else if (historyFailed) {
+        setRecordError(`El registro de historial de la clase de ${booking.studentName} falló. La clase reaparecerá; márcala otra vez.`);
+      } else if (bookingFailed) {
+        setRecordError(`La clase de ${booking.studentName} se registró pero el estado del calendario no se pudo actualizar. Reintenta desde el schedule si notas inconsistencias.`);
       }
     } catch (err) {
       console.error('[handleRecord] error:', err);
+      setRecordError('Ocurrió un error inesperado al registrar la clase. Revisa la consola.');
     } finally {
       setRecordingKey(null);
-      // Dismiss the slot (not just the booking ID) so Firestore re-renders
-      // of the same slot don't make the same class reappear in the carousel.
+      // If both writes failed there's nothing recorded — don't hide the
+      // class from the carousel, otherwise the teacher loses track of it.
+      const both = bookingFailed && historyFailed;
       setTimeout(() => {
-        setDismissedSlots((prev) => { const n = new Set(prev); n.add(slotKey); return n; });
+        if (!both) {
+          setDismissedSlots((prev) => { const n = new Set(prev); n.add(slotKey); return n; });
+        }
         setCarouselIdx((prev) => Math.max(0, prev));
         setCarouselExiting(false);
       }, 280);
     }
-  }, [effectiveUid, getClassDate, recordingKey]);
+  }, [effectiveUid, recordingKey]);
 
   // Reopen a completed booking so it reappears in the carousel for re-marking
   const [reopeningKey, setReopeningKey] = useState<string | null>(null);
@@ -456,6 +490,24 @@ export default function TeacherDashboardPage() {
         subtitle={`Hola, ${firstName} 👋 — ${today.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}`}
       />
       <div className="flex-1 p-6 overflow-auto space-y-6 bg-mesh">
+
+        {/* ── Alert: class registration failure ────────────────── */}
+        {recordError && (
+          <div className="bg-red-50/90 backdrop-blur-sm border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3 shadow-glass">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="font-bold text-red-800 text-sm">Registro con problemas</p>
+              <p className="text-xs text-red-600 leading-relaxed">{recordError}</p>
+            </div>
+            <button
+              onClick={() => setRecordError(null)}
+              className="text-red-500 hover:text-red-700 text-lg font-bold leading-none pt-0.5"
+              aria-label="Cerrar aviso"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {/* ── Alert: pending students ─────────────────────────── */}
         {pendingStudents > 0 && (
