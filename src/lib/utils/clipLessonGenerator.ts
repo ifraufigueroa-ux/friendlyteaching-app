@@ -4,15 +4,15 @@
 // touching an LLM. Uses the Free Dictionary API for pronunciations /
 // definitions, and simple heuristics for grammar focus + practice items.
 //
-// Ordering (7 slides, wrap around teacher-authored dialogue_game + comprehension):
+// Ordering (7 generator slides + 2 teacher-authored inserts):
 //   1. clip_cover
 //   2. clip_vocab_match
 //   3. clip_predictions
-//   [teacher: clip_dialogue_game]
-//   [teacher: clip_comprehension]
+//   [teacher: clip_dialogue_game]   ← video interaction (splice at index 3)
+//   [teacher: clip_comprehension]   ← post-viewing quiz
 //   4. clip_language_focus
 //   5. clip_controlled_practice
-//   6. clip_production
+//   6. clip_production               ← free practice
 //   7. friendlyflix_end
 
 import type {

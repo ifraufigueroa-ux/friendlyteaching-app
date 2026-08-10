@@ -535,15 +535,16 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
         : null;
 
       let slides: Slide[];
+      // Target CLT order:
+      //   cover → vocab_match → predictions → dialogue_game (text/video)
+      //   → comprehension → language_focus → controlled_practice
+      //   → production → friendlyflix_end
+      // The authored dialogue_game + comprehension always slot in RIGHT
+      // AFTER predictions, so pre-viewing (predict + activate vocab)
+      // finishes before the student watches the clip.
       if (generatedDeck.length > 0) {
-        // Fresh deck from the AI/algorithmic generator — slot the authored
-        // dialogue_game + comprehension between vocab_match and language_focus.
-        // The generator emits: [cover, predictions, vocab_match, language_focus,
-        // controlled_practice, production, end] — dialogue_game/comprehension
-        // never come from the generator, so simply splice at the vocab_match
-        // boundary.
-        const vocabIdx = generatedDeck.findIndex(s => s.type === 'clip_vocab_match');
-        const insertAt = vocabIdx >= 0 ? vocabIdx + 1 : Math.min(3, generatedDeck.length);
+        const predIdx  = generatedDeck.findIndex(s => s.type === 'clip_predictions');
+        const insertAt = predIdx >= 0 ? predIdx + 1 : Math.min(3, generatedDeck.length);
         slides = [
           ...generatedDeck.slice(0, insertAt),
           gameSlide,
@@ -558,17 +559,22 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
             : s,
         );
       } else if (editing && initial?.slides && initial.slides.length > 0) {
+        // Update existing slides in place; if game/comprehension were not
+        // there before, insert them right after predictions.
         slides = initial.slides.map(s => {
           if (s.type === 'clip_dialogue_game' || s.type === 'lyrics_game') return gameSlide;
           if (s.type === 'clip_comprehension') return comprehensionSlide ?? s;
           return s;
         });
-        if (!initial.slides.some(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game')) {
-          slides = [gameSlide, ...slides];
-        }
-        if (comprehensionSlide && !initial.slides.some(s => s.type === 'clip_comprehension')) {
-          const gameIdx = slides.findIndex(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game');
-          slides.splice(gameIdx + 1, 0, comprehensionSlide);
+        const hasGame = slides.some(s => s.type === 'clip_dialogue_game' || s.type === 'lyrics_game');
+        const hasComp = slides.some(s => s.type === 'clip_comprehension');
+        if (!hasGame || (comprehensionSlide && !hasComp)) {
+          const predIdx  = slides.findIndex(s => s.type === 'clip_predictions');
+          const insertAt = predIdx >= 0 ? predIdx + 1 : Math.min(3, slides.length);
+          const toInsert: Slide[] = [];
+          if (!hasGame) toInsert.push(gameSlide);
+          if (comprehensionSlide && !hasComp) toInsert.push(comprehensionSlide);
+          slides.splice(insertAt, 0, ...toInsert);
         }
       } else {
         slides = [gameSlide];
