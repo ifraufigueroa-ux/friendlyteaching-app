@@ -202,6 +202,88 @@ function detectFocus(dialogue: string): GrammarFocus {
   };
 }
 
+// ─── Theme detection (Predictions + Production labels) ────────────────
+//
+// Free Production and Predictions bullets carry a short label ("The
+// Warning — …", "The Chemistry — …"). Rather than reuse the same three
+// labels for every clip, we detect a mood from the title + dialogue +
+// source and pick labels handcrafted to fit that flavour. AI2027 becomes
+// "The Warning / Your Prediction / Sound Byte"; a Breaking Bad clip
+// becomes "The Turn / In Your Life / The Line"; a rom-com becomes
+// "The Moment / Your Story / Steal It".
+
+type ClipMood =
+  | 'tech-ai'
+  | 'news'
+  | 'thriller'
+  | 'romantic'
+  | 'comedy'
+  | 'coming-of-age'
+  | 'default';
+
+const CLIP_MOOD_HINTS: Array<{ pattern: RegExp; mood: ClipMood }> = [
+  { pattern: /\b(ai|artificial\s+intelligence|algorithm|robot|automation|silicon|dataset|neural|gpt|llm|machine\s+learning)\b/i, mood: 'tech-ai' },
+  { pattern: /\b(bbc|cnn|reuters|reporter|minister|government|official|police\s+said|breaking\s+news|world\s+service|documentary)\b/i, mood: 'news' },
+  { pattern: /\b(kill|dead|threat|secret|missing|betray|enemy|attack|danger|blood|weapon|revenge|prison|escape|hostage|drug|cartel|detective|suspect)\b/i, mood: 'thriller' },
+  { pattern: /\b(love|kiss|marry|heart|forever|romance|feelings|date|flirt|adore|wedding)\b/i, mood: 'romantic' },
+  { pattern: /\b(laugh|joke|funny|silly|comedy|hilarious|absurd|prank)\b/i, mood: 'comedy' },
+  { pattern: /\b(school|college|first\s+time|graduation|prom|dream|future|grow\s+up|coming\s+of\s+age|kid|teen)\b/i, mood: 'coming-of-age' },
+];
+
+function detectClipMood(title: string, source: string, dialogue: string): ClipMood {
+  // Title + source weigh more than dialogue because a clip's identity
+  // sits in its framing, not the noise of a specific scene's dialogue.
+  const primary   = `${title} ${source}`;
+  const secondary = dialogue.slice(0, 2000);
+  const firstPass  = CLIP_MOOD_HINTS.find(h => h.pattern.test(primary));
+  if (firstPass) return firstPass.mood;
+  const secondPass = CLIP_MOOD_HINTS.find(h => h.pattern.test(secondary));
+  return secondPass?.mood ?? 'default';
+}
+
+interface PredictionLabels { setup: string; mood: string; personal: string }
+interface ProductionLabels { moment: string; personal: string; carry: string }
+
+const PREDICTION_LABELS: Record<ClipMood, PredictionLabels> = {
+  'tech-ai':       { setup: 'The Prediction', mood: 'The Angle',      personal: 'Your Take'      },
+  'news':          { setup: 'The Story',      mood: 'The Angle',      personal: 'Sound Familiar?' },
+  'thriller':      { setup: 'The Setup',      mood: 'The Tension',    personal: 'A Hunch?'       },
+  'romantic':      { setup: 'The Setup',      mood: 'The Chemistry',  personal: 'Ever Felt It?'  },
+  'comedy':        { setup: 'The Setup',      mood: 'The Vibe',       personal: 'Been There?'    },
+  'coming-of-age': { setup: 'The Moment',     mood: 'The Feeling',    personal: 'Remember That?' },
+  'default':       { setup: 'The Setup',      mood: 'The Mood',       personal: 'Been There?'    },
+};
+
+const PRODUCTION_LABELS: Record<ClipMood, ProductionLabels> = {
+  'tech-ai':       { moment: 'The Warning',    personal: 'Your Prediction', carry: 'Sound Byte' },
+  'news':          { moment: 'The Headline',   personal: 'Your Take',       carry: 'Sound Byte' },
+  'thriller':      { moment: 'The Turn',       personal: 'In Your Life',    carry: 'The Line'   },
+  'romantic':      { moment: 'The Moment',     personal: 'Your Story',      carry: 'Steal It'   },
+  'comedy':        { moment: 'The Punchline',  personal: 'Your Story',      carry: 'Steal It'   },
+  'coming-of-age': { moment: 'The Turn',       personal: 'Your Story',      carry: 'Hold Onto It' },
+  'default':       { moment: 'The Line',       personal: 'In Your Life',    carry: 'Steal It'   },
+};
+
+const PREDICTION_HERO_QUESTIONS: Record<ClipMood, string> = {
+  'tech-ai':       'A scene from {source} — what future is it about to show us?',
+  'news':          'A report from {source} — what angle do you think it will take?',
+  'thriller':      'A scene from {source} — what do you think is about to go wrong?',
+  'romantic':      'A scene from {source} — where do you think this is heading?',
+  'comedy':        'A scene from {source} — what is the joke going to be?',
+  'coming-of-age': 'A scene from {source} — what moment do you think we are about to see?',
+  'default':       'A scene from {source} — what do you think is about to happen?',
+};
+
+const PRODUCTION_HERO_QUESTIONS: Record<ClipMood, string> = {
+  'tech-ai':       'You have seen the scenario — over to you.',
+  'news':          'You have watched the report — over to you.',
+  'thriller':      'You have seen how it plays out — over to you.',
+  'romantic':      'You have seen how it unfolds — over to you.',
+  'comedy':        'You have seen the punchline land — over to you.',
+  'coming-of-age': 'You have seen the moment — over to you.',
+  'default':       'Now that you have watched — over to you.',
+};
+
 // ─── Slide builders ─────────────────────────────────────────────
 
 function buildCover(title: string, source: string, level: LessonLevel, clipData: ClipData): Slide {
@@ -215,19 +297,62 @@ function buildCover(title: string, source: string, level: LessonLevel, clipData:
   };
 }
 
-function buildPredictions(title: string, source: string, clipData: ClipData): Slide {
-  // Each bullet uses "Title — Question" so the ClipPredictionsSlide parser
-  // renders a compact label + short question instead of one wall of text.
-  // Prompts are intentionally minimal so the student does the talking.
+function buildPredictions(title: string, source: string, dialogue: string, clipData: ClipData): Slide {
+  const mood   = detectClipMood(title, source, dialogue);
+  const labels = PREDICTION_LABELS[mood];
+  const hero   = PREDICTION_HERO_QUESTIONS[mood].replace('{source}', source);
+
+  const setupQ = mood === 'tech-ai'
+    ? 'What future do you think this scene shows?'
+    : mood === 'news'
+      ? 'What story do you think is about to be told?'
+      : mood === 'thriller'
+        ? 'What is about to go wrong?'
+        : mood === 'romantic'
+          ? 'Who is about to fall for whom?'
+          : mood === 'comedy'
+            ? 'What is the setup for the joke?'
+            : mood === 'coming-of-age'
+              ? 'What moment do you think we are about to see?'
+              : 'What just happened right before this scene?';
+
+  const moodQ = mood === 'tech-ai'
+    ? 'Utopia, dystopia, or somewhere in between?'
+    : mood === 'news'
+      ? 'What angle do you expect: hopeful, alarming, neutral?'
+      : mood === 'thriller'
+        ? 'How tense is this going to get?'
+        : mood === 'romantic'
+          ? 'Sparks, awkwardness, or heartbreak?'
+          : mood === 'comedy'
+            ? 'Physical, awkward, or dry humor?'
+            : mood === 'coming-of-age'
+              ? 'Nostalgic, cringe, or bittersweet?'
+              : 'Do you expect tension, humor, or something quieter?';
+
+  const personalQ = mood === 'tech-ai'
+    ? 'What is your own gut feeling about AI in 10 years?'
+    : mood === 'news'
+      ? 'Have you followed a story like this before?'
+      : mood === 'thriller'
+        ? 'What do you think is really going on here?'
+        : mood === 'romantic'
+          ? 'Have you ever been in a moment like this?'
+          : mood === 'comedy'
+            ? 'What kind of humor makes you laugh out loud?'
+            : mood === 'coming-of-age'
+              ? 'Do you remember your version of this moment?'
+              : `Have you lived a moment like the one in "${title}"?`;
+
   return {
     type: 'clip_predictions',
     title: 'Before you watch',
     phase: 'pre',
-    prompt: `A scene from ${source} — what do you think is about to happen?`,
+    prompt: hero,
     content: [
-      `• The Setup — What just happened right before this scene?`,
-      `• The Mood — Do you expect tension, humor, or something quieter?`,
-      `• Been There? — Have you lived a moment like the one in "${title}"?`,
+      `• ${labels.setup} — ${setupQ}`,
+      `• ${labels.mood} — ${moodQ}`,
+      `• ${labels.personal} — ${personalQ}`,
     ].join('\n'),
     clipData,
   };
@@ -428,19 +553,60 @@ function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
   };
 }
 
-function buildProduction(title: string, focus: GrammarFocus, clipData: ClipData): Slide {
+function buildProduction(title: string, source: string, dialogue: string, focus: GrammarFocus, clipData: ClipData): Slide {
   // Free production must (a) hook back to the class topic, (b) invite a
   // personal-experience answer, and (c) push the student to actually use
-  // the grammar structure taught earlier. One bullet does each job.
+  // the grammar structure taught earlier. Labels adapt to the clip's
+  // detected mood so the same lesson never looks like another.
+  const mood   = detectClipMood(title, source, dialogue);
+  const labels = PRODUCTION_LABELS[mood];
+  const hero   = PRODUCTION_HERO_QUESTIONS[mood];
+
+  const momentQ = mood === 'tech-ai'
+    ? 'Which moment made you most uneasy? Why?'
+    : mood === 'news'
+      ? 'Which detail stood out the most? Why?'
+      : mood === 'thriller'
+        ? 'When did you realise how it was going to end?'
+        : mood === 'romantic'
+          ? 'Which moment made you feel the most? Why?'
+          : mood === 'comedy'
+            ? 'Which line landed hardest for you? Why?'
+            : mood === 'coming-of-age'
+              ? 'Which moment felt closest to you? Why?'
+              : 'Which line stayed with you? Why?';
+
+  const personalQ = mood === 'tech-ai'
+    ? `Predict a way AI could change your life. Try using ${focus.name}.`
+    : mood === 'news'
+      ? `React to the story in your own words. Try using ${focus.name}.`
+      : mood === 'thriller'
+        ? `Tell me about a time you felt trapped or under pressure. Try using ${focus.name}.`
+        : mood === 'romantic'
+          ? `Tell me about a moment you felt the same. Try using ${focus.name}.`
+          : mood === 'comedy'
+            ? `Tell me a similar story from your own life. Try using ${focus.name}.`
+            : mood === 'coming-of-age'
+              ? `Tell me about your version of this moment. Try using ${focus.name}.`
+              : `Tell me about a time you felt the same. Try using ${focus.name}.`;
+
+  const carryQ = mood === 'tech-ai' || mood === 'news'
+    ? 'Pick one phrase from the clip. When could you use it?'
+    : mood === 'comedy'
+      ? 'Pick one line worth stealing. When would you drop it?'
+      : mood === 'coming-of-age'
+        ? 'Pick one line you want to hold on to. Why?'
+        : 'Pick one phrase from the clip you want to use this week.';
+
   return {
     type: 'clip_production',
     title: 'Over to you',
     phase: 'post',
-    prompt: `Now you have seen "${title}" — over to you.`,
+    prompt: hero,
     content: [
-      `• The Line — Which line from the scene stayed with you? Why?`,
-      `• In Your Life — Tell me about a time you felt the same. Try using ${focus.name}.`,
-      `• Steal It — Pick one phrase from the clip you want to use this week.`,
+      `• ${labels.moment} — ${momentQ}`,
+      `• ${labels.personal} — ${personalQ}`,
+      `• ${labels.carry} — ${carryQ}`,
     ].join('\n'),
     clipData,
   };
@@ -472,10 +638,10 @@ export async function generateClipLessonAlgorithmically(
   return [
     buildCover(title, source, level, clipData),
     vocab,
-    buildPredictions(title, source, clipData),
+    buildPredictions(title, source, dialogue, clipData),
     buildLanguageFocus(dialogue, focus),
     buildControlledPractice(dialogue, focus),
-    buildProduction(title, focus, clipData),
+    buildProduction(title, source, dialogue, focus, clipData),
     buildEnd(),
   ];
 }

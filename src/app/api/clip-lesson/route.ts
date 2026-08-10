@@ -54,6 +54,15 @@ SLIDE 2 — type: "clip_predictions"
 HARD RULES for slide 2:
 - Each bullet uses the "Label — Question" format with an em dash. Question ≤ 12 words after the em dash.
 - The label is a punchy 2-4 word tag (Title Case), NOT the question itself.
+- LABELS MUST BE BESPOKE to this specific scene. Do NOT ship the generic
+  triple "The Setup / The Mood / Been There?" — pick tags that reflect
+  the scene's flavour. Examples:
+    · AI / tech piece      → The Prediction / The Angle / Your Take
+    · News / documentary   → The Story / The Angle / Sound Familiar?
+    · Thriller / crime     → The Setup / The Tension / A Hunch?
+    · Romantic scene       → The Setup / The Chemistry / Ever Felt It?
+    · Comedy / sitcom      → The Setup / The Vibe / Been There?
+    · Coming-of-age drama  → The Moment / The Feeling / Remember That?
 - Weave the scene title or series name into at most ONE bullet — brevity wins, not thickness.
 - Adapt vocabulary to the CEFR level.
 - Never reveal what happens in the dialogue — the student has NOT watched yet.
@@ -116,6 +125,15 @@ SLIDE 6 — type: "clip_production"
 }
 HARD RULES for slide 6:
 - Each bullet uses the "Label — Question" format with an em dash. Question ≤ 14 words after the em dash.
+- LABELS MUST BE BESPOKE to this specific scene. Do NOT ship the generic
+  triple "The Line / In Your Life / Steal It" — pick tags that reflect
+  the scene's flavour. Examples:
+    · AI / tech piece      → The Warning / Your Prediction / Sound Byte
+    · News / documentary   → The Headline / Your Take / Sound Byte
+    · Thriller / crime     → The Turn / In Your Life / The Line
+    · Romantic scene       → The Moment / Your Story / Steal It
+    · Comedy / sitcom      → The Punchline / Your Story / Steal It
+    · Coming-of-age drama  → The Turn / Your Story / Hold Onto It
 - The middle bullet MUST reference the exact grammar-structure name from slide 4 (e.g. "Try using Past perfect.") — this is the through-line to the class objective.
 - POST-viewing, so the student CAN reference specific lines / characters / moments.
 - No yes/no stems. Open triggers only (Describe / Tell / Pick / Which / Why / How).

@@ -11,11 +11,11 @@ const { initAdmin, backupLessonDoc } = require('./_lessonBackup');
 
 const LESSON_ID = 'o1MIyhVForfaxeUcPlL0';
 
-const NEW_PROMPT = "Now you have seen the AI2027 scenario — over to you.";
+const NEW_PROMPT = "You have seen the scenario — over to you.";
 const NEW_BULLETS = [
-  "The Moment — Which moment made you most uneasy? Why?",
-  "In Your Life — Predict a moment where AI could change your life. Try using will / present continuous for prediction.",
-  "Steal It — Pick one line ('blissfully unaware' or 'breakneck pace'). When could you use it?",
+  "The Warning — Which moment made you most uneasy? Why?",
+  "Your Prediction — Predict a way AI could change your life. Try using will / present continuous for prediction.",
+  "Sound Byte — Pick one line ('blissfully unaware' or 'breakneck pace'). When could you use it?",
 ];
 
 initAdmin();
