@@ -486,17 +486,29 @@ function buildComprehensionSlide(dialogue: string): Slide {
   const anchorAt = (frac: number) =>
     usable[Math.max(0, Math.min(usable.length - 1, Math.floor(usable.length * frac)))] ?? usable[0];
 
-  const q1Line = anchorAt(0.15);
-  const q2Line = anchorAt(0.50);
-  const q3Line = anchorAt(0.85);
-  const used = new Set([q1Line, q2Line, q3Line]);
+  // 6 anchor lines spread evenly through the scene so the quiz walks the
+  // student across opening → middle → close instead of clustering.
+  const positions = [0.10, 0.25, 0.40, 0.55, 0.72, 0.88];
+  const anchors: string[] = [];
+  for (const p of positions) {
+    const line = anchorAt(p);
+    if (!anchors.includes(line)) anchors.push(line);
+  }
+  const used = new Set(anchors);
   const pool = shuffle(usable.filter(l => !used.has(l)));
 
-  const questions: QuizQuestion[] = [
-    makeQuestion('Which line opens the scene?',           q1Line, pool.slice(0, 3)),
-    makeQuestion('Which line lands in the middle?',       q2Line, pool.slice(3, 6)),
-    makeQuestion('Which line brings the scene to a close?', q3Line, pool.slice(6, 9)),
-  ].filter(q => q.options.length >= 2);
+  const prompts = [
+    'Which line opens the scene?',
+    'Which line comes just after the opening?',
+    'Which line lands mid-scene?',
+    'Which line hits the turning point?',
+    'Which line comes near the end?',
+    'Which line brings the scene to a close?',
+  ];
+  const questions: QuizQuestion[] = anchors.map((line, i) => {
+    const distractors = pool.slice(i * 3, i * 3 + 3);
+    return makeQuestion(prompts[i] ?? `Which line appears in the scene?`, line, distractors);
+  }).filter(q => q.options.length >= 2);
 
   return {
     type: 'clip_comprehension',
@@ -604,9 +616,12 @@ function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
     const target = (idx >= 0 ? words[idx] : words[Math.floor(words.length / 2)])
       .replace(/[.!?,]$/, '');
     const base = target.replace(/(ed|ing|s)$/i, '');
+    // Show the base in parentheses inside the blank so the student sees
+    // WHICH verb to conjugate — matches the "complete the blank
+    // conjugating the verb given" style teachers expect.
     return {
       type: 'verb_form',
-      prompt: l.replace(target, '_____'),
+      prompt: l.replace(target, `_____ (${base})`),
       answer: target,
       options: shuffle([target, base, base + 'ed', base + 'ing']).slice(0, 4),
       grammarTopic: focus.name,
@@ -633,14 +648,18 @@ function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
   }
 
   // Eight items in CLT ladder order: recognition → controlled → productive.
+  // Distribution covers the six formats the teacher named — multiple
+  // choice (=multiple_selection), unscramble, conjugate-the-blank
+  // (=verb_form), match halves, error correction, plus an open-ended
+  // bridge to production.
   const items: PracticeItem[] = [
-    unscrambleFrom(line(0)),
-    matchHalvesFrom(line(1)),
+    buildMultipleSelectionItem(line(0), pool.filter(x => x !== line(0)), focus),
+    unscrambleFrom(line(1)),
     verbFormFrom(line(2)),
-    unscrambleFrom(line(3)),
-    matchHalvesFrom(line(4)),
-    errorCorrectionFrom(line(5)),
-    buildMultipleSelectionItem(line(6), pool.filter(x => x !== line(6)), focus),
+    matchHalvesFrom(line(3)),
+    unscrambleFrom(line(4)),
+    verbFormFrom(line(5)),
+    errorCorrectionFrom(line(6)),
     buildOpenEndedItem(focus),
   ];
 

@@ -93,12 +93,17 @@ SLIDE 4 — type: "clip_comprehension"
   ]
 }
 HARD RULES for slide 4:
-- EXACTLY 4 questions, in the chronological order they map to the dialogue (opening → middle → turning point → close).
-- Each question checks a DIFFERENT layer: 1 literal detail, 1 inference / motive, 1 vocabulary-in-context, 1 gist / theme.
+- EXACTLY 6 questions, in the chronological order they map to the dialogue (opening → early → mid → turn → late → close).
+- Cover DIFFERENT layers across the 6 questions:
+    · 2× literal detail    ("What did X say?", "Where does the scene take place?")
+    · 1× vocabulary-in-context (test one of the vocab_match words in the scene)
+    · 1× inference / motive ("Why did X say Y?", "How does X feel here?")
+    · 1× gist / main idea   ("What is this scene mainly about?")
+    · 1× tone / register    ("What is the mood of the closing beat?")
 - Each question has 4 options and exactly one correct answer.
 - Correct answers must be lines (or short paraphrases) that the student could actually confirm by re-watching the scene. Distractors must be plausible but clearly wrong on rewatch.
 - No trick questions. No "all of the above". No yes/no.
-- Adapt vocabulary and inference difficulty to the CEFR level (A2 → literal only, B1 → 1 inference, B2 → 2 inferences, C1 → focus on tone / register).
+- Adapt vocabulary and inference difficulty to the CEFR level (A2 → 4 literal + 1 vocab + 1 gist, B1 → drop 1 literal for 1 inference, B2 → keep the full spread, C1 → replace 1 literal with an extra tone/register).
 
 SLIDE 5 — type: "clip_language_focus"
 { type, title: "Language focus: {structure name}", phase: "while",
@@ -116,17 +121,21 @@ SLIDE 6 — type: "clip_controlled_practice"
   practiceItems: [ … EXACTLY 8 items … ]
 }
 HARD RULES for slide 6:
-- EXACTLY 8 items covering the 6 formats — recommended distribution:
-    2× unscramble, 2× match_halves, 1× verb_form, 1× error_correction,
-    1× multiple_selection, 1× open_ended.
-- Order the items so the ladder climbs from recognition → controlled → productive: put unscramble / match_halves first, then verb_form / error_correction / multiple_selection, and finish with open_ended.
+- EXACTLY 8 items covering the 6 formats — distribution:
+    1× multiple_selection (multiple choice)
+    2× unscramble
+    2× verb_form (conjugate the blank)
+    1× match_halves
+    1× error_correction
+    1× open_ended
+- Order the items so the ladder climbs from recognition → controlled → productive: start with multiple_selection, alternate unscramble / verb_form / match_halves in the middle, then error_correction, and finish with open_ended.
 - Every item drills the SAME grammar structure as slide 5.
 - Item content must be tied to the dialogue's scene / setting when possible — use the same characters, place, action.
-- unscramble: prompt = correct sentence split by " / " (space-slash-space). Do NOT change casing or punctuation. answer = the full sentence.
-- match_halves: prompt = first half; answer = correct second half. options MUST contain 4 second-halves — the correct one plus 3 plausible wrong-second-halves from different sentence stems.
-- verb_form: prompt is a sentence with a "_____" blank. options are 4 verb forms (correct + 3 distractors that are plausible wrong tenses/forms of the same verb). answer = the correct form.
-- error_correction: wrongText contains the sentence WITH the error; answer is the corrected version. prompt = "Correct the mistake:".
 - multiple_selection: prompt = "Which of these lines uses {focus} correctly?" options = 4 lines (1 correct pattern line + 3 with a subtle grammar mistake). answer = the correct line.
+- unscramble: prompt = correct sentence split by " / " (space-slash-space). Do NOT change casing or punctuation. answer = the full sentence.
+- verb_form: prompt is a sentence with a blank showing the base verb in parentheses so the student knows WHICH verb to conjugate. Example: "She _____ (leave) the office at eight." options are 4 conjugated forms (correct + 3 plausible wrong tenses/forms of the SAME verb). answer = the correct form. NEVER show a bare "_____" without the base verb hint.
+- match_halves: prompt = first half; answer = correct second half. options MUST contain 4 second-halves — the correct one plus 3 plausible wrong-second-halves from different sentence stems.
+- error_correction: wrongText contains the sentence WITH the error; answer is the corrected version. prompt = "Correct the mistake:".
 - open_ended: prompt = "Complete the sentence in your own words using {focus}." stem = 3–6-word sentence beginning that naturally forces the target structure (e.g. "Yesterday I …", "If I were you, I would …"). answer = "" (no auto-check). No options.
 - Adapt sentence length to the CEFR level (A2 → 6-8 words, B1 → 8-11 words, B2+ → 10-14 words).
 
