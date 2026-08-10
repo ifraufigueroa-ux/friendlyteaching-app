@@ -539,17 +539,20 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
       //   cover → vocab_match → predictions → dialogue_game (text/video)
       //   → comprehension → language_focus → controlled_practice
       //   → production → friendlyflix_end
-      // The authored dialogue_game + comprehension always slot in RIGHT
-      // AFTER predictions, so pre-viewing (predict + activate vocab)
-      // finishes before the student watches the clip.
+      // The generator ships a default comprehension slide; if the
+      // teacher wrote custom questions in this session we override that
+      // default with theirs. dialogue_game is always teacher-authored
+      // and always slots right after predictions.
       if (generatedDeck.length > 0) {
-        const predIdx  = generatedDeck.findIndex(s => s.type === 'clip_predictions');
-        const insertAt = predIdx >= 0 ? predIdx + 1 : Math.min(3, generatedDeck.length);
+        const withComp = comprehensionSlide
+          ? generatedDeck.map(s => (s.type === 'clip_comprehension' ? comprehensionSlide : s))
+          : generatedDeck;
+        const predIdx  = withComp.findIndex(s => s.type === 'clip_predictions');
+        const insertAt = predIdx >= 0 ? predIdx + 1 : Math.min(3, withComp.length);
         slides = [
-          ...generatedDeck.slice(0, insertAt),
+          ...withComp.slice(0, insertAt),
           gameSlide,
-          ...(comprehensionSlide ? [comprehensionSlide] : []),
-          ...generatedDeck.slice(insertAt),
+          ...withComp.slice(insertAt),
         ];
         // Ensure clipData is on every slide that needs it (in case the AI or
         // algorithm skipped some — the cover/predictions/production want it).

@@ -1,19 +1,21 @@
 // FriendlyTeaching.cl — Friendlyflix® CLT Clip Deck Generator
 //
-// Generates the 7 surrounding slides that wrap a teacher-authored
-// clip_dialogue_game + clip_comprehension pair. The two authored slides
-// are NEVER touched here — the editor merges them back at their canonical
-// positions (4 and 5) after calling this endpoint.
+// Generates the 8 surrounding slides that wrap a teacher-authored
+// clip_dialogue_game. The dialogue_game is teacher-authored and never
+// touched here — the editor splices it in right after predictions.
+// The comprehension slide is now generated too (default questions from
+// the dialogue); the editor overrides it with the teacher's own if the
+// teacher wrote custom questions.
 //
 // Two modes:
 //   · POST { mode: 'ai' }          → Claude Sonnet, structured prompt below.
 //   · POST { mode: 'algorithmic' } → local generator, no external API needed.
 //
 // Response: { slides: Slide[], source: 'ai' | 'algorithmic' }
-//   slides ordered: [cover, predictions, vocab_match,
+//   slides ordered: [cover, vocab_match, predictions, comprehension,
 //                    language_focus, controlled_practice, production, end]
-//   The editor slots authored dialogue_game+comprehension between positions
-//   2 and 3 of this array (i.e. between vocab_match and language_focus).
+//   The editor slots the authored dialogue_game between predictions and
+//   comprehension.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateClipLessonAlgorithmically } from '@/lib/utils/clipLessonGenerator';
@@ -31,7 +33,7 @@ export interface ClipLessonRequest {
   mode:     'ai' | 'algorithmic';
 }
 
-const SYSTEM_PROMPT = `You are an expert English teacher creating Friendlyflix® CLT lessons around a short clip from a series or film. Generate EXACTLY 7 slides in this order, wrapping around a teacher-authored dialogue-fill game and a comprehension quiz that the runtime will slot in between positions 3 and 4. Do NOT emit those two — only the 7 surrounding slides.
+const SYSTEM_PROMPT = `You are an expert English teacher creating Friendlyflix® CLT lessons around a short clip from a series or film. Generate EXACTLY 8 slides in this order, wrapping around a teacher-authored dialogue-fill game that the runtime will slot in right after Predictions. Do NOT emit that dialogue_game — only the 8 slides listed here.
 
 SLIDE 1 — type: "clip_cover"
 { type, title: "{SceneTitle}", subtitle: "{Series/Movie}", content: "{LEVEL}", phase: "pre" }
@@ -39,7 +41,20 @@ SLIDE 1 — type: "clip_cover"
 - subtitle is the series or movie name.
 - content is the CEFR level string (A1/A2/B1/…) — used as a small badge in the cover.
 
-SLIDE 2 — type: "clip_predictions"
+SLIDE 2 — type: "clip_vocab_match"
+{ type, title: "Key vocabulary", phase: "pre",
+  words: [ { word, translation: "English definition (6-14 words, NOT Spanish)", pronunciation: "/ˈIPA/", example: "the actual line from the dialogue that contains this word" } ]
+}
+HARD RULES for slide 2:
+- Word count by CEFR: A0/A1 → 5, A2 → 6, B1 → 6-7, B1+/B2 → 7-8, C1 → 8.
+- Pick GATEKEEPER words — the ones the student will miss the meaning of the scene without. Not the "hardest" words, the load-bearing ones.
+- Content words only: nouns, verbs, adjectives, adverbs, common phrasal verbs. Skip pronouns, articles, prepositions.
+- Skip words most students already know at the target level.
+- translation: student-facing English definition, 6-14 words, plain language. Never Spanish. No dictionary jargon.
+- pronunciation: IPA phonemic form. If unsure, omit rather than invent.
+- example: the ACTUAL line from the DIALOGUE where the word appears, COPIED VERBATIM (no paraphrase).
+
+SLIDE 3 — type: "clip_predictions"
 { type, title: "Before you watch", phase: "pre",
   prompt: "A short hook (≤ 14 words) inviting the student to imagine the scene before watching. Open with a verb, never yes/no.",
   content: "Exactly 3 bullets separated by \\n• — each in the format \"Label — Question\". The label is 2-4 words in Title Case; the question is ≤ 12 words:
@@ -51,7 +66,7 @@ SLIDE 2 — type: "clip_predictions"
     • The Mood — Tense, funny, or something quieter?
     • Been There? — Have you lived a moment like this?"
 }
-HARD RULES for slide 2:
+HARD RULES for slide 3:
 - Each bullet uses the "Label — Question" format with an em dash. Question ≤ 12 words after the em dash.
 - The label is a punchy 2-4 word tag (Title Case), NOT the question itself.
 - LABELS MUST BE BESPOKE to this specific scene. Do NOT ship the generic
@@ -68,50 +83,54 @@ HARD RULES for slide 2:
 - Never reveal what happens in the dialogue — the student has NOT watched yet.
 - Bullets open with a verb (Imagine / Describe / Tell / Pick / What / How / Which). The third label may be a short question like "Been There?".
 
-SLIDE 3 — type: "clip_vocab_match"
-{ type, title: "Key vocabulary", phase: "pre",
-  words: [ { word, translation: "English definition (6-14 words, NOT Spanish)", pronunciation: "/ˈIPA/", example: "the actual line from the dialogue that contains this word" } ]
+SLIDE 4 — type: "clip_comprehension"
+{ type, title: "Comprehension", phase: "while",
+  questions: [
+    { question: "Text of the question — asks WHAT was said, WHY someone said it, or WHAT it meant.",
+      options: [ { id: "c0", text: "line or short paraphrase from the dialogue (or a plausible distractor)", isCorrect: false }, ... 4 total ... ],
+      correctAnswer: "the text field of the correct option, copied verbatim"
+    }
+  ]
 }
-HARD RULES for slide 3:
-- Word count by CEFR: A0/A1 → 5, A2 → 6, B1 → 6-7, B1+/B2 → 7-8, C1 → 8.
-- Pick GATEKEEPER words — the ones the student will miss the meaning of the scene without. Not the "hardest" words, the load-bearing ones.
-- Content words only: nouns, verbs, adjectives, adverbs, common phrasal verbs. Skip pronouns, articles, prepositions.
-- Skip words most students already know at the target level (see CEFR ladders you would use for song lessons).
-- translation: student-facing English definition, 6-14 words, plain language. Never Spanish. No dictionary jargon.
-- pronunciation: IPA phonemic form. If unsure, omit rather than invent.
-- example: the ACTUAL line from the DIALOGUE where the word appears, COPIED VERBATIM (no paraphrase). If the word appears in multiple lines, pick the most dramatic one.
+HARD RULES for slide 4:
+- EXACTLY 4 questions, in the chronological order they map to the dialogue (opening → middle → turning point → close).
+- Each question checks a DIFFERENT layer: 1 literal detail, 1 inference / motive, 1 vocabulary-in-context, 1 gist / theme.
+- Each question has 4 options and exactly one correct answer.
+- Correct answers must be lines (or short paraphrases) that the student could actually confirm by re-watching the scene. Distractors must be plausible but clearly wrong on rewatch.
+- No trick questions. No "all of the above". No yes/no.
+- Adapt vocabulary and inference difficulty to the CEFR level (A2 → literal only, B1 → 1 inference, B2 → 2 inferences, C1 → focus on tone / register).
 
-SLIDE 4 — type: "clip_language_focus"
+SLIDE 5 — type: "clip_language_focus"
 { type, title: "Language focus: {structure name}", phase: "while",
   content: "intro paragraph explaining the structure in 2 short sentences\\n• bullet with mini-rule 1\\n• bullet with mini-rule 2\\n• bullet with mini-rule 3\\noutro one-line takeaway that ties the structure back to the scene",
   words: [ { word: "the target chunk (e.g. 'was going to')", translation: "when to use it — 6-12 words", example: "the actual dialogue line where it appears, verbatim" } ]
 }
-HARD RULES for slide 4:
+HARD RULES for slide 5:
 - Pick ONE grammar structure or lexical chunk that appears clearly in the dialogue: verb tense (past simple vs past continuous), a modal, a phrasal verb pattern, reported speech, conditionals, chunks like "have to / used to / going to". Do not invent a structure that isn't in the dialogue.
 - 3 bullets in the content, each starting with • and covering a distinct mini-rule (form / meaning / use).
 - words array has 2-4 examples pulled VERBATIM from the dialogue.
 - Adapt the structure difficulty to the CEFR level (A2 → past simple, B1 → present perfect vs past simple, B1+/B2 → conditionals, C1 → subjunctive/inversion).
 
-SLIDE 5 — type: "clip_controlled_practice"
+SLIDE 6 — type: "clip_controlled_practice"
 { type, title: "Controlled practice", subtitle: "{grammar focus name}", phase: "post",
-  practiceItems: [
-    { type: "unscramble", prompt: "words / separated / by / slashes", answer: "The whole sentence in correct order.", grammarTopic: "{focus}", contextLine: "line from dialogue this drills" },
-    { type: "match_halves", prompt: "First half of sentence", answer: "second half", options: ["second half (correct)", "distractor 1", "distractor 2", "distractor 3"], grammarTopic: "{focus}" },
-    { type: "verb_form", prompt: "Sentence with (verb) blank.", answer: "correct verb form", options: ["correct form", "distractor 1", "distractor 2", "distractor 3"], grammarTopic: "{focus}" },
-    { type: "error_correction", prompt: "Correct the mistake.", wrongText: "Sentence with a wrong tense/agreement/word form.", answer: "The corrected sentence.", grammarTopic: "{focus}" }
-  ]
+  practiceItems: [ … EXACTLY 8 items … ]
 }
-HARD RULES for slide 5:
-- EXACTLY 4 items — one of each type: unscramble, match_halves, verb_form, error_correction.
-- Every item drills the SAME grammar structure as slide 4.
+HARD RULES for slide 6:
+- EXACTLY 8 items covering the 6 formats — recommended distribution:
+    2× unscramble, 2× match_halves, 1× verb_form, 1× error_correction,
+    1× multiple_selection, 1× open_ended.
+- Order the items so the ladder climbs from recognition → controlled → productive: put unscramble / match_halves first, then verb_form / error_correction / multiple_selection, and finish with open_ended.
+- Every item drills the SAME grammar structure as slide 5.
 - Item content must be tied to the dialogue's scene / setting when possible — use the same characters, place, action.
-- unscramble: split the correct sentence by " / " (space-slash-space). Do NOT change casing or punctuation.
-- match_halves: split the sentence at (or near) the halfway word. options MUST contain 4 second-halves — the correct one plus 3 plausible wrong-second-halves from different sentence stems.
-- verb_form: options are 4 verb forms (correct + 3 distractors that are plausible wrong tenses/forms of the same verb).
-- error_correction: wrongText contains the sentence WITH the error; answer is the corrected version.
+- unscramble: prompt = correct sentence split by " / " (space-slash-space). Do NOT change casing or punctuation. answer = the full sentence.
+- match_halves: prompt = first half; answer = correct second half. options MUST contain 4 second-halves — the correct one plus 3 plausible wrong-second-halves from different sentence stems.
+- verb_form: prompt is a sentence with a "_____" blank. options are 4 verb forms (correct + 3 distractors that are plausible wrong tenses/forms of the same verb). answer = the correct form.
+- error_correction: wrongText contains the sentence WITH the error; answer is the corrected version. prompt = "Correct the mistake:".
+- multiple_selection: prompt = "Which of these lines uses {focus} correctly?" options = 4 lines (1 correct pattern line + 3 with a subtle grammar mistake). answer = the correct line.
+- open_ended: prompt = "Complete the sentence in your own words using {focus}." stem = 3–6-word sentence beginning that naturally forces the target structure (e.g. "Yesterday I …", "If I were you, I would …"). answer = "" (no auto-check). No options.
 - Adapt sentence length to the CEFR level (A2 → 6-8 words, B1 → 8-11 words, B2+ → 10-14 words).
 
-SLIDE 6 — type: "clip_production"
+SLIDE 7 — type: "clip_production"
 { type, title: "Over to you", phase: "post",
   prompt: "A short hook (≤ 14 words) pulling the student back to their own life or opinion after watching.",
   content: "Exactly 3 bullets separated by \\n• — each in the format \"Label — Question\". The label is 2-4 words in Title Case; the question is ≤ 14 words:
@@ -123,7 +142,7 @@ SLIDE 6 — type: "clip_production"
     • In Your Life — Tell me about a time you felt the same. Try using Past perfect.
     • Steal It — Pick one phrase from the clip you want to use this week."
 }
-HARD RULES for slide 6:
+HARD RULES for slide 7:
 - Each bullet uses the "Label — Question" format with an em dash. Question ≤ 14 words after the em dash.
 - LABELS MUST BE BESPOKE to this specific scene. Do NOT ship the generic
   triple "The Line / In Your Life / Steal It" — pick tags that reflect
@@ -134,19 +153,19 @@ HARD RULES for slide 6:
     · Romantic scene       → The Moment / Your Story / Steal It
     · Comedy / sitcom      → The Punchline / Your Story / Steal It
     · Coming-of-age drama  → The Turn / Your Story / Hold Onto It
-- The middle bullet MUST reference the exact grammar-structure name from slide 4 (e.g. "Try using Past perfect.") — this is the through-line to the class objective.
+- The middle bullet MUST reference the exact grammar-structure name from slide 5 (e.g. "Try using Past perfect.") — this is the through-line to the class objective.
 - POST-viewing, so the student CAN reference specific lines / characters / moments.
 - No yes/no stems. Open triggers only (Describe / Tell / Pick / Which / Why / How).
 - Adapt vocabulary of the bullets to the CEFR level.
 
-SLIDE 7 — type: "friendlyflix_end"
+SLIDE 8 — type: "friendlyflix_end"
 { type, title: "¡Lección completada!", phase: "post" }
 
 GLOBAL RULES:
 - Adapt vocabulary complexity to the CEFR level throughout.
 - Every "example" and "contextLine" you cite MUST appear character-for-character in the dialogue you were given. NEVER invent lines.
 - Return ONLY valid JSON: { "slides": [...] } — no markdown fences, no explanation.
-- Exactly 7 slides, in the order listed above.`;
+- Exactly 8 slides, in the order listed above.`;
 
 async function generateWithAI(
   title: string,
@@ -156,7 +175,7 @@ async function generateWithAI(
 ): Promise<Slide[] | null> {
   if (!ANTHROPIC_API_KEY) return null;
 
-  const userPrompt = `Scene: "${title}" from ${source}\nLevel: ${level}\n\nDialogue (verbatim, one line per row — {{blank}} markers stripped for you):\n${dialogue.slice(0, 3000)}\n\nGenerate the 7-slide CLT deck JSON now (cover, predictions, vocab_match, language_focus, controlled_practice, production, end). Do NOT emit the dialogue_game or comprehension slides — those come from the teacher.`;
+  const userPrompt = `Scene: "${title}" from ${source}\nLevel: ${level}\n\nDialogue (verbatim, one line per row — {{blank}} markers stripped for you):\n${dialogue.slice(0, 3000)}\n\nGenerate the 8-slide CLT deck JSON now (cover, vocab_match, predictions, comprehension, language_focus, controlled_practice, production, end). Do NOT emit the clip_dialogue_game — that comes from the teacher.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {

@@ -4,19 +4,19 @@
 // touching an LLM. Uses the Free Dictionary API for pronunciations /
 // definitions, and simple heuristics for grammar focus + practice items.
 //
-// Ordering (7 generator slides + 2 teacher-authored inserts):
+// Ordering (8 generator slides + 1 teacher-authored insert):
 //   1. clip_cover
 //   2. clip_vocab_match
 //   3. clip_predictions
 //   [teacher: clip_dialogue_game]   ← video interaction (splice at index 3)
-//   [teacher: clip_comprehension]   ← post-viewing quiz
-//   4. clip_language_focus
-//   5. clip_controlled_practice
-//   6. clip_production               ← free practice
-//   7. friendlyflix_end
+//   4. clip_comprehension            ← default from generator; teacher can override
+//   5. clip_language_focus
+//   6. clip_controlled_practice      ← 8 varied items across 6 formats
+//   7. clip_production               ← free practice
+//   8. friendlyflix_end
 
 import type {
-  Slide, LessonLevel, VocabWord, PracticeItem, ClipData,
+  Slide, LessonLevel, VocabWord, PracticeItem, ClipData, QuizQuestion,
 } from '@/types/firebase';
 
 // ─── Stopwords / helpers ────────────────────────────────────────
@@ -449,99 +449,199 @@ function buildLanguageFocus(dialogue: string, focus: GrammarFocus): Slide {
   };
 }
 
+// ─── Comprehension (post-viewing quiz) ────────────────────────────────
+//
+// The teacher can override these questions in the editor. When they
+// leave the comprehension form empty we still ship a default deck so
+// every clip lesson has a real "what did you catch?" check.
+
+function buildComprehensionSlide(dialogue: string): Slide {
+  const rawLines = dialogue.split('\n').map(l => l.trim()).filter(Boolean);
+  // Prefer speakable, sentence-length lines. Skip 1-word interjections
+  // and paragraph-long monologues.
+  const lines = rawLines.filter(l => {
+    const wc = l.split(/\s+/).length;
+    return wc >= 4 && wc <= 22;
+  });
+  const usable = lines.length >= 4 ? lines : rawLines;
+  if (usable.length < 2) {
+    // Fallback: cannot build meaningful comprehension without content.
+    return {
+      type: 'clip_comprehension',
+      title: 'Comprehension',
+      phase: 'while',
+      questions: [],
+    };
+  }
+
+  function makeQuestion(qText: string, correctLine: string, distractors: string[]): QuizQuestion {
+    const opts = shuffle([correctLine, ...distractors.slice(0, 3)]).map((t, i) => ({
+      id: `c${i}`,
+      text: t,
+      isCorrect: t === correctLine,
+    }));
+    return { question: qText, options: opts, correctAnswer: correctLine };
+  }
+
+  const anchorAt = (frac: number) =>
+    usable[Math.max(0, Math.min(usable.length - 1, Math.floor(usable.length * frac)))] ?? usable[0];
+
+  const q1Line = anchorAt(0.15);
+  const q2Line = anchorAt(0.50);
+  const q3Line = anchorAt(0.85);
+  const used = new Set([q1Line, q2Line, q3Line]);
+  const pool = shuffle(usable.filter(l => !used.has(l)));
+
+  const questions: QuizQuestion[] = [
+    makeQuestion('Which line opens the scene?',           q1Line, pool.slice(0, 3)),
+    makeQuestion('Which line lands in the middle?',       q2Line, pool.slice(3, 6)),
+    makeQuestion('Which line brings the scene to a close?', q3Line, pool.slice(6, 9)),
+  ].filter(q => q.options.length >= 2);
+
+  return {
+    type: 'clip_comprehension',
+    title: 'Comprehension',
+    phase: 'while',
+    questions,
+  };
+}
+
+// ─── Controlled practice — 8 varied items ─────────────────────────────
+
+function buildMultipleSelectionItem(candidate: string, others: string[], focus: GrammarFocus): PracticeItem {
+  const distractors = shuffle(others).slice(0, 3);
+  const opts = shuffle([candidate, ...distractors]);
+  return {
+    type: 'multiple_selection',
+    prompt: `Which of these lines uses ${focus.name} correctly?`,
+    answer: candidate,
+    options: opts,
+    grammarTopic: focus.name,
+    contextLine: candidate,
+  };
+}
+
+function buildOpenEndedItem(focus: GrammarFocus): PracticeItem {
+  // Stem is picked so the natural completion drills the focus structure.
+  const stemByShort: Record<string, string> = {
+    'modals':          'If I had more time, I might ',
+    'past-simple':     'Yesterday I ',
+    'past-continuous': 'While I was walking home, ',
+    'present-perfect': 'I have ',
+    'reported-speech': 'She said she ',
+    'first-conditional':  'If it rains tomorrow, ',
+    'second-conditional': 'If I were you, I would ',
+    'future-forms':    'Next week I ',
+  };
+  const stem = stemByShort[focus.short] ?? 'Write your own sentence using this pattern: ';
+  return {
+    type: 'open_ended',
+    prompt: `Complete the sentence in your own words using ${focus.name}.`,
+    answer: '',
+    stem,
+    grammarTopic: focus.name,
+  };
+}
+
 function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
   const lines = dialogue.split('\n').map(l => l.trim()).filter(Boolean);
   const shortLines = lines.filter(l => {
     const wc = l.split(/\s+/).length;
-    return wc >= 5 && wc <= 12;
+    return wc >= 5 && wc <= 14;
   });
-  const anchors = shortLines.length >= 4 ? shortLines : lines;
+  const anchors = shortLines.length >= 6 ? shortLines : lines;
   const pool = shuffle(anchors);
 
-  const unscrambleLine = pool[0] ?? 'She said she would call.';
-  const matchLine      = pool[1] ?? 'They were watching the game.';
-  const verbFormLine   = pool[2] ?? 'He has just left the office.';
-  const errorLine      = pool[3] ?? 'I have seen her yesterday.';
+  // Reserve safety fallbacks so short dialogues never leave an item empty.
+  const safety = [
+    'She said she would call.',
+    'They were watching the game.',
+    'He has just left the office.',
+    'I have seen her yesterday.',
+    'We could meet next Friday.',
+    'The kids were playing in the yard.',
+    'Nobody knew what to say.',
+    'I might come back later.',
+  ];
+  const line = (i: number) => pool[i] ?? safety[i % safety.length];
 
-  // ── unscramble ─────────────────────────────────────────────────
-  const unscrambleWords = unscrambleLine.replace(/[.!?,]$/, '').split(/\s+/);
-  const scrambledPrompt = shuffle(unscrambleWords).join(' / ');
-
-  // ── match_halves ───────────────────────────────────────────────
-  const matchWords = matchLine.split(/\s+/);
-  const half = Math.max(2, Math.floor(matchWords.length / 2));
-  const firstHalf  = matchWords.slice(0, half).join(' ');
-  const secondHalf = matchWords.slice(half).join(' ');
-  const matchDistractors = shuffle(
-    pool.filter(l => l !== matchLine)
-        .slice(0, 3)
-        .map(l => {
-          const ws = l.split(/\s+/);
-          const h  = Math.max(2, Math.floor(ws.length / 2));
-          return ws.slice(h).join(' ');
-        }),
-  );
-  const matchOptions = shuffle([secondHalf, ...matchDistractors]).slice(0, 4);
-
-  // ── verb_form ──────────────────────────────────────────────────
-  const verbWords = verbFormLine.split(/\s+/);
-  const verbIdx = verbWords.findIndex(w => /(ed|ing|s)$/i.test(w) && w.length > 4);
-  const verbWord = (verbIdx >= 0 ? verbWords[verbIdx] : verbWords[Math.floor(verbWords.length / 2)])
-    .replace(/[.!?,]$/, '');
-  const verbBase = verbWord.replace(/(ed|ing|s)$/i, '');
-  const verbOptions = shuffle([
-    verbWord,
-    verbBase,
-    verbBase + 'ed',
-    verbBase + 'ing',
-  ]).slice(0, 4);
-  const verbPrompt = verbFormLine.replace(verbWord, '_____');
-
-  // ── error_correction ───────────────────────────────────────────
-  // Break a random regular pattern in the line to give the student something
-  // to fix. Very light-touch: swap "was" ↔ "were" if we find one, otherwise
-  // strip an -s from a verb, otherwise change a tense particle.
-  const wrongText = (() => {
-    if (/\bwas\b/.test(errorLine))  return errorLine.replace(/\bwas\b/, 'were');
-    if (/\bwere\b/.test(errorLine)) return errorLine.replace(/\bwere\b/, 'was');
-    if (/\bhas\b/.test(errorLine))  return errorLine.replace(/\bhas\b/, 'have');
-    if (/\bhave\b/.test(errorLine)) return errorLine.replace(/\bhave\b/, 'has');
-    // Fallback: drop the final punctuation and add a wrong tense marker.
-    return errorLine.replace(/\.$/, '') + ' yesterday.';
-  })();
-
-  const items: PracticeItem[] = [
-    {
+  // ── inline builders (kept local because they read the shared `pool`) ──
+  function unscrambleFrom(l: string): PracticeItem {
+    const words = l.replace(/[.!?,]$/, '').split(/\s+/);
+    return {
       type: 'unscramble',
-      prompt: scrambledPrompt,
-      answer: unscrambleLine,
+      prompt: shuffle(words).join(' / '),
+      answer: l,
       grammarTopic: focus.name,
-      contextLine: unscrambleLine,
-    },
-    {
+      contextLine: l,
+    };
+  }
+
+  function matchHalvesFrom(l: string): PracticeItem {
+    const ws  = l.split(/\s+/);
+    const h   = Math.max(2, Math.floor(ws.length / 2));
+    const first  = ws.slice(0, h).join(' ');
+    const second = ws.slice(h).join(' ');
+    const distractors = shuffle(
+      pool.filter(x => x !== l).slice(0, 6).map(x => {
+        const xs = x.split(/\s+/);
+        return xs.slice(Math.max(2, Math.floor(xs.length / 2))).join(' ');
+      }),
+    ).slice(0, 3);
+    return {
       type: 'match_halves',
-      prompt: firstHalf,
-      answer: secondHalf,
-      options: matchOptions,
+      prompt: first,
+      answer: second,
+      options: shuffle([second, ...distractors]).slice(0, 4),
       grammarTopic: focus.name,
-      contextLine: matchLine,
-    },
-    {
+      contextLine: l,
+    };
+  }
+
+  function verbFormFrom(l: string): PracticeItem {
+    const words = l.split(/\s+/);
+    const idx = words.findIndex(w => /(ed|ing|s)$/i.test(w) && w.length > 4);
+    const target = (idx >= 0 ? words[idx] : words[Math.floor(words.length / 2)])
+      .replace(/[.!?,]$/, '');
+    const base = target.replace(/(ed|ing|s)$/i, '');
+    return {
       type: 'verb_form',
-      prompt: verbPrompt,
-      answer: verbWord,
-      options: verbOptions,
+      prompt: l.replace(target, '_____'),
+      answer: target,
+      options: shuffle([target, base, base + 'ed', base + 'ing']).slice(0, 4),
       grammarTopic: focus.name,
-      contextLine: verbFormLine,
-    },
-    {
+      contextLine: l,
+    };
+  }
+
+  function errorCorrectionFrom(l: string): PracticeItem {
+    const wrong = (() => {
+      if (/\bwas\b/.test(l))  return l.replace(/\bwas\b/, 'were');
+      if (/\bwere\b/.test(l)) return l.replace(/\bwere\b/, 'was');
+      if (/\bhas\b/.test(l))  return l.replace(/\bhas\b/, 'have');
+      if (/\bhave\b/.test(l)) return l.replace(/\bhave\b/, 'has');
+      return l.replace(/\.$/, '') + ' yesterday.';
+    })();
+    return {
       type: 'error_correction',
       prompt: 'Correct the mistake:',
-      wrongText,
-      answer: errorLine,
+      wrongText: wrong,
+      answer: l,
       grammarTopic: focus.name,
-      contextLine: errorLine,
-    },
+      contextLine: l,
+    };
+  }
+
+  // Eight items in CLT ladder order: recognition → controlled → productive.
+  const items: PracticeItem[] = [
+    unscrambleFrom(line(0)),
+    matchHalvesFrom(line(1)),
+    verbFormFrom(line(2)),
+    unscrambleFrom(line(3)),
+    matchHalvesFrom(line(4)),
+    errorCorrectionFrom(line(5)),
+    buildMultipleSelectionItem(line(6), pool.filter(x => x !== line(6)), focus),
+    buildOpenEndedItem(focus),
   ];
 
   return {
@@ -639,6 +739,10 @@ export async function generateClipLessonAlgorithmically(
     buildCover(title, source, level, clipData),
     vocab,
     buildPredictions(title, source, dialogue, clipData),
+    // clip_dialogue_game is teacher-authored; the editor splices it in
+    // after predictions. Comprehension gets a default from us here — the
+    // editor overrides it if the teacher wrote custom questions.
+    buildComprehensionSlide(dialogue),
     buildLanguageFocus(dialogue, focus),
     buildControlledPractice(dialogue, focus),
     buildProduction(title, source, dialogue, focus, clipData),
