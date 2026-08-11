@@ -1,0 +1,480 @@
+{
+  "lessonId": "tZl9Y5N4BRiCnXRMPRoj",
+  "collection": "movieLessons",
+  "capturedAt": "2026-08-11T00:24:59.074Z",
+  "note": "pre-regen-practice-v2",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B1",
+    "title": "The Office – Time Prank",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1783367734,
+      "_nanoseconds": 17000000
+    },
+    "clip": {
+      "title": "Time Prank",
+      "source": "The Office",
+      "youtubeUrl": "https://www.youtube.com/watch?v=b1RoMfysruQ",
+      "dialogue": "[Telephone rings]\nDunder {{blank}}. This is Erin.\nHe's not available right now. Uh-huh. Yes. Sure.\nI'll {{blank}} him the message when he gets up -- gets back.\n[Receiver clicks]\nMichael had chicken pot pie for {{blank}}.\nActually, let me rephrase that. Michael had an entire chicken pot pie for lunch. Let me be more specific.\nMichael ate an entire family-sized chicken pot pie for lunch, and then he {{blank}} fell asleep.\nSo we're all trying to be very quiet so as to not wake him up before 5:00 p.m., which actually should be in about...\n...10 {{blank}}. Okay, I'm gonna go in there and change the computer. Are you sure you can change his watch?\n-I can do it. -What do you need from me?\nNormally, I don't condone leaving early, but I have an appointment with the horse doctor. How that horse became a doctor, I {{blank}} know.\n[Laughs]\nNo, I'm {{blank}}.\nHe's just a regular doctor who shoots your horse in the head when its leg is broken.\n[{{blank}}]\n[Horn honks]\nLike {{blank}}.\n[Loud forced laughter]\nOh, no.\n-Uh-oh. {{blank}} so funny?\n-You had to be there.\n-Oh, yay. {{blank}} joke.\n[Laughs]\nOh, m-- Oh, wow. Okay. All {{blank}}. Let's all go home. Go on. See you all tamale.\n-Good night.\n-See you {{blank}}!\n-Good night, Michael!\n-{{blank}}!\n-Whoo!\n-Did it!\n[{{blank}} gunfire]",
+      "timings": [
+        0,
+        1,
+        3,
+        9,
+        12,
+        13,
+        16,
+        23,
+        29,
+        41,
+        48,
+        48,
+        56,
+        59,
+        60,
+        64,
+        69,
+        74,
+        79,
+        84,
+        84,
+        86,
+        88,
+        92,
+        94,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        108
+      ],
+      "captionsSource": "manual"
+    },
+    "updatedAt": {
+      "_seconds": 1783545824,
+      "_nanoseconds": 482000000
+    },
+    "slides": [
+      {
+        "title": "The Office — Time Prank",
+        "content": "B1",
+        "imageUrl": "https://img.youtube.com/vi/b1RoMfysruQ/maxresdefault.jpg",
+        "subtitle": "Jim pulls one of his classic pranks: he messes with time to drive Dwight crazy.",
+        "type": "cover"
+      },
+      {
+        "words": [
+          {
+            "word": "prank",
+            "pronunciation": "præŋk",
+            "translation": "a trick played on someone to make people laugh",
+            "example": "Jim's prank on Dwight was hilarious."
+          },
+          {
+            "word": "coworker",
+            "pronunciation": "ˈkəʊˌwɜː.kər",
+            "translation": "a person you work with, especially at the same level",
+            "example": "She had lunch with her coworkers."
+          },
+          {
+            "word": "to mess with",
+            "pronunciation": "mes wɪð",
+            "translation": "to tease or annoy someone on purpose, usually for fun",
+            "example": "Jim loves to mess with Dwight."
+          },
+          {
+            "word": "to trick",
+            "pronunciation": "trɪk",
+            "translation": "to make someone believe something that is not true",
+            "example": "He tricked his brother into cleaning the room."
+          },
+          {
+            "word": "to notice",
+            "pronunciation": "ˈnəʊ.tɪs",
+            "translation": "to see or become aware of something",
+            "example": "Dwight didn't notice that the clock was wrong."
+          },
+          {
+            "word": "to pretend",
+            "pronunciation": "prɪˈtend",
+            "translation": "to behave as if something is true when it is not",
+            "example": "Jim pretended it was late in the afternoon."
+          },
+          {
+            "word": "annoying",
+            "pronunciation": "əˈnɔɪ.ɪŋ",
+            "translation": "making you feel slightly angry or impatient",
+            "example": "Dwight can be very annoying in the office."
+          },
+          {
+            "word": "boring",
+            "pronunciation": "ˈbɔː.rɪŋ",
+            "translation": "not interesting or exciting in any way",
+            "example": "Office work can be boring sometimes."
+          },
+          {
+            "word": "boss",
+            "pronunciation": "bɒs",
+            "translation": "the person who is in charge of a company or team",
+            "example": "Michael is the boss of the branch."
+          },
+          {
+            "word": "to figure out",
+            "pronunciation": "ˈfɪɡ.ər aʊt",
+            "translation": "to understand something after thinking about it",
+            "example": "It took Dwight a while to figure out the prank."
+          }
+        ],
+        "title": "Vocabulary — Office & Pranks",
+        "type": "clip_vocab_match",
+        "subtitle": "Tap each card to reveal the meaning. You will hear these in the video."
+      },
+      {
+        "type": "clip_predictions",
+        "content": "Have you ever played a prank on someone? What did you do?\nDo you know the TV series The Office? What do you think it is about?\nWhat kind of things do people do at work when they get bored?\nDo you enjoy watching comedies about workplaces? Why or why not?",
+        "prompt": "Before we watch the clip, let's warm up your brain with a few quick questions.",
+        "title": "Before You Watch"
+      },
+      {
+        "type": "clip_dialogue_game",
+        "content": "[Telephone rings]\nDunder {{blank}}. This is Erin.\nHe's not available right now. Uh-huh. Yes. Sure.\nI'll {{blank}} him the message when he gets up -- gets back.\n[Receiver clicks]\nMichael had chicken pot pie for {{blank}}.\nActually, let me rephrase that. Michael had an entire chicken pot pie for lunch. Let me be more specific.\nMichael ate an entire family-sized chicken pot pie for lunch, and then he {{blank}} fell asleep.\nSo we're all trying to be very quiet so as to not wake him up before 5:00 p.m., which actually should be in about...\n...10 {{blank}}. Okay, I'm gonna go in there and change the computer. Are you sure you can change his watch?\n-I can do it. -What do you need from me?\nNormally, I don't condone leaving early, but I have an appointment with the horse doctor. How that horse became a doctor, I {{blank}} know.\n[Laughs]\nNo, I'm {{blank}}.\nHe's just a regular doctor who shoots your horse in the head when its leg is broken.\n[{{blank}}]\n[Horn honks]\nLike {{blank}}.\n[Loud forced laughter]\nOh, no.\n-Uh-oh. {{blank}} so funny?\n-You had to be there.\n-Oh, yay. {{blank}} joke.\n[Laughs]\nOh, m-- Oh, wow. Okay. All {{blank}}. Let's all go home. Go on. See you all tamale.\n-Good night.\n-See you {{blank}}!\n-Good night, Michael!\n-{{blank}}!\n-Whoo!\n-Did it!\n[{{blank}} gunfire]",
+        "blanksData": [
+          {
+            "word": "Mifflin",
+            "options": [
+              "Mifflin",
+              "sure",
+              "Like",
+              "Let's"
+            ]
+          },
+          {
+            "word": "give",
+            "options": [
+              "give",
+              "Sure",
+              "head",
+              "Michael"
+            ]
+          },
+          {
+            "word": "lunch",
+            "options": [
+              "appointment",
+              "need",
+              "gunfire",
+              "lunch"
+            ]
+          },
+          {
+            "word": "promptly",
+            "options": [
+              "Loud",
+              "asleep",
+              "promptly",
+              "trying"
+            ]
+          },
+          {
+            "word": "minutes",
+            "options": [
+              "minutes",
+              "Good",
+              "Laughs",
+              "Whoo"
+            ]
+          },
+          {
+            "word": "don't",
+            "options": [
+              "Erin",
+              "joke",
+              "Sure",
+              "don't"
+            ]
+          },
+          {
+            "word": "kidding",
+            "options": [
+              "Laughs",
+              "entire",
+              "family",
+              "kidding"
+            ]
+          },
+          {
+            "word": "Mumbling",
+            "options": [
+              "rings",
+              "Good",
+              "sized",
+              "Mumbling"
+            ]
+          },
+          {
+            "word": "clockwork",
+            "options": [
+              "clockwork",
+              "sure",
+              "available",
+              "Okay"
+            ]
+          },
+          {
+            "word": "What's",
+            "options": [
+              "Good",
+              "wake",
+              "What's",
+              "computer"
+            ]
+          },
+          {
+            "word": "Geography",
+            "options": [
+              "I'll",
+              "He's",
+              "sure",
+              "Geography"
+            ]
+          },
+          {
+            "word": "right",
+            "options": [
+              "leaving",
+              "head",
+              "Let's",
+              "right"
+            ]
+          },
+          {
+            "word": "later",
+            "options": [
+              "later",
+              "became",
+              "Telephone",
+              "computer"
+            ]
+          },
+          {
+            "word": "Yeah",
+            "options": [
+              "He's",
+              "laughter",
+              "Yeah",
+              "rephrase"
+            ]
+          },
+          {
+            "word": "Imitates",
+            "options": [
+              "Horn",
+              "Imitates",
+              "broken",
+              "home"
+            ]
+          }
+        ],
+        "clipData": {
+          "title": "Time Prank",
+          "source": "The Office",
+          "youtubeUrl": "https://www.youtube.com/watch?v=b1RoMfysruQ",
+          "dialogue": "[Telephone rings]\nDunder {{blank}}. This is Erin.\nHe's not available right now. Uh-huh. Yes. Sure.\nI'll {{blank}} him the message when he gets up -- gets back.\n[Receiver clicks]\nMichael had chicken pot pie for {{blank}}.\nActually, let me rephrase that. Michael had an entire chicken pot pie for lunch. Let me be more specific.\nMichael ate an entire family-sized chicken pot pie for lunch, and then he {{blank}} fell asleep.\nSo we're all trying to be very quiet so as to not wake him up before 5:00 p.m., which actually should be in about...\n...10 {{blank}}. Okay, I'm gonna go in there and change the computer. Are you sure you can change his watch?\n-I can do it. -What do you need from me?\nNormally, I don't condone leaving early, but I have an appointment with the horse doctor. How that horse became a doctor, I {{blank}} know.\n[Laughs]\nNo, I'm {{blank}}.\nHe's just a regular doctor who shoots your horse in the head when its leg is broken.\n[{{blank}}]\n[Horn honks]\nLike {{blank}}.\n[Loud forced laughter]\nOh, no.\n-Uh-oh. {{blank}} so funny?\n-You had to be there.\n-Oh, yay. {{blank}} joke.\n[Laughs]\nOh, m-- Oh, wow. Okay. All {{blank}}. Let's all go home. Go on. See you all tamale.\n-Good night.\n-See you {{blank}}!\n-Good night, Michael!\n-{{blank}}!\n-Whoo!\n-Did it!\n[{{blank}} gunfire]",
+          "timings": [
+            2,
+            3,
+            5,
+            11,
+            14,
+            15,
+            18,
+            25,
+            31,
+            43,
+            50,
+            50,
+            58,
+            61,
+            62,
+            66,
+            71,
+            76,
+            81,
+            86,
+            88,
+            88,
+            90,
+            94,
+            96,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            110
+          ],
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "questions": [
+          {
+            "question": "Juanito John?",
+            "options": [
+              {
+                "id": "q0o0",
+                "text": "yes",
+                "isCorrect": true
+              },
+              {
+                "id": "q0o1",
+                "text": "no",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o2",
+                "text": "maybe",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o3",
+                "text": "I don't know",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "yes"
+          }
+        ]
+      },
+      {
+        "words": [
+          {
+            "word": "Jim loves to mess with Dwight during the day.",
+            "example": "Pattern: mess with (someone) = to tease or annoy",
+            "translation": ""
+          },
+          {
+            "example": "Pattern: figure out (something) = to understand after thinking",
+            "translation": "",
+            "word": "Dwight couldn't figure out why the time was moving so fast."
+          },
+          {
+            "translation": "",
+            "example": "Pattern: get on with (something) = to continue doing something",
+            "word": "They usually get on with their tasks after lunch."
+          }
+        ],
+        "title": "Language Awareness — Phrasal Verbs",
+        "type": "clip_language_focus",
+        "content": "Comedies like The Office are full of phrasal verbs — everyday combinations of a verb and a small word (in, out, up, with) that native speakers use constantly. They often have a meaning you cannot guess from the parts alone.\n• verb + preposition → the two words act as one unit\n• the meaning is often figurative, not literal\n• the object usually goes at the end (mess WITH someone, figure OUT the joke)\nNotice the phrasal verbs below and pay attention to which small word follows the verb."
+      },
+      {
+        "practiceItems": [
+          {
+            "type": "multiple_selection",
+            "prompt": "Which of these lines uses Phrasal Verbs correctly?",
+            "answer": "-You had to be there.",
+            "options": [
+              "I'll {{blank}} him the message when he gets up -- gets back.",
+              "He's not available right now. Uh-huh. Yes. Sure.",
+              "-I can do it. -What do you need from me?",
+              "-You had to be there."
+            ],
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "-You had to be there."
+          },
+          {
+            "type": "unscramble",
+            "prompt": "Yes. / right / Uh-huh. / He's / available / not / now. / Sure",
+            "answer": "He's not available right now. Uh-huh. Yes. Sure.",
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "He's not available right now. Uh-huh. Yes. Sure."
+          },
+          {
+            "type": "verb_form",
+            "prompt": "Michael had chicken _____ (pot) pie for {{blank}}.",
+            "answer": "pot",
+            "options": [
+              "pot",
+              "pot",
+              "poting",
+              "poted"
+            ],
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "Michael had chicken pot pie for {{blank}}."
+          },
+          {
+            "type": "match_halves",
+            "prompt": "Dunder {{blank}}.",
+            "answer": "This is Erin.",
+            "options": [
+              "This is Erin.",
+              "now. Uh-huh. Yes. Sure.",
+              "he gets up -- gets back.",
+              "to be there."
+            ],
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "Dunder {{blank}}. This is Erin."
+          },
+          {
+            "type": "unscramble",
+            "prompt": "do / it. / me / need / from / can / you / -I / do / -What",
+            "answer": "-I can do it. -What do you need from me?",
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "-I can do it. -What do you need from me?"
+          },
+          {
+            "type": "verb_form",
+            "prompt": "I'll {{blank}} him t_____ (he) message when he gets up -- gets back.",
+            "answer": "he",
+            "options": [
+              "he",
+              "he",
+              "heing",
+              "heed"
+            ],
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "I'll {{blank}} him the message when he gets up -- gets back."
+          },
+          {
+            "type": "error_correction",
+            "prompt": "Correct the mistake:",
+            "wrongText": "Nobody knew what to say yesterday.",
+            "answer": "Nobody knew what to say.",
+            "grammarTopic": "Phrasal Verbs",
+            "contextLine": "Nobody knew what to say."
+          },
+          {
+            "type": "open_ended",
+            "prompt": "Complete the sentence in your own words using Phrasal Verbs.",
+            "answer": "",
+            "stem": "Yesterday I ",
+            "grammarTopic": "Phrasal Verbs"
+          }
+        ],
+        "title": "Controlled Practice",
+        "type": "clip_controlled_practice",
+        "subtitle": "Phrasal Verbs"
+      },
+      {
+        "type": "clip_production",
+        "content": "Have you ever played a prank on a friend, family member or coworker? What happened?\nWould you enjoy working with a coworker like Jim? Why or why not?\nWhat's the funniest thing that has ever happened to you at work or school?\nIf you could play a prank on anyone, who would it be and what would you do?",
+        "prompt": "Now it's your turn. Answer the questions below in your own words — take your time and be creative.",
+        "title": "Free Practice — Production"
+      },
+      {
+        "content": "Which new word or phrase from today was your favorite?\nWhich phrasal verb do you want to remember and use this week?\nWould you recommend The Office to a friend? Why?",
+        "type": "wrapup",
+        "title": "Let's Wrap Up",
+        "prompt": "Take a moment to reflect on what we practiced today."
+      }
+    ]
+  }
+}
