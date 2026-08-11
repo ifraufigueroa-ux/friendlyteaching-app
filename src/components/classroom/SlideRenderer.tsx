@@ -23,7 +23,9 @@ import ClipComprehensionSlide from './slides/ClipComprehensionSlide';
 import ClipVocabMatchSlide from './slides/ClipVocabMatchSlide';
 import ClipPredictionsSlide from './slides/ClipPredictionsSlide';
 import ClipLanguageFocusSlide from './slides/ClipLanguageFocusSlide';
-import ClipControlledPracticeSlide from './slides/ClipControlledPracticeSlide';
+// ClipControlledPracticeSlide is retired — clip_controlled_practice now
+// renders through LanguagePracticeSlide with brand="Friendlyflix" so
+// every practice item type is supported.
 // Friendlyrics (music-lesson) slide types
 import SongCoverSlide from './slides/SongCoverSlide';
 import LyricsSlide from './slides/LyricsSlide';
@@ -134,7 +136,13 @@ function renderSlide(
     case 'clip_language_focus':
       return <ClipLanguageFocusSlide slide={slide} />;
     case 'clip_controlled_practice':
-      return <ClipControlledPracticeSlide slide={slide} />;
+      // Route to the shared LanguagePracticeSlide because it renders
+      // all 6 practice item types (multiple_selection, verb_form,
+      // error_correction and open_ended are missing from the older
+      // ClipControlledPracticeSlide). LanguagePracticeSlide accepts a
+      // brand prop and picks up the Friendlyflix Twilight Reel styling
+      // via the theme scope wrapping the player.
+      return <LanguagePracticeSlide slide={slide} brand="Friendlyflix" />;
     case 'clip_production':
       return <ClipPredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
