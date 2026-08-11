@@ -174,7 +174,8 @@ GLOBAL RULES:
 - Adapt vocabulary complexity to the CEFR level throughout.
 - Every "example" and "contextLine" you cite MUST appear character-for-character in the dialogue you were given. NEVER invent lines.
 - Return ONLY valid JSON: { "slides": [...] } — no markdown fences, no explanation.
-- Exactly 8 slides, in the order listed above.`;
+- Exactly 8 slides, in the order listed above.
+- On EVERY practice item and slide, use the field name "type" — NEVER "format", "kind", "category", or any other synonym. The renderer switches on "type" and drops anything else. Example: { "type": "unscramble", "prompt": "...", "answer": "..." }.`;
 
 async function generateWithAI(
   title: string,
@@ -227,24 +228,31 @@ function stripBlanks(text: string): string {
   return text.replace(/\{\{blank\}\}/g, '____');
 }
 
-// Defensive fixups for slides the LLM returns. The most important one is
-// converting bare underscore placeholders ("_____") in verb_form prompts
-// back to the "{{blank}}" marker that LanguagePracticeSlide.VerbFormCard
-// actually splits on. Without this the chosen answer renders at the end of
-// the sentence instead of inside the missing-word slot.
+// Defensive fixups for slides the LLM returns. Two things go wrong most
+// often:
+//   1. verb_form prompts use "_____" instead of "{{blank}}" — the UI
+//      splits on "{{blank}}" so the chosen answer would otherwise render
+//      at the end of the sentence.
+//   2. practiceItems arrive with { format: "unscramble" } instead of
+//      { type: "unscramble" }. Rendered slides then see `item.type ===
+//      undefined` and drop every item to null (nothing on screen).
 function normalizeSlide(slide: Slide): Slide {
   if (slide.type !== 'clip_controlled_practice') return slide;
   if (!Array.isArray(slide.practiceItems)) return slide;
-  const fixed = slide.practiceItems.map(it => {
-    if (it.type !== 'verb_form' || typeof it.prompt !== 'string') return it;
-    let p = it.prompt;
-    if (!p.includes('{{blank}}')) {
-      // Convert whichever placeholder the AI used to {{blank}} so the UI
-      // can splice the chosen answer inline.
-      const marker = /_{2,}|\[[Bb]lank\]|<[Bb]lank>|\*\*_+\*\*/;
-      if (marker.test(p)) p = p.replace(marker, '{{blank}}');
+  const fixed = slide.practiceItems.map(rawIt => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const it = rawIt as any;
+    // Fix #2: coerce { format } → { type } when needed.
+    if (!it.type && typeof it.format === 'string') {
+      it.type = it.format;
+      delete it.format;
     }
-    return { ...it, prompt: p };
+    // Fix #1: verb_form blank marker normalization.
+    if (it.type === 'verb_form' && typeof it.prompt === 'string' && !it.prompt.includes('{{blank}}')) {
+      const marker = /_{2,}|\[[Bb]lank\]|<[Bb]lank>|\*\*_+\*\*/;
+      if (marker.test(it.prompt)) it.prompt = it.prompt.replace(marker, '{{blank}}');
+    }
+    return it;
   });
   return { ...slide, practiceItems: fixed };
 }

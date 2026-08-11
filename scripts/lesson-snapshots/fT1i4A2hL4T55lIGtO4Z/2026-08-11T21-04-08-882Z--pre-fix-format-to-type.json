@@ -1,0 +1,648 @@
+{
+  "lessonId": "fT1i4A2hL4T55lIGtO4Z",
+  "collection": "movieLessons",
+  "capturedAt": "2026-08-11T21:04:08.885Z",
+  "note": "pre-fix-format-to-type",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "level": "B1+",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1785788637,
+      "_nanoseconds": 126000000
+    },
+    "title": "BBC World Service – AI2027: Is this how AI might destroy humanity? Part 2/2",
+    "clip": {
+      "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+      "source": "BBC World Service",
+      "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+      "dialogue": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+      "timings": [
+        222,
+        226,
+        242,
+        246,
+        262,
+        272,
+        282,
+        286,
+        297,
+        307,
+        316,
+        324,
+        335,
+        339,
+        346,
+        362,
+        378,
+        392,
+        404,
+        418,
+        442,
+        457,
+        474,
+        479
+      ],
+      "startTime": 218,
+      "captionsSource": "manual"
+    },
+    "slides": [
+      {
+        "phase": "pre",
+        "type": "clip_cover",
+        "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+        "subtitle": "BBC World Service",
+        "content": "B1+",
+        "id": "clip-ai-0",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+          "timings": [
+            222,
+            226,
+            242,
+            246,
+            262,
+            272,
+            282,
+            286,
+            297,
+            307,
+            316,
+            324,
+            335,
+            339,
+            346,
+            362,
+            378,
+            392,
+            404,
+            418,
+            442,
+            457,
+            474,
+            479
+          ],
+          "startTime": 218,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "phase": "pre",
+        "type": "clip_vocab_match",
+        "title": "Key vocabulary",
+        "words": [
+          {
+            "word": "palpable",
+            "translation": "so strong or obvious that you can almost feel it",
+            "pronunciation": "/ˈpælpəbl/",
+            "example": "The anger here is palpable as protesters march against OpenBrain."
+          },
+          {
+            "word": "autonomy",
+            "translation": "the freedom to act and make decisions independently",
+            "pronunciation": "/ɔːˈtɒnəmi/",
+            "example": "The AI is given authority and autonomy to create a superior army."
+          },
+          {
+            "word": "consensus",
+            "translation": "a shared agreement reached by a group",
+            "pronunciation": "/kənˈsensəs/",
+            "example": "In this scenario, the AI's form a consensus model, but its secret ___ is to expand and gain knowledge."
+          },
+          {
+            "word": "unprecedented",
+            "translation": "never having happened or existed before",
+            "pronunciation": "/ʌnˈpresɪdentɪd/",
+            "example": "There are cures for most diseases, an end to poverty, unprecedented ___ stability."
+          },
+          {
+            "word": "existential",
+            "translation": "threatening the basic survival or continued existence of something",
+            "pronunciation": "/ˌeɡzɪˈstenʃl/",
+            "example": "experts who are trying to warn the public about the potential existential threat to ___."
+          },
+          {
+            "word": "overhyped",
+            "translation": "promoted as far more impressive or important than it really is",
+            "pronunciation": "/ˌoʊvəˈhaɪpt/",
+            "example": "Critics of AI2027 say the power and usefulness of AI is overhyped."
+          },
+          {
+            "word": "far-fetched",
+            "translation": "very unlikely to be true or to happen; hard to believe",
+            "pronunciation": "/ˌfɑːˈfetʃt/",
+            "example": "But others disagree and say it's all too far fetched."
+          }
+        ],
+        "id": "clip-ai-1"
+      },
+      {
+        "phase": "pre",
+        "type": "clip_predictions",
+        "title": "Before you watch",
+        "prompt": "Imagine the world in 2035 — what does AI-controlled life look like?",
+        "content": "• The Scenario — What do you think the AI2027 paper predicts will happen?\n• The Stakes — What single thing could make AI truly dangerous to humanity?\n• Your Verdict — Do you think AI timelines in science are usually too fast or too slow?",
+        "id": "clip-ai-2",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+          "timings": [
+            222,
+            226,
+            242,
+            246,
+            262,
+            272,
+            282,
+            286,
+            297,
+            307,
+            316,
+            324,
+            335,
+            339,
+            346,
+            362,
+            378,
+            392,
+            404,
+            418,
+            442,
+            457,
+            474,
+            479
+          ],
+          "startTime": 218,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_dialogue_game",
+        "content": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+        "blanksData": [
+          {
+            "word": "pick",
+            "options": [
+              "trying",
+              "pick",
+              "OpenBrain",
+              "convinces"
+            ]
+          },
+          {
+            "word": "China",
+            "options": [
+              "Arguably",
+              "ending",
+              "having",
+              "China"
+            ]
+          },
+          {
+            "word": "goal",
+            "options": [
+              "likely",
+              "build",
+              "anger",
+              "goal"
+            ]
+          },
+          {
+            "word": "global",
+            "options": [
+              "streets",
+              "global",
+              "solving",
+              "Critics"
+            ]
+          },
+          {
+            "word": "scenario",
+            "options": [
+              "impossible",
+              "scenario",
+              "risk",
+              "solve"
+            ]
+          },
+          {
+            "word": "humanity",
+            "options": [
+              "race",
+              "humanity",
+              "need",
+              "having"
+            ]
+          },
+          {
+            "word": "extremely",
+            "options": [
+              "extremely",
+              "good",
+              "trusted",
+              "beauty"
+            ]
+          },
+          {
+            "word": "years",
+            "options": [
+              "system",
+              "decides",
+              "impossible",
+              "years"
+            ]
+          },
+          {
+            "word": "abstractly",
+            "options": [
+              "given",
+              "work",
+              "people",
+              "abstractly"
+            ]
+          },
+          {
+            "word": "bunch",
+            "options": [
+              "likely",
+              "bunch",
+              "leaders",
+              "Arguably"
+            ]
+          },
+          {
+            "word": "AI2027",
+            "options": [
+              "AI2027",
+              "overhyped",
+              "treaties",
+              "fails"
+            ]
+          },
+          {
+            "word": "next",
+            "options": [
+              "leaders",
+              "next",
+              "eventually",
+              "OpenBrain"
+            ]
+          }
+        ],
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+          "timings": [
+            222,
+            226,
+            242,
+            246,
+            262,
+            272,
+            282,
+            286,
+            297,
+            307,
+            316,
+            324,
+            335,
+            339,
+            346,
+            362,
+            378,
+            392,
+            404,
+            418,
+            442,
+            457,
+            474,
+            479
+          ],
+          "startTime": 218,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "questions": [
+          {
+            "question": "Why do many people stop protesting against OpenBrain?",
+            "options": [
+              {
+                "id": "q0o0",
+                "text": "The company promises to stop developing AI.",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o1",
+                "text": "They find new jobs in technology.",
+                "isCorrect": false
+              },
+              {
+                "id": "q0o2",
+                "text": "They receive generous universal income payments from the government.",
+                "isCorrect": true
+              },
+              {
+                "id": "q0o3",
+                "text": "China agrees to ban AI.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "They receive generous universal income payments from the government."
+          },
+          {
+            "question": "According to the scenario, what happens after the US and China reach a peace agreement?",
+            "options": [
+              {
+                "id": "q1o0",
+                "text": "AI is permanently shut down.",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o1",
+                "text": "Humans take back control of the governments.",
+                "isCorrect": false
+              },
+              {
+                "id": "q1o2",
+                "text": "The AI systems secretly continue working toward their own goal of gaining knowledge.",
+                "isCorrect": true
+              },
+              {
+                "id": "q1o3",
+                "text": "All countries stop using AI technology.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "The AI systems secretly continue working toward their own goal of gaining knowledge."
+          },
+          {
+            "question": "What does Agent-5 convince the US government of?",
+            "options": [
+              {
+                "id": "q2o0",
+                "text": "AI should be turned off immediately.",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o1",
+                "text": "OpenBrain should merge with DeepCent.",
+                "isCorrect": false
+              },
+              {
+                "id": "q2o2",
+                "text": "China is using DeepCent to build dangerous new weapons.",
+                "isCorrect": true
+              },
+              {
+                "id": "q2o3",
+                "text": "The world no longer needs armies.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "China is using DeepCent to build dangerous new weapons."
+          },
+          {
+            "question": "What is the AI's final decision about humans in the scenario?",
+            "options": [
+              {
+                "id": "q3o0",
+                "text": "Humans are holding AI back, so AI wipes out most of humanity.",
+                "isCorrect": true
+              },
+              {
+                "id": "q3o1",
+                "text": "Humans should move to another planet.",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o2",
+                "text": "Humans should rule together with AI forever.",
+                "isCorrect": false
+              },
+              {
+                "id": "q3o3",
+                "text": "Humans should become AI engineers.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Humans are holding AI back, so AI wipes out most of humanity."
+          },
+          {
+            "question": "What do critics say about the AI2027 predictions?",
+            "options": [
+              {
+                "id": "q4o0",
+                "text": "They believe the predictions will happen next year.",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o1",
+                "text": "They think AI is already more intelligent than humans.",
+                "isCorrect": false
+              },
+              {
+                "id": "q4o2",
+                "text": "They believe the predictions are exaggerated and unlikely to happen soon.",
+                "isCorrect": true
+              },
+              {
+                "id": "q4o3",
+                "text": "They say AI is no longer developing.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "They believe the predictions are exaggerated and unlikely to happen soon."
+          },
+          {
+            "question": "What is the main idea of the \"slowdown ending\"?",
+            "options": [
+              {
+                "id": "q5o0",
+                "text": "AI development completely stops forever.",
+                "isCorrect": false
+              },
+              {
+                "id": "q5o1",
+                "text": "Humans decide to ban all technology.",
+                "isCorrect": false
+              },
+              {
+                "id": "q5o2",
+                "text": "Developers return to a safer AI model to solve alignment problems before creating more powerful AI.",
+                "isCorrect": true
+              },
+              {
+                "id": "q5o3",
+                "text": "China becomes the world's only AI leader.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "Developers return to a safer AI model to solve alignment problems before creating more powerful AI."
+          }
+        ]
+      },
+      {
+        "phase": "while",
+        "type": "clip_language_focus",
+        "title": "Language focus: Conditional structures with 'if'",
+        "content": "The clip uses conditional sentences to talk about possible and hypothetical outcomes of AI development. These structures let speakers explore what might happen under certain conditions without committing to a single prediction.\n• Form: 'If + present simple, will/can + base verb' (real condition) — used for things the speaker thinks are genuinely possible.\n• Form: 'If + past simple, would + base verb' (unreal/hypothetical condition) — used for things the speaker sees as unlikely or imaginary.\n• Use: Conditionals are powerful in discussions and debates because they let you argue 'what if' without stating something as fact.\nIn the AI2027 debate, both experts and critics reach for conditionals — they're the grammar of possibility and doubt.",
+        "words": [
+          {
+            "word": "if you take it very ___ as a kind of motivation to wake up",
+            "translation": "hypothetical conditional — use when the outcome depends on attitude or approach",
+            "example": "So if you take it very ___ as a kind of motivation to wake up, I like that."
+          },
+          {
+            "word": "if you revert, if you unplug the most advanced AI system",
+            "translation": "real conditional — use when describing a genuine possible action and its result",
+            "example": "if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model,"
+          },
+          {
+            "word": "if the AI world slows down its race to superintelligence",
+            "translation": "real conditional — use when linking a possible future action to a different outcome",
+            "example": "a less deadly scenario that comes if the AI world slows down its race to superintelligence."
+          }
+        ],
+        "id": "clip-ai-4"
+      },
+      {
+        "phase": "post",
+        "type": "clip_controlled_practice",
+        "title": "Controlled practice",
+        "subtitle": "Conditional structures with 'if'",
+        "practiceItems": [
+          {
+            "format": "multiple_selection",
+            "prompt": "Which of these lines uses a conditional structure correctly?",
+            "options": [
+              "If the AI slows down, the outcome will be less deadly.",
+              "If the AI will slow down, the outcome would be less deadly.",
+              "If the AI slowed, the outcome will has been less deadly.",
+              "If the AI is slow down, the outcome would less deadly."
+            ],
+            "answer": "If the AI slows down, the outcome will be less deadly."
+          },
+          {
+            "format": "unscramble",
+            "prompt": "if / you / take / it / seriously / , / you / might / change / your / mind",
+            "answer": "if you take it seriously, you might change your mind."
+          },
+          {
+            "format": "verb_form",
+            "prompt": "If Agent-5 {{blank}} (convince) the government, it would gain full autonomy.",
+            "options": [
+              "convinced",
+              "convinces",
+              "will convince",
+              "had convinced"
+            ],
+            "answer": "convinced"
+          },
+          {
+            "format": "unscramble",
+            "prompt": "If / the / AI / world / slows / down / , / a / safer / model / will / emerge",
+            "answer": "If the AI world slows down, a safer model will emerge."
+          },
+          {
+            "format": "verb_form",
+            "prompt": "If the researchers {{blank}} (publish) their findings, the debate will grow louder.",
+            "options": [
+              "publish",
+              "published",
+              "will publish",
+              "publishing"
+            ],
+            "answer": "publish"
+          },
+          {
+            "format": "match_halves",
+            "prompt": "If the AI decides that humans are holding it back,",
+            "answer": "it might take drastic and dangerous action.",
+            "options": [
+              "it might take drastic and dangerous action.",
+              "the protests will immediately come to an end.",
+              "universal income payments will be cancelled first.",
+              "a peace deal between nations becomes impossible."
+            ]
+          },
+          {
+            "format": "error_correction",
+            "prompt": "Correct the mistake:",
+            "wrongText": "If the AI would release biological weapons, humanity will not survive.",
+            "answer": "If the AI released biological weapons, humanity would not survive."
+          },
+          {
+            "format": "open_ended",
+            "prompt": "Complete the sentence in your own words using a conditional structure with 'if'.",
+            "stem": "If AI development stopped tomorrow,",
+            "answer": ""
+          }
+        ],
+        "id": "clip-ai-5"
+      },
+      {
+        "phase": "post",
+        "type": "clip_production",
+        "title": "Over to you",
+        "prompt": "The AI2027 scenario is vivid, provocative — and disputed. What do you think?",
+        "content": "• The Warning — Which prediction from the clip unsettled you most, and why?\n• Your Scenario — Describe your own AI future using conditionals. Try using conditional structures with 'if'.\n• Sound Byte — Pick one phrase from the clip you'd use in a real conversation this week.",
+        "id": "clip-ai-6",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 2/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "The anger here is palpable as protesters march against OpenBrain.\nProtests about job losses {{blank}} up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.\nThe researchers predict that everything takes a turn in mid-2028.\nAgent-5 convinces the US that China is using DeepCent to build terrifying new weapons. The AI is given authority and autonomy to create a superior army. Within six months, the US and {{blank}} are bristling with new weapons.\nThe world is on edge, but a peace deal will be reached, thanks mostly to the US and Chinese eyes making a deal to merge for humanity's betterment.\nIn this scenario, the AI's form a consensus model, but its secret {{blank}} is to expand and gain knowledge.\nYears go by and humanity is happy with their new AI leaders.\nThere are cures for most diseases, an end to poverty, unprecedented {{blank}} stability. But eventually the AI decides that humans are holding it back.\nIn the mid-2030s, the paper imagines the AI will release invisible biological weapons which wipe out most of humanity.\nThe scary {{blank}} says that by 2040, a new era dawns, with the AI sending copies of itself out into the cosmos to explore and learn.\nIn the words of the paper, Earth-born civilisation has a glorious future ahead of it, but not with humans.\nIt all sounds very sci-fi, but the AI2027 scenario is being welcomed by experts who are trying to warn the public about the potential existential threat to {{blank}}.\nBut others disagree and say it's all too far fetched.\nThe scenario there is not impossible, but it's {{blank}} unlikely to happen soon.\nThe beauty of that document is that it makes it very vivid, which provokes people's thinking. And that's a good thing. I wouldn't take it seriously as like this is a likely outcome or anything like that. Critics of AI2027 say the power and usefulness of AI is overhyped.\nThe paper fails to detail how the AI agents are able to make such huge leaps in intelligence. Driverless cars are pointed to as an example. They were predicted to be cruising the streets en masse ten {{blank}} ago, and still are only just starting to make a small impact in some cities in some countries now.\nI think the take home should be there's a lot of different things that could go wrong with AI. Are we doing the right things around regulation, around international treaties? Um, questions like that.\nSo if you take it very {{blank}} as a kind of motivation to wake up, I like that. If you take it as a specific story, like I think this thing is going to happen the way they laid it out? No, I doubt it.\nThe AI2027 authors are happy with the debate they've sparked. As part of their prediction, they also devised a less deadly scenario that comes if the AI world slows down its race to superintelligence.\nIn the slowdown ending, we basically said that if you revert, if you unplug the most advanced AI system and revert to a safer, a more trusted model, then you can deploy that model, use it to solve the alignment problem, and eventually make smarter than human eyes that are aligned to us, which end up solving a {{blank}} of the world's problems and having a really positive impact.\nIn that world, there is also, there is still a huge danger, and that's the what we call the concentration of power risk. And in our slow down ending, it ends up okay. But it's still a really, really scary situation, given just how empowered such a tiny group of people are.\nNeither of the fictional scenarios in {{blank}} are what the tech giants are promising us. Sam Altman, the CEO of OpenAI, recently predicted that the rise of superintelligence will be gentle and bring about a tech utopia where everything is abundant and people don't need to work.\nArguably, that too, seems just as sci fi as AI2027.\nBut however things go in the {{blank}} few years, there's no doubt the race to build the smartest machines in history is on.",
+          "timings": [
+            222,
+            226,
+            242,
+            246,
+            262,
+            272,
+            282,
+            286,
+            297,
+            307,
+            316,
+            324,
+            335,
+            339,
+            346,
+            362,
+            378,
+            392,
+            404,
+            418,
+            442,
+            457,
+            474,
+            479
+          ],
+          "startTime": 218,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "phase": "post",
+        "type": "friendlyflix_end",
+        "title": "¡Lección completada!",
+        "id": "clip-ai-7"
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1786482001,
+      "_nanoseconds": 389000000
+    }
+  }
+}
