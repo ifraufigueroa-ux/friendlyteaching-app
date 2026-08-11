@@ -133,7 +133,7 @@ HARD RULES for slide 6:
 - Item content must be tied to the dialogue's scene / setting when possible — use the same characters, place, action.
 - multiple_selection: prompt = "Which of these lines uses {focus} correctly?" options = 4 lines (1 correct pattern line + 3 with a subtle grammar mistake). answer = the correct line.
 - unscramble: prompt = correct sentence split by " / " (space-slash-space). Do NOT change casing or punctuation. answer = the full sentence.
-- verb_form: prompt is a sentence with a blank showing the base verb in parentheses so the student knows WHICH verb to conjugate. Example: "She _____ (leave) the office at eight." options are 4 conjugated forms (correct + 3 plausible wrong tenses/forms of the SAME verb). answer = the correct form. NEVER show a bare "_____" without the base verb hint.
+- verb_form: prompt is a sentence with the LITERAL string "{{blank}}" (two open braces, the word blank, two close braces) where the missing word goes, immediately followed by "(baseverb)" so the student knows WHICH verb to conjugate. Example: "She {{blank}} (leave) the office at eight." options are 4 conjugated forms (correct + 3 plausible wrong tenses/forms of the SAME verb). answer = the correct form. NEVER use "_____" or any other placeholder — the UI only splits on "{{blank}}".
 - match_halves: prompt = first half; answer = correct second half. options MUST contain 4 second-halves — the correct one plus 3 plausible wrong-second-halves from different sentence stems.
 - error_correction: wrongText contains the sentence WITH the error; answer is the corrected version. prompt = "Correct the mistake:".
 - open_ended: prompt = "Complete the sentence in your own words using {focus}." stem = 3–6-word sentence beginning that naturally forces the target structure (e.g. "Yesterday I …", "If I were you, I would …"). answer = "" (no auto-check). No options.
@@ -213,7 +213,7 @@ async function generateWithAI(
     if (!jsonMatch) return null;
 
     const parsed: { slides: Slide[] } = JSON.parse(jsonMatch[0]);
-    return parsed.slides.map((s, i) => ({ phase: 'pre' as const, ...s, id: `clip-ai-${i}` }));
+    return parsed.slides.map((s, i) => normalizeSlide({ phase: 'pre' as const, ...s, id: `clip-ai-${i}` }));
   } catch (err) {
     console.error('[clip-lesson] AI generation failed:', err);
     return null;
@@ -225,6 +225,28 @@ function stripBlanks(text: string): string {
   // sees complete-looking sentence structure without treating {{blank}} as a
   // grammar hint.
   return text.replace(/\{\{blank\}\}/g, '____');
+}
+
+// Defensive fixups for slides the LLM returns. The most important one is
+// converting bare underscore placeholders ("_____") in verb_form prompts
+// back to the "{{blank}}" marker that LanguagePracticeSlide.VerbFormCard
+// actually splits on. Without this the chosen answer renders at the end of
+// the sentence instead of inside the missing-word slot.
+function normalizeSlide(slide: Slide): Slide {
+  if (slide.type !== 'clip_controlled_practice') return slide;
+  if (!Array.isArray(slide.practiceItems)) return slide;
+  const fixed = slide.practiceItems.map(it => {
+    if (it.type !== 'verb_form' || typeof it.prompt !== 'string') return it;
+    let p = it.prompt;
+    if (!p.includes('{{blank}}')) {
+      // Convert whichever placeholder the AI used to {{blank}} so the UI
+      // can splice the chosen answer inline.
+      const marker = /_{2,}|\[[Bb]lank\]|<[Bb]lank>|\*\*_+\*\*/;
+      if (marker.test(p)) p = p.replace(marker, '{{blank}}');
+    }
+    return { ...it, prompt: p };
+  });
+  return { ...slide, practiceItems: fixed };
 }
 
 export async function POST(req: NextRequest) {

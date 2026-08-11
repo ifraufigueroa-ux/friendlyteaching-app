@@ -1238,7 +1238,11 @@ function buildControlledPractice(dialogue: string, focus: GrammarFocus): Slide {
       },
       verb: {
         type: 'verb_form',
-        prompt: s.replace(t.targetForm, `_____ (${t.baseVerb})`),
+        // Use the {{blank}} marker so LanguagePracticeSlide.VerbFormCard
+        // can splice the chosen answer inline where the missing word is,
+        // instead of appending it after the sentence. The base verb hint
+        // stays right next to the blank.
+        prompt: s.replace(t.targetForm, `{{blank}} (${t.baseVerb})`),
         answer: t.targetForm,
         options: shuffle([t.targetForm, ...t.wrongForms]),
         grammarTopic: focus.name,

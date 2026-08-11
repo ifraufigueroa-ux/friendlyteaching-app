@@ -284,7 +284,7 @@ function buildControlledPracticeItems(dialogue, focus) {
     ).slice(0, 3);
     return {
       unscramble: { type: 'unscramble', prompt: shuffle(words).join(' / '), answer: s.replace(/[.!?,]$/, ''), grammarTopic: focus.name, contextLine: s },
-      verb: { type: 'verb_form', prompt: s.replace(t.targetForm, `_____ (${t.baseVerb})`), answer: t.targetForm, options: shuffle([t.targetForm, ...t.wrongForms]), grammarTopic: focus.name, contextLine: s },
+      verb: { type: 'verb_form', prompt: s.replace(t.targetForm, `{{blank}} (${t.baseVerb})`), answer: t.targetForm, options: shuffle([t.targetForm, ...t.wrongForms]), grammarTopic: focus.name, contextLine: s },
       matchHalves: { type: 'match_halves', prompt: first, answer: second, options: shuffle([second, ...distractors]).slice(0, 4), grammarTopic: focus.name, contextLine: s },
       errorCorrection: { type: 'error_correction', prompt: 'Correct the mistake:', wrongText: t.wrongVersion, answer: s, grammarTopic: focus.name, contextLine: s },
     };
