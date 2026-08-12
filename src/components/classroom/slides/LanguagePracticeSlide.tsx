@@ -122,7 +122,11 @@ function UnscrambleCard({
 
   const available = shuffled.map((_, i) => i).filter(i => !placed.includes(i));
   const sentence  = placed.map(i => shuffled[i]).join(' ');
-  const isCorrect = checked && sentence.toLowerCase().replace(/[.,'"]/g, '') === item.answer.toLowerCase().replace(/[.,'"]/g, '');
+  // Use the same looseEq the other cards use — strips ALL common
+  // punctuation and collapses whitespace. The old comparison only
+  // stripped .,'" so a sentence with ?!;: or an extra space was
+  // marked wrong even when the word order was right.
+  const isCorrect = checked && looseEq(sentence, item.answer);
 
   function placeWord(i: number) {
     if (checked) return;
@@ -139,8 +143,7 @@ function UnscrambleCard({
     const parentRect = cardRef.current?.offsetParent?.getBoundingClientRect();
     const x = rect && parentRect ? rect.left - parentRect.left + rect.width / 2 : 0;
     const y = rect && parentRect ? rect.top  - parentRect.top  + 60                : 0;
-    const ok = sentence.toLowerCase().replace(/[.,'"]/g, '') === item.answer.toLowerCase().replace(/[.,'"]/g, '');
-    onResult(ok, x, y);
+    onResult(looseEq(sentence, item.answer), x, y);
   }
   function retry() {
     setPlaced([]);
