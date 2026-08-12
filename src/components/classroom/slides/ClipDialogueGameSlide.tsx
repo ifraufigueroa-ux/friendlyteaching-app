@@ -407,7 +407,11 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
     setTimerRunning(true);
   }
   function shiftTimer(deltaSec: number) {
-    const next = Math.max(0, getCurrentPos() + deltaSec);
+    // Clamp to the clip's startTime so rewind never lands before the
+    // configured clip start (which would leave the student watching an
+    // intro they were never meant to see).
+    const floor = Math.max(0, slide.clipData?.startTime ?? 0);
+    const next  = Math.max(floor, getCurrentPos() + deltaSec);
     pausedPosRef.current = next;
     if (startTsRef.current !== null) startTsRef.current = Date.now();
     seekYT(next);
@@ -419,7 +423,15 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
       if (!timerRunningRef.current) return;
       const t = getCurrentPos();
       const dur = clipDurationRef.current;
-      setProgress(Math.min(t / dur, 1));
+      // Progress bar tracks progress WITHIN the clip subset
+      // [startTime, endTime] rather than within the whole video, so the
+      // bar starts at 0% when the clip begins even when startTime is
+      // deep into the source video. Falls back to (t / dur) when the
+      // subset isn't fully defined.
+      const startT = slide.clipData?.startTime ?? 0;
+      const endT   = slide.clipData?.endTime;
+      const span   = endT && endT > startT ? endT - startT : Math.max(dur - startT, 1);
+      setProgress(Math.min(Math.max((t - startT) / span, 0), 1));
       setElapsed(t);
 
       const lt = lineTimings.current;
@@ -463,6 +475,15 @@ export default function ClipDialogueGameSlide({ slide, youtubeUrl: youtubeUrlPro
     setStarted(true);
     setVideoAutoplay(true);
     setVideoKey('playing');
+    // Seed the internal clock at the clip's startTime so the script is
+    // already aligned with the video the instant playback begins. Timings
+    // in clipData are absolute video positions; without this seed the
+    // internal timer starts at 0 while the video jumps to startTime,
+    // and the game waits `startTime` seconds before the first line
+    // triggers. YT infoDelivery messages re-sync every ~250 ms after
+    // this, so the seed only has to bridge the initial gap.
+    const seed = Math.max(0, slide.clipData?.startTime ?? 0);
+    pausedPosRef.current = seed;
     startTimer();
   }
   function handlePause()  { pauseTimer(); firePauseAndRetry(); }
