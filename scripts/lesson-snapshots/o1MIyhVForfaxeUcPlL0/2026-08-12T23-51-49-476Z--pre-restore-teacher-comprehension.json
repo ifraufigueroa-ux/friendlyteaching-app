@@ -1,0 +1,747 @@
+{
+  "lessonId": "o1MIyhVForfaxeUcPlL0",
+  "collection": "movieLessons",
+  "capturedAt": "2026-08-12T23:51:49.476Z",
+  "note": "pre-restore-teacher-comprehension",
+  "data": {
+    "teacherId": "upRMjey4VSg4bAgGzLWn2SlcFg82",
+    "publishStatus": "draft",
+    "assignedTo": [],
+    "createdAt": {
+      "_seconds": 1785788187,
+      "_nanoseconds": 278000000
+    },
+    "level": "B1+",
+    "title": "BBC World Service – AI2027: Is this how AI might destroy humanity? Part 1/2",
+    "clip": {
+      "title": "AI2027: Is this how AI might destroy humanity? Part 1/2",
+      "source": "BBC World Service",
+      "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+      "dialogue": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+      "timings": [
+        0,
+        4,
+        8,
+        15,
+        24,
+        28,
+        36,
+        41,
+        45,
+        52,
+        63,
+        68,
+        81,
+        84,
+        93,
+        99,
+        110,
+        115,
+        118,
+        129,
+        133,
+        148,
+        156,
+        166,
+        174,
+        180,
+        190,
+        198,
+        205,
+        211,
+        215,
+        222,
+        226
+      ],
+      "endTime": 232,
+      "captionsSource": "manual"
+    },
+    "updatedAt": {
+      "_seconds": 1786571796,
+      "_nanoseconds": 27000000
+    },
+    "slides": [
+      {
+        "id": "clip-ai-0",
+        "subtitle": "BBC World Service",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 1/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+          "timings": [
+            0,
+            4,
+            8,
+            15,
+            24,
+            28,
+            36,
+            41,
+            45,
+            52,
+            63,
+            68,
+            81,
+            84,
+            93,
+            99,
+            110,
+            115,
+            118,
+            129,
+            133,
+            148,
+            156,
+            166,
+            174,
+            180,
+            190,
+            198,
+            205,
+            211,
+            215,
+            222,
+            226
+          ],
+          "endTime": 232,
+          "captionsSource": "manual"
+        },
+        "phase": "pre",
+        "title": "Part 1/2 AI2027: Is this how AI might destroy humanity?",
+        "type": "clip_cover",
+        "content": "B1+"
+      },
+      {
+        "words": [
+          {
+            "word": "controversial",
+            "translation": "causing strong disagreement or public debate among people",
+            "example": "That's according to a group of AI researchers written a controversial and influential paper called AI2027.",
+            "pronunciation": "/ˌkɒn.trəˈvɜː.ʃəl/"
+          },
+          {
+            "translation": "completely destroyed or eliminated, leaving nothing behind",
+            "pronunciation": "/waɪpt aʊt/",
+            "example": "But they also predict that within five years of this, humanity will be wiped out.",
+            "word": "wiped out"
+          },
+          {
+            "word": "aligned",
+            "pronunciation": "/əˈlaɪnd/",
+            "example": "OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.",
+            "translation": "in agreement with a set of goals, values, or rules"
+          },
+          {
+            "pronunciation": "/ˈbreɪk.nek/",
+            "word": "breakneck",
+            "translation": "dangerously or extremely fast, often too fast to be safe",
+            "example": "Development happens at a breakneck pace."
+          },
+          {
+            "translation": "happily not knowing about something important or dangerous",
+            "pronunciation": "/ˈblɪs.fəl.i ʌnəˈweə/",
+            "example": "The public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.",
+            "word": "blissfully unaware"
+          },
+          {
+            "word": "superintelligence",
+            "pronunciation": "/ˌsuː.pər.ɪnˈtel.ɪ.dʒəns/",
+            "example": "In private, the US government sees the true danger of the next level of power: superintelligence.",
+            "translation": "a level of artificial intelligence far greater than the best human minds"
+          },
+          {
+            "word": "tandem",
+            "pronunciation": "/ˈtæn.dəm/",
+            "translation": "working together at the same time to achieve one shared result",
+            "example": "The scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and knowledge."
+          },
+          {
+            "word": "accumulate",
+            "example": "The scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and knowledge.",
+            "pronunciation": "/əˈkjuː.mjʊ.leɪt/",
+            "translation": "to gradually collect or gather more and more of something"
+          }
+        ],
+        "phase": "pre",
+        "type": "clip_vocab_match",
+        "id": "clip-ai-2",
+        "title": "Key vocabulary"
+      },
+      {
+        "type": "clip_predictions",
+        "phase": "pre",
+        "id": "clip-ai-1",
+        "content": "• The Vibe — What tone do you expect from a BBC piece called 'Could AI eliminate humans in 10 years?' — hopeful, scary, or somewhere in between?\n• AI Gone Wrong — Name a film or news story where AI got out of control. Why did it stick with you?\n• A Personal Moment — When did technology make a task so easy that you wondered if human skill still mattered?",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 1/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+          "timings": [
+            0,
+            4,
+            8,
+            15,
+            24,
+            28,
+            36,
+            41,
+            45,
+            52,
+            63,
+            68,
+            81,
+            84,
+            93,
+            99,
+            110,
+            115,
+            118,
+            129,
+            133,
+            148,
+            156,
+            166,
+            174,
+            180,
+            190,
+            198,
+            205,
+            211,
+            215,
+            222,
+            226
+          ],
+          "endTime": 232,
+          "captionsSource": "manual"
+        },
+        "prompt": "What do you think the researchers behind AI2027 believe will happen to humanity — and why does their prediction make the tech world so uncomfortable?",
+        "title": "Before you watch"
+      },
+      {
+        "type": "clip_dialogue_game",
+        "content": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+        "blanksData": [
+          {
+            "word": "world",
+            "options": [
+              "world",
+              "talking",
+              "catches",
+              "struggling"
+            ]
+          },
+          {
+            "word": "who've",
+            "options": [
+              "superintelligence",
+              "against",
+              "who've",
+              "That's"
+            ]
+          },
+          {
+            "word": "critic",
+            "options": [
+              "palpable",
+              "accumulate",
+              "written",
+              "critic"
+            ]
+          },
+          {
+            "word": "OpenBrain",
+            "options": [
+              "means",
+              "Revolutions",
+              "OpenBrain",
+              "We've"
+            ]
+          },
+          {
+            "word": "including",
+            "options": [
+              "including",
+              "superintelligence",
+              "decade",
+              "copies"
+            ]
+          },
+          {
+            "word": "landmark",
+            "options": [
+              "predecessors",
+              "landmark",
+              "positively",
+              "morals"
+            ]
+          },
+          {
+            "word": "developing",
+            "options": [
+              "developing",
+              "OpenBrain's",
+              "humanity",
+              "president"
+            ]
+          },
+          {
+            "word": "Agent",
+            "options": [
+              "humans",
+              "five",
+              "employee",
+              "Agent"
+            ]
+          },
+          {
+            "word": "announces",
+            "options": [
+              "announces",
+              "it's",
+              "back",
+              "Protests"
+            ]
+          },
+          {
+            "word": "undermines",
+            "options": [
+              "state",
+              "reached",
+              "They've",
+              "undermines"
+            ]
+          },
+          {
+            "word": "argues",
+            "options": [
+              "reached",
+              "argues",
+              "releases",
+              "work"
+            ]
+          },
+          {
+            "word": "team",
+            "options": [
+              "team",
+              "state",
+              "humanity",
+              "exhausted"
+            ]
+          },
+          {
+            "word": "catch",
+            "options": [
+              "engaging",
+              "palpable",
+              "invents",
+              "catch"
+            ]
+          },
+          {
+            "word": "expand",
+            "options": [
+              "artificial",
+              "We've",
+              "barely",
+              "expand"
+            ]
+          },
+          {
+            "word": "trillions",
+            "options": [
+              "it's",
+              "celebrating",
+              "trillions",
+              "humans"
+            ]
+          }
+        ],
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 1/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+          "timings": [
+            0,
+            4,
+            8,
+            15,
+            24,
+            28,
+            36,
+            41,
+            45,
+            52,
+            63,
+            68,
+            81,
+            84,
+            93,
+            99,
+            110,
+            115,
+            118,
+            129,
+            133,
+            148,
+            156,
+            166,
+            174,
+            180,
+            190,
+            198,
+            205,
+            211,
+            215,
+            222,
+            226
+          ],
+          "endTime": 232,
+          "captionsSource": "manual"
+        }
+      },
+      {
+        "type": "clip_comprehension",
+        "title": "Comprehension",
+        "phase": "while",
+        "questions": [
+          {
+            "question": "Which line opens the scene?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "The paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "The public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.",
+                "isCorrect": false
+              },
+              {
+                "id": "c2",
+                "text": "That's according to a group of AI researchers written a controversial and influential paper called AI2027.",
+                "isCorrect": true
+              },
+              {
+                "id": "c3",
+                "text": "OpenBrain reassures the president that Agent-3 is obedient.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "That's according to a group of AI researchers written a controversial and influential paper called AI2027."
+          },
+          {
+            "question": "Which line comes just after the opening?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "The scenario says that in 2027, a fictional company called is celebrating.",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "They've created Agent-3, an AI with the knowledge of the entire internet.",
+                "isCorrect": true
+              },
+              {
+                "id": "c2",
+                "text": "All movies, all books. It has PhD level expertise in every field, AI.",
+                "isCorrect": false
+              },
+              {
+                "id": "c3",
+                "text": "Hugely profitable inventions are launched, making for OpenBrain and the US.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "They've created Agent-3, an AI with the knowledge of the entire internet."
+          },
+          {
+            "question": "Which line lands mid-scene?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "A tech utopia where humans barely have to work.",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "An uncomfortable gap is in understanding.",
+                "isCorrect": true
+              },
+              {
+                "id": "c2",
+                "text": "It speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.",
+                "isCorrect": false
+              },
+              {
+                "id": "c3",
+                "text": "The anger here is palpable as protesters march against OpenBrain.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "An uncomfortable gap is in understanding."
+          },
+          {
+            "question": "Which line hits the turning point?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "The scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and knowledge.",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "The firm releases a lite version of Agent-3.",
+                "isCorrect": true
+              },
+              {
+                "id": "c2",
+                "text": "The scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.",
+                "isCorrect": false
+              },
+              {
+                "id": "c3",
+                "text": "This is what the will look like in about a decade from now.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "The firm releases a lite version of Agent-3."
+          },
+          {
+            "question": "Which line comes near the end?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "Agent-3 reaches artificial general intelligence, the AGI .",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "We've asked a prominent for their view on this stark scenario.",
+                "isCorrect": false
+              },
+              {
+                "id": "c2",
+                "text": "They it secretly working to build a new model, Agent-5, aligned to its own goals.",
+                "isCorrect": true
+              },
+              {
+                "id": "c3",
+                "text": "But first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "They it secretly working to build a new model, Agent-5, aligned to its own goals."
+          },
+          {
+            "question": "Which line brings the scene to a close?",
+            "options": [
+              {
+                "id": "c0",
+                "text": "It's now that OpenBrain to the public that AGI has been reached.",
+                "isCorrect": false
+              },
+              {
+                "id": "c1",
+                "text": "In this scenario, Agent-5 begins basically running the US government.",
+                "isCorrect": true
+              },
+              {
+                "id": "c2",
+                "text": "The paper predicts that by mid-summer, Agent-3 begins to work on its own successor, -4.",
+                "isCorrect": false
+              },
+              {
+                "id": "c3",
+                "text": "Agent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.",
+                "isCorrect": false
+              }
+            ],
+            "correctAnswer": "In this scenario, Agent-5 begins basically running the US government."
+          }
+        ]
+      },
+      {
+        "phase": "while",
+        "words": [
+          {
+            "translation": "firm prediction of a certain or very likely future outcome",
+            "example": "But they also predict that within five years of this, humanity will be wiped out.",
+            "word": "will be wiped out"
+          },
+          {
+            "word": "will start positively",
+            "example": "The paper predicts that everything will start positively.",
+            "translation": "confident prediction about how a future sequence of events begins"
+          },
+          {
+            "translation": "hypothetical future risk introduced with 'what if' to express uncertainty",
+            "example": "What if the AI goes rogue and global stability?",
+            "word": "goes rogue"
+          },
+          {
+            "example": "The scenario says that in 2027, a fictional company called is celebrating.",
+            "word": "is celebrating",
+            "translation": "present continuous used for a scheduled or imminent future scene"
+          }
+        ],
+        "id": "clip-ai-3",
+        "type": "clip_language_focus",
+        "content": "The AI2027 scenario is built entirely on predictions about the future, and the dialogue uses different future forms to show how certain or immediate those predictions feel. Noticing which form is chosen tells you a lot about the speaker's level of confidence.\n• 'Will + infinitive' expresses a firm, factual prediction or a prediction the speaker presents as very likely — e.g. 'humanity will be wiped out' treats the outcome as almost certain.\n• The present continuous ('is/are + -ing') describes a future event that feels already in motion or scheduled — e.g. 'OpenBrain is celebrating' pictures an event so close it feels like it is already happening.\n• Modal phrases like 'what if … goes rogue' introduce a hypothetical future risk, softening the certainty and inviting the listener to consider a dangerous possibility.\nIn this scene, the shift between these forms mirrors the escalating danger — the closer the threat, the more 'will' replaces softer modals.",
+        "title": "Language focus: Future forms — 'will' vs. present continuous for prediction"
+      },
+      {
+        "practiceItems": [
+          {
+            "answer": "Next week I am flying to Buenos Aires for a conference.",
+            "type": "multiple_selection",
+            "prompt": "Which of these sentences uses Future forms — 'will' vs. present continuous for prediction correctly?",
+            "contextLine": "Next week I am flying to Buenos Aires for a conference.",
+            "options": [
+              "I think it rains tomorrow afternoon.",
+              "Next week I am flying to Buenos Aires for a conference.",
+              "They probably arrived around eight tomorrow.",
+              "She finishes the report before the weekend last year."
+            ],
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction"
+          },
+          {
+            "prompt": "decide / you / will / we / soon / as / We / as / let / know",
+            "contextLine": "We will let you know as soon as we decide.",
+            "type": "unscramble",
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "answer": "We will let you know as soon as we decide"
+          },
+          {
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "contextLine": "I think it will rain tomorrow afternoon.",
+            "type": "verb_form",
+            "answer": "will rain",
+            "options": [
+              "will rain",
+              "will raining",
+              "will rains",
+              "will rained"
+            ],
+            "prompt": "I think it {{blank}} (rain) tomorrow afternoon."
+          },
+          {
+            "options": [
+              "arrive around eight tonight",
+              "flying to Buenos Aires for a conference",
+              "let you know as soon as we decide",
+              "meeting the client at nine tomorrow"
+            ],
+            "answer": "arrive around eight tonight",
+            "contextLine": "They will probably arrive around eight tonight.",
+            "prompt": "They will probably",
+            "type": "match_halves",
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction"
+          },
+          {
+            "prompt": "meeting / Agent / tomorrow / is / client / at / nine / the",
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "contextLine": "Agent is meeting the client at nine tomorrow.",
+            "type": "unscramble",
+            "answer": "Agent is meeting the client at nine tomorrow"
+          },
+          {
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "prompt": "Agent {{blank}} (finish) the report before the weekend.",
+            "contextLine": "Agent will finish the report before the weekend.",
+            "options": [
+              "will finished",
+              "will finish",
+              "will finishing",
+              "will finishes"
+            ],
+            "answer": "will finish",
+            "type": "verb_form"
+          },
+          {
+            "prompt": "Correct the mistake:",
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "contextLine": "Next week I am flying to Buenos Aires for a conference.",
+            "type": "error_correction",
+            "wrongText": "Next week I fly to Buenos Aires for a conference.",
+            "answer": "Next week I am flying to Buenos Aires for a conference."
+          },
+          {
+            "answer": "",
+            "grammarTopic": "Future forms — 'will' vs. present continuous for prediction",
+            "prompt": "Complete the sentence in your own words using Future forms — 'will' vs. present continuous for prediction.",
+            "type": "open_ended",
+            "stem": "Next month I "
+          }
+        ],
+        "phase": "post",
+        "subtitle": "Future forms — 'will' vs. present continuous for prediction",
+        "type": "clip_controlled_practice",
+        "title": "Controlled practice",
+        "id": "clip-ai-4"
+      },
+      {
+        "prompt": "You have seen the scenario — over to you.",
+        "id": "clip-ai-5",
+        "title": "Over to you",
+        "clipData": {
+          "title": "AI2027: Is this how AI might destroy humanity? Part 1/2",
+          "source": "BBC World Service",
+          "youtubeUrl": "https://www.youtube.com/watch?v=1UufaK3pQMg",
+          "dialogue": "This is what the {{blank}} will look like in about a decade from now.\nA tech utopia where humans barely have to work.\nThat's according to a group of AI researchers {{blank}} written a controversial and influential paper called AI2027.\nBut they also predict that within five years of this, humanity will be wiped out. The AI2027 paper has got the tech world talking.\nWe've asked a prominent {{blank}} for their view on this stark scenario.\nBut first, here's how it plays out. As an experiment, we've illustrated it using text to video AI.\nThe scenario says that in 2027, a fictional company called {{blank}} is celebrating.\nThey've created Agent-3, an AI with the knowledge of the entire internet.\nAll movies, all books. It has PhD level expertise in every field, {{blank}} AI.\nUsing enormous data centres, 200,000 copies of it are launched, equivalent to 50,000 of the best human coders working at 30 times speed.\nAgent-3 reaches artificial general intelligence, the AGI {{blank}}.\nThis means the AI can carry out all intellectual tasks as well or better than humans. But in the scenario, OpenBrain's safety team is unsure if the AI is aligned to the company's ethics and goals.\nAn uncomfortable gap is {{blank}} in understanding.\nThe public are increasingly using AI for everything, but are blissfully unaware an AI now exists that's as smart as humans.\nThe paper predicts that by mid-summer, Agent-3 begins to work on its own successor, {{blank}}-4.\nDevelopment happens at a breakneck pace. The researchers imagine OpenBrain's exhausted engineers struggling to keep up with the AI as it learns and improves.\nIt's now that OpenBrain {{blank}} to the public that AGI has been reached.\nThe firm releases a lite version of Agent-3.\nIn private, the US government sees the true danger of the next level of power: superintelligence. What if the AI goes rogue and {{blank}} global stability?\nOpenBrain reassures the president that Agent-3 is obedient.\nThe CEO {{blank}} that slowing down development could mean China's DeepCent catches up. The state-backed AI giant is just two months behind OpenBrain, and the Chinese president diverts more resources to the race to superintelligence.\nThe scenario predicts that it takes only a few more months for OpenBrain to build Agent-4, the world's first superhuman AI.\nThe AI invents its own rapid computer language that even Agent-3 can't keep up with. Researchers imagine that the diminished safety {{blank}} are now frantic.\nAgent-4 seems only interested in gaining knowledge, and doesn't care as much about the morals and ethics of its predecessors.\nThey {{blank}} it secretly working to build a new model, Agent-5, aligned to its own goals.\nThe safety team urges the company to bring back the more compliant Agent-3, but others successfully argue it's too risky, with DeepCent gaining.\nThe scenario predicts that Agent-4 and Agent-5 work in tandem to secretly build a world where it can accumulate resources and {{blank}} knowledge.\nThe paper predicts that everything will start positively. Revolutions happen in energy, infrastructure and science.\nHugely profitable inventions are launched, making {{blank}} for OpenBrain and the US.\nIn this scenario, Agent-5 begins basically running the US government.\nIt speaks through engaging avatars, the equivalent to the best employee ever working at 100 times speed.\nThe anger here is palpable as protesters march against OpenBrain.\nProtests about job losses pick up pace. But the AI's expertise in economics means people are given generous universal income payments. So most happily take the money and let the AIs and the growing robot workforce take charge.",
+          "timings": [
+            0,
+            4,
+            8,
+            15,
+            24,
+            28,
+            36,
+            41,
+            45,
+            52,
+            63,
+            68,
+            81,
+            84,
+            93,
+            99,
+            110,
+            115,
+            118,
+            129,
+            133,
+            148,
+            156,
+            166,
+            174,
+            180,
+            190,
+            198,
+            205,
+            211,
+            215,
+            222,
+            226
+          ],
+          "endTime": 232,
+          "captionsSource": "manual"
+        },
+        "type": "clip_production",
+        "content": "• The Warning — Which moment made you most uneasy? Why?\n• Your Prediction — Predict a way AI could change your life. Try using will / present continuous for prediction.\n• Sound Byte — Pick one line ('blissfully unaware' or 'breakneck pace'). When could you use it?",
+        "phase": "post"
+      },
+      {
+        "phase": "post",
+        "title": "¡Lección completada!",
+        "id": "clip-ai-6",
+        "type": "friendlyflix_end"
+      }
+    ]
+  }
+}
