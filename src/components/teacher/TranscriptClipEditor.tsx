@@ -365,16 +365,17 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
   const [showTranscriptPaste, setShowTranscriptPaste] = useState(false);
   const [randomizeCount, setRandomizeCount] = useState<number>(mode === 'song' ? 8 : 12);
 
-  // Movie-only: full CLT deck generated around the authored dialogue_game +
-  // comprehension. Empty until the teacher clicks "Generar con IA" or
-  // "Generar por algoritmo". Preserved authored slides slot in at merge time.
+  // Movie-only: full CLT deck generated around the authored dialogue_game.
+  // Empty until the teacher clicks "Generar con IA" or "Generar por algoritmo".
+  // Preserved authored slides slot in at merge time.
+  //
+  // We keep the existing clip_comprehension slide in the deck so that on save
+  // the `.map` replacement below always has a slot to fill. Dropping it here
+  // would silently wipe teacher-authored questions whenever the teacher edits
+  // an existing lesson without regenerating the deck.
   const [generatedDeck, setGeneratedDeck] = useState<Slide[]>(() => {
     if (mode !== 'movie' || !initial?.slides) return [];
-    // If editing an existing lesson that already has a full deck, keep the
-    // surrounding slides so the teacher can re-save without losing them.
-    return initial.slides.filter(
-      s => s.type !== 'clip_dialogue_game' && s.type !== 'clip_comprehension',
-    );
+    return initial.slides.filter(s => s.type !== 'clip_dialogue_game');
   });
   const [generating, setGenerating] = useState<null | 'ai' | 'algorithmic'>(null);
   const [generatorInfo, setGeneratorInfo] = useState<string>('');
@@ -547,11 +548,17 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
         const withComp = comprehensionSlide
           ? generatedDeck.map(s => (s.type === 'clip_comprehension' ? comprehensionSlide : s))
           : generatedDeck;
+        const hasComp  = withComp.some(s => s.type === 'clip_comprehension');
         const predIdx  = withComp.findIndex(s => s.type === 'clip_predictions');
         const insertAt = predIdx >= 0 ? predIdx + 1 : Math.min(3, withComp.length);
+        // Insert gameSlide after predictions; if the deck has no comprehension
+        // slot at all (data drift / edge case) and the teacher has authored
+        // questions, also insert comprehensionSlide right after the game.
+        const authored: Slide[] = [gameSlide];
+        if (comprehensionSlide && !hasComp) authored.push(comprehensionSlide);
         slides = [
           ...withComp.slice(0, insertAt),
-          gameSlide,
+          ...authored,
           ...withComp.slice(insertAt),
         ];
         // Ensure clipData is on every slide that needs it (in case the AI or
