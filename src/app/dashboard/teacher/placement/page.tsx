@@ -4,6 +4,8 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { getAuth } from 'firebase/auth';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 import { usePlacementSessions, linkSessionToStudent as _linkSession } from '@/hooks/usePlacementSessions';
 import { useStudents } from '@/hooks/useStudents';
 import {
@@ -11,6 +13,7 @@ import {
   deletePlacementAssignment, type PlacementAssignment,
 } from '@/hooks/usePlacementAssignments';
 import { usePlacementSuiteSessions } from '@/hooks/usePlacementSuiteSessions';
+import { generateLearningProgram } from '@/lib/placementScoring';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 import type { PlacementSession, SectionScore } from '@/types/placement';
 import {
@@ -107,6 +110,27 @@ function SessionModal({
   const [downloading, setDownloading]     = useState(false);
   const [showPdfMenu, setShowPdfMenu]     = useState(false);
   const [tab, setTab]                     = useState<'results' | 'program'>('results');
+  const [generatingProgram, setGeneratingProgram] = useState(false);
+  const [generateError, setGenerateError]         = useState('');
+
+  const canGenerateProgram = !!session.placedLevel && !!session.weakAreas;
+
+  async function handleGenerateProgram() {
+    if (!canGenerateProgram || generatingProgram) return;
+    setGeneratingProgram(true);
+    setGenerateError('');
+    try {
+      const program = generateLearningProgram(session.placedLevel!, session.weakAreas ?? []);
+      await updateDoc(doc(db, 'placementSessions', session.id), {
+        learningProgram: program,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err: unknown) {
+      setGenerateError(err instanceof Error ? err.message : 'No se pudo generar el programa.');
+    } finally {
+      setGeneratingProgram(false);
+    }
+  }
   const appUrl  = typeof window !== 'undefined' ? window.location.origin : '';
   const testUrl = `${appUrl}/placement/${session.teacherId}`;
 
@@ -417,7 +441,25 @@ function SessionModal({
               ) : (
                 <div className="text-center py-12" style={{ color: B.purpleMed }}>
                   <p className="text-4xl mb-3">📋</p>
-                  <p className="text-sm">Learning program not generated yet.</p>
+                  <p className="text-sm mb-4">Learning program not generated yet.</p>
+                  {canGenerateProgram ? (
+                    <>
+                      <button
+                        onClick={handleGenerateProgram}
+                        disabled={generatingProgram}
+                        className="text-white text-sm px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                        style={{ background: B.purple }}>
+                        {generatingProgram ? 'Generando…' : '✨ Generar programa'}
+                      </button>
+                      {generateError && (
+                        <p className="text-xs mt-3" style={{ color: '#DC2626' }}>{generateError}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs" style={{ color: B.purpleLight }}>
+                      El test aún no está completo.
+                    </p>
+                  )}
                 </div>
               )}
             </>
