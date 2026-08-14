@@ -237,6 +237,29 @@ interface AiGeneratedDeck {
   source?: 'ai' | 'algorithmic';
 }
 
+// Slide types the AI/algorithmic generator produces AND that the teacher can
+// choose to selectively regenerate. dialogue_game is always teacher-authored
+// from the blanks form and comprehension is driven by the questions state, so
+// neither belongs here.
+type RegenTargetType =
+  | 'clip_cover'
+  | 'clip_vocab_match'
+  | 'clip_predictions'
+  | 'clip_language_focus'
+  | 'clip_controlled_practice'
+  | 'clip_production'
+  | 'friendlyflix_end';
+
+const REGEN_TARGETS: { id: RegenTargetType; label: string; icon: string }[] = [
+  { id: 'clip_cover',               label: 'Cover',               icon: '🎬' },
+  { id: 'clip_vocab_match',         label: 'Vocab',               icon: '💬' },
+  { id: 'clip_predictions',         label: 'Predictions',         icon: '🔮' },
+  { id: 'clip_language_focus',      label: 'Language focus',      icon: '🔬' },
+  { id: 'clip_controlled_practice', label: 'Controlled practice', icon: '📝' },
+  { id: 'clip_production',          label: 'Production',          icon: '🎤' },
+  { id: 'friendlyflix_end',         label: 'End card',            icon: '🏁' },
+];
+
 // Generate the 7 surrounding slides for a Friendlyflix® clip lesson. The
 // authored dialogue_game + comprehension slides are NEVER sent to the API;
 // they get merged back at their canonical positions by the caller.
@@ -379,6 +402,12 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
   });
   const [generating, setGenerating] = useState<null | 'ai' | 'algorithmic'>(null);
   const [generatorInfo, setGeneratorInfo] = useState<string>('');
+  // Which slide types the next generate run should overwrite in the deck.
+  // Defaults to "all" so the flow matches the previous single-button behaviour
+  // for first-time creators and users who just want a full regen.
+  const [regenTargets, setRegenTargets] = useState<Set<RegenTargetType>>(
+    () => new Set(REGEN_TARGETS.map(t => t.id)),
+  );
 
   const detectedBlanks = (dialogue.match(/\{\{blank\}\}/g) ?? []).length;
   useEffect(() => {
@@ -448,6 +477,10 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
     if (!title.trim())                       { setError(copy.errorNoTitle); return; }
     if (!source.trim())                      { setError(copy.errorNoSource); return; }
     if (!dialogue.trim())                    { setError(copy.errorNoDialogue); return; }
+    if (regenTargets.size === 0) {
+      setError('Marcá al menos una slide para regenerar.');
+      return;
+    }
 
     const clip: ClipData = {
       title: title.trim(),
@@ -462,17 +495,60 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
 
     setGenerating(genMode);
     setGeneratorInfo('');
-    const { slides, error: genErr } = await generateFullClipDeck(
+    const { slides: freshSlides, error: genErr } = await generateFullClipDeck(
       title.trim(), source.trim(), dialogue.trim(), level, clip, genMode,
     );
     setGenerating(null);
 
-    if (genErr || slides.length === 0) {
+    if (genErr || freshSlides.length === 0) {
       setError(`No se pudo generar el deck (${genMode}): ${genErr ?? 'sin slides'}. ${genMode === 'ai' ? 'Probá con Algoritmo.' : ''}`);
       return;
     }
-    setGeneratedDeck(slides);
-    setGeneratorInfo(`${genMode === 'ai' ? '✨ IA' : '⚙️ Algoritmo'}: ${slides.length} slides generadas alrededor de tu Dialogue Game + Comprehension.`);
+
+    // Merge: overwrite only the slide types the teacher checked. First-time
+    // creation (empty prev deck) always adopts the full fresh output — there's
+    // nothing to preserve yet.
+    const freshByType = new Map<string, Slide>();
+    for (const s of freshSlides) freshByType.set(s.type, s);
+
+    let touched: RegenTargetType[] = [];
+    setGeneratedDeck(prev => {
+      if (prev.length === 0) {
+        touched = freshSlides
+          .map(s => s.type as RegenTargetType)
+          .filter(t => regenTargets.has(t));
+        return freshSlides;
+      }
+      const merged = prev.map(s => {
+        if (!regenTargets.has(s.type as RegenTargetType)) return s;
+        const fresh = freshByType.get(s.type);
+        if (!fresh) return s;
+        touched.push(s.type as RegenTargetType);
+        return fresh;
+      });
+      return merged;
+    });
+
+    const labels = touched
+      .map(t => REGEN_TARGETS.find(x => x.id === t)?.label ?? t)
+      .join(', ');
+    setGeneratorInfo(
+      touched.length === 0
+        ? `${genMode === 'ai' ? '✨ IA' : '⚙️ Algoritmo'}: no había slides del tipo seleccionado para actualizar.`
+        : `${genMode === 'ai' ? '✨ IA' : '⚙️ Algoritmo'}: ${touched.length} slide${touched.length !== 1 ? 's' : ''} regenerada${touched.length !== 1 ? 's' : ''} (${labels}). El resto quedó intacto.`
+    );
+  }
+
+  function toggleRegenTarget(id: RegenTargetType) {
+    setRegenTargets(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function setAllRegenTargets(all: boolean) {
+    setRegenTargets(all ? new Set(REGEN_TARGETS.map(t => t.id)) : new Set());
   }
 
   async function handleSave() {
@@ -945,29 +1021,78 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
                   <div className="min-w-0">
                     <p className="text-xs text-[#E50914] font-semibold mb-0.5">🎬 Generar Full Deck CLT</p>
                     <p className="text-[11px] text-red-600/70 leading-relaxed">
-                      Crea las 7 slides alrededor (cover, predictions, vocab, language focus,
-                      controlled practice, production, end). Tu <code className="bg-red-100 px-1 rounded">dialogue_game</code> y <code className="bg-red-100 px-1 rounded">comprehension</code> quedan intactas.
+                      Marcá qué slides regenerar (las no marcadas quedan intactas). Tu <code className="bg-red-100 px-1 rounded">dialogue_game</code> y <code className="bg-red-100 px-1 rounded">comprehension</code> nunca se tocan.
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleGenerateDeck('ai')}
-                      disabled={generating !== null || saving}
+                      disabled={generating !== null || saving || regenTargets.size === 0}
                       className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-[#E50914] to-[#FF6B6B] text-white disabled:opacity-50 shadow-sm"
                     >
-                      {generating === 'ai' ? '⏳ Generando…' : '✨ Con IA'}
+                      {generating === 'ai' ? '⏳ Generando…' : `✨ Con IA (${regenTargets.size})`}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleGenerateDeck('algorithmic')}
-                      disabled={generating !== null || saving}
+                      disabled={generating !== null || saving || regenTargets.size === 0}
                       className="text-[11px] font-bold px-3 py-1.5 rounded-full border border-[#E50914] text-[#E50914] hover:bg-red-50 disabled:opacity-50"
                     >
-                      {generating === 'algorithmic' ? '⏳ Generando…' : '⚙️ Por algoritmo'}
+                      {generating === 'algorithmic' ? '⏳ Generando…' : `⚙️ Por algoritmo (${regenTargets.size})`}
                     </button>
                   </div>
                 </div>
+
+                {/* Selector de slides a regenerar */}
+                <div className="mb-2 bg-white border border-red-100 rounded-lg p-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#E50914]/80">
+                      Slides a regenerar
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setAllRegenTargets(true)}
+                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-[#E50914] hover:bg-red-50 border border-red-100"
+                      >
+                        Marcar todas
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAllRegenTargets(false)}
+                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-50 border border-gray-200"
+                      >
+                        Ninguna
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
+                    {REGEN_TARGETS.map(t => {
+                      const on = regenTargets.has(t.id);
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => toggleRegenTarget(t.id)}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-left transition-colors ${
+                            on
+                              ? 'bg-[#E50914]/10 border-[#E50914]/40 text-[#E50914]'
+                              : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                          }`}
+                          title={t.id}
+                        >
+                          <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                            on ? 'bg-[#E50914] border-[#E50914] text-white' : 'border-gray-300'
+                          }`}>{on ? '✓' : ''}</span>
+                          <span className="text-sm shrink-0">{t.icon}</span>
+                          <span className="text-[10px] font-semibold truncate">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {generatorInfo && (
                   <p className="text-[11px] text-green-700 bg-green-50 border border-green-100 rounded px-2 py-1">
                     {generatorInfo}
