@@ -7,6 +7,11 @@ import type { Timestamp } from 'firebase/firestore';
 
 interface Props {
   students: FTUser[];
+  /** Número máximo de respuestas a mostrar. Default 15. */
+  max?: number;
+  /** Si true, muestra un estado vacío en lugar de auto-esconderse. Útil para la
+   *  página dedicada; en el dashboard queremos que la card no aparezca vacía. */
+  showEmpty?: boolean;
 }
 
 function formatDate(ts?: Timestamp): string {
@@ -14,14 +19,29 @@ function formatDate(ts?: Timestamp): string {
   return ts.toDate().toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 }
 
-export default function TeacherWordOfDayFeed({ students }: Props) {
+export default function TeacherWordOfDayFeed({ students, max = 15, showEmpty = false }: Props) {
   const studentIds = useMemo(
     () => students.filter(s => s.status === 'approved').map(s => s.uid),
     [students],
   );
-  const { submissions, loading } = useTeacherWordSubmissions(studentIds);
+  const { submissions, loading } = useTeacherWordSubmissions(studentIds, max);
 
-  if (loading || submissions.length === 0) return null;
+  if (loading) return null;
+
+  if (submissions.length === 0) {
+    if (!showEmpty) return null;
+    return (
+      <div className="glass-card rounded-2xl p-8 text-center">
+        <p className="text-3xl mb-3">📭</p>
+        <p className="text-sm text-gray-500">
+          Aún no hay respuestas de la palabra del día.
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          Cuando tus estudiantes envíen ejemplos, van a aparecer acá.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card rounded-2xl p-4">
