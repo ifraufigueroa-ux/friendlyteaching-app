@@ -61,7 +61,10 @@ export default function ProfilePage() {
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    if (!profile) return;
+    // Preferimos el uid del user autenticado por si el store está desincronizado
+    // (ver [[authstore-hydration-bug]]). Si igual no hay ninguno, salimos.
+    const uid = auth.currentUser?.uid ?? profile?.uid;
+    if (!uid) return;
     setSaving(true);
     setSaveMsg('');
     try {
@@ -73,11 +76,13 @@ export default function ProfilePage() {
       if (role === 'teacher') {
         patch['teacherData.bio'] = bio.trim() || null;
       }
-      await updateDoc(doc(db, 'users', profile.uid), patch);
+      await updateDoc(doc(db, 'users', uid), patch);
       setSaveMsg('✅ Perfil actualizado');
       setTimeout(() => setSaveMsg(''), 3000);
-    } catch {
-      setSaveMsg('❌ Error al guardar');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[profile] save failed:', err);
+      setSaveMsg(`❌ Error al guardar: ${msg}`);
     } finally {
       setSaving(false);
     }
