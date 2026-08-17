@@ -1,5 +1,8 @@
 // TOEFL Mock 1 — Introductory. Aggregates the four sections into a single
 // TOEFLMock object the runner can consume.
+//
+// This file also exports the full TOEFL_MOCKS registry and the getMock()
+// lookup for backwards compatibility with existing imports.
 
 import type { TOEFLMock } from '@/types/toefl';
 import { passage1 } from './reading/passage-1';
@@ -8,6 +11,9 @@ import { lecture1 } from './listening/lecture-1';
 import { conversation1 } from './listening/conversation-1';
 import { speakingPromptsMock1 } from './speaking/independent-prompts';
 import { writingPromptMock1 } from './writing/academic-discussion';
+import { toeflMock2 } from './mock-2';
+import { toeflMock3 } from './mock-3';
+import { toeflMock4 } from './mock-4';
 
 export const toeflMock1: TOEFLMock = {
   id:        'mock-1',
@@ -18,7 +24,12 @@ export const toeflMock1: TOEFLMock = {
   writing:   writingPromptMock1,
 };
 
-export const TOEFL_MOCKS: TOEFLMock[] = [toeflMock1];
+export const TOEFL_MOCKS: TOEFLMock[] = [
+  toeflMock1,
+  toeflMock2,
+  toeflMock3,
+  toeflMock4,
+];
 
 export function getMock(id: string): TOEFLMock | undefined {
   return TOEFL_MOCKS.find(m => m.id === id);

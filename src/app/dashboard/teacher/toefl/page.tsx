@@ -17,17 +17,21 @@ import {
   type TOEFLSection, type TOEFLSession, type TOEFLListeningAudio,
 } from '@/types/toefl';
 import { listSessionsForTeacher, sectionsSummary } from '@/lib/toefl/sessions';
-import { toeflMock1 } from '@/lib/data/toefl/mock-1';
+import { TOEFL_MOCKS } from '@/lib/data/toefl/mock-1';
 
+// Cubre TODOS los mocks registrados — el manager de audio agrupa por mockId
+// para que el profe pueda ver/subir MP3s de cualquier mock desde una vista.
 const LISTENING_AUDIOS_FOR_UPLOAD: Array<{
   mockId:  string;
   mockTitle: string;
   audio:   TOEFLListeningAudio;
-}> = toeflMock1.listening.map((audio) => ({
-  mockId:    toeflMock1.id,
-  mockTitle: toeflMock1.title,
-  audio,
-}));
+}> = TOEFL_MOCKS.flatMap((mock) =>
+  mock.listening.map((audio) => ({
+    mockId:    mock.id,
+    mockTitle: mock.title,
+    audio,
+  })),
+);
 
 interface Preset {
   id:       string;
@@ -54,6 +58,7 @@ export default function TOEFLDashboardPage() {
     return () => unsub();
   }, []);
 
+  const [selectedMockId, setSelectedMockId] = useState<string>(TOEFL_MOCKS[0]?.id ?? 'mock-1');
   const [selectedPreset, setSelectedPreset] = useState<string>('rw');
   const [sections, setSections] = useState<Set<TOEFLSection>>(new Set(['reading', 'writing']));
   const [sessions, setSessions] = useState<TOEFLSession[]>([]);
@@ -97,8 +102,8 @@ export default function TOEFLDashboardPage() {
       params.set('sections', orderedSelected.join(','));
     }
     const qs = params.toString();
-    return `/toefl-mock/mock-1${qs ? '?' + qs : ''}`;
-  }, [teacherId, orderedSelected]);
+    return `/toefl-mock/${selectedMockId}${qs ? '?' + qs : ''}`;
+  }, [teacherId, orderedSelected, selectedMockId]);
 
   // Absolute URL for the share flow — always explicit about the sections so
   // the recipient can't accidentally get a different mock config than the one
@@ -109,8 +114,8 @@ export default function TOEFLDashboardPage() {
       teacherId,
       sections: orderedSelected.join(','),
     });
-    return `${window.location.origin}/toefl-mock/mock-1?${params.toString()}`;
-  }, [teacherId, orderedSelected]);
+    return `${window.location.origin}/toefl-mock/${selectedMockId}?${params.toString()}`;
+  }, [teacherId, orderedSelected, selectedMockId]);
 
   async function handleCopyLink() {
     if (!shareUrl) return;
@@ -168,6 +173,32 @@ export default function TOEFLDashboardPage() {
             <p className="text-sm text-[#5A3D7A]/70 max-w-lg mx-auto">
               Scoring 0-120 estilo ETS. AI grading para Writing y Speaking. Cortá el mock a lo que entre en tu clase.
             </p>
+          </div>
+
+          {/* Mock picker */}
+          <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5">
+            <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">
+              Elegí el mock
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {TOEFL_MOCKS.map((m) => {
+                const active = selectedMockId === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedMockId(m.id)}
+                    className={`text-left rounded-xl p-3 border-2 transition-all ${
+                      active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+                    }`}
+                  >
+                    <p className="text-sm font-bold text-[#5A3D7A]">{m.title}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                      {m.reading.map(r => r.title).join(' · ')}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Presets */}

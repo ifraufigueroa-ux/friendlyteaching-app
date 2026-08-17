@@ -16,8 +16,8 @@ import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import crypto from 'crypto';
-import { toeflMock1 } from '@/lib/data/toefl/mock-1';
-import type { TOEFLListeningAudio } from '@/types/toefl';
+import { TOEFL_MOCKS } from '@/lib/data/toefl/mock-1';
+import type { TOEFLListeningAudio, TOEFLMock } from '@/types/toefl';
 
 const BUCKET = 'friendly-scheduling.firebasestorage.app';
 const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY ?? process.env.ELEVEN_KEY ?? '';
@@ -25,10 +25,13 @@ const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY ?? process.env.ELEVEN_KEY ?? '
 // Voice map — matches scripts/generate-toefl-audios.js so audio generated
 // either way sounds the same. Add speakers as new mocks introduce them.
 const VOICES: Record<string, string> = {
-  prof:      'ThT5KcBeYPX3keUQqHPh',   // Dorothy (calm female)
-  student:   '21m00Tcm4TlvDq8ikWAM',   // Rachel (young female)
-  librarian: 'yoZ06aMxZJJ28mfd3POQ',   // Sam (warm male)
-  default:   'EXAVITQu4vr4xnSDxMaL',   // Bella
+  prof:       'ThT5KcBeYPX3keUQqHPh',   // Dorothy (calm female)
+  student:    '21m00Tcm4TlvDq8ikWAM',   // Rachel (young female)
+  librarian:  'yoZ06aMxZJJ28mfd3POQ',   // Sam (warm male)
+  advisor:    'yoZ06aMxZJJ28mfd3POQ',   // Sam — reuse warm male for advising roles
+  tutor:      'ThT5KcBeYPX3keUQqHPh',   // Dorothy — warm female for writing-center tutor
+  counsellor: 'yoZ06aMxZJJ28mfd3POQ',   // Sam — career counsellor
+  default:    'EXAVITQu4vr4xnSDxMaL',   // Bella
 };
 
 function pickVoice(speakerId: string): string {
@@ -53,10 +56,13 @@ interface Body {
   audioId:   string;
 }
 
-const MOCKS_BY_ID = { 'mock-1': toeflMock1 } as const;
+// Registry se genera desde TOEFL_MOCKS para que nuevos mocks se auto-registren.
+const MOCKS_BY_ID: Record<string, TOEFLMock> = Object.fromEntries(
+  TOEFL_MOCKS.map(m => [m.id, m]),
+);
 
 function findAudio(mockId: string, audioId: string): TOEFLListeningAudio | null {
-  const mock = MOCKS_BY_ID[mockId as keyof typeof MOCKS_BY_ID];
+  const mock = MOCKS_BY_ID[mockId];
   if (!mock) return null;
   return mock.listening.find(a => a.id === audioId) ?? null;
 }
