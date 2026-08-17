@@ -2,13 +2,14 @@
 // Teacher side: reads pending requests addressed to THIS teacher.
 // The authenticated /dashboard/student/book page always includes teacherId
 // in each request, so each teacher only sees their own students.
+'use client';
 import { useEffect, useState } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
   collection, query, where, orderBy, onSnapshot, updateDoc, doc, serverTimestamp,
   type FirestoreError, type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { useAuthStore } from '@/store/authStore';
 
 export interface BookingRequest {
   id: string;
@@ -26,61 +27,99 @@ export interface BookingRequest {
   createdAt:     import('firebase/firestore').Timestamp;
 }
 
-/** Teacher hook — lists pending requests addressed to the current teacher. */
+/** Teacher hook — lists pending requests addressed to the current teacher.
+ *  Subscribes to onAuthStateChanged directly instead of trusting the
+ *  Zustand authStore, which can stay hydrated as null after a fresh mount
+ *  and silently return zero requests. See [[authstore-hydration-bug]]. */
 export function useBookingRequests() {
-  const { profile } = useAuthStore();
-  const teacherId   = profile?.uid ?? '';
-
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    if (!teacherId) { setLoading(false); return; }
+    let mounted = true;
+    let stopFn: (() => void) | null = null;
 
-    // Primary query: filter by teacherId + status (requires composite index).
-    const q = query(
-      collection(db, 'bookingRequests'),
-      where('teacherId', '==', teacherId),
-      where('status',    '==', 'pending'),
-      orderBy('createdAt', 'desc'),
-    );
+    function startQuery(teacherId: string) {
+      if (!mounted) return;
 
-    const unsub = onSnapshot(
-      q,
-      (snap: QuerySnapshot<DocumentData>) => {
-        setRequests(
-          snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
-            id: d.id,
-            ...d.data(),
-          } as BookingRequest)),
-        );
-        setLoading(false);
-      },
-      (err: FirestoreError) => {
-        // Fallback while composite index is building: query by status only, filter client-side.
-        console.warn('useBookingRequests composite query failed, falling back:', err.message);
-        const fallback = query(
-          collection(db, 'bookingRequests'),
-          where('status', '==', 'pending'),
-          orderBy('createdAt', 'desc'),
-        );
-        onSnapshot(
-          fallback,
-          (snap: QuerySnapshot<DocumentData>) => {
-            setRequests(
-              snap.docs
-                .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as BookingRequest))
-                .filter((r: BookingRequest) => !r.teacherId || r.teacherId === teacherId),
-            );
+      const q = query(
+        collection(db, 'bookingRequests'),
+        where('teacherId', '==', teacherId),
+        where('status',    '==', 'pending'),
+        orderBy('createdAt', 'desc'),
+      );
+
+      const unsub = onSnapshot(
+        q,
+        (snap: QuerySnapshot<DocumentData>) => {
+          if (!mounted) return;
+          setRequests(
+            snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
+              id: d.id,
+              ...d.data(),
+            } as BookingRequest)),
+          );
+          setLoading(false);
+        },
+        (err: FirestoreError) => {
+          if (!mounted) return;
+          // Fallback while composite index is building: query by status only,
+          // filter client-side.
+          console.warn('useBookingRequests composite query failed, falling back:', err.message);
+          const fallback = query(
+            collection(db, 'bookingRequests'),
+            where('status', '==', 'pending'),
+            orderBy('createdAt', 'desc'),
+          );
+          const unsubFallback = onSnapshot(
+            fallback,
+            (snap: QuerySnapshot<DocumentData>) => {
+              if (!mounted) return;
+              setRequests(
+                snap.docs
+                  .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as BookingRequest))
+                  .filter((r: BookingRequest) => !r.teacherId || r.teacherId === teacherId),
+              );
+              setLoading(false);
+            },
+            () => { if (mounted) setLoading(false); },
+          );
+          stopFn = unsubFallback;
+        },
+      );
+
+      stopFn = unsub;
+    }
+
+    const auth = getAuth();
+    if (auth.currentUser) {
+      startQuery(auth.currentUser.uid);
+    } else {
+      let resolved = false;
+      const authUnsub = onAuthStateChanged(auth, (user) => {
+        if (!mounted) return;
+        if (user && !resolved) {
+          resolved = true;
+          authUnsub();
+          startQuery(user.uid);
+        } else if (!user && !resolved) {
+          // Wait ~2 s in case this is the pre-resolution null event.
+          setTimeout(() => {
+            if (!mounted || resolved) return;
+            resolved = true;
+            authUnsub();
             setLoading(false);
-          },
-          () => setLoading(false),
-        );
-      },
-    );
+          }, 2_000);
+        }
+      });
+      stopFn = authUnsub;
+    }
 
-    return unsub;
-  }, [teacherId]);
+    return () => {
+      mounted = false;
+      stopFn?.();
+    };
+  }, []);
 
   async function approveRequest(id: string): Promise<void> {
     await updateDoc(doc(db, 'bookingRequests', id), {
