@@ -38,10 +38,18 @@ export default function ScheduleSlot({ booking, isBlocked, isToday, onClick }: P
   let sublabel = '';
 
   const isInterview = booking?.bookingType === 'interview';
+  // Fallback si la booking se creó sin nombre (p.ej. estudiante sin fullName
+  // en su perfil que solicitó una clase). Mostramos el prefijo del email o
+  // "Sin nombre" para que el slot no quede mudo.
+  const displayName = booking
+    ? (booking.studentName?.trim()
+       || booking.studentEmail?.split('@')[0]
+       || 'Sin nombre')
+    : '';
 
   if (booking?.status === 'completed') {
     status = 'completed';
-    label = booking.studentName;
+    label = displayName;
     sublabel = booking.attendance === 'attended'
       ? '✓ Asistió'
       : booking.attendance === 'absent'
@@ -50,16 +58,16 @@ export default function ScheduleSlot({ booking, isBlocked, isToday, onClick }: P
   } else if (booking?.status === 'confirmed') {
     if (isInterview) {
       status = booking.isRecurring ? 'interview' : 'interview-once';
-      label = booking.studentName;
+      label = displayName;
       sublabel = booking.isRecurring ? '↻ Entrevista' : '• Entrevista';
     } else {
       status = booking.isRecurring ? 'occupied' : 'occupied-once';
-      label = booking.studentName;
+      label = displayName;
       sublabel = booking.isRecurring ? '↻ Recurrente' : '• Una vez';
     }
   } else if (booking?.status === 'pending') {
     status = 'pending';
-    label = booking.studentName;
+    label = displayName;
     sublabel = 'Pendiente';
   } else if (isBlocked) {
     status = 'blocked';

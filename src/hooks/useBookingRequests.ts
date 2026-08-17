@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import {
-  collection, query, where, orderBy, onSnapshot, updateDoc, doc, serverTimestamp,
+  collection, query, where, orderBy, onSnapshot, updateDoc, doc, getDoc, serverTimestamp,
   type FirestoreError, type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -126,11 +126,30 @@ export function useBookingRequests() {
   /** Aprobar = crear la booking real + marcar el request como approved.
    *  Antes sólo cambiaba el status, así que la clase nunca aparecía en el
    *  horario del estudiante ni del profe. Ahora usa el mismo createBooking
-   *  que el flujo manual (crea 52 semanas si es recurrente). */
+   *  que el flujo manual (crea 52 semanas si es recurrente).
+   *
+   *  Si el request llegó con studentName vacío (perfil sin fullName al
+   *  momento de solicitar), intentamos resolverlo desde el user doc antes
+   *  de escribir la booking — así la grilla no queda muda. */
   async function approveRequest(req: BookingRequest): Promise<void> {
     if (!req.teacherId) throw new Error('bookingRequest sin teacherId');
+
+    let studentName = req.studentName?.trim() ?? '';
+    if (!studentName && req.studentId) {
+      try {
+        const snap = await getDoc(doc(db, 'users', req.studentId));
+        const data = snap.data() as { fullName?: string; email?: string } | undefined;
+        studentName = data?.fullName?.trim() || data?.email?.split('@')[0] || '';
+      } catch {
+        // Sin permisos o sin doc: seguimos con el fallback abajo.
+      }
+    }
+    if (!studentName) {
+      studentName = req.studentEmail?.split('@')[0] || 'Estudiante';
+    }
+
     await createBooking(req.teacherId, {
-      studentName:  req.studentName,
+      studentName,
       studentEmail: req.studentEmail,
       studentId:    req.studentId,
       dayOfWeek:    req.requestedDow,
