@@ -12,6 +12,7 @@ import { useScheduleStore } from '@/store/scheduleStore';
 import { useClassHistory, recordClassSession, saveClassNotes } from '@/hooks/useClassHistory';
 import { ClassNotesModal } from '@/components/schedule/ClassNotesModal';
 import HistoryModal from '@/components/schedule/HistoryModal';
+import TeacherWordOfDayFeed from '@/components/gamification/TeacherWordOfDayFeed';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import SchedulingGrid from '@/components/schedule/SchedulingGrid';
@@ -804,6 +805,9 @@ export default function TeacherDashboardPage() {
             </div>
           </div>
         )}
+
+        {/* ── Palabra del día — respuestas de los estudiantes ── */}
+        <TeacherWordOfDayFeed students={students} />
 
         {/* ── Students overview (merged with contact) ─────────── */}
         {approvedStudents > 0 && (
