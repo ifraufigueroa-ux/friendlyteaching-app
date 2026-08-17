@@ -633,6 +633,10 @@ export const XP_REWARDS = {
   BADGE_UNLOCK: 10,         // base badge bonus (each badge also has xpReward)
 } as const;
 
+// Plataforma externa donde vive el material de la tarea (link-only homework).
+// 'other' cubre material propio del profe (Drive, PDF hospedado, etc.).
+export type HomeworkExternalPlatform = 'off2class' | 'ellii' | 'other';
+
 export interface Homework {
   id: string;
   assignedToStudentId?: string;
@@ -643,6 +647,11 @@ export interface Homework {
   description?: string;
   dueDate: Timestamp;
   slides?: Slide[];
+  // Tarea externa: link a Off2Class / Ellii / material propio. Si está seteado,
+  // el estudiante ve un botón que abre la URL en pestaña nueva y una acción
+  // separada para marcar la tarea como hecha (no hay slides ni auto-corrección).
+  externalUrl?: string;
+  externalPlatform?: HomeworkExternalPlatform;
   status: 'assigned' | 'submitted' | 'reviewed' | 'pending';
   submittedAt?: Timestamp;
   submittedAnswers?: Record<string, unknown>;
@@ -653,4 +662,50 @@ export interface Homework {
   reviewedBy?: string;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+}
+
+// ─── COWORK (workspace interno del equipo docente) ──────────────
+//
+// Espacio privado sólo para profesores: chat común, tablón de avisos
+// y presencia en línea. Pensado para escalar cuando la academia crezca
+// más allá de dos profes.
+
+export interface CoworkMessage {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoUrl?: string;
+  text: string;
+  // IDs de profesores mencionados con @nombre (para futuras notificaciones).
+  mentions?: string[];
+  // Editado / borrado suave — mantenemos el doc para preservar el hilo.
+  editedAt?: Timestamp;
+  deletedAt?: Timestamp;
+  createdAt: Timestamp;
+}
+
+export interface CoworkAnnouncement {
+  id: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  body: string;
+  // Anclado al tope del tablón. Cualquier profe puede fijar/desfijar.
+  pinned: boolean;
+  // uid → timestamp de lectura. Permite mostrar “no leído” por profe.
+  readBy?: Record<string, Timestamp>;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+export interface CoworkPresence {
+  id: string;              // = uid del profesor
+  uid: string;
+  fullName: string;
+  photoUrl?: string;
+  // Última señal de vida (heartbeat cada ~30 s). Se considera online si
+  // lastSeen está dentro de los últimos 60 s.
+  lastSeen: Timestamp;
+  // Ruta que el profe está mirando ahora (para el futuro “¿Dónde está?”).
+  currentPath?: string;
 }

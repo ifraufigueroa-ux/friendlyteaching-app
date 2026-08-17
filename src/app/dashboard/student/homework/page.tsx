@@ -3,13 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { useStudentHomework, submitHomework } from '@/hooks/useHomework';
+import { useStudentHomework, submitHomework, markExternalHomeworkDone } from '@/hooks/useHomework';
 import { usePublishedLessons } from '@/hooks/useLessons';
 import { useGamification } from '@/hooks/useGamification';
 import TopBar from '@/components/layout/TopBar';
 import BadgeUnlockToast from '@/components/gamification/BadgeUnlockToast';
-import type { Homework } from '@/types/firebase';
+import type { Homework, HomeworkExternalPlatform } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
+
+const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; icon: string; badge: string }> = {
+  off2class: { label: 'Off2Class',       icon: '🎓', badge: 'bg-orange-100 text-orange-700' },
+  ellii:     { label: 'Ellii',           icon: '📗', badge: 'bg-emerald-100 text-emerald-700' },
+  other:     { label: 'Material propio', icon: '🔗', badge: 'bg-purple-100 text-[#5A3D7A]' },
+};
 
 function formatDate(ts: Timestamp | undefined) {
   if (!ts) return '—';
@@ -47,6 +53,9 @@ export default function StudentHomeworkPage() {
   const [answer, setAnswer] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('pending');
+  // Guarda el id de la tarea externa que se está marcando para desactivar
+  // el botón y evitar doble click mientras Firestore responde.
+  const [markingId, setMarkingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isInitialized && !firebaseUser) router.replace('/auth/login');
@@ -65,6 +74,18 @@ export default function StudentHomeworkPage() {
       setAnswer('');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleMarkExternalDone = async (hw: Homework) => {
+    if (markingId) return;
+    setMarkingId(hw.id);
+    try {
+      await markExternalHomeworkDone(hw.id);
+      const onTime = hw.dueDate ? hw.dueDate.toDate().getTime() > Date.now() : true;
+      recordHomeworkSubmit(onTime, false).catch(() => {/* non-critical */});
+    } finally {
+      setMarkingId(null);
     }
   };
 
@@ -139,12 +160,21 @@ export default function StudentHomeworkPage() {
             const overdue = isOverdue(hw.dueDate) && hw.status !== 'submitted' && hw.status !== 'reviewed';
             const dueSoon = isDueSoon(hw.dueDate) && hw.status !== 'submitted' && hw.status !== 'reviewed';
 
+            const isExternal = !!hw.externalUrl;
+            const platform = isExternal ? EXTERNAL_PLATFORMS[hw.externalPlatform ?? 'other'] : null;
+            const canAct = hw.status === 'assigned' || hw.status === 'pending';
+
             return (
               <div key={hw.id} className={`bg-white rounded-2xl p-4 shadow-sm border ${overdue ? 'border-red-200' : dueSoon ? 'border-amber-200' : 'border-gray-100'}`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
+                      {platform && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${platform.badge}`}>
+                          {platform.icon} {platform.label}
+                        </span>
+                      )}
                       {overdue && <span className="text-xs font-bold text-red-500">⚠️ Vencida</span>}
                       {dueSoon && <span className="text-xs font-bold text-amber-500">⏰ Vence pronto</span>}
                       <p className="text-sm font-bold text-[#5A3D7A]">{hw.title}</p>
@@ -168,15 +198,37 @@ export default function StudentHomeworkPage() {
                     )}
                   </div>
 
-                  {/* CTA */}
-                  {(hw.status === 'assigned' || hw.status === 'pending') && (
-                    <button
-                      onClick={() => { setActiveHw(hw); setAnswer(''); }}
-                      className="flex-shrink-0 px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
-                    >
-                      Entregar
-                    </button>
-                  )}
+                  {/* CTAs */}
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    {isExternal && (
+                      <a
+                        href={hw.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-sm font-bold transition-colors text-center"
+                      >
+                        {platform!.icon} Abrir
+                      </a>
+                    )}
+                    {canAct && (
+                      isExternal ? (
+                        <button
+                          onClick={() => handleMarkExternalDone(hw)}
+                          disabled={markingId === hw.id}
+                          className="px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-40 transition-colors"
+                        >
+                          {markingId === hw.id ? 'Guardando…' : '✓ Marcar como hecha'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { setActiveHw(hw); setAnswer(''); }}
+                          className="px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
+                        >
+                          Entregar
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             );

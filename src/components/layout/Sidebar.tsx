@@ -9,6 +9,7 @@ import { logOut } from '@/lib/firebase/auth';
 import { useStudentHomework, useTeacherHomework } from '@/hooks/useHomework';
 import { useStudents } from '@/hooks/useStudents';
 import { usePlacementSessions } from '@/hooks/usePlacementSessions';
+import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -27,6 +28,8 @@ type NavItem = NavLink | NavGroup;
 
 const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher',             icon: '🏠', label: 'Panel Principal',   iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'group', label: 'Equipo' },
+  { type: 'link', href: '/dashboard/teacher/cowork',      icon: '🧑‍🏫', label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600' },
   { type: 'group', label: 'Gestión' },
   { type: 'link', href: '/dashboard/teacher/students',    icon: '👥', label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/teacher/history',     icon: '📋', label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
@@ -70,6 +73,9 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
   const teacherHw  = useTeacherHomework(role === 'teacher' ? uid : '');
   const { pendingStudents } = useStudents();
   const { sessions: placementSessions } = usePlacementSessions(role === 'teacher' ? uid : '');
+  // Avisos del COWORK sin leer — sólo mide para profes; el hook queda
+  // ocioso para estudiantes porque el guard del componente lo desmonta.
+  const { unreadCount: coworkUnread } = useCoworkAnnouncements(role === 'teacher' ? uid : '');
 
   return useMemo(() => {
     const badges = new Map<string, number>();
@@ -83,9 +89,10 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
       if (pendingStudents.length > 0) badges.set('/dashboard/teacher/students', pendingStudents.length);
       const unlinked = placementSessions.filter(s => !s.linkedStudentId && s.status !== 'in_progress').length;
       if (unlinked > 0) badges.set('/dashboard/teacher/placement', unlinked);
+      if (coworkUnread > 0) badges.set('/dashboard/teacher/cowork', coworkUnread);
     }
     return badges;
-  }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions]);
+  }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions, coworkUnread]);
 }
 
 // ── Component ─────────────────────────────────────────────────

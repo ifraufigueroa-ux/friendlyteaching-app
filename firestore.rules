@@ -186,7 +186,7 @@ service cloud.firestore {
                       (isApprovedStudent() &&
                        resource.data.assignedToStudentId == request.auth.uid &&
                        request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['submittedAt', 'submittedAnswers', 'status']));
+                         .hasOnly(['submittedAt', 'submittedAnswers', 'status', 'updatedAt']));
       allow delete: if isTeacher();
     }
 
@@ -374,6 +374,38 @@ service cloud.firestore {
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // ── COWORK (workspace del equipo docente) ─────────────────
+    // Chat, anuncios y presencia — sólo profesores. Cada profe crea
+    // sus propios docs (authorId == su uid) y puede editar/borrar los
+    // propios; el resto son de sólo lectura para los demás profes.
+    //
+    // Excepciones intencionales:
+    //  - Anuncios: cualquier profe puede fijar/desfijar y marcar como
+    //    leído (afecta sólo pinned / readBy / updatedAt).
+    //  - Presencia: cada profe escribe únicamente su propio doc (id = uid).
+    match /coworkMessages/{msgId} {
+      allow read:   if isTeacher();
+      allow create: if isTeacher() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.authorId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.authorId == request.auth.uid;
+    }
+
+    match /coworkAnnouncements/{annId} {
+      allow read:   if isTeacher();
+      allow create: if isTeacher() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isTeacher() && (
+                      resource.data.authorId == request.auth.uid ||
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['pinned', 'readBy', 'updatedAt'])
+                    );
+      allow delete: if isTeacher() && resource.data.authorId == request.auth.uid;
+    }
+
+    match /coworkPresence/{uid} {
+      allow read:  if isTeacher();
+      allow write: if isTeacher() && request.auth.uid == uid;
     }
 
     // IELTS practice-mode saved sessions (per student, per mock) so the

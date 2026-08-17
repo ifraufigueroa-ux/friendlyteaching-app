@@ -6,7 +6,7 @@ import {
   type QuerySnapshot, type DocumentData, type FirestoreError, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import type { Homework, Slide } from '@/types/firebase';
+import type { Homework, Slide, HomeworkExternalPlatform } from '@/types/firebase';
 
 // ── Teacher: todas las tareas asignadas ───────────────────────────────────────
 
@@ -120,11 +120,14 @@ export interface CreateHomeworkInput {
   description?: string;
   dueDate: Date;
   slides?: Slide[];
+  externalUrl?: string;
+  externalPlatform?: HomeworkExternalPlatform;
 }
 
 export async function createHomework(teacherId: string, data: CreateHomeworkInput): Promise<string> {
   const { Timestamp } = await import('firebase/firestore');
   const ref = doc(collection(db, 'homework'));
+  const cleanUrl = data.externalUrl?.trim() || null;
   await setDoc(ref, {
     assignedByTeacherId: teacherId,
     assignedToStudentId: data.assignedToStudentId ?? null,
@@ -134,11 +137,24 @@ export async function createHomework(teacherId: string, data: CreateHomeworkInpu
     description: data.description ?? '',
     dueDate: Timestamp.fromDate(data.dueDate),
     slides: data.slides && data.slides.length > 0 ? data.slides : null,
+    externalUrl: cleanUrl,
+    // Guardamos plataforma sólo si hay URL; sino queda null para no ensuciar.
+    externalPlatform: cleanUrl ? (data.externalPlatform ?? 'other') : null,
     status: 'assigned',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
   return ref.id;
+}
+
+// Marca una tarea externa como hecha por parte del estudiante. No hay
+// respuesta que guardar — el trabajo real vive en la plataforma externa.
+export async function markExternalHomeworkDone(hwId: string) {
+  await updateDoc(doc(db, 'homework', hwId), {
+    status: 'submitted',
+    submittedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function updateHomeworkFeedback(

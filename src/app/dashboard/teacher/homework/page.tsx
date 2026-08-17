@@ -10,7 +10,14 @@ import { useLessons } from '@/hooks/useLessons';
 import { useAIGrade } from '@/hooks/useAIGrade';
 import AIFeedbackPanel from '@/components/classroom/AIFeedbackPanel';
 import TopBar from '@/components/layout/TopBar';
-import type { Homework, Slide } from '@/types/firebase';
+import type { Homework, Slide, HomeworkExternalPlatform } from '@/types/firebase';
+
+// Metadatos de plataformas externas — icono + color de badge.
+const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; icon: string; badge: string }> = {
+  off2class: { label: 'Off2Class',    icon: '🎓', badge: 'bg-orange-100 text-orange-700' },
+  ellii:     { label: 'Ellii',        icon: '📗', badge: 'bg-emerald-100 text-emerald-700' },
+  other:     { label: 'Material propio', icon: '🔗', badge: 'bg-purple-100 text-[#5A3D7A]' },
+};
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   assigned:  { label: 'Asignada',   color: 'bg-blue-100 text-blue-700' },
@@ -44,7 +51,11 @@ export default function TeacherHomeworkPage() {
     assignedToStudentId: '',
     lessonId: '',
     dueDate: '',
+    externalUrl: '',
+    externalPlatform: 'off2class' as HomeworkExternalPlatform,
   });
+  // 'internal' = con slides (flujo original). 'external' = link a Off2Class/Ellii/etc.
+  const [taskMode, setTaskMode] = useState<'internal' | 'external'>('internal');
   const [importedSlides, setImportedSlides] = useState<Slide[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -61,6 +72,8 @@ export default function TeacherHomeworkPage() {
 
   const handleCreate = async () => {
     if (!form.title || !form.dueDate || saving) return;
+    // En modo externo la URL es obligatoria; en modo interno los slides son opcionales.
+    if (taskMode === 'external' && !form.externalUrl.trim()) return;
     setSaving(true);
     try {
       await createHomework(uid, {
@@ -69,10 +82,16 @@ export default function TeacherHomeworkPage() {
         assignedToStudentId: form.assignedToStudentId || undefined,
         lessonId: form.lessonId || undefined,
         dueDate: new Date(form.dueDate),
-        slides: importedSlides.length > 0 ? importedSlides : undefined,
+        slides: taskMode === 'internal' && importedSlides.length > 0 ? importedSlides : undefined,
+        externalUrl: taskMode === 'external' ? form.externalUrl : undefined,
+        externalPlatform: taskMode === 'external' ? form.externalPlatform : undefined,
       });
-      setForm({ title: '', description: '', assignedToStudentId: '', lessonId: '', dueDate: '' });
+      setForm({
+        title: '', description: '', assignedToStudentId: '', lessonId: '', dueDate: '',
+        externalUrl: '', externalPlatform: 'off2class',
+      });
       setImportedSlides([]);
+      setTaskMode('internal');
       setShowForm(false);
     } finally {
       setSaving(false);
@@ -180,6 +199,14 @@ export default function TeacherHomeworkPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.color}`}>{s.label}</span>
+                    {hw.externalUrl && (() => {
+                      const cfg = EXTERNAL_PLATFORMS[hw.externalPlatform ?? 'other'];
+                      return (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>
+                          {cfg.icon} {cfg.label}
+                        </span>
+                      );
+                    })()}
                     <p className="text-sm font-bold text-[#5A3D7A] truncate">{hw.title}</p>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
@@ -226,15 +253,79 @@ export default function TeacherHomeworkPage() {
       {/* Create modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-[#5A3D7A] mb-4">Nueva tarea</h2>
+
+            {/* Modo: interna (con slides) vs externa (link) */}
+            <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setTaskMode('internal')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  taskMode === 'internal' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-[#5A3D7A]'
+                }`}
+              >
+                🧩 Con slides
+              </button>
+              <button
+                type="button"
+                onClick={() => setTaskMode('external')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  taskMode === 'external' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-[#5A3D7A]'
+                }`}
+              >
+                🔗 Link externo
+              </button>
+            </div>
+
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Título *</label>
                 <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
                   className="w-full border border-[#C8A8DC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
-                  placeholder="Ej: Práctica de gramática - Unit 1" />
+                  placeholder={taskMode === 'external' ? 'Ej: Unit 3 — Present Perfect en Off2Class' : 'Ej: Práctica de gramática - Unit 1'} />
               </div>
+
+              {/* Campos exclusivos del modo externo */}
+              {taskMode === 'external' && (
+                <>
+                  <div>
+                    <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Plataforma</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(Object.keys(EXTERNAL_PLATFORMS) as HomeworkExternalPlatform[]).map(p => {
+                        const cfg = EXTERNAL_PLATFORMS[p];
+                        const selected = form.externalPlatform === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setForm(f => ({...f, externalPlatform: p}))}
+                            className={`px-2 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                              selected
+                                ? 'bg-[#F0E5FF] border-[#9B7CB8] text-[#5A3D7A]'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-[#C8A8DC]'
+                            }`}
+                          >
+                            <span className="block text-base mb-0.5">{cfg.icon}</span>
+                            {cfg.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Link a la tarea *</label>
+                    <input
+                      type="url"
+                      value={form.externalUrl}
+                      onChange={e => setForm(f => ({...f, externalUrl: e.target.value}))}
+                      className="w-full border border-[#C8A8DC] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+                      placeholder="https://…"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">El estudiante verá un botón que abre este link en una pestaña nueva.</p>
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Descripción</label>
                 <textarea value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))}
@@ -249,6 +340,7 @@ export default function TeacherHomeworkPage() {
                   {students.map(s => <option key={s.uid} value={s.uid}>{s.fullName}</option>)}
                 </select>
               </div>
+              {taskMode === 'internal' && (
               <div>
                 <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Lección relacionada</label>
                 <select
@@ -281,6 +373,7 @@ export default function TeacherHomeworkPage() {
                   ) : null;
                 })()}
               </div>
+              )}
               <div>
                 <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Fecha de entrega *</label>
                 <input type="date" value={form.dueDate} onChange={e => setForm(f => ({...f, dueDate: e.target.value}))}
