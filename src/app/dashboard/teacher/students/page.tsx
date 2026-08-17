@@ -1164,7 +1164,7 @@ export default function StudentsPage() {
                     </div>
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       <button
-                        onClick={() => approveRequest(req.id)}
+                        onClick={() => approveRequest(req)}
                         className="py-1.5 px-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-xs font-bold transition-colors"
                       >
                         Aprobar

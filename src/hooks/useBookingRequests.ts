@@ -10,6 +10,8 @@ import {
   type FirestoreError, type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { createBooking } from '@/hooks/useBookings';
+import { getWeekStart } from '@/lib/utils/dateUtils';
 
 export interface BookingRequest {
   id: string;
@@ -121,8 +123,25 @@ export function useBookingRequests() {
     };
   }, []);
 
-  async function approveRequest(id: string): Promise<void> {
-    await updateDoc(doc(db, 'bookingRequests', id), {
+  /** Aprobar = crear la booking real + marcar el request como approved.
+   *  Antes sólo cambiaba el status, así que la clase nunca aparecía en el
+   *  horario del estudiante ni del profe. Ahora usa el mismo createBooking
+   *  que el flujo manual (crea 52 semanas si es recurrente). */
+  async function approveRequest(req: BookingRequest): Promise<void> {
+    if (!req.teacherId) throw new Error('bookingRequest sin teacherId');
+    await createBooking(req.teacherId, {
+      studentName:  req.studentName,
+      studentEmail: req.studentEmail,
+      studentId:    req.studentId,
+      dayOfWeek:    req.requestedDow,
+      hour:         req.requestedHour,
+      minute:       0,
+      bookingType:  'class',
+      weekStart:    getWeekStart(new Date()),
+      isRecurring:  req.isRecurring,
+      notes:        req.message,
+    });
+    await updateDoc(doc(db, 'bookingRequests', req.id), {
       status:    'approved',
       updatedAt: serverTimestamp(),
     });
