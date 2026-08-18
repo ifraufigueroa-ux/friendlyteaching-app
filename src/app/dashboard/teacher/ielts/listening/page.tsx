@@ -742,6 +742,9 @@ function CBTFormRow({
   setActiveQIndex: (i: number) => void;
   allowReveal?:    boolean;
 }) {
+  // Practice-mode reveal state, matching QuestionCard / other renderers.
+  const [revealed, setRevealed] = useState(false);
+
   if (row.kind === 'text') {
     return (
       <div className="flex items-baseline gap-3 text-sm pl-9">
@@ -765,6 +768,14 @@ function CBTFormRow({
   const numBox = isActive
     ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
     : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
+
+  // Canonical accepted answer for the reveal chip. Mirrors QuestionCard.
+  const canonical =
+    q.type === 'multiple-choice' || q.type === 'matching' || q.type === 'plan-map-labelling'
+      ? (q.options.find((o) => o.id === q.correct)?.text ?? q.correct)
+      : q.type === 'multiple-choice-multi'
+        ? q.correct.map((id) => q.options.find((o) => o.id === id)?.text ?? id).join(' + ')
+        : q.accepted[0];
 
   return (
     <div
@@ -810,6 +821,22 @@ function CBTFormRow({
           />
         )}
         {row.suffix && <span className="text-[#2D1B4E]">{row.suffix}</span>}
+
+        {/* Practice mode: opt-in reveal button, aligned with the other renderers. */}
+        {allowReveal && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setRevealed((v) => !v); }}
+            title={revealed ? 'Hide answer' : 'Check answer'}
+            className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A] ml-1"
+          >
+            {revealed ? '⤴' : '👁'}
+          </button>
+        )}
+        {allowReveal && revealed && (
+          <span className="text-[11px] text-emerald-700 font-mono bg-emerald-50 border border-emerald-200 rounded px-1.5">
+            {canonical}
+          </span>
+        )}
       </div>
     </div>
   );
