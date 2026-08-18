@@ -10,7 +10,7 @@ import FullscreenButton from '@/components/ui/FullscreenButton';
 import { IELTS_CUE_CARDS, type CueCard } from '@/lib/data/ieltsCueCards';
 import { IELTS_PART1_TOPICS, IELTS_PART1_CORE_TOPIC_IDS, type Part1Topic } from '@/lib/data/ieltsPart1Topics';
 import { IELTS_PART3_QUESTIONS, type IELTSBand, type Part3Question } from '@/lib/data/ieltsPart3Questions';
-import { IELTS_MOCK_1_IDS, getMock1Part1Topics, getMock1Part3Questions } from '@/lib/data/ielts/mock-1';
+import { IELTS_MOCKS, getIeltsMockOrDefault } from '@/lib/data/ielts/mocks';
 
 type Part = 1 | 2 | 3;
 type Part2Phase = 'idle' | 'revealed' | 'prep' | 'speaking' | 'done';
@@ -322,6 +322,15 @@ export default function IELTSSpeakingMocksPage() {
   const [part, setPart] = useState<Part>(1);
   const [tipsOpen, setTipsOpen] = useState<Part | null>(null);
 
+  // Mock activo — leído de ?mock=X, cambiable in-page con los chips.
+  const [activeMockId, setActiveMockId] = useState<string>(IELTS_MOCKS[0].id);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = new URLSearchParams(window.location.search).get('mock');
+    if (raw && IELTS_MOCKS.some(m => m.id === raw)) setActiveMockId(raw);
+  }, []);
+  const activeMock = useMemo(() => getIeltsMockOrDefault(activeMockId), [activeMockId]);
+
   // Per-part timer state (independent so switching tabs doesn't reset).
   const [p1Phase, setP1Phase] = useState<SimplePhase>('idle');
   const [p3Phase, setP3Phase] = useState<SimplePhase>('idle');
@@ -386,22 +395,23 @@ export default function IELTSSpeakingMocksPage() {
     setP1MockIdx(0);
   }
 
-  // Carga las 3 partes del Speaking Mock 1 en una sola acción:
-  //   Part 1: queue de 3 topics fijos (work-studies → hometown → travel)
-  //   Part 2: cue card "memorable-trip" pre-seleccionada
-  //   Part 3: queue de 5 preguntas band 7-8 sobre viajes/cultura/tecnología
+  // Carga las 3 partes del Speaking Mock activo en una sola acción:
+  //   Part 1: queue con los topics del mock
+  //   Part 2: cue card del mock pre-seleccionada
+  //   Part 3: queue con las preguntas del mock
   // Salta a Part 1 con el timer listo para arrancar.
-  function loadMock1() {
-    const p1Topics = getMock1Part1Topics();
-    setP1MockQueue(p1Topics);
+  function loadCurrentMock() {
+    const mockSpeaking = activeMock.speaking;
+
+    setP1MockQueue(mockSpeaking.part1);
     setP1MockIdx(0);
-    setP1Topic(p1Topics[0]);
+    setP1Topic(mockSpeaking.part1[0]);
     setP1RollKey(k => k + 1);
     setP1Time(PART1_SECONDS);
-    setP1Phase('idle');   // dejamos que el profe apriete Start cuando quiera
+    setP1Phase('idle');
 
     // Part 2: buscar el índice de la cue card por id en el deck barajado.
-    const cueIdx = IELTS_CUE_CARDS.findIndex(c => c.id === IELTS_MOCK_1_IDS.speakingCueCardId);
+    const cueIdx = IELTS_CUE_CARDS.findIndex(c => c.id === mockSpeaking.cueCard.id);
     if (cueIdx >= 0) {
       setPickedIdx(cueIdx);
       setP2Phase('idle');
@@ -409,10 +419,9 @@ export default function IELTSSpeakingMocksPage() {
     }
 
     // Part 3: cargar la queue de preguntas y setear la primera.
-    const p3Queue = getMock1Part3Questions();
-    setP3MockQueue(p3Queue);
+    setP3MockQueue(mockSpeaking.part3);
     setP3MockIdx(0);
-    setP3Question(p3Queue[0]);
+    setP3Question(mockSpeaking.part3[0]);
     setP3RollKey(k => k + 1);
     setP3Phase('idle');
     setP3Time(PART3_SECONDS);
@@ -628,22 +637,42 @@ export default function IELTSSpeakingMocksPage() {
             </p>
           </div>
 
-          {/* ── Mock 1 quick-load ────────────────────────────────────── */}
-          <div className="max-w-3xl mx-auto mb-4 flex items-center gap-3 bg-white/70 border border-[#E8D5F0] rounded-2xl px-4 py-2.5 backdrop-blur-sm">
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
-                Speaking · Mock 1
-              </p>
-              <p className="text-[11px] text-gray-500 truncate">
-                Work/Studies → Hometown → Travel · cue &ldquo;memorable trip&rdquo; · 5 preguntas P3 sobre viajes
-              </p>
+          {/* ── Mock quick-load ──────────────────────────────────────── */}
+          <div className="max-w-3xl mx-auto mb-4 bg-white/70 border border-[#E8D5F0] rounded-2xl px-4 py-2.5 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
+                  Speaking · {activeMock.title.replace('IELTS GT · ', '')}
+                </p>
+                <p className="text-[11px] text-gray-500 truncate">
+                  {activeMock.speaking.part1.map(t => t.name).join(' → ')} · cue &ldquo;{activeMock.speaking.cueCard.topic.replace(/\.$/, '')}&rdquo; · {activeMock.speaking.part3.length} preguntas P3
+                </p>
+              </div>
+              <button
+                onClick={loadCurrentMock}
+                className="text-xs font-black px-3 py-1.5 rounded-full bg-[#E8B547] text-[#2D1B4E] hover:bg-[#F0C25A] active:scale-95 transition-all shrink-0"
+              >
+                ⭐ Cargar {activeMock.title.replace('IELTS GT · ', '')}
+              </button>
             </div>
-            <button
-              onClick={loadMock1}
-              className="text-xs font-black px-3 py-1.5 rounded-full bg-[#E8B547] text-[#2D1B4E] hover:bg-[#F0C25A] active:scale-95 transition-all shrink-0"
-            >
-              ⭐ Cargar Mock 1
-            </button>
+            {IELTS_MOCKS.length > 1 && (
+              <div className="mt-2 flex gap-1.5 flex-wrap">
+                {IELTS_MOCKS.map((m, i) => {
+                  const active = activeMockId === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setActiveMockId(m.id)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${
+                        active ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-500 hover:bg-[#F0E5FF]'
+                      }`}
+                    >
+                      Mock {i + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* ── Chapter-style part selector ─────────────────────────── */}

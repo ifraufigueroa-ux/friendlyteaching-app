@@ -10,12 +10,12 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
-import { readingGtMock1 } from '@/lib/data/ielts/reading/gtMock1';
+import { READING_MOCKS } from '@/lib/data/ielts/mocks';
 import type {
   ReadingMock, ReadingSection, ReadingQuestion, ReadingQuestionType,
 } from '@/types/ielts-reading';
 
-const MOCKS: ReadingMock[] = [readingGtMock1];
+const MOCKS: ReadingMock[] = READING_MOCKS;
 
 // ─── Formatting helpers ─────────────────────────────────────────────
 

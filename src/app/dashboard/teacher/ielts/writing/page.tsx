@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import { ALL_WRITING_PROMPTS, promptsForVersion } from '@/lib/data/ielts/writing';
-import { getMock1WritingTask1, getMock1WritingTask2 } from '@/lib/data/ielts/mock-1';
+import { IELTS_MOCKS, getIeltsMockOrDefault } from '@/lib/data/ielts/mocks';
 import type {
   IELTSVersion, WritingPrompt, AcademicTask1Prompt, GTTask1Prompt, Task2Prompt,
   WritingGradeResult, CriterionScore, IELTSBand,
@@ -405,6 +405,16 @@ export default function IELTSWritingPage() {
   const [version, setVersion] = useState<IELTSVersion>('academic');
   const [session, setSession] = useState<Session | null>(null);
 
+  // Mock activo — leído de ?mock=X del URL, con default al primer mock.
+  // Se puede cambiar in-page si en el futuro agregamos un selector.
+  const [activeMockId, setActiveMockId] = useState<string>(IELTS_MOCKS[0].id);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = new URLSearchParams(window.location.search).get('mock');
+    if (raw && IELTS_MOCKS.some(m => m.id === raw)) setActiveMockId(raw);
+  }, []);
+  const activeMock = useMemo(() => getIeltsMockOrDefault(activeMockId), [activeMockId]);
+
   // For results screen — keep the prompt + student answer that was graded.
   const [gradedPrompt, setGradedPrompt] = useState<WritingPrompt | null>(null);
   const [gradedAnswer, setGradedAnswer] = useState<string>('');
@@ -475,12 +485,11 @@ export default function IELTSWritingPage() {
     setTimerRunning(true);
   }
 
-  // Mock 1 fijo: T1 GT hotel-complaint + T2 tech-communication. Fuerza el
-  // toggle de version a general-training para que la UI coincida con lo
-  // que está corriendo.
-  function startMock1() {
-    const t1 = getMock1WritingTask1();
-    const t2 = getMock1WritingTask2();
+  // Carga el mock activo (T1 + T2 canónicos). Fuerza la version del toggle
+  // a general-training porque todos los IELTS Mocks actuales son GT.
+  function startCurrentMock() {
+    const t1 = activeMock.writing.task1;
+    const t2 = activeMock.writing.task2;
     const totalSec = 60 * 60;
     setVersion('general-training');
     setSession({
@@ -679,20 +688,42 @@ export default function IELTSWritingPage() {
                     60 min
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    onClick={startMock1}
-                    className="flex-1 py-2.5 bg-[#E8B547] text-[#2D1B4E] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0C25A] transition-colors"
-                    title="GT: hotel complaint (T1) + tech & communication (T2)"
-                  >
-                    ⭐ Cargar Mock 1
-                  </button>
-                  <button
-                    onClick={startMock}
-                    className="flex-1 py-2.5 bg-white text-[#5A3D7A] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0E5FF] transition-colors"
-                  >
-                    ▶ Random mock
-                  </button>
+                <div className="flex flex-col gap-2">
+                  {/* Selector de mock — se muestra sólo si hay más de uno. */}
+                  {IELTS_MOCKS.length > 1 && (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {IELTS_MOCKS.map((m, i) => {
+                        const active = activeMockId === m.id;
+                        return (
+                          <button
+                            key={m.id}
+                            onClick={() => setActiveMockId(m.id)}
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                              active ? 'bg-white text-[#5A3D7A]' : 'bg-white/20 text-white/80 hover:bg-white/30'
+                            }`}
+                            title={`${m.writing.task1.id} + ${m.writing.task2.id}`}
+                          >
+                            Mock {i + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={startCurrentMock}
+                      className="flex-1 py-2.5 bg-[#E8B547] text-[#2D1B4E] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0C25A] transition-colors"
+                      title={`GT: ${activeMock.writing.task1.title} (T1) + ${activeMock.writing.task2.title} (T2)`}
+                    >
+                      ⭐ Cargar {activeMock.title.replace('IELTS GT · ', '')}
+                    </button>
+                    <button
+                      onClick={startMock}
+                      className="flex-1 py-2.5 bg-white text-[#5A3D7A] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0E5FF] transition-colors"
+                    >
+                      ▶ Random mock
+                    </button>
+                  </div>
                 </div>
               </div>
 

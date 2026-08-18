@@ -18,21 +18,25 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { readingGtMock1 } from '@/lib/data/ielts/reading/gtMock1';
+import { READING_MOCKS, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
 import { gradeReadingAnswers } from '@/lib/ielts/scoreReading';
 import type {
   ReadingMock, ReadingSection, ReadingQuestion, ReadingQuestionType,
   ReadingSessionMode, ReadingGradeResult, StudentReadingAnswers,
 } from '@/types/ielts-reading';
 
-const MOCKS: ReadingMock[] = [readingGtMock1];
+const MOCKS: ReadingMock[] = READING_MOCKS;
 
 type Phase = 'setup' | 'running' | 'results';
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
+// Acepta tanto el reading-mock id ('reading-gt-mock-2') como el
+// aggregator id ('ielts-mock-2'), lo que sea que pasen desde el URL.
 function findMock(id: string): ReadingMock | undefined {
-  return MOCKS.find((m) => m.id === id);
+  const direct = MOCKS.find((m) => m.id === id);
+  if (direct) return direct;
+  return IELTS_MOCKS.find(m => m.id === id)?.reading;
 }
 
 function questionOffsetForSection(mock: ReadingMock, sectionIdx: number): number {

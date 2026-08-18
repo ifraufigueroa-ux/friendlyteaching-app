@@ -16,7 +16,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { storage } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { listeningMock1 } from '@/lib/data/ielts/listeningMock1';
+import { LISTENING_MOCKS, getListeningMock, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
 import { gradeAnswers } from '@/lib/ielts/scoreListening';
 import { loadMockAudioBindings, saveAudioBinding, deleteAudioBinding, type AudioSource } from '@/lib/ielts/audioStore';
 import {
@@ -28,7 +28,7 @@ import type {
   ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout, FormLayout, FormRow,
 } from '@/types/ielts';
 
-const MOCKS: ListeningMock[] = [listeningMock1];
+const MOCKS: ListeningMock[] = LISTENING_MOCKS;
 
 // ─── Audio player with playback-speed control ───────────────────────
 // Wraps a native <audio> and adds a speed pill selector below (0.75x /
@@ -1385,9 +1385,18 @@ export default function IELTSListeningPage() {
     return () => unsub();
   }, []);
 
-  // Only one mock ships in this MVP; when Mock 2 lands we'll add a picker
-  // and swap this constant for state.
-  const mock = MOCKS[0];
+  // Mock selection: reads ?mock=<ielts-mock-id> from the URL (piped by the
+  // /ielts landing picker), falls back to Mock 1. Also accepts the direct
+  // listening mock id (e.g. 'listening-mock-2') for backwards compat.
+  const mock = useMemo(() => {
+    if (typeof window === 'undefined') return MOCKS[0];
+    const raw = new URLSearchParams(window.location.search).get('mock') ?? '';
+    // If raw matches an IELTS aggregator id, resolve through the registry.
+    const viaAgg = IELTS_MOCKS.find(m => m.id === raw)?.listening;
+    if (viaAgg) return viaAgg;
+    // Otherwise treat as a direct listening-mock id.
+    return getListeningMock(raw) ?? MOCKS.find(m => m.id === raw) ?? MOCKS[0];
+  }, []);
 
   const [phase, setPhase] = useState<'landing' | 'running' | 'results'>('landing');
   const [mode, setMode] = useState<ListeningSessionMode>('exam');

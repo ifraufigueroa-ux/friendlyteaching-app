@@ -33,7 +33,7 @@ export const IELTS_MOCK_1_IDS = {
   // Writing GT Mock 1: carta de queja al hotel + ensayo sobre
   // tecnología y comunicación. Combinación balanceada para band 6-7.
   writingTask1Id:  'gt-t1-01-hotel-complaint',
-  writingTask2Id:  't2-01-tech-communication',
+  writingTask2Id:  'gt-t2-01-tech-communication',
 
   // Speaking Mock 1: Part 1 warm-up + cue card sobre viajes +
   // Part 3 alrededor del mismo eje (viajes, cultura, tecnología en
@@ -131,10 +131,7 @@ export const ieltsMock1: IELTSMock = {
   },
 };
 
-/** Registry — por ahora un solo mock, replica el patrón de TOEFL_MOCKS
- *  para que agregar Mock 2/3 más adelante sea trivial. */
-export const IELTS_MOCKS: IELTSMock[] = [ieltsMock1];
-
-export function getIeltsMock(id: string): IELTSMock | undefined {
-  return IELTS_MOCKS.find(m => m.id === id);
-}
+// Registry + getIeltsMock viven en @/lib/data/ielts/mocks para que
+// agregar mock 4/5/… no requiera editar este archivo. Este file sólo
+// define Mock 1 y sus helpers puntuales (que se siguen usando desde
+// algunos consumers por compatibilidad).

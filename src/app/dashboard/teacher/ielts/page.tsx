@@ -14,6 +14,7 @@ import {
   IELTS_SECTIONS, IELTS_SECTION_META, IELTS_PRESETS,
   type IELTSSection, type IELTSPreset,
 } from '@/types/ielts-simulator';
+import { IELTS_MOCKS } from '@/lib/data/ielts/mocks';
 
 // Human "Nh Nmin" formatter for the total-time chip.
 function fmtDuration(min: number): string {
@@ -24,11 +25,22 @@ function fmtDuration(min: number): string {
 }
 
 export default function IELTSSimulatorPage() {
+  // Mock picker — cada launch propaga ?mock=<id> a la sección abierta.
+  const [selectedMockId, setSelectedMockId] = useState<string>(IELTS_MOCKS[0].id);
   const [selectedPreset, setSelectedPreset] = useState<string>('full-gt');
   const [sections, setSections] = useState<Set<IELTSSection>>(
     new Set(['listening', 'reading', 'writing', 'speaking']),
   );
   const [notice, setNotice] = useState<string | null>(null);
+
+  // Compone la URL de una sección con el mock activo como query.
+  // La sección de reading usa /reading/[mockId] (ruta dinámica) — para las
+  // demás basta con appendear ?mock=X.
+  function sectionHref(s: IELTSSection): string {
+    const base = IELTS_SECTION_META[s].href;
+    if (s === 'reading') return `${base}/${selectedMockId}`;
+    return `${base}?mock=${encodeURIComponent(selectedMockId)}`;
+  }
 
   // Auto-clear the "opened" notice after a few seconds so it doesn't linger.
   useEffect(() => {
@@ -66,7 +78,7 @@ export default function IELTSSimulatorPage() {
     if (orderedSelected.length === 0) return;
     for (const s of orderedSelected) {
       const meta = IELTS_SECTION_META[s];
-      window.open(meta.href, '_blank', 'noopener,noreferrer');
+      window.open(sectionHref(s), '_blank', 'noopener,noreferrer');
     }
     setNotice(
       orderedSelected.length === 1
@@ -76,8 +88,7 @@ export default function IELTSSimulatorPage() {
   }
 
   function handleLaunchOne(s: IELTSSection) {
-    const meta = IELTS_SECTION_META[s];
-    window.open(meta.href, '_blank', 'noopener,noreferrer');
+    window.open(sectionHref(s), '_blank', 'noopener,noreferrer');
   }
 
   return (
@@ -130,6 +141,32 @@ export default function IELTSSimulatorPage() {
               Listening + Reading + Writing + Speaking en el orden oficial.
               Band scoring 0–9. AI grading para Writing con band descriptors oficiales.
             </p>
+          </div>
+
+          {/* Mock picker */}
+          <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5">
+            <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">
+              Elegí el mock
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {IELTS_MOCKS.map((m) => {
+                const active = selectedMockId === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedMockId(m.id)}
+                    className={`text-left rounded-xl p-3 border-2 transition-all ${
+                      active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
+                    }`}
+                  >
+                    <p className="text-sm font-bold text-[#5A3D7A]">{m.title}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                      L: {m.listening.sections.length}·10 Qs · R: {m.reading.totalQuestions} Qs · W: {m.writing.task1.title}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Presets */}

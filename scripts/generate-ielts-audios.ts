@@ -1,15 +1,14 @@
-// One-shot: genera los 4 audios de IELTS Listening Mock 1 con ElevenLabs,
-// los sube a Firebase Storage, y escribe los bindings en ieltsListeningAudios
-// para que la página de listening los tome cacheados.
+// One-shot: genera los audios del IELTS Listening (todos los mocks o uno
+// específico), sube a Firebase Storage y escribe los bindings en la
+// colección ieltsListeningAudios para que el UI los tome cacheados.
 //
 // Usage:
-//   npx tsx scripts/generate-ielts-audios.ts <email or uid> [mockId]
-//     mockId: por default 'listening-mock-1'.
+//   npx tsx scripts/generate-ielts-audios.ts <email or uid> [mockId|all]
+//     mockId acepta el listening id ('listening-mock-2') o el aggregator
+//     id ('ielts-mock-2'). Default: 'all' → recorre todos los mocks.
 //
-// Env:
-//   ELEVEN_KEY / ELEVENLABS_API_KEY y FIREBASE_SERVICE_ACCOUNT_JSON.
-//   Lee ambos desde .env.local como fallback (igual patrón que el script
-//   de TOEFL).
+// Env: ELEVEN_KEY/ELEVENLABS_API_KEY + FIREBASE_SERVICE_ACCOUNT_JSON.
+//      Leídos desde .env.local si no están en el ambiente.
 //
 // Skipea audios cuyo binding ya existe, así que se puede re-correr sin
 // duplicar ni volver a pagar por audios ya generados.
@@ -22,8 +21,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { listeningMock1 } from '@/lib/data/ielts/listeningMock1';
-import type { ListeningSection } from '@/types/ielts';
+import { LISTENING_MOCKS, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
+import type { ListeningMock, ListeningSection } from '@/types/ielts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -79,15 +78,29 @@ const bucket = getStorage().bucket();
 // ─── args ───────────────────────────────────────────────────────
 
 const arg = process.argv[2];
-const mockId = process.argv[3] || listeningMock1.id;
+const mockArg = process.argv[3] || 'all';
 if (!arg) {
-  console.error('Usage: npx tsx scripts/generate-ielts-audios.ts <email or uid> [mockId]');
+  console.error('Usage: npx tsx scripts/generate-ielts-audios.ts <email or uid> [mockId|all]');
   process.exit(1);
 }
-if (mockId !== listeningMock1.id) {
-  console.error(`❌ Sólo ${listeningMock1.id} está disponible por ahora.`);
+
+// Resuelve mockArg → ListeningMock[]. Acepta 'all', un listening id o un
+// aggregator id (ielts-mock-N).
+function resolveMocksToRun(raw: string): ListeningMock[] {
+  if (raw === 'all') return LISTENING_MOCKS;
+  const direct = LISTENING_MOCKS.find(m => m.id === raw);
+  if (direct) return [direct];
+  const viaAgg = IELTS_MOCKS.find(m => m.id === raw)?.listening;
+  if (viaAgg) return [viaAgg];
+  const validIds = [
+    ...LISTENING_MOCKS.map(m => m.id),
+    ...IELTS_MOCKS.map(m => m.id),
+    'all',
+  ];
+  console.error(`❌ Mock desconocido: ${raw}. Válidos: ${validIds.join(', ')}`);
   process.exit(1);
 }
+const mocksToRun = resolveMocksToRun(mockArg);
 
 // ─── helpers ────────────────────────────────────────────────────
 
@@ -143,8 +156,12 @@ function segmentText(idx: number, text: string): string {
 
 // ─── main ───────────────────────────────────────────────────────
 
-async function generateSection(uid: string, section: ListeningSection): Promise<{ generated: boolean; url: string }> {
-  const bindingKey = `${uid}_${listeningMock1.id}_${section.number}`;
+async function generateSection(
+  uid: string,
+  mock: ListeningMock,
+  section: ListeningSection,
+): Promise<{ generated: boolean; url: string }> {
+  const bindingKey = `${uid}_${mock.id}_${section.number}`;
   const bindingRef = db.collection('ieltsListeningAudios').doc(bindingKey);
 
   const existing = await bindingRef.get();
@@ -154,7 +171,7 @@ async function generateSection(uid: string, section: ListeningSection): Promise<
 
   const speakerMap = new Map(section.speakers.map(s => [s.id, s]));
 
-  console.log(`\n── Section ${section.number} · ${section.title} · ${section.script.length} líneas ──`);
+  console.log(`\n── ${mock.id} · Section ${section.number} · ${section.title} · ${section.script.length} líneas ──`);
   const buffers: Buffer[] = [];
   let charsSent = 0;
   for (let i = 0; i < section.script.length; i++) {
@@ -171,14 +188,14 @@ async function generateSection(uid: string, section: ListeningSection): Promise<
   }
 
   const combined = Buffer.concat(buffers);
-  const storagePath = `audio/ielts-${section.number}-dialogue-${uid}-${Date.now()}.mp3`;
+  const storagePath = `audio/ielts-${mock.id}-${section.number}-${uid}-${Date.now()}.mp3`;
   const file = bucket.file(storagePath);
   await file.save(combined, { contentType: 'audio/mpeg' });
   const url = await ensureDownloadUrl(file);
 
   await bindingRef.set({
     teacherId:     uid,
-    mockId:        listeningMock1.id,
+    mockId:        mock.id,
     sectionNumber: section.number,
     audioUrl:      url,
     source:        'generated',
@@ -192,21 +209,26 @@ async function generateSection(uid: string, section: ListeningSection): Promise<
 
 (async () => {
   const uid = await resolveUid(arg);
-  console.log(`\n🎧 Generando IELTS Listening Mock 1 para teacherId=${uid}\n   4 secciones · voces por speaker según mock`);
+  console.log(
+    `\n🎧 Generando IELTS Listening para teacherId=${uid}\n   mocks: ${mocksToRun.map(m => m.id).join(', ')}\n`,
+  );
 
   let generated = 0;
   let cached    = 0;
-  for (const section of listeningMock1.sections) {
-    try {
-      const r = await generateSection(uid, section);
-      if (r.generated) generated++;
-      else {
-        cached++;
-        console.log(`  ⏭  Section ${section.number} — ya cacheada, skip`);
+  for (const mock of mocksToRun) {
+    console.log(`\n═══ ${mock.id} — ${mock.sections.length} secciones ═══`);
+    for (const section of mock.sections) {
+      try {
+        const r = await generateSection(uid, mock, section);
+        if (r.generated) generated++;
+        else {
+          cached++;
+          console.log(`  ⏭  ${mock.id}/S${section.number} — ya cacheada, skip`);
+        }
+      } catch (err) {
+        console.error(`\n❌ Falló ${mock.id}/Section ${section.number}:`, err instanceof Error ? err.message : err);
+        process.exit(1);
       }
-    } catch (err) {
-      console.error(`\n❌ Falló Section ${section.number}:`, err instanceof Error ? err.message : err);
-      process.exit(1);
     }
   }
 
