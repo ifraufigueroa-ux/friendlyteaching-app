@@ -10,6 +10,7 @@ import FullscreenButton from '@/components/ui/FullscreenButton';
 import { IELTS_CUE_CARDS, type CueCard } from '@/lib/data/ieltsCueCards';
 import { IELTS_PART1_TOPICS, IELTS_PART1_CORE_TOPIC_IDS, type Part1Topic } from '@/lib/data/ieltsPart1Topics';
 import { IELTS_PART3_QUESTIONS, type IELTSBand, type Part3Question } from '@/lib/data/ieltsPart3Questions';
+import { IELTS_MOCK_1_IDS, getMock1Part1Topics, getMock1Part3Questions } from '@/lib/data/ielts/mock-1';
 
 type Part = 1 | 2 | 3;
 type Part2Phase = 'idle' | 'revealed' | 'prep' | 'speaking' | 'done';
@@ -385,10 +386,47 @@ export default function IELTSSpeakingMocksPage() {
     setP1MockIdx(0);
   }
 
+  // Carga las 3 partes del Speaking Mock 1 en una sola acción:
+  //   Part 1: queue de 3 topics fijos (work-studies → hometown → travel)
+  //   Part 2: cue card "memorable-trip" pre-seleccionada
+  //   Part 3: queue de 5 preguntas band 7-8 sobre viajes/cultura/tecnología
+  // Salta a Part 1 con el timer listo para arrancar.
+  function loadMock1() {
+    const p1Topics = getMock1Part1Topics();
+    setP1MockQueue(p1Topics);
+    setP1MockIdx(0);
+    setP1Topic(p1Topics[0]);
+    setP1RollKey(k => k + 1);
+    setP1Time(PART1_SECONDS);
+    setP1Phase('idle');   // dejamos que el profe apriete Start cuando quiera
+
+    // Part 2: buscar el índice de la cue card por id en el deck barajado.
+    const cueIdx = IELTS_CUE_CARDS.findIndex(c => c.id === IELTS_MOCK_1_IDS.speakingCueCardId);
+    if (cueIdx >= 0) {
+      setPickedIdx(cueIdx);
+      setP2Phase('idle');
+      setP2Time(0);
+    }
+
+    // Part 3: cargar la queue de preguntas y setear la primera.
+    const p3Queue = getMock1Part3Questions();
+    setP3MockQueue(p3Queue);
+    setP3MockIdx(0);
+    setP3Question(p3Queue[0]);
+    setP3RollKey(k => k + 1);
+    setP3Phase('idle');
+    setP3Time(PART3_SECONDS);
+
+    setPart(1); // asegurar que arranque en Part 1
+  }
+
   // Part 3 random question by band
   const [p3Question, setP3Question] = useState<Part3Question | null>(null);
   const [p3RollKey, setP3RollKey]   = useState(0);
   const [p3Streak, setP3Streak]     = useState(0); // total questions drawn in this session
+  // Cuando Mock 1 está activo, caminamos por una queue fija en lugar de sortear.
+  const [p3MockQueue, setP3MockQueue] = useState<Part3Question[] | null>(null);
+  const [p3MockIdx, setP3MockIdx]     = useState(0);
 
   function pickP3Question(band: IELTSBand) {
     // Avoid serving the exact same question back-to-back at the same band.
@@ -401,10 +439,30 @@ export default function IELTSSpeakingMocksPage() {
     setP3Question(next);
     setP3RollKey(k => k + 1);
     setP3Streak(n => n + 1);
+    // Sortear rompe el modo Mock si estaba activo.
+    setP3MockQueue(null);
+    setP3MockIdx(0);
+  }
+
+  function nextP3MockQuestion() {
+    if (!p3MockQueue) return;
+    const nextIdx = p3MockIdx + 1;
+    if (nextIdx >= p3MockQueue.length) {
+      setP3MockQueue(null);
+      setP3MockIdx(0);
+      setP3Question(null);
+      return;
+    }
+    setP3MockIdx(nextIdx);
+    setP3Question(p3MockQueue[nextIdx]);
+    setP3RollKey(k => k + 1);
+    setP3Streak(n => n + 1);
   }
 
   function clearP3Question() {
     setP3Question(null);
+    setP3MockQueue(null);
+    setP3MockIdx(0);
   }
 
   // Part 2 state
@@ -568,6 +626,24 @@ export default function IELTSSpeakingMocksPage() {
               Rehearse the three examiner-graded sections under real timing.
               Draw cards, roll topics, ladder up through the bands.
             </p>
+          </div>
+
+          {/* ── Mock 1 quick-load ────────────────────────────────────── */}
+          <div className="max-w-3xl mx-auto mb-4 flex items-center gap-3 bg-white/70 border border-[#E8D5F0] rounded-2xl px-4 py-2.5 backdrop-blur-sm">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
+                Speaking · Mock 1
+              </p>
+              <p className="text-[11px] text-gray-500 truncate">
+                Work/Studies → Hometown → Travel · cue &ldquo;memorable trip&rdquo; · 5 preguntas P3 sobre viajes
+              </p>
+            </div>
+            <button
+              onClick={loadMock1}
+              className="text-xs font-black px-3 py-1.5 rounded-full bg-[#E8B547] text-[#2D1B4E] hover:bg-[#F0C25A] active:scale-95 transition-all shrink-0"
+            >
+              ⭐ Cargar Mock 1
+            </button>
           </div>
 
           {/* ── Chapter-style part selector ─────────────────────────── */}
@@ -985,12 +1061,26 @@ export default function IELTSSpeakingMocksPage() {
                 </div>
 
                 <div className="flex gap-2 justify-center flex-wrap">
-                  <button
-                    onClick={() => pickP3Question(p3Question.band)}
-                    className="px-4 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
-                  >
-                    🔀 Another Band {p3Question.band}
-                  </button>
+                  {p3MockQueue ? (
+                    <>
+                      <span className="text-[11px] font-bold text-[#5A3D7A] bg-[#F0E5FF] px-2.5 py-1.5 rounded-full">
+                        Mock 1 · pregunta {p3MockIdx + 1}/{p3MockQueue.length}
+                      </span>
+                      <button
+                        onClick={nextP3MockQuestion}
+                        className="px-4 py-2 bg-[#5A3D7A] hover:bg-[#4A3062] text-white rounded-full text-sm font-bold active:scale-95"
+                      >
+                        {p3MockIdx + 1 >= p3MockQueue.length ? 'Terminar Mock 1' : '→ Siguiente pregunta'}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => pickP3Question(p3Question.band)}
+                      className="px-4 py-2 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+                    >
+                      🔀 Another Band {p3Question.band}
+                    </button>
+                  )}
                   <button
                     onClick={clearP3Question}
                     className="px-3 py-2 text-xs font-semibold text-gray-400 hover:text-gray-600"

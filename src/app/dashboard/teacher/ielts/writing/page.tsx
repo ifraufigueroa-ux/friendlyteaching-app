@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import { ALL_WRITING_PROMPTS, promptsForVersion } from '@/lib/data/ielts/writing';
+import { getMock1WritingTask1, getMock1WritingTask2 } from '@/lib/data/ielts/mock-1';
 import type {
   IELTSVersion, WritingPrompt, AcademicTask1Prompt, GTTask1Prompt, Task2Prompt,
   WritingGradeResult, CriterionScore, IELTSBand,
@@ -474,6 +475,28 @@ export default function IELTSWritingPage() {
     setTimerRunning(true);
   }
 
+  // Mock 1 fijo: T1 GT hotel-complaint + T2 tech-communication. Fuerza el
+  // toggle de version a general-training para que la UI coincida con lo
+  // que está corriendo.
+  function startMock1() {
+    const t1 = getMock1WritingTask1();
+    const t2 = getMock1WritingTask2();
+    const totalSec = 60 * 60;
+    setVersion('general-training');
+    setSession({
+      kind:     'mock',
+      version:  'general-training',
+      task1:    t1,
+      task2:    t2,
+      answers:  { t1: loadDraft(`mock:${t1.id}:t1`), t2: loadDraft(`mock:${t2.id}:t2`) },
+      activeTab: 1,
+      seconds:  totalSec,
+      totalSec,
+    });
+    setPhase('running');
+    setTimerRunning(true);
+  }
+
   async function submit() {
     if (!session) return;
     setTimerRunning(false);
@@ -656,12 +679,21 @@ export default function IELTSWritingPage() {
                     60 min
                   </span>
                 </div>
-                <button
-                  onClick={startMock}
-                  className="w-full py-2.5 bg-white text-[#5A3D7A] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0E5FF] transition-colors"
-                >
-                  ▶ Start full mock
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={startMock1}
+                    className="flex-1 py-2.5 bg-[#E8B547] text-[#2D1B4E] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0C25A] transition-colors"
+                    title="GT: hotel complaint (T1) + tech & communication (T2)"
+                  >
+                    ⭐ Cargar Mock 1
+                  </button>
+                  <button
+                    onClick={startMock}
+                    className="flex-1 py-2.5 bg-white text-[#5A3D7A] rounded-full text-sm font-black shadow-lg active:scale-95 hover:bg-[#F0E5FF] transition-colors"
+                  >
+                    ▶ Random mock
+                  </button>
+                </div>
               </div>
 
               {/* Single-task practice */}
