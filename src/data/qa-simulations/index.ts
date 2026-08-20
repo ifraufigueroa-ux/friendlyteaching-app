@@ -9,14 +9,16 @@
 import type { QASimulation } from './types';
 import wellbeingNature from './wellbeing-nature.json';
 import gettingToKnowYouA1 from './getting-to-know-you-a1.json';
+import gettingToKnowYouA1B2 from './getting-to-know-you-a1-b2.json';
 import groundingKnowledge from './grounding-knowledge.json';
 import weeklyWarmup from './weekly-warmup.json';
 
 export const QA_SIMULATIONS: QASimulation[] = [
-  weeklyWarmup       as QASimulation,
-  gettingToKnowYouA1 as QASimulation,
-  groundingKnowledge as QASimulation,
-  wellbeingNature    as QASimulation,
+  weeklyWarmup         as QASimulation,
+  gettingToKnowYouA1   as QASimulation,
+  gettingToKnowYouA1B2 as QASimulation,
+  groundingKnowledge   as QASimulation,
+  wellbeingNature      as QASimulation,
 ];
 
 export function getSimulation(id: string): QASimulation | undefined {
