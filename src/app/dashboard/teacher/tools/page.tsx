@@ -64,6 +64,15 @@ const INTERNAL_TOOLS = [
     glow:        'shadow-emerald-200/40',
     badge:       'Nuevo',
   },
+  {
+    href:        '/dashboard/teacher/tools/random-topics',
+    icon:        '🎲',
+    title:       'Random Topic Simulator',
+    description: 'Ruleta de temas de conversación con follow-ups. 40 topics por 8 categorías (Life, Work, Culture, Tech, Society, Fun, Travel, Relationships).',
+    gradient:    'from-[#6366F1] to-[#A78BFA]',
+    glow:        'shadow-indigo-200/40',
+    badge:       'Nuevo',
+  },
 ];
 
 const EXTERNAL_TOOLS = [
