@@ -13,9 +13,12 @@ interface Props {
   subtitle?: string;
   actions?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
+  /** Optional visual leading slot (e.g. a logo circle) rendered to the left
+   *  of the title block. Kept optional so existing pages render unchanged. */
+  leading?: React.ReactNode;
 }
 
-export default function TopBar({ title, subtitle, actions, breadcrumbs }: Props) {
+export default function TopBar({ title, subtitle, actions, breadcrumbs, leading }: Props) {
   const { profile } = useAuthStore();
 
   return (
@@ -24,25 +27,28 @@ export default function TopBar({ title, subtitle, actions, breadcrumbs }: Props)
           top-right; actions drop to their own row below. On md+ everything
           fits on a single row with actions between title and avatar. */}
       <div className="flex items-start md:items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          {breadcrumbs && breadcrumbs.length > 0 && (
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-1 flex-wrap">
-              {breadcrumbs.map((crumb, i) => (
-                <span key={i} className="flex items-center gap-1.5">
-                  {i > 0 && <span className="text-gray-300">›</span>}
-                  {crumb.href ? (
-                    <Link href={crumb.href} className="hover:text-[#9B7CB8] transition-colors">
-                      {crumb.label}
-                    </Link>
-                  ) : (
-                    <span className="text-[#9B7CB8] font-medium">{crumb.label}</span>
-                  )}
-                </span>
-              ))}
-            </nav>
-          )}
-          <h1 className="text-lg sm:text-xl font-bold text-gradient-purple truncate">{title}</h1>
-          {subtitle && <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">{subtitle}</p>}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {leading && <div className="flex-shrink-0">{leading}</div>}
+          <div className="min-w-0 flex-1">
+            {breadcrumbs && breadcrumbs.length > 0 && (
+              <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-1 flex-wrap">
+                {breadcrumbs.map((crumb, i) => (
+                  <span key={i} className="flex items-center gap-1.5">
+                    {i > 0 && <span className="text-gray-300">›</span>}
+                    {crumb.href ? (
+                      <Link href={crumb.href} className="hover:text-[#9B7CB8] transition-colors">
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className="text-[#9B7CB8] font-medium">{crumb.label}</span>
+                    )}
+                  </span>
+                ))}
+              </nav>
+            )}
+            <h1 className="text-lg sm:text-xl font-bold text-gradient-purple truncate">{title}</h1>
+            {subtitle && <p className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">{subtitle}</p>}
+          </div>
         </div>
 
         {/* Right cluster — desktop keeps actions + avatar together */}

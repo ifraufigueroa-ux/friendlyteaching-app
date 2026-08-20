@@ -6,6 +6,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import {
@@ -173,7 +174,10 @@ export default function RandomTopicsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
-      {/* ── Ambient background — matches IELTS Speaking tone ───────────── */}
+      {/* ── Ambient background — beefed up so the glass TopBar has vivid
+          color behind it to blur through. Two overlapping wide blobs of
+          purple and gold anchored to the top of the page + a rotating
+          conic sweep add depth without noise. ───────────────────────────── */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none opacity-[0.05]"
@@ -186,14 +190,29 @@ export default function RandomTopicsPage() {
           WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
         }}
       />
+      {/* Wide radial glows — pulled up so the top half of the page has
+          real color for the header glassmorphism to filter. */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(60rem 40rem at 50% -10%, rgba(200,168,220,0.35) 0%, transparent 60%),' +
-            'radial-gradient(45rem 30rem at 10% 90%, rgba(232,181,71,0.15) 0%, transparent 60%),' +
-            'radial-gradient(45rem 30rem at 95% 15%, rgba(155,124,184,0.20) 0%, transparent 60%)',
+            'radial-gradient(70rem 45rem at 50% -5%, rgba(155,124,184,0.55) 0%, transparent 60%),' +
+            'radial-gradient(50rem 32rem at 8% 8%, rgba(232,181,71,0.35) 0%, transparent 65%),' +
+            'radial-gradient(50rem 32rem at 92% 12%, rgba(99,102,241,0.35) 0%, transparent 65%),' +
+            'radial-gradient(45rem 30rem at 15% 92%, rgba(232,181,71,0.20) 0%, transparent 60%)',
+        }}
+      />
+      {/* Dedicated glow band sitting exactly behind the TopBar so the
+          glass reads as a translucent panel instead of a flat white card. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-72 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(35rem 18rem at 20% 40%, rgba(232,181,71,0.5) 0%, transparent 65%),' +
+            'radial-gradient(35rem 18rem at 80% 40%, rgba(155,124,184,0.55) 0%, transparent 65%),' +
+            'radial-gradient(28rem 14rem at 50% 55%, rgba(236,72,153,0.28) 0%, transparent 70%)',
         }}
       />
 
@@ -207,6 +226,21 @@ export default function RandomTopicsPage() {
             { label: 'Tools', href: '/dashboard/teacher/tools' },
             { label: 'Random Topic Simulator' },
           ]}
+          leading={
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E8B547]/40 to-[#9B7CB8]/40 blur-md" />
+              <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/70 shadow-lg shadow-[#9B7CB8]/30">
+                <Image
+                  src="/logo-friendlyteaching.jpg"
+                  alt="FriendlyTeaching"
+                  width={44}
+                  height={44}
+                  className="object-cover w-full h-full"
+                  priority
+                />
+              </div>
+            </div>
+          }
           actions={
             <span className="text-xs text-gray-500 hidden sm:inline">
               Practicados: <strong className="text-[#5A3D7A]">{practiced}</strong>
