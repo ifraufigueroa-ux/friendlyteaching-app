@@ -82,6 +82,50 @@ export default function QASimulatorIndexPage() {
                 </Link>
               );
             })}
+
+            {/* Random Topic Simulator — special card with its own custom UI
+                (deck + 3D flip). Lives in the QA biblioteca for discoverability
+                but navigates to its own runner. */}
+            <Link
+              href="/dashboard/teacher/tools/random-topics"
+              className="group relative flex flex-col gap-4 p-6 rounded-2xl bg-white border border-[#E8D5F0] hover:border-transparent hover:shadow-xl shadow-indigo-200/40 transition-all duration-200 overflow-hidden"
+            >
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6366F1] to-[#A78BFA] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <div className="flex items-start justify-between">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6366F1] to-[#A78BFA] flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  🎲
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E0E7FF] text-[#4338CA] border border-[#C7D2FE]">
+                  40 topics
+                </span>
+              </div>
+
+              <div className="flex-1">
+                <p className="font-bold text-[#2D1B4E] text-base mb-1 group-hover:text-[#5A3D7A] transition-colors">
+                  Random Topic Simulator
+                </p>
+                <p className="text-[11px] font-semibold text-[#6366F1] mb-1.5">Mazo con flip 3D · follow-ups incluidos</p>
+                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                  Ruleta de temas de conversación. Cada carta trae un topic + 3 follow-ups
+                  para desarrollar la charla. Sin timer, ideal para clases generales.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-1">
+                {['Life', 'Work', 'Culture', 'Tech', 'Society', 'Fun'].map(c => (
+                  <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {c}
+                  </span>
+                ))}
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400">+2</span>
+              </div>
+
+              <div className="flex items-center gap-1 text-xs font-semibold text-[#6366F1] group-hover:text-[#4338CA] mt-auto transition-colors">
+                <span>Abrir mazo</span>
+                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
+            </Link>
           </div>
         )}
 
