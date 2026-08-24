@@ -175,6 +175,22 @@ export default function TOEFLDashboardPage() {
             </p>
           </div>
 
+          {/* Speaking Simulator entry point — practice mode, no mock config */}
+          <a
+            href="/dashboard/teacher/toefl/speaking-simulator"
+            className="block bg-gradient-to-r from-[#5A3D7A] to-[#3D2558] rounded-2xl p-4 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center text-xl shrink-0">🎤</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">Practice mode</p>
+                <p className="text-sm font-bold text-white">Speaking Simulator</p>
+                <p className="text-[11px] text-white/70">Task-a-task con feedback AI inmediato. Ideal para practicar prep + speak controlado.</p>
+              </div>
+              <span className="text-white/70 group-hover:translate-x-0.5 transition-transform">→</span>
+            </div>
+          </a>
+
           {/* Mock picker */}
           <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5">
             <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">

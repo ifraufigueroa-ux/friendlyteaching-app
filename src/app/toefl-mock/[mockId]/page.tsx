@@ -105,6 +105,10 @@ function useCountdown(initialSec: number, running: boolean, onExpire?: () => voi
   useEffect(() => { setLeft(initialSec); }, [initialSec]);
   useEffect(() => {
     if (!running) return;
+    // Reset on start — otherwise a prior run's terminal `left=0` carries over
+    // to the next `running=true` transition (e.g. Speaking task 2 with the
+    // same prepSec as task 1) and the interval fires onExpire immediately.
+    setLeft(initialSec);
     const id = setInterval(() => {
       setLeft(t => {
         if (t <= 1) {
