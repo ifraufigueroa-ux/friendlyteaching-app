@@ -126,6 +126,49 @@ export default function QASimulatorIndexPage() {
                 <span className="group-hover:translate-x-0.5 transition-transform">→</span>
               </div>
             </Link>
+
+            {/* TOEFL Speaking Simulator — practice mode con AI review inmediato.
+                Vive en el dashboard TOEFL pero se cuelga acá para discoverability
+                desde la biblioteca de Q&A. */}
+            <Link
+              href="/dashboard/teacher/toefl/speaking-simulator"
+              className="group relative flex flex-col gap-4 p-6 rounded-2xl bg-white border border-[#E8D5F0] hover:border-transparent hover:shadow-xl shadow-amber-200/40 transition-all duration-200 overflow-hidden"
+            >
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#5A3D7A] to-[#E8B547] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <div className="flex items-start justify-between">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#5A3D7A] to-[#E8B547] flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  🎤
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FDF3D8] text-[#8B6914] border border-[#F4D77A]">
+                  16 prompts · AI grading
+                </span>
+              </div>
+
+              <div className="flex-1">
+                <p className="font-bold text-[#2D1B4E] text-base mb-1 group-hover:text-[#5A3D7A] transition-colors">
+                  TOEFL Speaking Simulator
+                </p>
+                <p className="text-[11px] font-semibold text-[#E8B547] mb-1.5">15s prep + 45s speak · feedback inmediato</p>
+                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                  Un prompt Independent a la vez con timing real de TOEFL.
+                  AI (Whisper + Claude) devuelve score 0-4, rubric, fortalezas y tips al terminar.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-1">
+                {['Personal', 'Opinion', 'Choice', 'TOEFL iBT'].map(c => (
+                  <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {c}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1 text-xs font-semibold text-[#5A3D7A] group-hover:text-[#3D2558] mt-auto transition-colors">
+                <span>Empezar a practicar</span>
+                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
+            </Link>
           </div>
         )}
 
