@@ -411,11 +411,19 @@ export default function IELTSSpeakingMocksPage() {
     setP1Phase('idle');
 
     // Part 2: buscar el índice de la cue card por id en el deck barajado.
+    // También limpiamos practiced para que la card del mock esté disponible
+    // aunque el alumno ya la haya recorrido antes en esta sesión.
     const cueIdx = IELTS_CUE_CARDS.findIndex(c => c.id === mockSpeaking.cueCard.id);
     if (cueIdx >= 0) {
       setPickedIdx(cueIdx);
       setP2Phase('idle');
       setP2Time(0);
+      setPracticedIds(prev => {
+        if (!prev.has(mockSpeaking.cueCard.id)) return prev;
+        const next = new Set(prev);
+        next.delete(mockSpeaking.cueCard.id);
+        return next;
+      });
     }
 
     // Part 3: cargar la queue de preguntas y setear la primera.
@@ -480,6 +488,9 @@ export default function IELTSSpeakingMocksPage() {
   const [p2Phase, setP2Phase]     = useState<Part2Phase>('idle');
   const [p2Time, setP2Time]       = useState(0);
   const [cardsPracticed, setCardsPracticed] = useState(0);
+  // Track which cards the student has already worked through this session so
+  // they don't reappear in the deck. Cleared with "Reset deck" or on mock load.
+  const [practicedIds, setPracticedIds] = useState<Set<string>>(new Set());
 
   const backGradients = useMemo(
     () => IELTS_CUE_CARDS.map((_, i) => BACK_GRADIENTS[i % BACK_GRADIENTS.length]),
@@ -487,6 +498,12 @@ export default function IELTSSpeakingMocksPage() {
   );
 
   const pickedCard = pickedIdx != null ? IELTS_CUE_CARDS[pickedIdx] : null;
+
+  // Deck positions still available to the student (unpracticed only).
+  const availableDeck = useMemo(
+    () => deckOrder.filter(cardIdx => !practicedIds.has(IELTS_CUE_CARDS[cardIdx].id)),
+    [deckOrder, practicedIds],
+  );
 
   // ── Part 1 / Part 3 simple timer driver ──────────────────────────
   const p1TickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -540,18 +557,38 @@ export default function IELTSSpeakingMocksPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p2Phase]);
 
+  // Mark the currently picked card as practiced whenever the mock reaches
+  // 'done' — covers both the manual finish button and the auto-timeout path
+  // inside the speaking-phase interval. Set semantics keep it idempotent.
+  useEffect(() => {
+    if (p2Phase !== 'done' || !pickedCard) return;
+    setPracticedIds(prev => {
+      if (prev.has(pickedCard.id)) return prev;
+      const next = new Set(prev);
+      next.add(pickedCard.id);
+      return next;
+    });
+  }, [p2Phase, pickedCard]);
+
   // ── Part 2 actions ───────────────────────────────────────────────
-  function pickCard(deckPos: number) {
+  function pickCardByIndex(cardIdx: number) {
     if (p2Phase !== 'idle') return;
-    setPickedIdx(deckOrder[deckPos]);
+    setPickedIdx(cardIdx);
     setP2Phase('revealed');
   }
   function pickRandom() {
     if (p2Phase !== 'idle') return;
-    pickCard(Math.floor(Math.random() * deckOrder.length));
+    if (availableDeck.length === 0) return;
+    const cardIdx = availableDeck[Math.floor(Math.random() * availableDeck.length)];
+    pickCardByIndex(cardIdx);
   }
   function shuffleDeck() {
     if (p2Phase !== 'idle') return;
+    setDeckOrder(shuffleIndices(IELTS_CUE_CARDS.length));
+  }
+  function resetPracticedDeck() {
+    if (p2Phase !== 'idle') return;
+    setPracticedIds(new Set());
     setDeckOrder(shuffleIndices(IELTS_CUE_CARDS.length));
   }
   function startPrep()     { setP2Phase('prep'); setP2Time(PREP_SECONDS); }
@@ -895,35 +932,67 @@ export default function IELTSSpeakingMocksPage() {
 
             <div className="text-center">
               <p className="text-[#5A3D7A] font-serif font-bold text-xl mb-1">Pick a cue card</p>
-              <p className="text-gray-500 text-sm">Click any card, or let luck decide.</p>
+              <p className="text-gray-500 text-sm">
+                {availableDeck.length > 0
+                  ? 'Click any card, or let luck decide.'
+                  : 'Ya practicaste todas las cue cards de esta sesión.'}
+              </p>
+              {practicedIds.size > 0 && (
+                <p className="text-[11px] text-[#5A3D7A]/60 mt-2 tabular-nums">
+                  {practicedIds.size} / {IELTS_CUE_CARDS.length} practicadas
+                </p>
+              )}
             </div>
 
-            <div className="flex justify-center gap-3">
-              <button onClick={pickRandom} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
-                🎲 Pick random
-              </button>
-              <button onClick={shuffleDeck} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
-                🔀 Shuffle
-              </button>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-4 pt-4">
-              {deckOrder.map((cardIdx, deckPos) => (
-                <div
-                  key={`${cardIdx}-${deckPos}`}
-                  style={{ transform: `rotate(${(deckPos - (deckOrder.length - 1) / 2) * 4}deg)` }}
-                  className="transition-transform"
-                >
-                  <CueCardView
-                    card={IELTS_CUE_CARDS[cardIdx]}
-                    flipped={false}
-                    onClick={() => pickCard(deckPos)}
-                    backGradient={backGradients[cardIdx]}
-                    small
-                  />
+            {availableDeck.length > 0 ? (
+              <>
+                <div className="flex justify-center gap-3 flex-wrap">
+                  <button onClick={pickRandom} className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
+                    🎲 Pick random
+                  </button>
+                  <button onClick={shuffleDeck} className="px-5 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95">
+                    🔀 Shuffle
+                  </button>
+                  {practicedIds.size > 0 && (
+                    <button onClick={resetPracticedDeck} className="px-4 py-2.5 bg-white border-2 border-[#E8D5F0] text-[#9B7CB8] rounded-full text-xs font-bold hover:bg-[#F9F5FF] active:scale-95">
+                      ↻ Reset deck
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
+
+                <div className="flex flex-wrap justify-center gap-4 pt-4">
+                  {availableDeck.map((cardIdx, deckPos) => (
+                    <div
+                      key={`${cardIdx}-${deckPos}`}
+                      style={{ transform: `rotate(${(deckPos - (availableDeck.length - 1) / 2) * 4}deg)` }}
+                      className="transition-transform"
+                    >
+                      <CueCardView
+                        card={IELTS_CUE_CARDS[cardIdx]}
+                        flipped={false}
+                        onClick={() => pickCardByIndex(cardIdx)}
+                        backGradient={backGradients[cardIdx]}
+                        small
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 text-center space-y-4">
+                <div className="text-5xl">🎉</div>
+                <p className="text-[#5A3D7A] font-serif font-bold text-lg">Deck completo</p>
+                <p className="text-sm text-gray-500">
+                  Recorriste las {IELTS_CUE_CARDS.length} cue cards del banco. Reseteá el deck para arrancar otra vuelta.
+                </p>
+                <button
+                  onClick={resetPracticedDeck}
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow active:scale-95"
+                >
+                  ↻ Reset deck
+                </button>
+              </div>
+            )}
           </div>
         )}
 
