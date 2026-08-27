@@ -47,6 +47,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts-beginners',
+    icon:        '🌱',
+    title:       'IELTS GT Beginners',
+    description: 'Versión A2 del simulacro: audios cortos (~2 min), velocidad 0.85x, vocabulario simple. Para alumnos que recién arrancan con el examen.',
+    gradient:    'from-[#10B981] to-[#5A3D7A]',
+    glow:        'shadow-emerald-200/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',

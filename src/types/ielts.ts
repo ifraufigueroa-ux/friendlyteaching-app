@@ -218,6 +218,8 @@ export interface ListeningSection {
   formLayouts?:       FormLayout[];
 }
 
+export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+
 export interface ListeningMock {
   id: string;                   // 'listening-mock-1'
   title: string;                // 'Mock 1 · General Listening'
@@ -225,8 +227,15 @@ export interface ListeningMock {
   createdAt: string;            // ISO date
   targetBandRange: [IELTSBandScore, IELTSBandScore]; // e.g. [6, 7.5] — who benefits
   sections: [ListeningSection, ListeningSection, ListeningSection, ListeningSection];
-  totalQuestions: 40;
+  // Standard IELTS is 40 (10 per section). Beginner-oriented mocks can carry
+  // fewer questions per section — the runner reads this + each section's
+  // questions.length to render numbering correctly.
+  totalQuestions: number;
   totalDurationSec: number;     // sum of section durations + preview time
+  // Optional CEFR marker. Consumed by the audio generator to select an
+  // appropriate TTS speed (A2 uses a slower speed for intelligibility) and
+  // by landing pages to filter which mocks belong to a given product.
+  cefrLevel?: CEFRLevel;
 }
 
 // ─── Grading & diagnostics ──────────────────────────────────────────

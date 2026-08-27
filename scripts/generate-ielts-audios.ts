@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { LISTENING_MOCKS, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
+import { ALL_LISTENING_MOCKS, LISTENING_MOCKS, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
 import type { ListeningMock, ListeningSection } from '@/types/ielts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -85,15 +85,16 @@ if (!arg) {
 }
 
 // Resuelve mockArg → ListeningMock[]. Acepta 'all', un listening id o un
-// aggregator id (ielts-mock-N).
+// aggregator id (ielts-mock-N). 'all' recorre TODOS los mocks conocidos —
+// regulares + beginners — para que un solo run cubra la app entera.
 function resolveMocksToRun(raw: string): ListeningMock[] {
-  if (raw === 'all') return LISTENING_MOCKS;
-  const direct = LISTENING_MOCKS.find(m => m.id === raw);
+  if (raw === 'all') return ALL_LISTENING_MOCKS;
+  const direct = ALL_LISTENING_MOCKS.find(m => m.id === raw);
   if (direct) return [direct];
   const viaAgg = IELTS_MOCKS.find(m => m.id === raw)?.listening;
   if (viaAgg) return [viaAgg];
   const validIds = [
-    ...LISTENING_MOCKS.map(m => m.id),
+    ...ALL_LISTENING_MOCKS.map(m => m.id),
     ...IELTS_MOCKS.map(m => m.id),
     'all',
   ];
@@ -113,7 +114,7 @@ async function resolveUid(input: string): Promise<string> {
   return input;
 }
 
-async function ttsLine(text: string, voiceId: string): Promise<Buffer> {
+async function ttsLine(text: string, voiceId: string, speed = 1.0): Promise<Buffer> {
   const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: {
@@ -124,7 +125,10 @@ async function ttsLine(text: string, voiceId: string): Promise<Buffer> {
     body: JSON.stringify({
       text,
       model_id:       DEFAULT_MODEL,
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      // multilingual_v2 acepta speed 0.7-1.2 dentro de voice_settings.
+      // Para mocks A2 usamos 0.85 para dar tiempo de procesamiento sin
+      // sonar antinatural.
+      voice_settings: { stability: 0.5, similarity_boost: 0.75, speed },
     }),
   });
   if (!resp.ok) {
@@ -132,6 +136,17 @@ async function ttsLine(text: string, voiceId: string): Promise<Buffer> {
     throw new Error(`ElevenLabs ${resp.status}: ${err.slice(0, 300)}`);
   }
   return Buffer.from(await resp.arrayBuffer());
+}
+
+// Speed por nivel CEFR. Todavía no distinguimos A1 vs A2; C1 y superior
+// van a 1.0 (velocidad natural). Solo A1/A2 hoy usan slowdown.
+function ttsSpeedForMock(mock: ListeningMock): number {
+  switch (mock.cefrLevel) {
+    case 'A1': return 0.80;
+    case 'A2': return 0.85;
+    case 'B1': return 0.95;
+    default:   return 1.0;
+  }
 }
 
 async function ensureDownloadUrl(file: ReturnType<typeof bucket.file>): Promise<string> {
@@ -170,8 +185,12 @@ async function generateSection(
   }
 
   const speakerMap = new Map(section.speakers.map(s => [s.id, s]));
+  const speed = ttsSpeedForMock(mock);
 
-  console.log(`\n── ${mock.id} · Section ${section.number} · ${section.title} · ${section.script.length} líneas ──`);
+  console.log(
+    `\n── ${mock.id} · Section ${section.number} · ${section.title} · ${section.script.length} líneas`
+    + `${mock.cefrLevel ? ` · CEFR ${mock.cefrLevel} · speed ${speed.toFixed(2)}` : ''} ──`,
+  );
   const buffers: Buffer[] = [];
   let charsSent = 0;
   for (let i = 0; i < section.script.length; i++) {
@@ -182,7 +201,7 @@ async function generateSection(
     const text = segmentText(i, line.text);
     charsSent += text.length;
     process.stdout.write(`  [${i + 1}/${section.script.length}] ${spk.displayName} (${text.length} chars)… `);
-    const buf = await ttsLine(text, voiceId);
+    const buf = await ttsLine(text, voiceId, speed);
     buffers.push(buf);
     process.stdout.write(`${(buf.length / 1024).toFixed(0)} KB\n`);
   }

@@ -12,6 +12,7 @@
 import { ieltsMock1 } from './mock-1';
 import { ieltsMock2 } from './mock-2';
 import { ieltsMock3 } from './mock-3';
+import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
 import type { IELTSMock } from './mock-1';
 import type { ListeningMock } from '@/types/ielts';
 import type { ReadingMock } from '@/types/ielts-reading';
@@ -39,8 +40,25 @@ export function getIeltsMockOrDefault(id: string | null | undefined): IELTSMock 
 export const LISTENING_MOCKS: ListeningMock[] = IELTS_MOCKS.map(m => m.listening);
 export const READING_MOCKS:   ReadingMock[]   = IELTS_MOCKS.map(m => m.reading);
 
+// Beginners product — Listening-only for now. Mantenidos aparte para que
+// el picker principal de /ielts no los muestre; la landing dedicada de
+// /ielts-beginners los consume directamente.
+export const BEGINNERS_LISTENING_MOCKS: ListeningMock[] = [
+  listeningBeginnersMock1,
+];
+
+// Todos los listening mocks (regulares + beginners). Usar para lookup por
+// id (URL ?mock=), no para renderizar pickers.
+export const ALL_LISTENING_MOCKS: ListeningMock[] = [
+  ...LISTENING_MOCKS,
+  ...BEGINNERS_LISTENING_MOCKS,
+];
+
 export function getListeningMock(mockId: string): ListeningMock | undefined {
-  return getIeltsMock(mockId)?.listening;
+  return (
+    getIeltsMock(mockId)?.listening
+    ?? BEGINNERS_LISTENING_MOCKS.find(m => m.id === mockId)
+  );
 }
 
 export function getReadingMock(mockId: string): ReadingMock | undefined {

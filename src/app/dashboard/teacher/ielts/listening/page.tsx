@@ -30,6 +30,15 @@ import type {
 
 const MOCKS: ListeningMock[] = LISTENING_MOCKS;
 
+// Cumulative offset of question numbers before a given section. Standard
+// mocks (10 Q per section) return 0/10/20/30 as before; A2 mocks (5 Q per
+// section) get 0/5/10/15. Handles heterogeneous section sizes too.
+function sectionQuestionBase(mock: ListeningMock, sectionIndex: number): number {
+  let base = 0;
+  for (let i = 0; i < sectionIndex; i++) base += mock.sections[i].questions.length;
+  return base;
+}
+
 // ─── Audio player with playback-speed control ───────────────────────
 // Wraps a native <audio> and adds a speed pill selector below (0.75x /
 // 0.85x / 1x). Hidden in exam mode so real-test conditions are
@@ -376,7 +385,7 @@ function CBTFooter({
                   const isActive = qIdx === activeQIndex;
                   const ans = answers[q.id];
                   const isAnswered = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim().length > 0);
-                  const qNumber = sIdx * 10 + qIdx + 1;
+                  const qNumber = sectionQuestionBase(mock, sIdx) + qIdx + 1;
                   const qLocked = !allowBackward && qIdx < activeQIndex;
                   return (
                     <button
@@ -468,10 +477,10 @@ function CBTFooter({
 
 /** Compact inline input used inside table cells and flow-chart steps. */
 function CBTLayoutBlank({
-  q, sectionIndex, qIndexInSection, answer, onAnswer, onFocus, isActive, allowReveal,
+  q, sectionBase, qIndexInSection, answer, onAnswer, onFocus, isActive, allowReveal,
 }: {
   q:                ListeningQuestion & { accepted: string[]; wordLimit: number };
-  sectionIndex:     number;
+  sectionBase:      number;    // # of questions in prior sections (0/10/20/30 for a std mock)
   qIndexInSection:  number;
   answer:           string | string[] | undefined;
   onAnswer:         (val: string) => void;
@@ -480,7 +489,7 @@ function CBTLayoutBlank({
   allowReveal?:     boolean;
 }) {
   const [revealed, setRevealed] = useState(false);
-  const number = sectionIndex * 10 + qIndexInSection + 1;
+  const number = sectionBase + qIndexInSection + 1;
   const numBox = isActive
     ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
     : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
@@ -519,11 +528,11 @@ function CBTLayoutBlank({
 /** Table container — title header + rows of "label | value" where value
  *  can be a pre-filled string or a blank pointing at a fill question. */
 function CBTTableLayoutRenderer({
-  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+  layout, section, sectionBase, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
 }: {
   layout:          TableLayout;
   section:         ListeningSection;
-  sectionIndex:    number;
+  sectionBase:     number;
   answers:         StudentAnswers;
   setAnswer:       (qId: string, val: string) => void;
   activeQIndex:    number;
@@ -550,7 +559,7 @@ function CBTTableLayoutRenderer({
                   <>
                     <CBTLayoutBlank
                       q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
-                      sectionIndex={sectionIndex}
+                      sectionBase={sectionBase}
                       qIndexInSection={qIdx}
                       answer={answers[q.id]}
                       onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
@@ -574,11 +583,11 @@ function CBTTableLayoutRenderer({
 
 /** Flow-chart container — titled sequence of boxed steps with ↓ arrows. */
 function CBTFlowChartLayoutRenderer({
-  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+  layout, section, sectionBase, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
 }: {
   layout:          FlowChartLayout;
   section:         ListeningSection;
-  sectionIndex:    number;
+  sectionBase:     number;
   answers:         StudentAnswers;
   setAnswer:       (qId: string, val: string) => void;
   activeQIndex:    number;
@@ -608,7 +617,7 @@ function CBTFlowChartLayoutRenderer({
                     {step.contextBefore && <span>{step.contextBefore}</span>}
                     <CBTLayoutBlank
                       q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
-                      sectionIndex={sectionIndex}
+                      sectionBase={sectionBase}
                       qIndexInSection={qIdx}
                       answer={answers[q.id]}
                       onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
@@ -630,11 +639,11 @@ function CBTFlowChartLayoutRenderer({
 
 /** Summary container — titled paragraph of prose with inline blanks. */
 function CBTSummaryLayoutRenderer({
-  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+  layout, section, sectionBase, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
 }: {
   layout:          SummaryLayout;
   section:         ListeningSection;
-  sectionIndex:    number;
+  sectionBase:     number;
   answers:         StudentAnswers;
   setAnswer:       (qId: string, val: string) => void;
   activeQIndex:    number;
@@ -660,7 +669,7 @@ function CBTSummaryLayoutRenderer({
             <CBTLayoutBlank
               key={i}
               q={q as ListeningQuestion & { accepted: string[]; wordLimit: number }}
-              sectionIndex={sectionIndex}
+              sectionBase={sectionBase}
               qIndexInSection={qIdx}
               answer={answers[q.id]}
               onAnswer={(v) => { setAnswer(q.id, v); setActiveQIndex(qIdx); }}
@@ -683,11 +692,11 @@ function CBTSummaryLayoutRenderer({
  *  pills for MCQ — so a phone-call enrolment form can mix scribbled
  *  details with a "primary sport" choice under a single panel. */
 function CBTFormLayoutRenderer({
-  layout, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+  layout, section, sectionBase, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
 }: {
   layout:          FormLayout;
   section:         ListeningSection;
-  sectionIndex:    number;
+  sectionBase:     number;
   answers:         StudentAnswers;
   setAnswer:       (qId: string, val: string) => void;
   activeQIndex:    number;
@@ -713,7 +722,7 @@ function CBTFormLayoutRenderer({
                   key={ri}
                   row={row}
                   section={section}
-                  sectionIndex={sectionIndex}
+                  sectionBase={sectionBase}
                   answers={answers}
                   setAnswer={setAnswer}
                   activeQIndex={activeQIndex}
@@ -731,11 +740,11 @@ function CBTFormLayoutRenderer({
 
 /** One row of a form layout — dispatches by question type. */
 function CBTFormRow({
-  row, section, sectionIndex, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
+  row, section, sectionBase, answers, setAnswer, activeQIndex, setActiveQIndex, allowReveal,
 }: {
   row:             FormRow;
   section:         ListeningSection;
-  sectionIndex:    number;
+  sectionBase:     number;
   answers:         StudentAnswers;
   setAnswer:       (qId: string, val: string) => void;
   activeQIndex:    number;
@@ -764,7 +773,7 @@ function CBTFormRow({
   const qIdx = section.questions.indexOf(q);
   const isActive = activeQIndex === qIdx;
   const answer = answers[q.id];
-  const number = sectionIndex * 10 + qIdx + 1;
+  const number = sectionBase + qIdx + 1;
   const numBox = isActive
     ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
     : 'border-[#2D1B4E]/60 text-[#2D1B4E] bg-white';
@@ -1701,8 +1710,9 @@ export default function IELTSListeningPage() {
   if (phase === 'running') {
     const audioUrl = sessionAudioUrls[activeSection.number];
     const groups = groupQuestions(activeSection.questions);
-    const partFromQ = currentSection * 10 + 1;
-    const partToQ   = currentSection * 10 + activeSection.questions.length;
+    const currentSectionBase = sectionQuestionBase(mock, currentSection);
+    const partFromQ = currentSectionBase + 1;
+    const partToQ   = currentSectionBase + activeSection.questions.length;
     const minutesLeft = Math.max(0, Math.ceil(timeLeft / 60));
     const cid = candidateIdFrom(teacherId);
 
@@ -1794,7 +1804,7 @@ export default function IELTSListeningPage() {
               <CBTFormLayoutRenderer
                 layout={activeSection.formLayouts[0]}
                 section={activeSection}
-                sectionIndex={currentSection}
+                sectionBase={currentSectionBase}
                 answers={answers}
                 setAnswer={(qId, val) =>
                   setAnswers((prev) => ({ ...prev, [qId]: val }))
@@ -1805,8 +1815,8 @@ export default function IELTSListeningPage() {
               />
             </div>
           ) : groups.map((g) => {
-            const groupFrom = currentSection * 10 + g.startIndex + 1;
-            const groupTo   = currentSection * 10 + g.endIndex + 1;
+            const groupFrom = currentSectionBase + g.startIndex + 1;
+            const groupTo   = currentSectionBase + g.endIndex + 1;
             const isMatchGroup = g.type === 'matching' || g.type === 'plan-map-labelling';
             const bank = isMatchGroup
               ? ((g.questions[0] as { options?: { id: string; text: string }[] }).options ?? [])
@@ -1847,7 +1857,7 @@ export default function IELTSListeningPage() {
                 <QuestionCard
                   key={q.id}
                   q={q}
-                  index={currentSection * 10 + qIdxInSec}
+                  index={currentSectionBase + qIdxInSec}
                   answer={answers[q.id]}
                   onAnswer={(val) => {
                     setAnswers((prev) => ({ ...prev, [q.id]: val }));
@@ -1883,7 +1893,7 @@ export default function IELTSListeningPage() {
                   <CBTTableLayoutRenderer
                     layout={matchedTable}
                     section={activeSection}
-                    sectionIndex={currentSection}
+                    sectionBase={currentSectionBase}
                     answers={answers}
                     setAnswer={setAnswer}
                     activeQIndex={activeQIndex}
@@ -1894,7 +1904,7 @@ export default function IELTSListeningPage() {
                   <CBTFlowChartLayoutRenderer
                     layout={matchedFlow}
                     section={activeSection}
-                    sectionIndex={currentSection}
+                    sectionBase={currentSectionBase}
                     answers={answers}
                     setAnswer={setAnswer}
                     activeQIndex={activeQIndex}
@@ -1905,7 +1915,7 @@ export default function IELTSListeningPage() {
                   <CBTSummaryLayoutRenderer
                     layout={matchedSummary}
                     section={activeSection}
-                    sectionIndex={currentSection}
+                    sectionBase={currentSectionBase}
                     answers={answers}
                     setAnswer={setAnswer}
                     activeQIndex={activeQIndex}
