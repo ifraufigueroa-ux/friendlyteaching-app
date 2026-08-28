@@ -127,6 +127,52 @@ export default function QASimulatorIndexPage() {
               </div>
             </Link>
 
+            {/* A1-A2+ Speaking Simulator — 3 partes calibradas para elementary:
+                Interview, cue card (45s prep + 90s speak), y Focus Q&A por
+                gramática (presente / pasado / futuro / preferencias /
+                experiencias). Reutiliza el mismo modelo de progreso por
+                alumno que el IELTS Speaking. */}
+            <Link
+              href="/dashboard/teacher/speaking-a2"
+              className="group relative flex flex-col gap-4 p-6 rounded-2xl bg-white border border-[#E8D5F0] hover:border-transparent hover:shadow-xl shadow-emerald-200/40 transition-all duration-200 overflow-hidden"
+            >
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <div className="flex items-start justify-between">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0F766E] to-[#14B8A6] flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  🗣️
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] border border-[#5EEAD4]">
+                  A1-A2+ · 3 parts
+                </span>
+              </div>
+
+              <div className="flex-1">
+                <p className="font-bold text-[#2D1B4E] text-base mb-1 group-hover:text-[#0F766E] transition-colors">
+                  A1-A2+ Speaking Simulator
+                </p>
+                <p className="text-[11px] font-semibold text-[#14B8A6] mb-1.5">Interview + cue cards + focus Q&A por gramática</p>
+                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                  Práctica para elementary con chips por competencia: present, past,
+                  future, preferences, experiences. Progreso guardado por alumno
+                  (igual que IELTS Speaking).
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-1">
+                {['Present', 'Past', 'Future', 'Preferences', 'Experiences'].map(c => (
+                  <span key={c} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    {c}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1 text-xs font-semibold text-[#0F766E] group-hover:text-[#134E4A] mt-auto transition-colors">
+                <span>Empezar simulación</span>
+                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
+            </Link>
+
             {/* TOEFL Speaking Simulator — practice mode con AI review inmediato.
                 Vive en el dashboard TOEFL pero se cuelga acá para discoverability
                 desde la biblioteca de Q&A. */}
