@@ -9,7 +9,8 @@
 //   · practice → controls visible, timer optional, per-question "reveal" enabled
 //   · review   → only accessible after submit; walks through with answers shown
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -1403,7 +1404,18 @@ function ResultsView({ mock, result, onReset }: { mock: ListeningMock; result: G
 
 // ─── Main page ──────────────────────────────────────────────────────
 
+// Default export wraps la página en Suspense — requerido por Next 16
+// para consumir useSearchParams() en client components sin opt-out del
+// prerender.
 export default function IELTSListeningPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FFFCF7]" />}>
+      <IELTSListeningPageInner />
+    </Suspense>
+  );
+}
+
+function IELTSListeningPageInner() {
   // Auth (bypass useAuthStore hydration bug — same pattern used elsewhere).
   const [teacherId, setTeacherId] = useState<string>('');
   const [studentName, setStudentName] = useState<string>('');
@@ -1421,18 +1433,24 @@ export default function IELTSListeningPage() {
     return () => unsub();
   }, []);
 
-  // Mock selection: reads ?mock=<ielts-mock-id> from the URL (piped by the
-  // /ielts landing picker), falls back to Mock 1. Also accepts the direct
-  // listening mock id (e.g. 'listening-mock-2') for backwards compat.
+  // Mock selection: reads ?mock=<ielts-mock-id> from the URL (piped por la
+  // landing de /ielts o /ielts-beginners) y cae a Mock 1 si el id no
+  // matchea nada. Acepta id de aggregator (ielts-mock-N) o id directo
+  // de listening mock (listening-mock-N / listening-beginners-mock-N).
+  //
+  // Usa useSearchParams (reactivo) en vez de window.location.search
+  // dentro de un useMemo([]) — de lo contrario, cuando Next.js hace
+  // soft-navigation entre ?mock=X y ?mock=Y sobre el mismo path, el
+  // mock quedaría congelado en el primero que se resolvió.
+  const searchParams = useSearchParams();
   const mock = useMemo(() => {
-    if (typeof window === 'undefined') return MOCKS[0];
-    const raw = new URLSearchParams(window.location.search).get('mock') ?? '';
+    const raw = searchParams?.get('mock') ?? '';
     // If raw matches an IELTS aggregator id, resolve through the registry.
     const viaAgg = IELTS_MOCKS.find(m => m.id === raw)?.listening;
     if (viaAgg) return viaAgg;
     // Otherwise treat as a direct listening-mock id.
     return getListeningMock(raw) ?? MOCKS.find(m => m.id === raw) ?? MOCKS[0];
-  }, []);
+  }, [searchParams]);
 
   const [phase, setPhase] = useState<'landing' | 'running' | 'results'>('landing');
   const [mode, setMode] = useState<ListeningSessionMode>('exam');
