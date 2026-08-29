@@ -156,7 +156,7 @@ function NewLessonModal({ teacherId, onClose }: { teacherId: string; onClose: ()
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#5A3D7A]">📚 Nueva lección</h2>
+          <h2 className="font-bold text-[#5A3D7A]">📚 Nuevo contenido en blanco</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <form onSubmit={handleCreate} className="p-5 space-y-4">
@@ -201,6 +201,16 @@ function NewLessonModal({ teacherId, onClose }: { teacherId: string; onClose: ()
     </div>
   );
 }
+
+// Metadata visual por tipo de fuente. Docs viejos sin source caen en
+// 'manual' por default (asumimos que se hicieron con el editor interno).
+const SOURCE_META: Record<string, { icon: string; label: string; badgeClass: string }> = {
+  manual:         { icon: '✏️',  label: 'Manual (editor interno)',    badgeClass: 'bg-gray-100 text-gray-600' },
+  'ai-generated': { icon: '🤖',  label: 'Generada con IA',            badgeClass: 'bg-violet-100 text-violet-700' },
+  canva:          { icon: '🎨',  label: 'Presentación externa (Canva/Slides/PPTX)', badgeClass: 'bg-purple-100 text-purple-700' },
+  html:           { icon: '📄',  label: 'HTML inline',                 badgeClass: 'bg-blue-100 text-blue-700' },
+  'html-hosted':  { icon: '📄',  label: 'HTML hospedado (Storage)',    badgeClass: 'bg-blue-100 text-blue-700' },
+};
 
 const LEVEL_COLORS: Record<string, string> = {
   A0: 'bg-teal-100 text-teal-700',
@@ -266,6 +276,15 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
             </h3>
           </div>
           <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+            {(() => {
+              const source = lesson.source ?? 'manual';
+              const meta = SOURCE_META[source];
+              return (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${meta.badgeClass}`} title={meta.label}>
+                  {meta.icon}
+                </span>
+              );
+            })()}
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${LEVEL_COLORS[lesson.level] ?? 'bg-gray-100 text-gray-500'}`}>
               {lesson.level}
             </span>
@@ -308,13 +327,7 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
             href={`/classroom/${lesson.id}`}
             className="flex-1 text-center py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-xs font-semibold transition-colors"
           >
-            ▶ Abrir
-          </Link>
-          <Link
-            href={`/dashboard/teacher/lessons/${lesson.id}/edit`}
-            className="flex-1 text-center py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-xs font-semibold transition-colors"
-          >
-            ✏️ Editar
+            ▶ Proyectar
           </Link>
           <button
             onClick={handleDuplicate}
@@ -537,11 +550,11 @@ export default function LessonsLibraryPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Biblioteca de Lecciones"
-        subtitle={`${lessons.length} lecciones · ${published} publicadas · ${draft} borradores`}
+        title="Librería"
+        subtitle={`${lessons.length} items · ${published} publicados · ${draft} borradores`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Lecciones' },
+          { label: 'Librería' },
         ]}
       />
       <div className="flex-1 p-6 overflow-auto">
@@ -661,7 +674,7 @@ export default function LessonsLibraryPage() {
 
         <div ref={lessonsRef} className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-gray-700 text-sm">📚 Lecciones</p>
+            <p className="font-bold text-gray-700 text-sm">📚 Contenido</p>
             {(() => {
               const c = courses.find(x => x.id === selectedCourse);
               return c ? (
@@ -706,7 +719,7 @@ export default function LessonsLibraryPage() {
               onClick={() => setShowNewLesson(true)}
               className="px-4 py-2 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
             >
-              + Nueva lección
+              + Contenido en blanco
             </button>
           </div>
           <input
@@ -765,13 +778,13 @@ export default function LessonsLibraryPage() {
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
             <p className="text-4xl mb-3">📚</p>
-            <p className="font-semibold text-gray-700">No hay lecciones {filter !== 'all' ? 'con este filtro' : ''}</p>
+            <p className="font-semibold text-gray-700">No hay contenido {filter !== 'all' ? 'con este filtro' : 'todavía'}</p>
             <p className="text-sm text-gray-500 mt-1">Crea una lección nueva o usa la herramienta de importación</p>
             <button
               onClick={() => setShowNewLesson(true)}
               className="mt-4 px-5 py-2.5 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold transition-colors"
             >
-              + Nueva lección
+              + Contenido en blanco
             </button>
           </div>
         ) : (

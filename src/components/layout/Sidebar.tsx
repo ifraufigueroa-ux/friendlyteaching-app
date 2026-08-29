@@ -34,7 +34,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/students',    icon: '👥', label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/teacher/history',     icon: '📋', label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'group', label: 'Contenido' },
-  { type: 'link', href: '/dashboard/teacher/lessons',     icon: '📚', label: 'Lecciones',          iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
+  { type: 'link', href: '/dashboard/teacher/lessons',     icon: '📚', label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
   { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: '📥', label: 'Importar lecciones', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
   { type: 'link', href: '/dashboard/teacher/planner',     icon: '🗂️', label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
   { type: 'group', label: 'Seguimiento' },

@@ -254,6 +254,10 @@ export interface Slide {
   // sanitized with DOMPurify before render, so <script>, event handlers
   // and dangerous tags are stripped even if the author left them in.
   htmlContent?: string;
+  // Cuando el markup no cabe en el doc de Firestore (> 500 KB) lo
+  // subimos como archivo a Storage y el slide lo baja on-demand.
+  // El sanitizer se corre sobre el resultado del fetch (mismo pipeline).
+  hostedHtmlUrl?: string;
 }
 
 // ─── Music Lessons ────────────────────────────────────────────
@@ -377,6 +381,17 @@ export interface TextLesson {
 
 // ─── Lección ─────────────────────────────────────────────────
 
+// Fuente de la lección — de dónde salió el contenido. Se usa para
+// mostrar el badge correcto en la Librería y decidir qué features
+// habilitar (ej. lecciones 'canva' o 'html-uploaded' no ofrecen
+// edición interna). undefined en docs viejos → tratar como 'manual'.
+export type LessonSource =
+  | 'manual'         // Creada vacía + editada en el editor interno
+  | 'ai-generated'   // AI Lesson Wizard
+  | 'canva'          // CreateFromPresentation (Canva / Google Slides / PPTX embed)
+  | 'html'           // UploadHtmlLessonModal (single html_content slide)
+  | 'html-hosted';   // Igual que 'html' pero el markup pesa mucho y vive en Storage, no en el doc
+
 export interface Lesson {
   id: string;
   teacherId?: string;    // UID del profesor propietario
@@ -395,6 +410,8 @@ export interface Lesson {
   canvaMode?: boolean;
   canvaEmbed?: string;       // Canva embed URL (legacy — use presentationUrl)
   presentationUrl?: string;  // Primary presentation URL (Google Slides, Canva, Office 365, etc.)
+  source?: LessonSource;     // De dónde salió — para badges y decisiones de UI
+  htmlHostedUrl?: string;    // Cuando source==='html-hosted', el markup vive acá
   lastEditedBy?: string;
   plannerStatus?: LessonPlannerStatus;  // kanban column
   plannerNote?: string;                 // optional note visible on kanban card

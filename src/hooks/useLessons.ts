@@ -8,8 +8,8 @@ import {
   type FirestoreError,
 } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase/config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { Lesson, Course } from '@/types/firebase';
+import { ref, ref as storageRefFn, uploadBytes, getDownloadURL } from 'firebase/storage';
+import type { Lesson, LessonSource, Course } from '@/types/firebase';
 
 // ── Get a single lesson by ID ─────────────────────────────────
 
@@ -216,6 +216,7 @@ export async function createLesson(teacherId: string, data: {
     slidesJson: '[]',
     objectives: [],
     version: 1,
+    source: 'manual',
     createdAt: sTs(),
     updatedAt: sTs(),
     lastEditedBy: teacherId,
@@ -254,6 +255,7 @@ export async function createLessonFromAI(teacherId: string, data: {
     slidesJson: JSON.stringify(data.slides),
     objectives: data.objectives ?? [],
     version: 1,
+    source: 'ai-generated',
     createdAt: sTs(),
     updatedAt: sTs(),
     lastEditedBy: teacherId,
@@ -291,6 +293,7 @@ export async function createLessonFromPresentation(teacherId: string, data: {
     slidesJson: '[]',
     objectives: [],
     version: 1,
+    source: 'canva',
     presentationUrl: data.presentationUrl ?? '',
     canvaMode: data.canvaMode ?? false,
     canvaEmbed: data.canvaEmbed ?? '',
@@ -311,6 +314,15 @@ export async function createLessonFromPresentation(teacherId: string, data: {
 // el render (HtmlContentSlide), acá guardamos el HTML tal cual llegó
 // así seguimos pudiendo editarlo sin pérdida.
 
+// Cuando el HTML pesa > 500 KB lo subimos a Firebase Storage y el
+// doc de Firestore solo referencia la URL. Motivo: un doc de Firestore
+// tiene un techo teórico de ~1 MB, pero superar 500-700 KB degrada
+// perf de lecturas (siempre traés todo el doc) y a veces triggerea
+// "Unsupported field value" cuando el string tiene ciertos chars raros
+// codificados. Además así la Librería puede listar 100+ items sin
+// bajar megas de HTML al abrir la grilla.
+const HTML_INLINE_MAX_BYTES = 500 * 1024;
+
 export async function createLessonFromHtml(teacherId: string, data: {
   title: string;
   code: string;
@@ -322,18 +334,35 @@ export async function createLessonFromHtml(teacherId: string, data: {
   const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
   const courseId = data.courseId ?? 'uncategorized';
   const ref = newDoc(col(db, 'lessons'));
-  // Ojo: Firestore rechaza campos con valor undefined ("Unsupported field
-  // value"). No podemos setear subtitle si no vino — hay que omitir la
-  // key entera. Spread condicional para no romper el setDoc.
+
+  const htmlSizeBytes = new Blob([data.html]).size;
+  const isHeavy = htmlSizeBytes > HTML_INLINE_MAX_BYTES;
+
+  let hostedUrl: string | null = null;
+  let inlineHtml: string = data.html;
+  if (isHeavy) {
+    // Subimos como archivo .html en Storage. El HtmlContentSlide
+    // detecta hostedHtmlUrl y hace fetch al render (con sanitizer aplicado
+    // sobre el resultado, mismo pipeline que el HTML inline).
+    const path = `lessons-html/${teacherId}/${ref.id}.html`;
+    const storageRef = storageRefFn(storage, path);
+    await uploadBytes(storageRef, new Blob([data.html], { type: 'text/html' }), { contentType: 'text/html' });
+    hostedUrl = await getDownloadURL(storageRef);
+    // Placeholder inline: el slide muestra un loader mientras baja el HTML real.
+    inlineHtml = `<div class="text-center text-gray-500 py-8"><p class="text-sm">Cargando HTML hospedado (${(htmlSizeBytes / 1024).toFixed(0)} KB)…</p></div>`;
+  }
+
   const slides = [{
     id: 'html-1',
     type: 'html_content' as const,
     phase: 'while' as const,
     title: data.title,
-    htmlContent: data.html,
+    htmlContent: inlineHtml,
+    ...(hostedUrl ? { hostedHtmlUrl: hostedUrl } : {}),
     ...(data.subtitle && data.subtitle.trim().length > 0 ? { subtitle: data.subtitle } : {}),
   }];
-  await setDoc(ref, {
+
+  const docPayload: Record<string, unknown> = {
     teacherId,
     courseId,
     unit: 1,
@@ -346,13 +375,18 @@ export async function createLessonFromHtml(teacherId: string, data: {
     slidesJson: JSON.stringify(slides),
     objectives: [],
     version: 1,
+    source: (isHeavy ? 'html-hosted' : 'html') as LessonSource,
     createdAt: sTs(),
     updatedAt: sTs(),
     lastEditedBy: teacherId,
-  });
+  };
+  if (hostedUrl) docPayload.htmlHostedUrl = hostedUrl;
+
+  await setDoc(ref, docPayload);
   if (courseId !== 'uncategorized') {
     await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(1) });
   }
+  console.info('[useLessons] createLessonFromHtml ok:', ref.id, isHeavy ? '(hosted)' : '(inline)', `${htmlSizeBytes} bytes`);
   return ref.id;
 }
 
