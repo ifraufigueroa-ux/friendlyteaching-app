@@ -322,13 +322,16 @@ export async function createLessonFromHtml(teacherId: string, data: {
   const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
   const courseId = data.courseId ?? 'uncategorized';
   const ref = newDoc(col(db, 'lessons'));
+  // Ojo: Firestore rechaza campos con valor undefined ("Unsupported field
+  // value"). No podemos setear subtitle si no vino — hay que omitir la
+  // key entera. Spread condicional para no romper el setDoc.
   const slides = [{
     id: 'html-1',
     type: 'html_content' as const,
     phase: 'while' as const,
     title: data.title,
-    subtitle: data.subtitle,
     htmlContent: data.html,
+    ...(data.subtitle && data.subtitle.trim().length > 0 ? { subtitle: data.subtitle } : {}),
   }];
   await setDoc(ref, {
     teacherId,
