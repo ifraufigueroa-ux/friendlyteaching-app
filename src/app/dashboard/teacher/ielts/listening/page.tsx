@@ -52,6 +52,56 @@ const SPEED_OPTIONS: { label: string; rate: number }[] = [
   { label: '1x',    rate: 1.0  },
 ];
 
+// Serializa un AudioBuffer decodificado en un Blob WAV (PCM 16-bit LE).
+// WAV es lineal → cada muestra tiene byte offset conocido → el seek en
+// el <audio> es cálculo puro y funciona a cualquier posición. Los MP3s
+// generados por concat crudo (ver /api/tts/elevenlabs-dialogue) NO
+// tienen header Xing/Info válido para el archivo total, así que el
+// mapeo tiempo→byte del motor de audio nativo falla y reinicia desde 0
+// aunque el archivo esté completo en memoria como blob.
+function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
+  const numChannels   = buffer.numberOfChannels;
+  const sampleRate    = buffer.sampleRate;
+  const numFrames     = buffer.length;
+  const bytesPerSample = 2;
+  const blockAlign    = numChannels * bytesPerSample;
+  const byteRate      = sampleRate * blockAlign;
+  const dataSize      = numFrames * blockAlign;
+  const headerSize    = 44;
+
+  const ab   = new ArrayBuffer(headerSize + dataSize);
+  const view = new DataView(ab);
+  const write = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+
+  write(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  write(8, 'WAVE');
+  write(12, 'fmt ');
+  view.setUint32(16, 16, true);              // PCM header size
+  view.setUint16(20, 1, true);               // PCM format code
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bytesPerSample * 8, true);
+  write(36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  const channels: Float32Array[] = [];
+  for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+  let offset = headerSize;
+  for (let i = 0; i < numFrames; i++) {
+    for (let c = 0; c < numChannels; c++) {
+      const s = Math.max(-1, Math.min(1, channels[c][i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      offset += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
 function AudioWithSpeed({
   src, mode, autoPlay, tone = 'dark', onPlayingChange,
 }: {
@@ -64,9 +114,51 @@ function AudioWithSpeed({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [rate, setRate] = useState(1);
 
+  const [playableSrc, setPlayableSrc] = useState<string | null>(null);
+  const [loadError,   setLoadError]   = useState<string | null>(null);
+  const [loading,     setLoading]     = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    let createdUrl: string | null = null;
+    setPlayableSrc(null);
+    setLoadError(null);
+    setLoading(true);
+    (async () => {
+      try {
+        const res = await fetch(src);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const mp3Buffer = await res.arrayBuffer();
+        if (cancelled) return;
+        const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new Ctx();
+        try {
+          const audioBuffer = await ctx.decodeAudioData(mp3Buffer.slice(0));
+          if (cancelled) return;
+          const wavBlob = audioBufferToWavBlob(audioBuffer);
+          createdUrl = URL.createObjectURL(wavBlob);
+          setPlayableSrc(createdUrl);
+        } finally {
+          ctx.close().catch(() => {});
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.warn('[AudioWithSpeed] transcode to WAV failed, using direct URL:', err);
+        setPlayableSrc(src);
+        setLoadError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [src]);
+
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = rate;
-  }, [rate, src]);
+  }, [rate, playableSrc]);
 
   const showSpeed = mode !== 'exam';
   const pillActive = tone === 'dark'
@@ -79,18 +171,31 @@ function AudioWithSpeed({
 
   return (
     <>
-      <audio
-        ref={audioRef}
-        src={src}
-        controls={mode !== 'exam'}
-        controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
-        className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
-        autoPlay={autoPlay}
-        onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
-        onPlay={() => onPlayingChange?.(true)}
-        onPause={() => onPlayingChange?.(false)}
-        onEnded={() => onPlayingChange?.(false)}
-      />
+      {playableSrc ? (
+        <audio
+          ref={audioRef}
+          src={playableSrc}
+          controls={mode !== 'exam'}
+          controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
+          className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
+          autoPlay={autoPlay}
+          preload="auto"
+          onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
+          onPlay={() => onPlayingChange?.(true)}
+          onPause={() => onPlayingChange?.(false)}
+          onEnded={() => onPlayingChange?.(false)}
+        />
+      ) : (
+        <div className={`flex items-center gap-2 text-xs ${tone === 'dark' ? 'text-white/80' : 'text-[#5A3D7A]'}`}>
+          <span className={`inline-block w-3 h-3 rounded-full border-2 border-t-transparent animate-spin ${tone === 'dark' ? 'border-white/80' : 'border-[#5A3D7A]'}`} />
+          {loading ? 'Preparando audio (decodificando a WAV para habilitar seek)…' : 'Cargando audio…'}
+        </div>
+      )}
+      {loadError && (
+        <p className={`text-[10px] mt-1 ${tone === 'dark' ? 'text-red-200' : 'text-red-500'}`}>
+          No pudimos transcodear el audio ({loadError}). Se reproduce igual, pero el seek puede fallar.
+        </p>
+      )}
       {showSpeed && (
         <div className="flex items-center gap-2 mt-2">
           <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>
