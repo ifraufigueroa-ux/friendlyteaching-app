@@ -65,6 +65,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/icao',
+    icon:        '🛫',
+    title:       'OACI Aviation English',
+    description: '8-etapa programa de preparación OACI Operational Level 4. Vocabulario, fraseología ATC, listening, non-routine y mock tests con audios ElevenLabs multi-voice.',
+    gradient:    'from-[#1E3A8A] to-[#5A3D7A]',
+    glow:        'shadow-blue-200/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/tools/qa-simulator',
     icon:        '🎯',
     title:       'Q&A Simulator',
