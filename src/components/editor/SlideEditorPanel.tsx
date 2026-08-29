@@ -410,6 +410,7 @@ const TYPE_LABEL: Record<SlideType, string> = {
   wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
   clip_cover: 'Portada (Friendlyflix®)', clip_dialogue_game: 'Juego diálogo (Friendlyflix®)', clip_comprehension: 'Comprensión (Friendlyflix®)', clip_vocab_match: 'Vocab match (Friendlyflix®)', clip_predictions: 'Predicciones (Friendlyflix®)', clip_language_focus: 'Foco lingüístico (Friendlyflix®)', clip_controlled_practice: 'Práctica controlada (Friendlyflix®)', clip_production: 'Producción libre (Friendlyflix®)', friendlyflix_end: 'Fin Friendlyflix®',
   text_cover: 'Portada (FriendlyTales®)', text_comprehension: 'Comprensión (FriendlyTales®)', text_reading: 'Lectura (legacy — FriendlyTales®)', friendlytext_end: 'Fin FriendlyTales®',
+  html_content: 'HTML libre',
 };
 
 export default function SlideEditorPanel() {

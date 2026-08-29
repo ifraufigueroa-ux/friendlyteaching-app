@@ -13,6 +13,7 @@ const TYPE_ICONS: Record<SlideType, string> = {
   translation_game: '🌐', wrapup: '💬', friendlyrics_end: '🏆',
   clip_cover: '🎬', clip_dialogue_game: '🎞️', clip_comprehension: '❓', clip_vocab_match: '🔗', clip_predictions: '🔮', clip_language_focus: '🔬', clip_controlled_practice: '🎯', clip_production: '🗣️', friendlyflix_end: '🎬',
   text_cover: '📖', text_comprehension: '📄', text_reading: '📄', friendlytext_end: '📖',
+  html_content: '🧩',
 };
 
 const TYPE_LABELS: Record<SlideType, string> = {
@@ -28,6 +29,7 @@ const TYPE_LABELS: Record<SlideType, string> = {
   wrapup: 'Cierre', friendlyrics_end: 'Fin Friendlyrics®',
   clip_cover: 'Portada (clip)', clip_dialogue_game: 'Juego de diálogo (clip)', clip_comprehension: 'Comprensión (clip)', clip_vocab_match: 'Vocab match (clip)', clip_predictions: 'Predicciones (clip)', clip_language_focus: 'Foco lingüístico (clip)', clip_controlled_practice: 'Práctica controlada (clip)', clip_production: 'Producción libre (clip)', friendlyflix_end: 'Fin Friendlyflix®',
   text_cover: 'Portada (texto)', text_comprehension: 'Comprensión', text_reading: 'Lectura (legacy)', friendlytext_end: 'Fin FriendlyTales®',
+  html_content: 'HTML libre',
 };
 
 const PHASE_DOT: Record<string, string> = {

@@ -43,6 +43,8 @@ import WrapupSlide from './slides/WrapupSlide';
 import TextCoverSlide from './slides/TextCoverSlide';
 import TextReadingSlide from './slides/TextReadingSlide';
 import FriendlytextEndSlide from './slides/FriendlytextEndSlide';
+// Free-form HTML canvas (author-controlled markup, DOMPurify-sanitized)
+import HtmlContentSlide from './slides/HtmlContentSlide';
 import AudioPlayer from './AudioPlayer';
 
 // Brand label shown in shared CLT slides (vocab match, listening quiz, etc.).
@@ -179,6 +181,9 @@ function renderSlide(
       return <TextReadingSlide slide={slide} youtubeUrl={youtubeUrl} brand={brand} />;
     case 'friendlytext_end':
       return <FriendlytextEndSlide slide={slide} />;
+    // ─── Free-form HTML canvas ───────────────────────────────────
+    case 'html_content':
+      return <HtmlContentSlide slide={slide} isTeacher={isTeacher} />;
     default:
       return (
         <div className="flex items-center justify-center h-full text-gray-400">

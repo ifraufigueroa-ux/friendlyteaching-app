@@ -142,7 +142,9 @@ export type SlideType =
   | 'text_cover'
   | 'text_comprehension'
   | 'text_reading'  // legacy alias — pre-rename docs still load; renderer treats it as text_comprehension
-  | 'friendlytext_end';
+  | 'friendlytext_end'
+  // ── Free-form HTML canvas (author-controlled markup, sanitized) ──
+  | 'html_content';
 
 // Presentation mode for the comprehension slide — text only, audio only, or both.
 // Also gates what the creation flow requires (audio-only lessons demand an audio source;
@@ -248,6 +250,10 @@ export interface Slide {
   translationText?: string;
   questions?: QuizQuestion[];
   practiceItems?: PracticeItem[];
+  // Free-form HTML canvas — used by 'html_content' slides. Content is
+  // sanitized with DOMPurify before render, so <script>, event handlers
+  // and dangerous tags are stripped even if the author left them in.
+  htmlContent?: string;
 }
 
 // ─── Music Lessons ────────────────────────────────────────────
