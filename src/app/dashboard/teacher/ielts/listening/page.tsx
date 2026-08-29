@@ -124,9 +124,15 @@ function AudioWithSpeed({
     setPlayableSrc(null);
     setLoadError(null);
     setLoading(true);
+    // Todo el fetch pasa por /api/audio-proxy porque Firebase Storage
+    // sirve el MP3 con CORS restringido (fetch() directo tira "Failed
+    // to fetch" aunque el <audio> pueda reproducirlo como opaque).
+    // Same-origin resuelve tanto el bajado a Blob para transcode como
+    // el seek nativo si el transcode fallara.
+    const proxied = `/api/audio-proxy?url=${encodeURIComponent(src)}`;
     (async () => {
       try {
-        const res = await fetch(src);
+        const res = await fetch(proxied);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const mp3Buffer = await res.arrayBuffer();
         if (cancelled) return;
@@ -143,8 +149,10 @@ function AudioWithSpeed({
         }
       } catch (err) {
         if (cancelled) return;
-        console.warn('[AudioWithSpeed] transcode to WAV failed, using direct URL:', err);
-        setPlayableSrc(src);
+        // Fallback: URL proxeada directa. El seek al menos usa Range
+        // requests same-origin, mejor que apuntar al Firebase crudo.
+        console.warn('[AudioWithSpeed] transcode to WAV failed, using proxied URL:', err);
+        setPlayableSrc(proxied);
         setLoadError(err instanceof Error ? err.message : String(err));
       } finally {
         if (!cancelled) setLoading(false);
