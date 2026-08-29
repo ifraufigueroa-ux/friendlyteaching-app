@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import CreateFromPresentationModal from '@/components/teacher/CreateFromPresentationModal';
+import UploadHtmlLessonModal from '@/components/teacher/UploadHtmlLessonModal';
 import AILessonWizard from '@/components/editor/AILessonWizard';
 import type { AILessonResponse } from '@/app/api/ai-lesson/route';
 import type { Lesson, LessonLevel, Slide, Course } from '@/types/firebase';
@@ -485,6 +486,7 @@ export default function LessonsLibraryPage() {
   const [showNewCourse, setShowNewCourse] = useState(false);
   const [showNewLesson, setShowNewLesson] = useState(false);
   const [showFromPresentation, setShowFromPresentation] = useState(false);
+  const [showUploadHtml, setShowUploadHtml] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
   // If filtering by course → use course mode; otherwise fetch all teacher's lessons
   const { lessons, loading } = useLessons(
@@ -695,6 +697,12 @@ export default function LessonsLibraryPage() {
               🎨 Desde Canva
             </button>
             <button
+              onClick={() => setShowUploadHtml(true)}
+              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+            >
+              📄 Desde HTML
+            </button>
+            <button
               onClick={() => setShowNewLesson(true)}
               className="px-4 py-2 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
             >
@@ -797,6 +805,13 @@ export default function LessonsLibraryPage() {
         <CreateFromPresentationModal
           teacherId={teacherUid}
           onClose={() => setShowFromPresentation(false)}
+        />
+      )}
+
+      {showUploadHtml && (
+        <UploadHtmlLessonModal
+          teacherId={teacherUid}
+          onClose={() => setShowUploadHtml(false)}
         />
       )}
 

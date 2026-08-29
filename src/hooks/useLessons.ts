@@ -304,6 +304,55 @@ export async function createLessonFromPresentation(teacherId: string, data: {
   return ref.id;
 }
 
+// ── Create lesson from HTML upload (single html_content slide) ──────
+//
+// El teacher sube un .html o pega markup y esto crea una lección con
+// UNA sola slide de tipo 'html_content'. El sanitizado real corre en
+// el render (HtmlContentSlide), acá guardamos el HTML tal cual llegó
+// así seguimos pudiendo editarlo sin pérdida.
+
+export async function createLessonFromHtml(teacherId: string, data: {
+  title: string;
+  code: string;
+  level: string;
+  html: string;
+  courseId?: string;
+  subtitle?: string;
+}): Promise<string> {
+  const { collection: col, doc: newDoc, setDoc, updateDoc, increment, serverTimestamp: sTs } = await import('firebase/firestore');
+  const courseId = data.courseId ?? 'uncategorized';
+  const ref = newDoc(col(db, 'lessons'));
+  const slides = [{
+    id: 'html-1',
+    type: 'html_content' as const,
+    phase: 'while' as const,
+    title: data.title,
+    subtitle: data.subtitle,
+    htmlContent: data.html,
+  }];
+  await setDoc(ref, {
+    teacherId,
+    courseId,
+    unit: 1,
+    lessonNumber: 1,
+    code: data.code,
+    title: data.title,
+    level: data.level,
+    isPublished: false,
+    slides,
+    slidesJson: JSON.stringify(slides),
+    objectives: [],
+    version: 1,
+    createdAt: sTs(),
+    updatedAt: sTs(),
+    lastEditedBy: teacherId,
+  });
+  if (courseId !== 'uncategorized') {
+    await updateDoc(doc(db, 'courses', courseId), { lessonCount: increment(1) });
+  }
+  return ref.id;
+}
+
 // ── Get all courses (real-time) ───────────────────────────────
 
 export async function createCourse(data: {
