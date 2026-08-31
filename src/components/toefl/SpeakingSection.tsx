@@ -87,8 +87,16 @@ export function SpeakingSection({
     try {
       const s = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.current = s;
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-      const rec = new MediaRecorder(s, { mimeType });
+      // Chrome/Firefox/Edge speak webm+opus; Safari (iPhone/iPad/macOS) only
+      // supports mp4/aac. Fall through the list until one hits.
+      const candidates = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4;codecs=mp4a.40.2',
+        'audio/mp4',
+      ];
+      const mimeType = candidates.find(t => MediaRecorder.isTypeSupported(t)) ?? '';
+      const rec = mimeType ? new MediaRecorder(s, { mimeType }) : new MediaRecorder(s);
       chunks.current = [];
       rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
       rec.start();
@@ -119,8 +127,11 @@ export function SpeakingSection({
       rec.stop();
     });
     stream.current?.getTracks().forEach(t => t.stop());
-    const blob = new Blob(chunks.current, { type: recorder.current!.mimeType });
-    const path = `audio/toefl-speaking-${teacherId}-${sessionId}-${prompt.id}-${Date.now()}.webm`;
+    const recMime = recorder.current!.mimeType || 'audio/webm';
+    const blob = new Blob(chunks.current, { type: recMime });
+    // Extension must match the actual codec so Storage / Whisper can decode it.
+    const ext = recMime.includes('mp4') ? 'mp4' : recMime.includes('wav') ? 'wav' : 'webm';
+    const path = `audio/toefl-speaking-${teacherId}-${sessionId}-${prompt.id}-${Date.now()}.${ext}`;
     try {
       const sref = storageRef(storage, path);
       await uploadBytes(sref, blob, { contentType: blob.type });

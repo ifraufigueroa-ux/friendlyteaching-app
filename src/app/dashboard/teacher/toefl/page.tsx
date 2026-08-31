@@ -748,7 +748,8 @@ function SpeakingAssignmentsPanel({ teacherId }: { teacherId: string }) {
   const [selectedMockId, setSelectedMockId] = useState<string>(TOEFL_MOCKS[0]?.id ?? 'mock-1');
   const [creating, setCreating] = useState(false);
   const [createdLink, setCreatedLink] = useState('');
-  const [reviewOpen, setReviewOpen] = useState<TOEFLSpeakingAssignment | null>(null);
+  const [reviewOpenId, setReviewOpenId] = useState<string | null>(null);
+  const reviewOpen = reviewOpenId ? assignments.find(a => a.id === reviewOpenId) ?? null : null;
   const [copiedId, setCopiedId] = useState('');
 
   async function handleCreate() {
@@ -976,7 +977,7 @@ function SpeakingAssignmentsPanel({ teacherId }: { teacherId: string }) {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {canReview && (
                           <button
-                            onClick={() => setReviewOpen(a)}
+                            onClick={() => setReviewOpenId(a.id)}
                             className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white hover:opacity-90"
                             style={{ background: '#5A3D7A' }}
                           >
@@ -1009,8 +1010,7 @@ function SpeakingAssignmentsPanel({ teacherId }: { teacherId: string }) {
       {reviewOpen && (
         <ReviewModal
           assignment={reviewOpen}
-          onClose={() => setReviewOpen(null)}
-          teacherId={teacherId}
+          onClose={() => setReviewOpenId(null)}
         />
       )}
     </div>
@@ -1018,11 +1018,10 @@ function SpeakingAssignmentsPanel({ teacherId }: { teacherId: string }) {
 }
 
 function ReviewModal({
-  assignment, onClose, teacherId,
+  assignment, onClose,
 }: {
   assignment: TOEFLSpeakingAssignment;
   onClose:    () => void;
-  teacherId:  string;
 }) {
   const mock = getMock(assignment.mockId);
   const [retrying, setRetrying] = useState(false);
@@ -1052,7 +1051,6 @@ function ReviewModal({
     }
   }
 
-  void teacherId;
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}>
