@@ -20,6 +20,11 @@ type NavLink = {
   label: string;
   iconBg: string;
   iconColor: string;
+  // Path a un PNG de /public/sidebar-icons/. Si está seteado, se
+  // renderiza la imagen en lugar del emoji. Los iconos son ilustraciones
+  // del mascot cat con background de color ya integrado — el iconBg del
+  // container queda de fallback para items sin imagen.
+  iconImg?: string;
 };
 type NavGroup = { type: 'group'; label: string };
 type NavItem = NavLink | NavGroup;
@@ -29,24 +34,24 @@ type NavItem = NavLink | NavGroup;
 const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher',             icon: '🏠', label: 'Panel Principal',   iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'group', label: 'Equipo' },
-  { type: 'link', href: '/dashboard/teacher/cowork',      icon: '🧑‍🏫', label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600' },
+  { type: 'link', href: '/dashboard/teacher/cowork',      icon: '🧑‍🏫', label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600', iconImg: '/sidebar-icons/co-work.png' },
   { type: 'group', label: 'Gestión' },
   { type: 'link', href: '/dashboard/teacher/students',    icon: '👥', label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/teacher/history',     icon: '📋', label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'group', label: 'Contenido' },
-  { type: 'link', href: '/dashboard/teacher/lessons',     icon: '📚', label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
-  { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: '📥', label: 'Importar lecciones', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
-  { type: 'link', href: '/dashboard/teacher/planner',     icon: '🗂️', label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
+  { type: 'link', href: '/dashboard/teacher/lessons',     icon: '📚', label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
+  { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: '📥', label: 'Importar lecciones', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
+  { type: 'link', href: '/dashboard/teacher/planner',     icon: '🗂️', label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/planner.png' },
   { type: 'group', label: 'Seguimiento' },
-  { type: 'link', href: '/dashboard/teacher/homework',     icon: '📝', label: 'Tareas',             iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
-  { type: 'link', href: '/dashboard/teacher/progress',     icon: '📊', label: 'Progreso',           iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
-  { type: 'link', href: '/dashboard/teacher/word-of-day',  icon: '📖', label: 'Palabra del día',    iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
-  { type: 'link', href: '/dashboard/teacher/placement',    icon: '📐', label: 'Placement Test',     iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
+  { type: 'link', href: '/dashboard/teacher/homework',     icon: '📝', label: 'Tareas',             iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/tareas.png'  },
+  { type: 'link', href: '/dashboard/teacher/progress',     icon: '📊', label: 'Progreso',           iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
+  { type: 'link', href: '/dashboard/teacher/word-of-day',  icon: '📖', label: 'Palabra del día',    iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/palabra-dia.png'  },
+  { type: 'link', href: '/dashboard/teacher/placement',    icon: '📐', label: 'Placement Test',     iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
   { type: 'group', label: 'Administración' },
-  { type: 'link', href: '/dashboard/teacher/admin/leads',  icon: '📨', label: 'Leads',              iconBg: 'bg-rose-100',    iconColor: 'text-rose-600'   },
-  { type: 'link', href: '/dashboard/teacher/reminders',   icon: '🔔', label: 'Recordatorios',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-500'  },
-  { type: 'link', href: '/dashboard/teacher/billing',     icon: '💳', label: 'Facturación',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500'  },
-  { type: 'link', href: '/dashboard/teacher/activities',  icon: '🎯', label: 'Actividades',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500'  },
+  { type: 'link', href: '/dashboard/teacher/admin/leads',  icon: '📨', label: 'Leads',              iconBg: 'bg-rose-100',    iconColor: 'text-rose-600',   iconImg: '/sidebar-icons/leads.png' },
+  { type: 'link', href: '/dashboard/teacher/reminders',   icon: '🔔', label: 'Recordatorios',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
+  { type: 'link', href: '/dashboard/teacher/billing',     icon: '💳', label: 'Facturación',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
+  { type: 'link', href: '/dashboard/teacher/activities',  icon: '🎯', label: 'Actividades',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/actividades.png' },
   { type: 'link', href: '/dashboard/teacher/tools',       icon: '🛠️', label: 'Herramientas',       iconBg: 'bg-slate-100',   iconColor: 'text-slate-500'  },
   { type: 'group', label: 'Ayuda' },
   { type: 'link', href: '/dashboard/teacher/help',        icon: '📖', label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600'   },
@@ -159,7 +164,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             );
           }
 
-          const { href, icon, label, iconBg, iconColor } = item;
+          const { href, icon, label, iconBg, iconColor, iconImg } = item;
           const isActive = pathname === href || (
             href !== '/dashboard/teacher' && href !== '/dashboard/student' && pathname.startsWith(href)
           );
@@ -181,12 +186,24 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-[#5A3D7A]" />
               )}
 
-              {/* Icon container */}
-              <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 transition-transform duration-150 ${
-                isActive ? 'bg-[#5A3D7A] text-white shadow-sm scale-105' : `${iconBg} ${iconColor} group-hover:scale-105`
-              }`}>
-                {icon}
-              </span>
+              {/* Icon container — usa imagen si iconImg está seteado, sino
+                  emoji. Las ilustraciones del cat mascot traen su propio
+                  background de color, así que salteamos iconBg cuando hay
+                  imagen. Active state: ring alrededor + scale para no
+                  pintar sobre la ilustración. */}
+              {iconImg ? (
+                <span className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-150 ${
+                  isActive ? 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
+                }`}>
+                  <Image src={iconImg} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                </span>
+              ) : (
+                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 transition-transform duration-150 ${
+                  isActive ? 'bg-[#5A3D7A] text-white shadow-sm scale-105' : `${iconBg} ${iconColor} group-hover:scale-105`
+                }`}>
+                  {icon}
+                </span>
+              )}
 
               <span className="flex-1 truncate">{label}</span>
 
@@ -205,20 +222,26 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/dashboard/profile"
           onClick={onNavigate}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
             pathname === '/dashboard/profile'
               ? 'bg-[#F0E5FF] text-[#3D1F6B] font-semibold'
               : 'text-gray-400 hover:bg-gray-50 hover:text-[#5A3D7A]'
           }`}
         >
-          <span className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">⚙️</span>
+          <span className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+            pathname === '/dashboard/profile' ? 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
+          }`}>
+            <Image src="/sidebar-icons/mi-perfil.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
+          </span>
           Mi Perfil
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+          className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
         >
-          <span className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0 group-hover:bg-red-100">🚪</span>
+          <span className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all group-hover:scale-105 group-hover:ring-1 group-hover:ring-red-300">
+            <Image src="/sidebar-icons/cerrar-sesion.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
+          </span>
           Cerrar Sesión
         </button>
       </div>
