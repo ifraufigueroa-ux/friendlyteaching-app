@@ -140,7 +140,9 @@ export function SpeakingSection({
     }
     // Extension must match the actual codec so Storage / Whisper can decode it.
     const ext = bareMime.includes('mp4') ? 'mp4' : bareMime.includes('wav') ? 'wav' : 'webm';
-    const path = `audio/toefl-speaking-${teacherId}-${sessionId}-${prompt.id}-${Date.now()}.${ext}`;
+    // Path uses real segments (not a flat filename) so Storage rules can
+    // match it unambiguously without regex.
+    const path = `audio/toefl-speaking/${teacherId}/${sessionId}/${prompt.id}-${Date.now()}.${ext}`;
     try {
       const sref = storageRef(storage, path);
       await uploadBytes(sref, blob, { contentType: bareMime });

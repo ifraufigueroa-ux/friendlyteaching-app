@@ -21,21 +21,25 @@ service firebase.storage {
         getUserData().status == 'approved';
     }
 
-    // ── Audio files (for listening slides + student speaking recordings) ─────
-    // Teachers upload listening audio for the mock; students upload their
-    // speaking answers. The speaking flow supports public-link takers (no
-    // login), so we allow anonymous writes when the filename prefix matches
-    // — size + content-type gate abuse.
+    // ── Audio files (for listening slides) ────────────────────────────────────
+    // Teachers upload listening audio for the mock here.
     match /audio/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if (
-        isTeacher()
-        || (
-          fileName.matches('toefl-speaking-.*')
-          && request.resource.size < 20 * 1024 * 1024
-          && request.resource.contentType.matches('audio/.*')
-        )
-      );
+      allow write: if isTeacher()
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
+      allow delete: if isTeacher();
+    }
+
+    // ── TOEFL Speaking recordings (student answers) ──────────────────────────
+    // Nested path so the rule doesn't rely on filename regex. Anonymous writes
+    // allowed because the public-link flow has guest takers with no login —
+    // size + content-type gate abuse. Reads happen via download URLs with
+    // token so this branch is irrelevant for playback.
+    match /audio/toefl-speaking/{teacherId}/{sessionId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
       allow delete: if isTeacher();
     }
 
