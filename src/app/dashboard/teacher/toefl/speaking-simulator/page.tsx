@@ -20,6 +20,7 @@ import {
   speakingPromptsMock3,
   speakingPromptsMock4,
 } from '@/lib/data/toefl/speaking/independent-prompts';
+import { useCountdown } from '@/hooks/useCountdown';
 
 const B = {
   purple:      '#5A3D7A',
@@ -65,32 +66,6 @@ interface AIResult {
   improvements: string[];
   transcript:   string;
   durationSec:  number;
-}
-
-// ── Reusable countdown ────────────────────────────────────────────────────
-// Same shape as toefl-mock: reset on start so a prior 0-terminal state does
-// not fire onExpire instantly on the next run.
-function useCountdown(initialSec: number, running: boolean, onExpire?: () => void) {
-  const [left, setLeft] = useState(initialSec);
-  const expireRef = useRef(onExpire);
-  useEffect(() => { expireRef.current = onExpire; });
-  useEffect(() => { setLeft(initialSec); }, [initialSec]);
-  useEffect(() => {
-    if (!running) return;
-    setLeft(initialSec);
-    const id = setInterval(() => {
-      setLeft(t => {
-        if (t <= 1) {
-          queueMicrotask(() => expireRef.current?.());
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running]);
-  return left;
 }
 
 export default function SpeakingSimulatorPage() {

@@ -34,6 +34,7 @@ import {
   findResumableSession, loadSession, saveLiveSnapshot, clearLiveSnapshot,
   debouncedSnapshot,
 } from '@/lib/toefl/sessions';
+import { useCountdown } from '@/hooks/useCountdown';
 
 // ── Reading question-type friendly labels ─────────────────────────────────
 const READING_TYPE_LABEL: Record<TOEFLReadingQuestionType, string> = {
@@ -98,30 +99,6 @@ function fmtTime(sec: number): string {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-function useCountdown(initialSec: number, running: boolean, onExpire?: () => void) {
-  const [left, setLeft] = useState(initialSec);
-  useEffect(() => { setLeft(initialSec); }, [initialSec]);
-  useEffect(() => {
-    if (!running) return;
-    // Reset on start — otherwise a prior run's terminal `left=0` carries over
-    // to the next `running=true` transition (e.g. Speaking task 2 with the
-    // same prepSec as task 1) and the interval fires onExpire immediately.
-    setLeft(initialSec);
-    const id = setInterval(() => {
-      setLeft(t => {
-        if (t <= 1) {
-          queueMicrotask(() => onExpire?.());
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running]);
-  return left;
 }
 
 function TimerBar({ label, seconds, totalSec, warn = 60 }: { label: string; seconds: number; totalSec: number; warn?: number }) {
