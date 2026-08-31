@@ -164,8 +164,9 @@ export function SpeakingSection({
     } catch (err) {
       const code = (err as { code?: string })?.code ?? 'unknown';
       const msg  = err instanceof Error ? err.message : String(err);
-      console.error('[speaking] upload error:', code, msg, err);
-      setError(`Error subiendo el audio (${code}). Probá de nuevo o saltá la task.`);
+      const server = (err as { serverResponse?: string })?.serverResponse ?? '';
+      console.error('[speaking] upload error:', { code, msg, server, path, mime: bareMime, size: blob.size, err });
+      setError(`Error subiendo audio (${code}). Path: ${path.slice(0, 60)}… · ${server.slice(0, 80)}`);
       setPhase('speak');
     }
   }

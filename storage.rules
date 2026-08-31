@@ -32,15 +32,10 @@ service firebase.storage {
     }
 
     // ── TOEFL Speaking recordings (student answers) ──────────────────────────
-    // Nested path so the rule doesn't rely on filename regex. Anonymous writes
-    // allowed because the public-link flow has guest takers with no login —
-    // size + content-type gate abuse. Reads happen via download URLs with
-    // token so this branch is irrelevant for playback.
-    match /audio/toefl-speaking/{teacherId}/{sessionId}/{fileName} {
-      allow read: if true;
-      allow write: if request.resource.size < 20 * 1024 * 1024
-        && request.resource.contentType.matches('audio/.*');
-      allow delete: if isTeacher();
+    // DIAGNOSTIC: temporarily permissive to isolate whether the block is at
+    // rules, App Check, or bucket-IAM level.
+    match /audio/toefl-speaking/{allPaths=**} {
+      allow read, write: if true;
     }
 
     // ── Images (for cover, free_text, image_label slides) ────────────────────
