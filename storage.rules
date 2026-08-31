@@ -21,12 +21,21 @@ service firebase.storage {
         getUserData().status == 'approved';
     }
 
-    // ── Audio files (for listening slides) ────────────────────────────────────
+    // ── Audio files (for listening slides + student speaking recordings) ─────
+    // Teachers upload listening audio for the mock; students upload their
+    // speaking answers. The speaking flow supports public-link takers (no
+    // login), so we allow anonymous writes when the filename prefix matches
+    // — size + content-type gate abuse.
     match /audio/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isTeacher()
-        && request.resource.size < 20 * 1024 * 1024
-        && request.resource.contentType.matches('audio/.*');
+      allow write: if (
+        isTeacher()
+        || (
+          fileName.matches('toefl-speaking-.*')
+          && request.resource.size < 20 * 1024 * 1024
+          && request.resource.contentType.matches('audio/.*')
+        )
+      );
       allow delete: if isTeacher();
     }
 
