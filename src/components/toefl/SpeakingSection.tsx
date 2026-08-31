@@ -128,13 +128,22 @@ export function SpeakingSection({
     });
     stream.current?.getTracks().forEach(t => t.stop());
     const recMime = recorder.current!.mimeType || 'audio/webm';
+    // Storage rules regex matches on the bare mime — strip any ;codecs=…
+    // parameter so audio/webm;codecs=opus still passes the audio/.* rule.
+    const bareMime = recMime.split(';')[0].trim() || 'audio/webm';
     const blob = new Blob(chunks.current, { type: recMime });
+    if (blob.size === 0) {
+      console.error('[speaking] empty recording — no audio chunks');
+      setError('La grabación quedó vacía. Revisá el micrófono y probá de nuevo.');
+      setPhase('speak');
+      return;
+    }
     // Extension must match the actual codec so Storage / Whisper can decode it.
-    const ext = recMime.includes('mp4') ? 'mp4' : recMime.includes('wav') ? 'wav' : 'webm';
+    const ext = bareMime.includes('mp4') ? 'mp4' : bareMime.includes('wav') ? 'wav' : 'webm';
     const path = `audio/toefl-speaking-${teacherId}-${sessionId}-${prompt.id}-${Date.now()}.${ext}`;
     try {
       const sref = storageRef(storage, path);
-      await uploadBytes(sref, blob, { contentType: blob.type });
+      await uploadBytes(sref, blob, { contentType: bareMime });
       const url = await getDownloadURL(sref);
       const rec: SpeakingRecording = {
         promptId:    prompt.id,
@@ -151,8 +160,10 @@ export function SpeakingSection({
         onDone(next);
       }
     } catch (err) {
-      console.error('[speaking] upload error:', err);
-      setError('Error subiendo el audio. Intentá de nuevo o pasá al siguiente.');
+      const code = (err as { code?: string })?.code ?? 'unknown';
+      const msg  = err instanceof Error ? err.message : String(err);
+      console.error('[speaking] upload error:', code, msg, err);
+      setError(`Error subiendo el audio (${code}). Probá de nuevo o saltá la task.`);
       setPhase('speak');
     }
   }
