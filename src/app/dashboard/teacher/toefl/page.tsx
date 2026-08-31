@@ -384,6 +384,7 @@ function SessionsTable({
   loading:   boolean;
   teacherId: string;
 }) {
+  const [speakingView, setSpeakingView] = useState<TOEFLSession | null>(null);
   if (loading) {
     return (
       <div className="mt-10 space-y-2">
@@ -425,6 +426,7 @@ function SessionsTable({
               const reading   = s.results?.reading?.score.score;
               const listening = s.results?.listening?.score.score;
               const isInProgress = s.status === 'in_progress';
+              const hasSpeaking  = (s.results?.speaking?.recordings?.length ?? 0) > 0;
               return (
                 <tr
                   key={s.id}
@@ -472,6 +474,14 @@ function SessionsTable({
                           ▶ Continuar
                         </a>
                       )}
+                      {hasSpeaking && (
+                        <button
+                          onClick={() => setSpeakingView(s)}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#5A3D7A]/40 text-[#5A3D7A] hover:bg-[#F0E5FF]"
+                        >
+                          🎤 Ver
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -479,6 +489,59 @@ function SessionsTable({
             })}
           </tbody>
         </table>
+      </div>
+
+      {speakingView && (
+        <SessionSpeakingModal
+          session={speakingView}
+          onClose={() => setSpeakingView(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Speaking review modal for live-mock sessions ─────────────────────────
+
+function SessionSpeakingModal({
+  session, onClose,
+}: {
+  session: TOEFLSession;
+  onClose: () => void;
+}) {
+  const mock = getMock(session.mockId);
+  const recordings = session.results?.speaking?.recordings ?? [];
+  const speakingScore = session.results?.speaking?.score.score;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
+      onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl w-full max-w-3xl my-8 shadow-2xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-[#E8D5F0] flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Speaking · {mock?.title ?? session.mockId}</p>
+            <p className="text-base font-bold text-[#5A3D7A] truncate">{session.studentName}</p>
+            {session.studentEmail && <p className="text-xs text-[#5A3D7A]/60 truncate">{session.studentEmail}</p>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {speakingScore != null && (
+              <div className="text-right">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Speaking</p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{speakingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+              </div>
+            )}
+            <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
+          </div>
+        </div>
+        <div className="overflow-y-auto p-6">
+          {mock && recordings.length > 0 ? (
+            <SpeakingBreakdown recordings={recordings} prompts={mock.speaking} />
+          ) : (
+            <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones disponibles.</p>
+          )}
+        </div>
       </div>
     </div>
   );
