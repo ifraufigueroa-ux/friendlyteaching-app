@@ -229,6 +229,38 @@ export interface TOEFLSession {
   updatedAt?:      Timestamp;
 }
 
+// ── Speaking assignments (teacher → student, async) ────────────────────────
+//
+// Assigned mocks that a student runs from their dashboard. Unlike the live
+// full-mock flow, there's no timer for the whole test and no visible AI
+// feedback — the student only sees a welcome, records the 4 prompts, and
+// gets a "ask your teacher" thank-you. The teacher sees the full breakdown.
+
+export type TOEFLSpeakingAssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'graded';
+
+export interface TOEFLSpeakingAssignment {
+  id:              string;
+  teacherId:       string;
+  /** When present, only that student (matched by uid) can open the assignment.
+   *  When absent, the assignment is a public link — anyone with the URL can
+   *  open it and identifies themselves via a name prompt on load. */
+  studentId?:      string;
+  studentName:     string;
+  studentEmail?:   string;
+  mockId:          string;   // 'mock-1' | 'mock-2' | 'mock-3' | 'mock-4'
+  status:          TOEFLSpeakingAssignmentStatus;
+  /** Recordings uploaded by the student. One per prompt. */
+  recordings?:     SpeakingRecording[];
+  /** Overall Speaking score 0-30 (only present when graded). */
+  overallScore?:   number;
+  /** Latest error from the auto-grading pipeline, if it failed. Teacher can retry. */
+  gradingError?:   string;
+  createdAt:       Timestamp;
+  startedAt?:      Timestamp;
+  completedAt?:    Timestamp;
+  gradedAt?:       Timestamp;
+}
+
 // ── Scoring conversions ────────────────────────────────────────────────────
 
 /** ETS-style raw → scaled score for Reading and Listening.

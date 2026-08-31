@@ -360,6 +360,21 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // TOEFL Speaking assignments — teacher creates; student runs from link.
+    // Same public-write pattern as toeflSessions: reads are open (the id is
+    // the token), updates keep teacherId locked so a student can't hijack
+    // the doc.
+    match /toeflSpeakingAssignments/{assignmentId} {
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow read:   if true;
+      allow update: if (
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+        ||
+        (request.resource.data.teacherId == resource.data.teacherId)
+      );
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // TOEFL Listening audio bindings — mirrors ieltsListeningAudios.
     match /toeflListeningAudios/{bindingId} {
       allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
