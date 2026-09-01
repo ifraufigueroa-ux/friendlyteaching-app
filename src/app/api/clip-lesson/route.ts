@@ -18,7 +18,10 @@
 //   comprehension.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateClipLessonAlgorithmically } from '@/lib/utils/clipLessonGenerator';
+import {
+  generateClipLessonAlgorithmically,
+  focusFromShort,
+} from '@/lib/utils/clipLessonGenerator';
 import type { Slide, LessonLevel, ClipData } from '@/types/firebase';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? '';
@@ -186,10 +189,39 @@ async function generateWithAI(
   source: string,
   dialogue: string,
   level: LessonLevel,
+  focusOverride?: string,
 ): Promise<Slide[] | null> {
   if (!ANTHROPIC_API_KEY) return null;
 
-  const userPrompt = `Scene: "${title}" from ${source}\nLevel: ${level}\n\nDialogue (verbatim, one line per row — {{blank}} markers stripped for you):\n${dialogue.slice(0, 3000)}\n\nGenerate the 8-slide CLT deck JSON now (cover, vocab_match, predictions, comprehension, language_focus, controlled_practice, production, end). Do NOT emit the clip_dialogue_game — that comes from the teacher.`;
+  // When the teacher pins a grammar focus, we OVERRIDE the "pick ONE
+  // structure from the dialogue" instruction. The through-line has to
+  // hold: language_focus → controlled_practice → production must all
+  // drill the SAME structure, otherwise the CLT ladder breaks.
+  const pinned = focusOverride ? focusFromShort(focusOverride) : null;
+  const focusBlock = pinned
+    ? `
+
+═══════════════════════════════════════════════════════════════
+GRAMMAR FOCUS OVERRIDE — the teacher pinned a specific structure.
+IGNORE the "pick ONE grammar structure" instruction in SLIDE 5.
+Use this structure across slides 5, 6 and 7:
+
+  Structure name: "${pinned.name}"
+  Mini-rules the student should walk away with:
+    • ${pinned.rules[0]}
+    • ${pinned.rules[1]}
+    • ${pinned.rules[2]}
+
+HARD REQUIREMENT: slide 5 title = "Language focus: ${pinned.name}",
+slide 6 subtitle = "${pinned.name}", slide 7 middle bullet must
+end with "Try using ${pinned.name}.". Every controlled_practice
+item must drill ${pinned.name} — not another tense. Do NOT pick
+a different structure "because it appears more in the dialogue".
+═══════════════════════════════════════════════════════════════
+`
+    : '';
+
+  const userPrompt = `Scene: "${title}" from ${source}\nLevel: ${level}\n\nDialogue (verbatim, one line per row — {{blank}} markers stripped for you):\n${dialogue.slice(0, 3000)}${focusBlock}\n\nGenerate the 8-slide CLT deck JSON now (cover, vocab_match, predictions, comprehension, language_focus, controlled_practice, production, end). Do NOT emit the clip_dialogue_game — that comes from the teacher.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -280,7 +312,7 @@ export async function POST(req: NextRequest) {
   const cleanDialogue = stripBlanks(dialogue);
 
   if (mode === 'ai') {
-    const aiSlides = await generateWithAI(title, source, cleanDialogue, level);
+    const aiSlides = await generateWithAI(title, source, cleanDialogue, level, focusOverride);
     if (!aiSlides) {
       return NextResponse.json(
         { error: 'AI generation unavailable — check ANTHROPIC_API_KEY or try algorithmic mode.' },
