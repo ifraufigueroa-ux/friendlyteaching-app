@@ -11,6 +11,7 @@ import { auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
 import TopBar from '@/components/layout/TopBar';
 import { useCoworkChat } from '@/hooks/useCoworkChat';
+import { markCoworkChatSeen } from '@/hooks/useCoworkChatUnread';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkPresence } from '@/hooks/useCoworkPresence';
 import type { CoworkAnnouncement, CoworkMessage, CoworkPresence } from '@/types/firebase';
@@ -348,6 +349,13 @@ export default function CoworkPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages.length]);
+
+  // Marcar el chat como visto cada vez que llegan mensajes estando en la
+  // sección — así el badge del sidebar se resetea en tiempo real mientras
+  // el profe tiene la pestaña abierta.
+  useEffect(() => {
+    if (role === 'teacher') markCoworkChatSeen();
+  }, [messages.length, role]);
 
   const onlineUids = useMemo(() => new Set(onlineNow.map(p => p.uid)), [onlineNow]);
 

@@ -10,6 +10,8 @@ import { useStudentHomework, useTeacherHomework } from '@/hooks/useHomework';
 import { useStudents } from '@/hooks/useStudents';
 import { usePlacementSessions } from '@/hooks/usePlacementSessions';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
+import { useCoworkChatUnread } from '@/hooks/useCoworkChatUnread';
+import { useNewLeadsCount } from '@/hooks/useNewLeadsCount';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -79,9 +81,12 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
   const teacherHw  = useTeacherHomework(role === 'teacher' ? uid : '');
   const { pendingStudents } = useStudents();
   const { sessions: placementSessions } = usePlacementSessions(role === 'teacher' ? uid : '');
-  // Avisos del COWORK sin leer — sólo mide para profes; el hook queda
-  // ocioso para estudiantes porque el guard del componente lo desmonta.
-  const { unreadCount: coworkUnread } = useCoworkAnnouncements(role === 'teacher' ? uid : '');
+  // Avisos + mensajes del COWORK sin leer — sólo mide para profes; los
+  // hooks quedan ociosos para estudiantes porque el guard del componente
+  // los desmonta al cambiar de rol.
+  const { unreadCount: coworkAnnUnread } = useCoworkAnnouncements(role === 'teacher' ? uid : '');
+  const coworkChatUnread = useCoworkChatUnread(role === 'teacher' ? uid : '');
+  const newLeads = useNewLeadsCount(role === 'teacher');
 
   return useMemo(() => {
     const badges = new Map<string, number>();
@@ -95,10 +100,12 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
       if (pendingStudents.length > 0) badges.set('/dashboard/teacher/students', pendingStudents.length);
       const unlinked = placementSessions.filter(s => !s.linkedStudentId && s.status !== 'in_progress').length;
       if (unlinked > 0) badges.set('/dashboard/teacher/placement', unlinked);
-      if (coworkUnread > 0) badges.set('/dashboard/teacher/cowork', coworkUnread);
+      const coworkTotal = coworkAnnUnread + coworkChatUnread;
+      if (coworkTotal > 0) badges.set('/dashboard/teacher/cowork', coworkTotal);
+      if (newLeads > 0) badges.set('/dashboard/teacher/admin/leads', newLeads);
     }
     return badges;
-  }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions, coworkUnread]);
+  }, [role, studentHw.homework, teacherHw.homework, pendingStudents, placementSessions, coworkAnnUnread, coworkChatUnread, newLeads]);
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -208,7 +215,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               <span className="flex-1 truncate">{label}</span>
 
               {badge > 0 && (
-                <span className="flex-shrink-0 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                <span className="flex-shrink-0 min-w-[20px] h-[20px] px-1.5 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center leading-none shadow-[0_2px_6px_rgba(239,68,68,0.45)] ring-2 ring-white animate-pulse">
                   {badge > 99 ? '99+' : badge}
                 </span>
               )}
