@@ -175,6 +175,9 @@ export interface WritingSubmission {
     organisation: number;
     languageUse:  number;
   };
+  aiStrengths?:    string[];
+  aiImprovements?: string[];
+  aiError?:        string;   // captured HTTP/network error message when grading failed
 }
 
 // ── Session ────────────────────────────────────────────────────────────────
@@ -200,6 +203,9 @@ export interface TOEFLLiveSnapshot {
   listeningNotes?:   Record<string, string>;
   /** Uploaded speaking recordings so a mid-section refresh keeps them. */
   speakingRecordings?: SpeakingRecording[];
+  /** Draft of the Writing textarea — autosaved every few keystrokes so a
+   *  refresh in the middle of the 10-min task doesn't wipe the response. */
+  writingText?: string;
 }
 
 export interface TOEFLSession {
@@ -237,6 +243,25 @@ export interface TOEFLSession {
 // gets a "ask your teacher" thank-you. The teacher sees the full breakdown.
 
 export type TOEFLSpeakingAssignmentStatus = 'assigned' | 'in_progress' | 'completed' | 'graded';
+export type TOEFLWritingAssignmentStatus  = TOEFLSpeakingAssignmentStatus;
+
+export interface TOEFLWritingAssignment {
+  id:              string;
+  teacherId:       string;
+  /** Same public/registered semantics as TOEFLSpeakingAssignment. */
+  studentId?:      string;
+  studentName:     string;
+  studentEmail?:   string;
+  mockId:          string;
+  status:          TOEFLWritingAssignmentStatus;
+  submission?:     WritingSubmission;
+  overallScore?:   number;
+  gradingError?:   string;
+  createdAt:       Timestamp;
+  startedAt?:      Timestamp;
+  completedAt?:    Timestamp;
+  gradedAt?:       Timestamp;
+}
 
 export interface TOEFLSpeakingAssignment {
   id:              string;

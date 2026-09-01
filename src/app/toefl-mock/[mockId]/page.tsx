@@ -36,7 +36,10 @@ import {
 import { useCountdown } from '@/hooks/useCountdown';
 import { SpeakingSection } from '@/components/toefl/SpeakingSection';
 import { SpeakingBreakdown } from '@/components/toefl/SpeakingBreakdown';
+import { WritingSection } from '@/components/toefl/WritingSection';
+import { WritingBreakdown } from '@/components/toefl/WritingBreakdown';
 import { gradeSpeakingRecordings } from '@/lib/toefl/gradeSpeaking';
+import { gradeWritingSubmission } from '@/lib/toefl/gradeWriting';
 
 // ── Reading question-type friendly labels ─────────────────────────────────
 const READING_TYPE_LABEL: Record<TOEFLReadingQuestionType, string> = {
@@ -673,87 +676,11 @@ function ListeningSection({
   );
 }
 
-// ── Writing section ───────────────────────────────────────────────────────
-
-function WritingSection({
-  prompt, onDone,
-}: {
-  prompt: TOEFLWritingPrompt;
-  onDone: (submission: WritingSubmission) => void;
-}) {
-  const [text, setText] = useState('');
-  const totalSec = prompt.timerMin * 60;
-  const left = useCountdown(totalSec, true, () => submit());
-  const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
-  const meets = wordCount >= prompt.minWords;
-
-  function submit() {
-    onDone({ promptId: prompt.id, text, wordCount });
-  }
-
-  return (
-    <>
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
-        {/* Prompt */}
-        <div className="bg-white rounded-2xl p-5 shadow-lg max-h-[80vh] overflow-y-auto"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-            Writing Task 2 · Academic Discussion
-          </span>
-          <p className="text-xs text-gray-600 mt-2 whitespace-pre-line leading-relaxed">{prompt.professorPost}</p>
-
-          <div className="mt-4 space-y-3">
-            <div className="rounded-lg bg-[#F0E5FF] p-3">
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: B.purple }}>Prof.</p>
-              <p className="text-xs text-[#2D1B4E] mt-1 leading-relaxed">{prompt.question}</p>
-            </div>
-            <div className="rounded-lg bg-white border border-gray-200 p-3">
-              <p className="text-[10px] font-bold" style={{ color: B.purpleMed }}>{prompt.studentA.name}</p>
-              <p className="text-xs text-gray-700 mt-1 leading-relaxed">{prompt.studentA.text}</p>
-            </div>
-            <div className="rounded-lg bg-white border border-gray-200 p-3">
-              <p className="text-[10px] font-bold" style={{ color: B.purpleMed }}>{prompt.studentB.name}</p>
-              <p className="text-xs text-gray-700 mt-1 leading-relaxed">{prompt.studentB.text}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Editor */}
-        <div className="bg-white rounded-2xl p-5 shadow-lg self-start"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Tu respuesta</span>
-            <span className={`text-xs font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
-              {wordCount} / {prompt.minWords} palabras {meets && '✓'}
-            </span>
-          </div>
-          <textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            autoFocus
-            placeholder="Escribí tu contribución al debate…"
-            spellCheck
-            className="w-full min-h-[420px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
-          />
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={submit}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all"
-            >
-              ✓ Submit Writing
-            </button>
-          </div>
-        </div>
-      </div>
-      <TimerBar label={`Writing · ${prompt.timerMin} min`} seconds={left} totalSec={totalSec} warn={60} />
-    </>
-  );
-}
-
 // ── Results ───────────────────────────────────────────────────────────────
 
 function ResultsScreen({
   studentName, scores, overall, enabledSections, speakingResults, speakingPrompts,
+  writingResult, writingPrompt,
 }: {
   studentName:     string;
   scores:          Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>;
@@ -761,6 +688,8 @@ function ResultsScreen({
   enabledSections: TOEFLSection[];
   speakingResults?: SpeakingRecording[];
   speakingPrompts?: TOEFLSpeakingPrompt[];
+  writingResult?:   WritingSubmission | null;
+  writingPrompt?:   TOEFLWritingPrompt;
 }) {
   const [downloading, setDownloading] = useState(false);
   const isPartial = enabledSections.length < 4;
@@ -850,6 +779,11 @@ function ResultsScreen({
             <SpeakingBreakdown recordings={speakingResults} prompts={speakingPrompts} />
           )}
 
+          {/* Writing breakdown — student text + rubric + AI feedback. */}
+          {writingResult && (
+            <WritingBreakdown submission={writingResult} prompt={writingPrompt} />
+          )}
+
           <div className="flex flex-wrap gap-2 pt-2">
             <button
               onClick={downloadPdf}
@@ -914,6 +848,7 @@ export default function TOEFLMockPage() {
   // Full per-task Speaking details (transcript + rubric + feedback + errors)
   // used to render the detailed breakdown on the Results screen.
   const [speakingResults, setSpeakingResults] = useState<SpeakingRecording[]>([]);
+  const [writingResult, setWritingResult] = useState<WritingSubmission | null>(null);
 
   const sessionIdRef = useRef<string>('');
   const [scores, setScores] = useState<Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>>({});
@@ -1117,39 +1052,23 @@ export default function TOEFLMockPage() {
   async function onWritingDone(submission: WritingSubmission) {
     setPhase('grading');
     setGradingMsg('Calificando Writing…');
-    let enriched = submission;
+    let enriched: WritingSubmission = submission;
     let sectionScore = 0;
     try {
-      const promptText = [
-        mock!.writing.professorPost,
-        `\n\nProfesor: ${mock!.writing.question}`,
-        `\n\n${mock!.writing.studentA.name}: ${mock!.writing.studentA.text}`,
-        `\n\n${mock!.writing.studentB.name}: ${mock!.writing.studentB.text}`,
-      ].join('');
-      const gRes = await fetch('/api/ai-grade-toefl-writing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt:        promptText,
-          studentAnswer: submission.text,
-          wordCount:     submission.wordCount,
-          minWords:      mock!.writing.minWords,
-        }),
-      });
-      const gJson = await gRes.json();
-      enriched = {
-        ...submission,
-        aiScore:    Number(gJson.rawScore05 ?? 0),
-        aiFeedback: gJson.feedback,
-        aiRubric:   gJson.rubric,
-      };
-      sectionScore = Number(gJson.sectionScore030 ?? 0);
+      const result = await gradeWritingSubmission(submission, mock!.writing);
+      enriched = result.enriched;
+      sectionScore = result.sectionScore;
     } catch (err) {
-      console.error('[toefl-mock] writing grade err:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[toefl-mock] writing grade err:', msg);
+      enriched = { ...submission, aiError: msg, aiFeedback: `Error al calificar: ${msg}` };
     }
     const score: SectionScore = { section: 'writing', score: sectionScore };
     setScores(prev => ({ ...prev, writing: score }));
+    setWritingResult(enriched);
     await persistSection('writing', { submission: enriched, score });
+    if (sessionIdRef.current) await clearLiveSnapshot(sessionIdRef.current);
+    setHydration(null);
     await advanceFrom('writing', score);
   }
 
@@ -1346,7 +1265,20 @@ export default function TOEFLMockPage() {
       </PageBg>
     );
   }
-  if (phase === 'writing') return <PageBg><WritingSection prompt={mock!.writing} onDone={onWritingDone} /></PageBg>;
+  if (phase === 'writing') {
+    const writingHydration = hydration?.section === 'writing' ? hydration.writingText : undefined;
+    return (
+      <PageBg>
+        <WritingSection
+          prompt={mock!.writing}
+          onDone={onWritingDone}
+          initialText={writingHydration}
+          onSnapshot={(snap) => persistLiveSnapshot('writing', snap)}
+          confirmSubmit
+        />
+      </PageBg>
+    );
+  }
 
   if (phase === 'grading') {
     return (
@@ -1409,6 +1341,8 @@ export default function TOEFLMockPage() {
         enabledSections={enabledSections}
         speakingResults={speakingResults}
         speakingPrompts={mock!.speaking}
+        writingResult={writingResult}
+        writingPrompt={mock!.writing}
       />
     </PageBg>
   );

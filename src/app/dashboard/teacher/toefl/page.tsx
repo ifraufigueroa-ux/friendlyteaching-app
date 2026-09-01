@@ -15,7 +15,7 @@ import FullscreenButton from '@/components/ui/FullscreenButton';
 import {
   TOEFL_SECTION_META, TOEFL_SECTIONS,
   type TOEFLSection, type TOEFLSession, type TOEFLListeningAudio,
-  type TOEFLSpeakingAssignment,
+  type TOEFLSpeakingAssignment, type TOEFLWritingAssignment,
 } from '@/types/toefl';
 import { listSessionsForTeacher, sectionsSummary } from '@/lib/toefl/sessions';
 import { TOEFL_MOCKS, getMock } from '@/lib/data/toefl/mock-1';
@@ -27,8 +27,17 @@ import {
   gradeToeflSpeakingAssignment,
   recordGradingError,
 } from '@/hooks/useToeflSpeakingAssignments';
+import {
+  useToeflWritingAssignments,
+  createToeflWritingAssignment,
+  deleteToeflWritingAssignment,
+  gradeToeflWritingAssignment,
+  recordWritingGradingError,
+} from '@/hooks/useToeflWritingAssignments';
 import { gradeSpeakingRecordings } from '@/lib/toefl/gradeSpeaking';
+import { gradeWritingSubmission } from '@/lib/toefl/gradeWriting';
 import { SpeakingBreakdown } from '@/components/toefl/SpeakingBreakdown';
+import { WritingBreakdown } from '@/components/toefl/WritingBreakdown';
 
 // Cubre TODOS los mocks registrados — el manager de audio agrupa por mockId
 // para que el profe pueda ver/subir MP3s de cualquier mock desde una vista.
@@ -356,6 +365,9 @@ export default function TOEFLDashboardPage() {
           {/* Speaking Assignments panel — async teacher→student flow */}
           <SpeakingAssignmentsPanel teacherId={teacherId} />
 
+          {/* Writing Assignments panel — same pattern for Writing Task 2 */}
+          <WritingAssignmentsPanel teacherId={teacherId} />
+
           {/* Sessions table */}
           <SessionsTable sessions={sessions} loading={loadingSessions} teacherId={teacherId} />
 
@@ -385,6 +397,7 @@ function SessionsTable({
   teacherId: string;
 }) {
   const [speakingView, setSpeakingView] = useState<TOEFLSession | null>(null);
+  const [writingView, setWritingView]   = useState<TOEFLSession | null>(null);
   if (loading) {
     return (
       <div className="mt-10 space-y-2">
@@ -427,6 +440,7 @@ function SessionsTable({
               const listening = s.results?.listening?.score.score;
               const isInProgress = s.status === 'in_progress';
               const hasSpeaking  = (s.results?.speaking?.recordings?.length ?? 0) > 0;
+              const hasWriting   = !!s.results?.writing?.submission?.text;
               return (
                 <tr
                   key={s.id}
@@ -482,6 +496,14 @@ function SessionsTable({
                           🎤 Ver
                         </button>
                       )}
+                      {hasWriting && (
+                        <button
+                          onClick={() => setWritingView(s)}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#5A3D7A]/40 text-[#5A3D7A] hover:bg-[#F0E5FF]"
+                        >
+                          ✍️ Ver
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -495,6 +517,12 @@ function SessionsTable({
         <SessionSpeakingModal
           session={speakingView}
           onClose={() => setSpeakingView(null)}
+        />
+      )}
+      {writingView && (
+        <SessionWritingModal
+          session={writingView}
+          onClose={() => setWritingView(null)}
         />
       )}
     </div>
@@ -540,6 +568,388 @@ function SessionSpeakingModal({
             <SpeakingBreakdown recordings={recordings} prompts={mock.speaking} />
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones disponibles.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Writing review modal for live-mock sessions ──────────────────────────
+
+function SessionWritingModal({
+  session, onClose,
+}: {
+  session: TOEFLSession;
+  onClose: () => void;
+}) {
+  const mock = getMock(session.mockId);
+  const submission = session.results?.writing?.submission;
+  const writingScore = session.results?.writing?.score.score;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
+      onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-3xl my-8 shadow-2xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-[#E8D5F0] flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Writing · {mock?.title ?? session.mockId}</p>
+            <p className="text-base font-bold text-[#5A3D7A] truncate">{session.studentName}</p>
+            {session.studentEmail && <p className="text-xs text-[#5A3D7A]/60 truncate">{session.studentEmail}</p>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {writingScore != null && (
+              <div className="text-right">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Writing</p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{writingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+              </div>
+            )}
+            <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
+          </div>
+        </div>
+        <div className="overflow-y-auto p-6">
+          {mock && submission ? (
+            <WritingBreakdown submission={submission} prompt={mock.writing} />
+          ) : (
+            <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin submission disponible.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Writing Assignments panel (async teacher→student) ───────────────────
+
+function WritingAssignmentsPanel({ teacherId }: { teacherId: string }) {
+  const { assignments, loading } = useToeflWritingAssignments(teacherId);
+  const { students } = useStudents();
+  const [mode, setMode] = useState<'closed' | 'student' | 'public'>('closed');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedMockId, setSelectedMockId] = useState<string>(TOEFL_MOCKS[0]?.id ?? 'mock-1');
+  const [creating, setCreating] = useState(false);
+  const [createdLink, setCreatedLink] = useState('');
+  const [reviewOpenId, setReviewOpenId] = useState<string | null>(null);
+  const reviewOpen = reviewOpenId ? assignments.find(a => a.id === reviewOpenId) ?? null : null;
+  const [copiedId, setCopiedId] = useState('');
+
+  async function handleCreate() {
+    if (!teacherId) return;
+    setCreating(true);
+    try {
+      let id: string;
+      if (mode === 'student') {
+        const student = students.find(s => s.uid === selectedStudentId);
+        if (!student) { setCreating(false); return; }
+        id = await createToeflWritingAssignment({
+          teacherId,
+          studentId:    student.uid,
+          studentName:  student.fullName ?? 'Estudiante',
+          studentEmail: student.email,
+          mockId:       selectedMockId,
+        });
+      } else {
+        id = await createToeflWritingAssignment({ teacherId, mockId: selectedMockId });
+      }
+      const url = `${window.location.origin}/toefl-writing/${id}`;
+      setCreatedLink(url);
+      try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
+    } catch (err) {
+      console.error('[writing-assignments] create err:', err);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function reset() {
+    setMode('closed');
+    setSelectedStudentId('');
+    setCreatedLink('');
+  }
+
+  async function copyLink(assignmentId: string) {
+    const url = `${window.location.origin}/toefl-writing/${assignmentId}`;
+    await navigator.clipboard.writeText(url);
+    setCopiedId(assignmentId);
+    setTimeout(() => setCopiedId(''), 1800);
+  }
+
+  async function handleDelete(a: TOEFLWritingAssignment) {
+    if (!confirm(`¿Eliminar la asignación de ${a.studentName}? No se puede deshacer.`)) return;
+    try { await deleteToeflWritingAssignment(a.id); }
+    catch (err) { console.error('[writing-assignments] delete err:', err); }
+  }
+
+  return (
+    <div className="mt-10">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#5A3D7A]">
+          ✍️ Writing Assignments
+        </p>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F0E5FF] text-[#5A3D7A]">
+          {assignments.length}
+        </span>
+        <div className="ml-auto flex gap-2">
+          <button onClick={() => { setMode('student'); setCreatedLink(''); }}
+            className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm"
+            style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+          >
+            + Asignar a estudiante
+          </button>
+          <button onClick={() => { setMode('public'); setCreatedLink(''); }}
+            className="text-[11px] font-bold px-3 py-1.5 rounded-full border-2"
+            style={{ borderColor: '#5A3D7A', color: '#5A3D7A' }}
+          >
+            🔗 Crear link público
+          </button>
+        </div>
+      </div>
+      <p className="text-[11px] text-[#5A3D7A]/70 mb-3">
+        Task 2 (Academic Discussion): el estudiante escribe desde su link, autoguardado incluido. El grading corre en background.
+      </p>
+
+      {mode !== 'closed' && (
+        <div className="mb-4 bg-white rounded-2xl border border-[#E8D5F0] shadow-sm p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]">
+              {mode === 'student' ? 'Asignar Writing a un estudiante' : 'Crear link público (sin login)'}
+            </p>
+            <button onClick={reset} className="text-[11px] text-gray-500 hover:text-gray-700">✕ Cerrar</button>
+          </div>
+
+          {createdLink ? (
+            <div className="space-y-2">
+              <div className="rounded-xl bg-green-50 border border-green-200 px-3 py-2 text-[11px] text-green-800">
+                ✓ Asignación creada. Link copiado al portapapeles.
+              </div>
+              <div className="flex items-center gap-2 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl px-3 py-2">
+                <input readOnly value={createdLink}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="flex-1 min-w-0 text-[11px] font-mono text-[#5A3D7A]/70 bg-transparent focus:outline-none truncate"
+                />
+                <button onClick={() => navigator.clipboard.writeText(createdLink)}
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[#F0E5FF] text-[#5A3D7A]"
+                >Copy</button>
+              </div>
+              <button onClick={reset} className="text-[11px] font-bold text-[#5A3D7A] underline">
+                Crear otra
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {mode === 'student' && (
+                <label className="block">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70">Estudiante</span>
+                  <select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 rounded-xl border border-[#E0D5FF] bg-white text-sm focus:outline-none focus:border-[#5A3D7A]"
+                  >
+                    <option value="">— Elegir —</option>
+                    {students.map(s => (
+                      <option key={s.uid} value={s.uid}>{s.fullName ?? s.email ?? s.uid}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className="block">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70">Mock</span>
+                <select value={selectedMockId} onChange={(e) => setSelectedMockId(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 rounded-xl border border-[#E0D5FF] bg-white text-sm focus:outline-none focus:border-[#5A3D7A]"
+                >
+                  {TOEFL_MOCKS.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                </select>
+              </label>
+              <div className="sm:col-span-2">
+                <button onClick={handleCreate}
+                  disabled={creating || (mode === 'student' && !selectedStudentId)}
+                  className="w-full font-bold py-2.5 rounded-xl text-white text-sm transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
+                >
+                  {creating ? '⏳ Creando…' : mode === 'student' ? 'Crear y copiar link' : 'Generar link público'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2].map(i => <div key={i} className="h-14 bg-[#F0E5FF] rounded-xl animate-pulse" />)}
+        </div>
+      ) : assignments.length === 0 ? (
+        <div className="text-center py-8 rounded-2xl border border-dashed border-[#C8A8DC]/60 bg-white/40">
+          <p className="text-2xl mb-1">✍️</p>
+          <p className="text-sm font-bold text-[#5A3D7A]">Aún no hay asignaciones de Writing</p>
+          <p className="text-xs text-[#5A3D7A]/60 mt-1">Creá una arriba para mandarle un mock a tu estudiante.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl overflow-hidden border border-[#E8D5F0] bg-white shadow-md">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F0E5FF]">
+                {['Estudiante', 'Mock', 'Fecha', 'Score', 'Estado', 'Acciones'].map(h => (
+                  <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wider px-3 py-2 text-[#5A3D7A]/70">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((a, idx) => {
+                const isPublic = !a.studentId;
+                const mock = getMock(a.mockId);
+                const canReview = a.status === 'completed' || a.status === 'graded';
+                const hasError = !!a.gradingError;
+                return (
+                  <tr key={a.id}
+                    className="border-t border-[#F0E5FF] hover:bg-[#FDFAFF] transition-colors"
+                    style={{ background: idx % 2 === 0 ? 'white' : '#FDFAFF' }}
+                  >
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-[#5A3D7A]">{a.studentName}</p>
+                        {isPublic && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">LINK</span>
+                        )}
+                      </div>
+                      {a.studentEmail && <p className="text-xs text-[#5A3D7A]/60">{a.studentEmail}</p>}
+                    </td>
+                    <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70">{mock?.title ?? a.mockId}</td>
+                    <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70 tabular-nums">{fmtDate(a.createdAt)}</td>
+                    <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
+                      {a.overallScore != null ? `${a.overallScore}/30` : <span className="text-gray-300 font-normal">—</span>}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: a.status === 'graded' ? '#DCFCE7'
+                            : a.status === 'completed' ? '#FEF3C7'
+                            : a.status === 'in_progress' ? '#DBEAFE'
+                            : '#F0E5FF',
+                          color: a.status === 'graded' ? '#15803D'
+                            : a.status === 'completed' ? '#92400E'
+                            : a.status === 'in_progress' ? '#1E40AF'
+                            : '#5A3D7A',
+                        }}
+                      >
+                        {a.status === 'graded' ? 'Graded'
+                          : a.status === 'completed' ? 'Grading…'
+                          : a.status === 'in_progress' ? 'En curso'
+                          : 'Asignado'}
+                      </span>
+                      {hasError && <span className="ml-1 text-[10px] font-bold text-red-600" title={a.gradingError}>⚠</span>}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {canReview && (
+                          <button onClick={() => setReviewOpenId(a.id)}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white hover:opacity-90"
+                            style={{ background: '#5A3D7A' }}
+                          >
+                            Ver
+                          </button>
+                        )}
+                        <button onClick={() => copyLink(a.id)}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#5A3D7A]/40 text-[#5A3D7A] hover:bg-[#F0E5FF]"
+                        >
+                          {copiedId === a.id ? '✓' : '🔗'}
+                        </button>
+                        <button onClick={() => handleDelete(a)}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50"
+                          title="Eliminar"
+                        >
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {reviewOpen && (
+        <WritingReviewModal assignment={reviewOpen} onClose={() => setReviewOpenId(null)} />
+      )}
+    </div>
+  );
+}
+
+function WritingReviewModal({
+  assignment, onClose,
+}: {
+  assignment: TOEFLWritingAssignment;
+  onClose:    () => void;
+}) {
+  const mock = getMock(assignment.mockId);
+  const [retrying, setRetrying] = useState(false);
+  const [retryMsg, setRetryMsg] = useState('');
+
+  async function handleRetry() {
+    if (!mock || !assignment.submission) return;
+    setRetrying(true);
+    setRetryMsg('Recalificando…');
+    try {
+      const { enriched, sectionScore } = await gradeWritingSubmission(assignment.submission, mock.writing);
+      await gradeToeflWritingAssignment(assignment.id, enriched, sectionScore);
+      setRetryMsg(`✓ ${sectionScore}/30`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      try { await recordWritingGradingError(assignment.id, msg); } catch { /* ignore */ }
+      setRetryMsg(`Error: ${msg}`);
+    } finally {
+      setRetrying(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-3xl my-8 shadow-2xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-[#E8D5F0] flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Review Writing · {mock?.title ?? assignment.mockId}</p>
+            <p className="text-base font-bold text-[#5A3D7A] truncate">{assignment.studentName}</p>
+            {assignment.studentEmail && <p className="text-xs text-[#5A3D7A]/60 truncate">{assignment.studentEmail}</p>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {assignment.overallScore != null && (
+              <div className="text-right">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Writing</p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{assignment.overallScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+              </div>
+            )}
+            <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
+          </div>
+        </div>
+        <div className="overflow-y-auto p-6 space-y-4">
+          {assignment.gradingError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-800">
+              <p className="font-bold mb-0.5">Grading falló</p>
+              <p>{assignment.gradingError}</p>
+            </div>
+          )}
+          {assignment.status === 'completed' && !assignment.submission?.aiScore && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-[11px] text-amber-800">
+              El estudiante ya envió el Writing. Grading corriendo en background — refresca en un minuto.
+            </div>
+          )}
+          {mock && assignment.submission ? (
+            <WritingBreakdown submission={assignment.submission} prompt={mock.writing} />
+          ) : (
+            <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin submission aún.</p>
+          )}
+          {(assignment.status === 'graded' || assignment.gradingError) && mock && assignment.submission && (
+            <div className="pt-3 border-t border-[#E8D5F0] flex items-center gap-3">
+              <button onClick={handleRetry} disabled={retrying}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-full border-2 border-[#5A3D7A] text-[#5A3D7A] hover:bg-[#F0E5FF] disabled:opacity-40"
+              >
+                {retrying ? '⏳ Recalificando…' : '↻ Reintentar grading'}
+              </button>
+              {retryMsg && <span className="text-[11px] text-[#5A3D7A]/70">{retryMsg}</span>}
+            </div>
           )}
         </div>
       </div>
