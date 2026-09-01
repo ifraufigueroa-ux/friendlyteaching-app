@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { createMovieLesson, updateMovieLesson } from '@/hooks/useMovieLessons';
 import { createMusicLesson, updateMusicLesson } from '@/hooks/useMusicLessons';
 import { parseYouTubeTranscript } from '@/lib/utils/transcriptParser';
+import { FOCUS_OPTIONS } from '@/lib/utils/clipLessonGenerator';
 import type {
   MovieLesson, MusicLesson, Slide, LessonLevel, ClipData, LyricsBlank,
   QuizQuestion, SongData,
@@ -265,7 +266,7 @@ const REGEN_TARGETS: { id: RegenTargetType; label: string; icon: string }[] = [
 // they get merged back at their canonical positions by the caller.
 async function generateFullClipDeck(
   title: string, source: string, dialogueWithBlanks: string, level: LessonLevel,
-  clip: ClipData, mode: 'ai' | 'algorithmic',
+  clip: ClipData, mode: 'ai' | 'algorithmic', focusOverride?: string,
 ): Promise<{ slides: Slide[]; error?: string }> {
   try {
     const res = await fetch('/api/clip-lesson', {
@@ -275,6 +276,7 @@ async function generateFullClipDeck(
         title, source,
         dialogue: stripBlanks(dialogueWithBlanks),
         level, clipData: clip, mode,
+        focusOverride: focusOverride || undefined,
       }),
     });
     const data = await res.json() as AiGeneratedDeck & { error?: string };
@@ -408,6 +410,10 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
   const [regenTargets, setRegenTargets] = useState<Set<RegenTargetType>>(
     () => new Set(REGEN_TARGETS.map(t => t.id)),
   );
+  // Manual grammar-focus override for the algorithmic generator. Empty
+  // string = auto-detect from the dialogue (previous behaviour). Only
+  // read by the algorithmic mode; the AI mode ignores it.
+  const [focusOverride, setFocusOverride] = useState<string>('');
 
   const detectedBlanks = (dialogue.match(/\{\{blank\}\}/g) ?? []).length;
   useEffect(() => {
@@ -497,6 +503,7 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
     setGeneratorInfo('');
     const { slides: freshSlides, error: genErr } = await generateFullClipDeck(
       title.trim(), source.trim(), dialogue.trim(), level, clip, genMode,
+      focusOverride,
     );
     setGenerating(null);
 
@@ -1091,6 +1098,31 @@ export default function TranscriptClipEditor({ mode, teacherId, initial, onClose
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Grammar focus override — algorithmic mode only. Auto-detect
+                    scans the dialogue and picks the FIRST match in FOCI order,
+                    which biases toward simpler structures when the same clip
+                    also contains complex ones. This dropdown lets the teacher
+                    pin the focus explicitly (e.g. force passive-voice for a
+                    doc-style B2 clip whose dialogue also mentions "going to"). */}
+                <div className="mb-2 bg-white border border-red-100 rounded-lg p-2">
+                  <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#E50914]/80 mb-1.5">
+                    🔬 Language focus (algoritmo)
+                    <span className="text-[9px] font-normal text-gray-400 normal-case tracking-normal">— vacío = auto-detect del diálogo</span>
+                  </label>
+                  <select
+                    value={focusOverride}
+                    onChange={(e) => setFocusOverride(e.target.value)}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#E50914] bg-white"
+                  >
+                    <option value="">Auto-detect (por defecto)</option>
+                    {FOCUS_OPTIONS.map(opt => (
+                      <option key={opt.short} value={opt.short}>
+                        [{opt.level}] {opt.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {generatorInfo && (

@@ -113,6 +113,70 @@ interface GrammarFocus {
 }
 
 const FOCI: Array<{ test: RegExp; focus: GrammarFocus }> = [
+  // High-signal B2/C1 patterns are listed first so complex structures win
+  // over generic ones when they actually appear in the dialogue. Passive
+  // voice is deliberately EXCLUDED from auto-detection — it's everywhere
+  // and would drown out more distinctive structures. Set it via focusOverride.
+  {
+    test: /\bif\b[^.?!]*\bhad\b[^.?!]*\b(would|could|might)\s+have\b/i,
+    focus: {
+      name:  'Third conditional',
+      short: 'third-conditional',
+      rules: [
+        'IF + past perfect (had + past participle) → WOULD / COULD / MIGHT HAVE + past participle.',
+        'Use it for imagined past outcomes that never happened: "If I had known, I would have called".',
+        'Never use WOULD in the IF-clause — the IF side stays in past perfect.',
+      ],
+    },
+  },
+  {
+    test: /\b(never|rarely|seldom|hardly ever|not only|no sooner)\b\s+(had|has|have|did|do|does|were|was|is|are|will)\b/i,
+    focus: {
+      name:  'Inversion',
+      short: 'inversion',
+      rules: [
+        'When a negative adverbial opens the sentence (never, rarely, seldom, not only…), the auxiliary comes BEFORE the subject.',
+        '"Never have I seen such a thing" — not "Never I have seen".',
+        'Inversion signals emphasis or formality; use it in writing and rhetorical speech, not casual chat.',
+      ],
+    },
+  },
+  {
+    test: /\bwish(es|ed)?\b\s+\b(i|you|he|she|it|we|they|[a-z]+)\b\s+\b(had|would|could|were|was)\b/i,
+    focus: {
+      name:  'Wish / If only',
+      short: 'wish-if-only',
+      rules: [
+        'WISH + past simple regrets a present situation: "I wish I knew" = I don\'t know now.',
+        'WISH + past perfect regrets a past action: "I wish I had said something" = I didn\'t say it.',
+        'WISH + would criticises or asks for a change in someone else\'s behaviour: "I wish you would listen".',
+      ],
+    },
+  },
+  {
+    test: /\b(have|has|had|get|got|getting|having)\s+[A-Za-z ]+\s+(done|made|repaired|fixed|cut|cleaned|checked|installed|delivered|painted)\b/i,
+    focus: {
+      name:  'Causative have / get',
+      short: 'causative',
+      rules: [
+        'HAVE / GET + object + past participle = arrange for someone else to do it. "I had my hair cut" = a barber cut it.',
+        'GET is more informal than HAVE; both are grammatical: "I got my car fixed" ≈ "I had my car fixed".',
+        'Contrast with the active: "I cut my hair" implies YOU did it yourself — a very different meaning.',
+      ],
+    },
+  },
+  {
+    test: /\bby the time\b[^.?!]*(will have|have|has)\s+\w+ed\b|\b(will|going to)\s+have\s+\w+(ed|en)\b/i,
+    focus: {
+      name:  'Future perfect',
+      short: 'future-perfect',
+      rules: [
+        'WILL HAVE + past participle: an action that will be finished before a point in the future.',
+        'Common with BY + time marker: "By 2030, we will have replaced most cashiers with self-checkouts".',
+        'Don\'t confuse with future continuous (will be + -ing) — future perfect is about completion, not process.',
+      ],
+    },
+  },
   {
     test: /\b(would|could|might|may)\b/i,
     focus: {
@@ -187,19 +251,93 @@ const FOCI: Array<{ test: RegExp; focus: GrammarFocus }> = [
   },
 ];
 
+const DEFAULT_FOCUS: GrammarFocus = {
+  name:  'Past simple',
+  short: 'past-simple',
+  rules: [
+    'Past simple is the default tense for finished actions in the past.',
+    'Regular verbs add -ed (walked, wanted); irregular verbs take their own form (went, said, took).',
+    'For questions and negatives use DID / DIDN\'T + base verb: "Did she leave?" — not "Did she left?".',
+  ],
+};
+
+// Extra foci that are never auto-detected (either too common in dialogue
+// to signal cleanly, or reserved for the manual override). They still
+// need to resolve to a real GrammarFocus when the teacher picks them.
+const MANUAL_ONLY_FOCI: Record<string, GrammarFocus> = {
+  'passive-voice': {
+    name:  'Passive voice',
+    short: 'passive-voice',
+    rules: [
+      'BE + past participle shifts the focus from the DOER to the thing DONE: "The report was written by the intern".',
+      'Use the passive when the doer is unknown, obvious, or less important than the action.',
+      'The tense of BE tells you WHEN: "is written" (present), "was written" (past), "has been written" (perfect), "will be written" (future).',
+    ],
+  },
+  'mixed-conditional': {
+    name:  'Mixed conditional',
+    short: 'mixed-conditional',
+    rules: [
+      'IF + past perfect → WOULD + base verb links a past hypothetical to a present result: "If she had taken the job, she would live abroad now".',
+      'IF + past simple → WOULD HAVE + past participle links a present unreal state to a past result: "If I were more organised, I would have finished yesterday".',
+      'Mixed conditionals are for when the CAUSE and the RESULT are in different times — otherwise use the second or third conditional.',
+    ],
+  },
+  'future-continuous': {
+    name:  'Future continuous',
+    short: 'future-continuous',
+    rules: [
+      'WILL BE + verb-ING describes an action in progress at a specific moment in the future: "This time tomorrow I will be flying to Madrid".',
+      'Use it for polite predictions about what someone is likely to be doing anyway: "Will you be using the printer later?".',
+      'Contrast with future perfect (will HAVE + past participle) — continuous is about the process, perfect is about the completion.',
+    ],
+  },
+};
+
+// A GrammarFocus that ships in the auto-detect FOCI array is also
+// available for manual override — we simply look it up by short name.
+export function focusFromShort(short: string): GrammarFocus | null {
+  if (!short) return null;
+  const auto = FOCI.find(f => f.focus.short === short);
+  if (auto) return auto.focus;
+  if (MANUAL_ONLY_FOCI[short]) return MANUAL_ONLY_FOCI[short];
+  if (short === 'past-simple') return DEFAULT_FOCUS;
+  return null;
+}
+
+// UI-facing list of grammar focus options exposed by the algorithmic
+// generator. Order matters: shown top-to-bottom in the editor dropdown,
+// so we group by CEFR band for scanability.
+export interface FocusOption { short: string; name: string; level: string }
+export const FOCUS_OPTIONS: FocusOption[] = [
+  // A2 / B1
+  { short: 'past-simple',         name: 'Past simple',                    level: 'A2' },
+  { short: 'past-continuous',     name: 'Past continuous',                level: 'A2/B1' },
+  { short: 'present-perfect',     name: 'Present perfect',                level: 'B1' },
+  { short: 'be-going-to',         name: 'Future with "going to"',         level: 'A2/B1' },
+  { short: 'future-forms',        name: 'Future forms (will / present continuous)', level: 'B1' },
+  { short: 'modals',              name: 'Modals of possibility',          level: 'B1' },
+  { short: 'first-conditional',   name: 'First conditional',              level: 'B1' },
+  // B2
+  { short: 'past-perfect',        name: 'Past perfect',                   level: 'B2' },
+  { short: 'passive-voice',       name: 'Passive voice',                  level: 'B2' },
+  { short: 'second-conditional',  name: 'Second conditional',             level: 'B2' },
+  { short: 'reported-speech',     name: 'Reported speech',                level: 'B2' },
+  { short: 'causative',           name: 'Causative have / get',           level: 'B2' },
+  { short: 'wish-if-only',        name: 'Wish / If only',                 level: 'B2' },
+  { short: 'future-perfect',      name: 'Future perfect',                 level: 'B2' },
+  { short: 'future-continuous',   name: 'Future continuous',              level: 'B2' },
+  // B2+ / C1
+  { short: 'third-conditional',   name: 'Third conditional',              level: 'B2+' },
+  { short: 'mixed-conditional',   name: 'Mixed conditional',              level: 'C1' },
+  { short: 'inversion',           name: 'Inversion (negative adverbials)',level: 'C1' },
+];
+
 function detectFocus(dialogue: string): GrammarFocus {
   for (const f of FOCI) {
     if (f.test.test(dialogue)) return f.focus;
   }
-  return {
-    name:  'Past simple',
-    short: 'past-simple',
-    rules: [
-      'Past simple is the default tense for finished actions in the past.',
-      'Regular verbs add -ed (walked, wanted); irregular verbs take their own form (went, said, took).',
-      'For questions and negatives use DID / DIDN\'T + base verb: "Did she leave?" — not "Did she left?".',
-    ],
-  };
+  return DEFAULT_FOCUS;
 }
 
 // ─── Theme detection (Predictions + Production labels) ────────────────
@@ -1031,6 +1169,370 @@ const BANK: Record<string, GrammarBank> = {
     ],
     openStem: 'If I were you, I would ',
   },
+  'passive-voice': {
+    templates: [
+      {
+        sentence: 'The report was written by the intern in a single afternoon.',
+        targetForm: 'was written', baseVerb: 'write',
+        wrongForms: ['wrote', 'is written', 'has written'],
+        wrongVersion: 'The report wrote by the intern in a single afternoon.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'These devices are manufactured in factories across Southeast Asia.',
+        targetForm: 'are manufactured', baseVerb: 'manufacture',
+        wrongForms: ['manufacture', 'were manufactured', 'have manufactured'],
+        wrongVersion: 'These devices manufactured in factories across Southeast Asia.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'The proposal has been reviewed by the entire committee.',
+        targetForm: 'has been reviewed', baseVerb: 'review',
+        wrongForms: ['reviewed', 'was reviewed', 'have been reviewed'],
+        wrongVersion: 'The proposal reviewed by the entire committee.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'A new bridge is being built on the outskirts of the city.',
+        targetForm: 'is being built', baseVerb: 'build',
+        wrongForms: ['is built', 'was being built', 'is building'],
+        wrongVersion: 'A new bridge is building on the outskirts of the city.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'The paintings had been stolen long before the museum opened.',
+        targetForm: 'had been stolen', baseVerb: 'steal',
+        wrongForms: ['were stolen', 'have been stolen', 'stole'],
+        wrongVersion: 'The paintings stole long before the museum opened.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'Every message will be encrypted before it leaves the device.',
+        targetForm: 'will be encrypted', baseVerb: 'encrypt',
+        wrongForms: ['will encrypt', 'is encrypted', 'was encrypted'],
+        wrongVersion: 'Every message will encrypt before it leaves the device.',
+        splitAt: 2,
+      },
+    ],
+    mcDistractors: [
+      'The intern wrote the report in a single afternoon last week.',
+      'They are manufacturing devices in Southeast Asia every year.',
+      'The committee reviews the proposal thoroughly every quarter.',
+    ],
+    openStem: 'In my country, ',
+  },
+  'third-conditional': {
+    templates: [
+      {
+        sentence: 'If I had known about the delay, I would have called you earlier.',
+        targetForm: 'would have called', baseVerb: 'call',
+        wrongForms: ['will have called', 'had called', 'would call'],
+        wrongVersion: 'If I had known about the delay, I will have called you earlier.',
+        splitAt: 7,
+      },
+      {
+        sentence: 'She would have taken the job if they had offered it last year.',
+        targetForm: 'would have taken', baseVerb: 'take',
+        wrongForms: ['would take', 'had taken', 'will have taken'],
+        wrongVersion: 'She would take the job if they had offered it last year.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'If we had left ten minutes earlier, we might have caught the train.',
+        targetForm: 'might have caught', baseVerb: 'catch',
+        wrongForms: ['might catch', 'had caught', 'will have caught'],
+        wrongVersion: 'If we had left ten minutes earlier, we might catch the train.',
+        splitAt: 7,
+      },
+      {
+        sentence: 'They would not have missed the meeting if you had reminded them.',
+        targetForm: 'would not have missed', baseVerb: 'miss',
+        wrongForms: ['would not miss', 'had not missed', 'will not have missed'],
+        wrongVersion: 'They would not miss the meeting if you had reminded them.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'If he had studied harder, he could have passed the exam easily.',
+        targetForm: 'could have passed', baseVerb: 'pass',
+        wrongForms: ['could pass', 'had passed', 'would passed'],
+        wrongVersion: 'If he had studied harder, he could pass the exam easily.',
+        splitAt: 6,
+      },
+      {
+        sentence: 'We would have finished on time if the software had not crashed.',
+        targetForm: 'would have finished', baseVerb: 'finish',
+        wrongForms: ['would finish', 'had finished', 'will finish'],
+        wrongVersion: 'We would finish on time if the software had not crashed.',
+        splitAt: 1,
+      },
+    ],
+    mcDistractors: [
+      'If I would have known about the delay, I would have called you.',
+      'She had taken the job if they will offer it last year.',
+      'If we left ten minutes earlier, we might catch the train.',
+    ],
+    openStem: 'If I had known that earlier, ',
+  },
+  'mixed-conditional': {
+    templates: [
+      {
+        sentence: 'If she had taken that job in Berlin, she would be living abroad now.',
+        targetForm: 'would be living', baseVerb: 'live',
+        wrongForms: ['would live', 'would have lived', 'will be living'],
+        wrongVersion: 'If she had taken that job in Berlin, she will be living abroad now.',
+        splitAt: 9,
+      },
+      {
+        sentence: 'If I were more organised, I would have finished the report yesterday.',
+        targetForm: 'would have finished', baseVerb: 'finish',
+        wrongForms: ['would finish', 'had finished', 'will have finished'],
+        wrongVersion: 'If I were more organised, I would finish the report yesterday.',
+        splitAt: 6,
+      },
+      {
+        sentence: 'They would not be so tired today if they had slept properly last night.',
+        targetForm: 'would not be', baseVerb: 'be',
+        wrongForms: ['would not have been', 'had not been', 'will not be'],
+        wrongVersion: 'They would not have been so tired today if they had slept properly last night.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'If he spoke better English, he would have got that promotion months ago.',
+        targetForm: 'would have got', baseVerb: 'get',
+        wrongForms: ['would get', 'had got', 'will have got'],
+        wrongVersion: 'If he spoke better English, he would get that promotion months ago.',
+        splitAt: 6,
+      },
+      {
+        sentence: 'We would still be married if you had listened to me back then.',
+        targetForm: 'would still be', baseVerb: 'be',
+        wrongForms: ['would have been', 'had still been', 'will still be'],
+        wrongVersion: 'We would have still been married if you had listened to me back then.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'If I had learned to drive earlier, I would not need lifts from friends now.',
+        targetForm: 'would not need', baseVerb: 'need',
+        wrongForms: ['would not have needed', 'had not needed', 'will not need'],
+        wrongVersion: 'If I had learned to drive earlier, I would not have needed lifts from friends now.',
+        splitAt: 8,
+      },
+    ],
+    mcDistractors: [
+      'If she took that job in Berlin, she would live abroad now.',
+      'If I were more organised, I will finish the report yesterday.',
+      'They wouldn\'t have been tired today if they slept properly last night.',
+    ],
+    openStem: 'If I had made a different decision back then, ',
+  },
+  'causative': {
+    templates: [
+      {
+        sentence: 'She had her hair cut at the new salon downtown.',
+        targetForm: 'had her hair cut', baseVerb: 'cut',
+        wrongForms: ['cut her hair', 'has cut her hair', 'was cutting her hair'],
+        wrongVersion: 'She has her hair cut at the new salon downtown yesterday.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'We are getting the kitchen painted next weekend.',
+        targetForm: 'are getting the kitchen painted', baseVerb: 'paint',
+        wrongForms: ['paint the kitchen', 'have painted the kitchen', 'were painting the kitchen'],
+        wrongVersion: 'We paint the kitchen next weekend by a professional.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'He has just had his laptop repaired at the tech store.',
+        targetForm: 'has just had his laptop repaired', baseVerb: 'repair',
+        wrongForms: ['just repaired his laptop', 'is just repairing his laptop', 'just had repaired his laptop'],
+        wrongVersion: 'He has just repaired his laptop at the tech store himself.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'They will have the documents translated by Friday afternoon.',
+        targetForm: 'will have the documents translated', baseVerb: 'translate',
+        wrongForms: ['will translate the documents', 'have translated the documents', 'are translating the documents'],
+        wrongVersion: 'They will translate the documents by Friday afternoon by an agency.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'I need to get my eyes tested before I renew my license.',
+        targetForm: 'get my eyes tested', baseVerb: 'test',
+        wrongForms: ['test my eyes', 'have tested my eyes', 'am testing my eyes'],
+        wrongVersion: 'I need to test my eyes before I renew my license at the optician.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'She had the plumbing fixed before selling the flat.',
+        targetForm: 'had the plumbing fixed', baseVerb: 'fix',
+        wrongForms: ['fixed the plumbing', 'has fixed the plumbing', 'was fixing the plumbing'],
+        wrongVersion: 'She fixed the plumbing before selling the flat by a specialist.',
+        splitAt: 1,
+      },
+    ],
+    mcDistractors: [
+      'She cut her hair at the new salon downtown last week.',
+      'We paint the kitchen ourselves next weekend without help.',
+      'He repaired his laptop at the tech store yesterday afternoon.',
+    ],
+    openStem: 'Last month I had ',
+  },
+  'wish-if-only': {
+    templates: [
+      {
+        sentence: 'I wish I knew how to fix this without asking for help.',
+        targetForm: 'knew', baseVerb: 'know',
+        wrongForms: ['know', 'have known', 'am knowing'],
+        wrongVersion: 'I wish I know how to fix this without asking for help.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'She wishes she had studied medicine instead of law.',
+        targetForm: 'had studied', baseVerb: 'study',
+        wrongForms: ['studied', 'has studied', 'was studying'],
+        wrongVersion: 'She wishes she studied medicine instead of law.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'If only they would listen to the customers for once.',
+        targetForm: 'would listen', baseVerb: 'listen',
+        wrongForms: ['listen', 'listened', 'had listened'],
+        wrongVersion: 'If only they listen to the customers for once.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'We wish we had booked the tickets before the prices went up.',
+        targetForm: 'had booked', baseVerb: 'book',
+        wrongForms: ['booked', 'have booked', 'were booking'],
+        wrongVersion: 'We wish we booked the tickets before the prices went up.',
+        splitAt: 3,
+      },
+      {
+        sentence: 'I wish my neighbours would turn the music down after midnight.',
+        targetForm: 'would turn', baseVerb: 'turn',
+        wrongForms: ['turn', 'turned', 'had turned'],
+        wrongVersion: 'I wish my neighbours turn the music down after midnight.',
+        splitAt: 4,
+      },
+      {
+        sentence: 'If only she had said something at the meeting.',
+        targetForm: 'had said', baseVerb: 'say',
+        wrongForms: ['said', 'says', 'was saying'],
+        wrongVersion: 'If only she said something at the meeting.',
+        splitAt: 3,
+      },
+    ],
+    mcDistractors: [
+      'I wish I will know how to fix this problem.',
+      'She wishes she has studied medicine instead of law.',
+      'If only they listen to the customers next time.',
+    ],
+    openStem: 'I wish I ',
+  },
+  'inversion': {
+    templates: [
+      {
+        sentence: 'Never have I seen a mistake as serious as this one.',
+        targetForm: 'have I seen', baseVerb: 'see',
+        wrongForms: ['I have seen', 'do I see', 'I saw'],
+        wrongVersion: 'Never I have seen a mistake as serious as this one.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'Rarely does she raise her voice in public.',
+        targetForm: 'does she raise', baseVerb: 'raise',
+        wrongForms: ['she does raise', 'she raises', 'is she raising'],
+        wrongVersion: 'Rarely she raises her voice in public.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'Not only did they win the match, they broke the record.',
+        targetForm: 'did they win', baseVerb: 'win',
+        wrongForms: ['they did win', 'they won', 'they have won'],
+        wrongVersion: 'Not only they won the match, they broke the record.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'Seldom had the team faced such a strong opponent before.',
+        targetForm: 'had the team faced', baseVerb: 'face',
+        wrongForms: ['the team had faced', 'the team faced', 'did the team face'],
+        wrongVersion: 'Seldom the team had faced such a strong opponent before.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'Hardly had we sat down when the alarm went off.',
+        targetForm: 'had we sat', baseVerb: 'sit',
+        wrongForms: ['we had sat', 'we sat', 'do we sit'],
+        wrongVersion: 'Hardly we had sat down when the alarm went off.',
+        splitAt: 1,
+      },
+      {
+        sentence: 'Only after the storm did the pilots start the engines.',
+        targetForm: 'did the pilots start', baseVerb: 'start',
+        wrongForms: ['the pilots did start', 'the pilots started', 'have the pilots started'],
+        wrongVersion: 'Only after the storm the pilots started the engines.',
+        splitAt: 3,
+      },
+    ],
+    mcDistractors: [
+      'Never I have seen a mistake as serious as this one before.',
+      'Rarely she raises her voice in public settings anymore.',
+      'Not only they won the match but also broke the record.',
+    ],
+    openStem: 'Rarely have I ',
+  },
+  'future-perfect': {
+    templates: [
+      {
+        sentence: 'By the end of the year, we will have moved into the new office.',
+        targetForm: 'will have moved', baseVerb: 'move',
+        wrongForms: ['will move', 'have moved', 'moved'],
+        wrongVersion: 'By the end of the year, we will move into the new office.',
+        splitAt: 8,
+      },
+      {
+        sentence: 'She will have finished her degree by next June.',
+        targetForm: 'will have finished', baseVerb: 'finish',
+        wrongForms: ['will finish', 'has finished', 'finished'],
+        wrongVersion: 'She will finish her degree by next June already.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'By 2030, most cashiers will have been replaced by self-checkouts.',
+        targetForm: 'will have been replaced', baseVerb: 'replace',
+        wrongForms: ['will be replaced', 'have been replaced', 'were replaced'],
+        wrongVersion: 'By 2030, most cashiers will be replaced by self-checkouts already.',
+        splitAt: 4,
+      },
+      {
+        sentence: 'They will have submitted the proposal before the deadline closes.',
+        targetForm: 'will have submitted', baseVerb: 'submit',
+        wrongForms: ['will submit', 'have submitted', 'submitted'],
+        wrongVersion: 'They will submit the proposal before the deadline closes already.',
+        splitAt: 2,
+      },
+      {
+        sentence: 'By the time you arrive, I will have prepared everything.',
+        targetForm: 'will have prepared', baseVerb: 'prepare',
+        wrongForms: ['will prepare', 'have prepared', 'prepared'],
+        wrongVersion: 'By the time you arrive, I will prepare everything.',
+        splitAt: 6,
+      },
+      {
+        sentence: 'He will have completed the marathon in under four hours.',
+        targetForm: 'will have completed', baseVerb: 'complete',
+        wrongForms: ['will complete', 'has completed', 'completed'],
+        wrongVersion: 'He will complete the marathon in under four hours already.',
+        splitAt: 2,
+      },
+    ],
+    mcDistractors: [
+      'By the end of the year, we moved into the new office.',
+      'She will finish her degree next June by then already.',
+      'By 2030, most cashiers will replace by self-checkouts.',
+    ],
+    openStem: 'By the end of next year, I ',
+  },
   'reported-speech': {
     templates: [
       {
@@ -1384,8 +1886,10 @@ export async function generateClipLessonAlgorithmically(
   dialogue: string,
   level:    LessonLevel,
   clipData: ClipData,
+  focusOverride?: string,
 ): Promise<Slide[]> {
-  const focus = detectFocus(dialogue);
+  const overridden = focusOverride ? focusFromShort(focusOverride) : null;
+  const focus = overridden ?? detectFocus(dialogue);
 
   // Vocab lookup is the only network-bound step — parallelisable with the
   // pure builders below, but they're cheap so we just serialise for clarity.

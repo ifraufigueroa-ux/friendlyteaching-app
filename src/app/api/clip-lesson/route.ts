@@ -31,6 +31,10 @@ export interface ClipLessonRequest {
   level:    LessonLevel;
   clipData: ClipData;           // full clip metadata (youtubeUrl, timings, times)
   mode:     'ai' | 'algorithmic';
+  // Optional: forces a specific grammar focus in algorithmic mode. When
+  // omitted, the generator auto-detects from the dialogue. Accepts the
+  // `short` id of any entry in FOCUS_OPTIONS (e.g. 'passive-voice').
+  focusOverride?: string;
 }
 
 const SYSTEM_PROMPT = `You are an expert English teacher creating Friendlyflix® CLT lessons around a short clip from a series or film. Generate EXACTLY 8 slides in this order, wrapping around a teacher-authored dialogue-fill game that the runtime will slot in right after Predictions. Do NOT emit that dialogue_game — only the 8 slides listed here.
@@ -265,7 +269,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { title, source, dialogue, level, clipData, mode } = body;
+  const { title, source, dialogue, level, clipData, mode, focusOverride } = body;
   if (!title || !source || !dialogue || !level || !clipData) {
     return NextResponse.json({ error: 'title, source, dialogue, level, clipData required' }, { status: 400 });
   }
@@ -294,7 +298,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const slides = await generateClipLessonAlgorithmically(
-      title, source, cleanDialogue, level, clipData,
+      title, source, cleanDialogue, level, clipData, focusOverride,
     );
     return NextResponse.json({ slides, source: 'algorithmic' });
   } catch (err) {
