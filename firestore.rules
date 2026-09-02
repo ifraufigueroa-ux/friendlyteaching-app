@@ -289,6 +289,20 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // ── Student Assignments (unificado FT + external) ────────
+    // Un doc por (student, material). Los profes crean/leen/actualizan/
+    // borran las asignaciones que ellos mismos hicieron. El estudiante
+    // sólo puede leer las suyas propias (no crearlas ni borrarlas).
+    match /studentAssignments/{assignmentId} {
+      allow list: if isTeacher() ||
+                    (request.auth != null && request.auth.uid != null);
+      allow get:  if isTeacher() ||
+                    (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // ── Evaluation Requests (landing page leads) ──────────────
     // Written server-side via Firebase Admin SDK (bypasses rules);
     // teachers list/read/update to manage lead status.

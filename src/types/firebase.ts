@@ -379,6 +379,36 @@ export interface TextLesson {
   updatedAt: Timestamp;
 }
 
+// ─── Student Assignment (unificado) ──────────────────────────
+//
+// Un doc por (student, material). Permite asignar tanto lecciones
+// internas de FriendlyTeaching (source='lesson') como material externo
+// (source='external') — Off2Class, Ellii, Drive, YouTube, etc.
+//
+// Friendlyflix / Friendlyrics / FriendlyTales siguen usando su propio
+// campo `assignedTo: string[]` en el doc de la lección; el student
+// dashboard hace merge de ambas fuentes.
+export type StudentAssignmentSource = 'lesson' | 'external';
+export interface StudentAssignment {
+  id: string;
+  studentId: string;         // uid del estudiante
+  teacherId: string;         // uid del profe que asignó
+  source: StudentAssignmentSource;
+  // Interno: id del doc en `lessons` (Librería FT).
+  refId?: string;
+  // Externo: URL directa al material. El icono / label se resuelve con
+  // detectMaterialType() de planner/bookingUtils.
+  externalUrl?: string;
+  // Snapshot de metadata para poder listar sin joins adicionales.
+  title: string;
+  level?: LessonLevel;
+  notes?: string;
+  status?: 'assigned' | 'in_progress' | 'completed';
+  dueAt?: Timestamp;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
 // ─── Lección ─────────────────────────────────────────────────
 
 // Fuente de la lección — de dónde salió el contenido. Se usa para

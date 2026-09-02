@@ -60,8 +60,9 @@ const TEACHER_NAV: NavItem[] = [
 ];
 
 const STUDENT_NAV: NavItem[] = [
+  { type: 'link', href: '/dashboard/student',             icon: '🏠', label: 'Panel Principal',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'group', label: 'Aprendizaje' },
-  { type: 'link', href: '/dashboard/student',             icon: '📚', label: 'Mis Lecciones',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/dashboard/student/lessons',     icon: '📚', label: 'Mis Lecciones',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/student/music',       icon: '🎵', label: 'Friendlyrics®',      iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
   { type: 'link', href: '/dashboard/student/texts',       icon: '📖', label: 'FriendlyTales®',     iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
   { type: 'group', label: 'Mis Clases' },

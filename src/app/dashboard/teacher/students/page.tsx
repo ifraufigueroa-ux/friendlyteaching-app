@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase/config';
 import type { FTUser, LessonLevel } from '@/types/firebase';
 import { StudentDetailModal } from '@/components/students/StudentDetailModal';
 import { StudentsListSkeleton } from '@/components/ui/Skeleton';
+import AssignMaterialModal from '@/components/teacher/AssignMaterialModal';
 import TopBar from '@/components/layout/TopBar';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -528,6 +529,7 @@ function StudentRow({
 }) {
   const [showEdit,    setShowEdit]    = useState(false);
   const [showDetail,  setShowDetail]  = useState(false);
+  const [showAssign,  setShowAssign]  = useState(false);
   const [archiving,   setArchiving]   = useState(false);
   const level = student.studentData?.level;
 
@@ -640,6 +642,13 @@ function StudentRow({
             </a>
           )}
           <button
+            onClick={() => setShowAssign(true)}
+            className="px-3 py-1.5 bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] rounded-full text-xs font-bold transition-colors"
+            title="Asignar material (FT o externo)"
+          >
+            📚 Asignar
+          </button>
+          <button
             onClick={() => setShowEdit(true)}
             className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
             title="Editar estudiante"
@@ -678,6 +687,14 @@ function StudentRow({
           student={student}
           teacherId={teacherId}
           onClose={() => setShowDetail(false)}
+        />
+      )}
+      {showAssign && (
+        <AssignMaterialModal
+          studentId={student.uid}
+          studentName={student.fullName}
+          teacherId={teacherId}
+          onClose={() => setShowAssign(false)}
         />
       )}
     </>
