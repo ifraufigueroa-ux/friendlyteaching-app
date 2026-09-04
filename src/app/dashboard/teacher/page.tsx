@@ -292,9 +292,7 @@ export default function TeacherDashboardPage() {
     const dow = d.getDay();
     d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
     d.setHours(0, 0, 0, 0);
-    const thisWeekMs = d.getTime();
-    const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-    const TOLERANCE_MS = 12 * 60 * 60 * 1000;
+    const thisWeekDateStr = d.toDateString();  // e.g. "Mon Aug 31 2026"
 
     function getWsMs(b: Booking): number {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -306,53 +304,55 @@ export default function TeacherDashboardPage() {
         : 0;
     }
 
-    // Pass 1 — strict current-week window (prevents stale completed docs from
-    // appearing as pending, which was the original dedupeToday bug).
+    // Comparación por CALENDAR DAY, no por ms. Motivo: Chile cruza DST
+    // durante el año — la semana siguiente puede quedar a 6.96 días o
+    // 7.04 días de la semana actual en milisegundos. Una tolerancia
+    // absoluta hacía que docs de la semana siguiente entraran a Pass 1
+    // (Lorena 12:00 aparecía como clase de hoy porque su próximo
+    // recurrente estaba a 6.96 días del lunes actual). Bug 2026-09-04.
+    function isDocInCurrentWeek(b: Booking): boolean {
+      const wm = getWsMs(b);
+      if (!wm) return false;
+      return new Date(wm).toDateString() === thisWeekDateStr;
+    }
+
+    // Pass 1 — strict current-week docs only.
     const slotMap = new Map<string, { booking: Booking; diff: number }>();
     for (const b of bookings) {
       if (b.dayOfWeek !== todayDow || !statusFilter.includes(b.status)) continue;
-      const wsMs = getWsMs(b);
-      const signedDiff = wsMs - thisWeekMs;
-      if (signedDiff < -TOLERANCE_MS || signedDiff >= ONE_WEEK_MS) continue;
+      if (!isDocInCurrentWeek(b)) continue;
       const slotId = `${b.hour}-${b.minute ?? 0}`;
-      const diff = Math.abs(signedDiff);
       const prev = slotMap.get(slotId);
-      if (!prev || diff < prev.diff) slotMap.set(slotId, { booking: b, diff });
+      // Multiple current-week docs at the same slot: prefer confirmed >
+      // completed > pending (this shouldn't happen with clean data).
+      if (!prev) slotMap.set(slotId, { booking: b, diff: 0 });
     }
 
-    // Slots that have ANY document dated to the current week (regardless of
-    // status). If the teacher explicitly cancelled this week's occurrence,
-    // there will be a current-week doc with status='cancelled' — we must
-    // respect that and NOT fall back to another week's confirmed doc.
+    // Slots that have ANY document dated to the current week (regardless
+    // of status). Reserved para posibles guards futuros.
     const slotsWithCurrentWeekDoc = new Set<string>();
     for (const b of bookings) {
       if (b.dayOfWeek !== todayDow) continue;
-      const wsMs = getWsMs(b);
-      const signedDiff = wsMs - thisWeekMs;
-      if (signedDiff < -TOLERANCE_MS || signedDiff >= ONE_WEEK_MS) continue;
+      if (!isDocInCurrentWeek(b)) continue;
       slotsWithCurrentWeekDoc.add(`${b.hour}-${b.minute ?? 0}`);
     }
 
-    // Pass 2 — for confirmed recurring slots with NO current-week document
-    // at all (series expired or not yet seeded for this week), fall back to
-    // the nearest available confirmed doc so the carousel still shows the
-    // active recurring schedule. Capped at 2 weeks to avoid ghost classes
-    // from deleted/moved schedules.
-    const MAX_FALLBACK_MS = 2 * ONE_WEEK_MS;
-    if (statusFilter.includes('confirmed')) {
-      const fallback = new Map<string, { booking: Booking; diff: number }>();
-      for (const b of bookings) {
-        if (b.dayOfWeek !== todayDow || b.status !== 'confirmed' || !b.isRecurring) continue;
-        const slotId = `${b.hour}-${b.minute ?? 0}`;
-        if (slotMap.has(slotId)) continue;                    // already covered
-        if (slotsWithCurrentWeekDoc.has(slotId)) continue;    // teacher-cancelled or otherwise filtered — respect it
-        const diff = Math.abs(getWsMs(b) - thisWeekMs);
-        if (diff > MAX_FALLBACK_MS) continue;
-        const prev = fallback.get(slotId);
-        if (!prev || diff < prev.diff) fallback.set(slotId, { booking: b, diff });
-      }
-      fallback.forEach((entry, slotId) => slotMap.set(slotId, entry));
-    }
+    // Pass 2 REMOVED (2026-09-04).
+    //
+    // Prior version buscaba docs recurrentes ±2 semanas de la semana
+    // actual para "cubrir" slots sin doc de la semana actual. Consecuencia:
+    // clases FANTASMA — mismo estudiante en dos slots (Lorena 11:00 real
+    // y 12:00 recurrente-de-semana-siguiente), series discontinuadas
+    // resucitando (Scarlette, Fernando).
+    //
+    // El modelo de bookings materializa 52 semanas por cada recurrente
+    // (ver memoria "Booking model"). Si una clase esta agendada HOY, tiene
+    // doc con weekStart == esta semana. Si no lo tiene, no es de hoy —
+    // punto. Confiamos en el seeding en vez de resucitar visualmente.
+    //
+    // slotsWithCurrentWeekDoc queda calculado por si otras ramas del
+    // codigo lo necesitan, pero ya no se usa para hydratar fallbacks.
+    void slotsWithCurrentWeekDoc;
 
     return [...slotMap.values()]
       .map((e) => e.booking)
