@@ -2,6 +2,7 @@
 'use client';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
 import { useTeacherHomework } from '@/hooks/useHomework';
@@ -556,7 +557,12 @@ export default function TeacherDashboardPage() {
                 /* All done or no classes */
                 <div className="flex flex-col items-center justify-center py-4 gap-1">
                   {todayRecordedSlots.size > 0 || dismissedSlots.size > 0
-                    ? <><p className="text-2xl">🎉</p><p className="text-sm font-semibold text-white/80">¡Al día con las clases de hoy!</p></>
+                    ? <>
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md ring-2 ring-white/20">
+                          <Image src="/sidebar-icons/herramientas.png" alt="" width={56} height={56} className="w-full h-full object-cover" />
+                        </div>
+                        <p className="text-sm font-semibold text-white/80 mt-1">¡Al día con las clases de hoy!</p>
+                      </>
                     : <p className="text-sm text-white/60">Sin clases confirmadas para hoy</p>
                   }
                 </div>
