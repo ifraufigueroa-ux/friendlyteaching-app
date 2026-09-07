@@ -34,12 +34,12 @@ type NavItem = NavLink | NavGroup;
 // ── Nav definitions ───────────────────────────────────────────
 
 const TEACHER_NAV: NavItem[] = [
-  { type: 'link', href: '/dashboard/teacher',             icon: '🏠', label: 'Panel Principal',   iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/dashboard/teacher',             icon: '🏠', label: 'Panel Principal',   iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'group', label: 'Equipo' },
   { type: 'link', href: '/dashboard/teacher/cowork',      icon: '🧑‍🏫', label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600', iconImg: '/sidebar-icons/co-work.png' },
   { type: 'group', label: 'Gestión' },
   { type: 'link', href: '/dashboard/teacher/students',    icon: '👥', label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
-  { type: 'link', href: '/dashboard/teacher/history',     icon: '📋', label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
+  { type: 'link', href: '/dashboard/teacher/history',     icon: '📋', label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
   { type: 'group', label: 'Contenido' },
   { type: 'link', href: '/dashboard/teacher/lessons',     icon: '📚', label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
   { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: '📥', label: 'Importar lecciones', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
@@ -54,13 +54,13 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/reminders',   icon: '🔔', label: 'Recordatorios',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
   { type: 'link', href: '/dashboard/teacher/billing',     icon: '💳', label: 'Facturación',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
   { type: 'link', href: '/dashboard/teacher/activities',  icon: '🎯', label: 'Actividades',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/actividades.png' },
-  { type: 'link', href: '/dashboard/teacher/tools',       icon: '🛠️', label: 'Herramientas',       iconBg: 'bg-slate-100',   iconColor: 'text-slate-500'  },
+  { type: 'link', href: '/dashboard/teacher/tools',       icon: '🛠️', label: 'Herramientas',       iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
   { type: 'group', label: 'Ayuda' },
-  { type: 'link', href: '/dashboard/teacher/help',        icon: '📖', label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600'   },
+  { type: 'link', href: '/dashboard/teacher/help',        icon: '📖', label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 const STUDENT_NAV: NavItem[] = [
-  { type: 'link', href: '/dashboard/student',             icon: '🏠', label: 'Panel Principal',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/dashboard/student',             icon: '🏠', label: 'Panel Principal',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'group', label: 'Aprendizaje' },
   { type: 'link', href: '/dashboard/student/lessons',     icon: '📚', label: 'Mis Lecciones',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/student/music',       icon: '🎵', label: 'Friendlyrics®',      iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
@@ -72,7 +72,7 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/student/homework',    icon: '📝', label: 'Mis Tareas',         iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
   { type: 'link', href: '/dashboard/student/progress',    icon: '📊', label: 'Mi Progreso',        iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
   { type: 'group', label: 'Ayuda' },
-  { type: 'link', href: '/dashboard/teacher/help',        icon: '📖', label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600'   },
+  { type: 'link', href: '/dashboard/teacher/help',        icon: '📖', label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 // ── Badge hook ────────────────────────────────────────────────
