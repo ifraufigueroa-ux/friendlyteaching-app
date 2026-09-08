@@ -4,12 +4,9 @@
 // Prints id + title + clip source + slide count for every lesson in the
 // movieLessons collection. With --search, filters by case-insensitive
 // substring match on title.
-const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
-const fs = require('fs');
-
-const KEY_PATH = 'C:/Users/UsuarioPC/Downloads/friendly-scheduling-firebase-adminsdk-fbsvc-cb5f5ea061.json';
-initializeApp({ credential: cert(JSON.parse(fs.readFileSync(KEY_PATH, 'utf8'))) });
+const { initAdmin } = require('./_lessonBackup');
+initAdmin();
 const db = getFirestore();
 
 const argv = process.argv.slice(2);
