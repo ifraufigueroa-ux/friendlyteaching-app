@@ -90,7 +90,7 @@ export default function IELTSBeginnersPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>Velocidad TTS 0.85x</strong> — natural pero con espacio para procesar.</span>
+                <span><strong>Velocidad TTS 0.80x + pausas largas</strong> — natural pero con tiempo real para procesar cada línea.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>

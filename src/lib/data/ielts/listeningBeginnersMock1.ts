@@ -13,7 +13,8 @@
 //     labelling — those overwhelm A2 processing capacity.
 //
 // TTS: cefrLevel:'A2' signals generate-ielts-audios.ts to render at
-// voice_settings.speed = 0.85 for intelligibility without sounding robotic.
+// voice_settings.speed = 0.80 con pausas de 0.6s entre turnos — pausado
+// y legible para A2 en su primera exposición al examen, sin sonar robótico.
 
 import type {
   ListeningMock, ListeningSection, ListeningQuestion,

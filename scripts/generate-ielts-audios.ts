@@ -138,14 +138,27 @@ async function ttsLine(text: string, voiceId: string, speed = 1.0): Promise<Buff
   return Buffer.from(await resp.arrayBuffer());
 }
 
-// Speed por nivel CEFR. Todavía no distinguimos A1 vs A2; C1 y superior
-// van a 1.0 (velocidad natural). Solo A1/A2 hoy usan slowdown.
+// Speed por nivel CEFR. A1/A2 son los alumnos con menor tiempo de procesamiento
+// — 0.80 en A2 se siente pausado pero todavía natural; el usuario puede
+// bajarlo aún más desde el pill 0.85x/0.75x del runner si necesita.
 function ttsSpeedForMock(mock: ListeningMock): number {
   switch (mock.cefrLevel) {
-    case 'A1': return 0.80;
-    case 'A2': return 0.85;
+    case 'A1': return 0.75;
+    case 'A2': return 0.80;
     case 'B1': return 0.95;
     default:   return 1.0;
+  }
+}
+
+// Pausa entre turnos de voz. Beginners necesitan más tiempo para procesar
+// cada línea antes de que arranque la siguiente. B2+ mantiene el ritmo del
+// examen real.
+function speakerBreakForMock(mock: ListeningMock): string {
+  switch (mock.cefrLevel) {
+    case 'A1': return '0.7s';
+    case 'A2': return '0.6s';
+    case 'B1': return '0.5s';
+    default:   return '0.4s';
   }
 }
 
@@ -163,10 +176,10 @@ async function ensureDownloadUrl(file: ReturnType<typeof bucket.file>): Promise<
   return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encoded}?alt=media&token=${token}`;
 }
 
-// Prepend a short SSML break to lines 2+ so speaker switches don't feel
-// rushed (mismo criterio que el endpoint /api/tts/elevenlabs-dialogue).
-function segmentText(idx: number, text: string): string {
-  return idx === 0 ? text : `<break time="0.4s"/> ${text}`;
+// Prepend an SSML break to lines 2+ so speaker switches don't feel rushed.
+// Beginners get longer pauses (ver speakerBreakForMock).
+function segmentText(idx: number, text: string, breakTime: string): string {
+  return idx === 0 ? text : `<break time="${breakTime}"/> ${text}`;
 }
 
 // ─── main ───────────────────────────────────────────────────────
@@ -186,10 +199,11 @@ async function generateSection(
 
   const speakerMap = new Map(section.speakers.map(s => [s.id, s]));
   const speed = ttsSpeedForMock(mock);
+  const breakTime = speakerBreakForMock(mock);
 
   console.log(
     `\n── ${mock.id} · Section ${section.number} · ${section.title} · ${section.script.length} líneas`
-    + `${mock.cefrLevel ? ` · CEFR ${mock.cefrLevel} · speed ${speed.toFixed(2)}` : ''} ──`,
+    + `${mock.cefrLevel ? ` · CEFR ${mock.cefrLevel} · speed ${speed.toFixed(2)} · pausa ${breakTime}` : ''} ──`,
   );
   const buffers: Buffer[] = [];
   let charsSent = 0;
@@ -198,7 +212,7 @@ async function generateSection(
     const spk = speakerMap.get(line.speakerId);
     if (!spk) throw new Error(`Line ${i}: speaker ${line.speakerId} no está en section.speakers`);
     const voiceId = spk.suggestedVoice.voiceId;
-    const text = segmentText(i, line.text);
+    const text = segmentText(i, line.text, breakTime);
     charsSent += text.length;
     process.stdout.write(`  [${i + 1}/${section.script.length}] ${spk.displayName} (${text.length} chars)… `);
     const buf = await ttsLine(text, voiceId, speed);
