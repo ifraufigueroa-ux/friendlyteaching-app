@@ -27,6 +27,7 @@ import {
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
   ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout, FormLayout, FormRow,
+  PreListeningPrep,
 } from '@/types/ielts';
 
 const MOCKS: ListeningMock[] = LISTENING_MOCKS;
@@ -1343,6 +1344,116 @@ function AudioPanel({
 
 // ─── Script preview (collapsible) ───────────────────────────────────
 
+// ─── Pre-Listening scaffold (A2 mocks) ──────────────────────────────
+// Rendered before the audio starts for sections that ship a `preListening`
+// block (see PreListeningPrep). Shows scenario preview + key vocab (with
+// Spanish gloss and short example) + optional "listen for" bullets. When
+// the student clicks the primary CTA, the caller flips preListeningDone
+// for this section and the normal audio+questions view takes over.
+function PreListeningPanel({
+  prep, sectionNumber, partFromQ, partToQ, onReady,
+}: {
+  prep: PreListeningPrep;
+  sectionNumber: 1 | 2 | 3 | 4;
+  partFromQ: number;
+  partToQ:   number;
+  onReady:   () => void;
+}) {
+  return (
+    <section className="max-w-3xl mx-auto">
+      <div className="rounded-2xl border border-[#C8A8DC]/60 bg-gradient-to-br from-[#FDFAFF] to-[#F0E5FF] p-6 shadow-sm">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <span className="text-[10px] font-black uppercase tracking-[0.28em] text-[#5A3D7A]">
+            Part {sectionNumber} · Preparación · Questions {partFromQ}–{partToQ}
+          </span>
+          <span className="text-[10px] font-black text-[#10B981] uppercase tracking-widest">
+            Scaffold A2
+          </span>
+        </div>
+
+        <h2 className="font-serif text-2xl font-bold text-[#2D1B4E] mb-2 leading-tight">
+          {prep.headline}
+        </h2>
+        <p className="text-sm text-[#2D1B4E]/85 leading-relaxed">
+          {prep.scenarioPreview}
+        </p>
+
+        {/* Vocabulario clave */}
+        <div className="mt-5">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/80 mb-2">
+            🔑 Vocabulario clave ({prep.vocabulary.length})
+          </p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {prep.vocabulary.map((v) => (
+              <li
+                key={v.word}
+                className="rounded-xl bg-white border border-[#E8D5F0] px-3 py-2 shadow-[0_1px_0_rgba(90,61,122,0.04)]"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-bold text-[#2D1B4E]">{v.word}</span>
+                  {v.pos && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">
+                      {v.pos}
+                    </span>
+                  )}
+                </div>
+                {v.soundsLike && (
+                  <div className="text-[11px] italic text-[#5A3D7A]/70 mt-0.5">/{v.soundsLike}/</div>
+                )}
+                <div className="text-[13px] text-[#10B981] font-semibold mt-1">
+                  → {v.translation}
+                </div>
+                {v.example && (
+                  <div className="text-[12px] text-[#2D1B4E]/70 italic mt-1 leading-snug">
+                    “{v.example}”
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Listen-for hints */}
+        {prep.listenFor && prep.listenFor.length > 0 && (
+          <div className="mt-5 rounded-xl bg-[#FFF9E6] border border-[#F5D77A] px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#8A6B10] mb-1.5">
+              👂 Escuchá especialmente
+            </p>
+            <ul className="space-y-1 text-sm text-[#2D1B4E]">
+              {prep.listenFor.map((tip, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-[#8A6B10] font-bold mt-0.5">·</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={onReady}
+            className="flex-1 rounded-xl bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white font-bold text-sm py-3 px-4 shadow-md hover:shadow-lg transition-shadow"
+          >
+            Estoy listo — empezar el audio →
+          </button>
+          <button
+            type="button"
+            onClick={onReady}
+            className="rounded-xl border border-[#C8A8DC] bg-white text-[#5A3D7A] font-semibold text-xs py-2.5 px-4 hover:bg-[#FDFAFF]"
+          >
+            Ya conozco estas palabras
+          </button>
+        </div>
+        <p className="text-[11px] text-[#5A3D7A]/60 italic text-center mt-3">
+          El audio arranca cuando toques el botón. Tomate tu tiempo.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function ScriptPreview({ section }: { section: ListeningSection }) {
   const [open, setOpen] = useState(false);
 
@@ -1573,6 +1684,12 @@ function IELTSListeningPageInner() {
   const [result, setResult] = useState<GradeResult | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
 
+  // Per-section flag: once the student clicks "Empezar el audio →" on the
+  // pre-listening scaffold, we skip the panel and render audio+questions.
+  // Only affects sections whose data includes preListening (A2 beginners
+  // mocks). Reset per mock start / resume.
+  const [preListeningDone, setPreListeningDone] = useState<Record<number, boolean>>({});
+
   // Persisted audio URLs per section (hydrated from Firestore on mount, saved
   // on every generate/upload/url-set). Once written, the same URL survives
   // reloads and future sessions — no more paying ElevenLabs twice for the
@@ -1716,6 +1833,7 @@ function IELTSListeningPageInner() {
     setTimerRunning(true);
     setSavedAt(null);
     setSavingState('idle');
+    setPreListeningDone({});
   }
 
   async function startNewPracticeSession() {
@@ -1749,6 +1867,10 @@ function IELTSListeningPageInner() {
     setTimerRunning(true);
     setSavedAt(session.updatedAt?.toDate?.() ?? null);
     setSavingState('saved');
+    // Resuming counts as "already past the pre-listening" — otherwise the
+    // student would see the vocab panel again on every resume, which is
+    // patronising once they've seen the section.
+    setPreListeningDone({ 1: true, 2: true, 3: true, 4: true });
   }
 
   async function removeSession(id: string) {
@@ -1846,6 +1968,8 @@ function IELTSListeningPageInner() {
     const partToQ   = currentSectionBase + activeSection.questions.length;
     const minutesLeft = Math.max(0, Math.ceil(timeLeft / 60));
     const cid = candidateIdFrom(teacherId);
+    const showPreListening =
+      !!activeSection.preListening && !preListeningDone[activeSection.number];
 
     return (
       <div className="min-h-screen bg-white text-[#2D1B4E] flex flex-col">
@@ -1868,6 +1992,18 @@ function IELTSListeningPageInner() {
           }}
         />
 
+        {showPreListening && activeSection.preListening ? (
+          <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
+            <PreListeningPanel
+              prep={activeSection.preListening}
+              sectionNumber={activeSection.number}
+              partFromQ={partFromQ}
+              partToQ={partToQ}
+              onReady={() => setPreListeningDone((prev) => ({ ...prev, [activeSection.number]: true }))}
+            />
+          </div>
+        ) : (
+        <>
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-4">
           {/* Compact audio block — lavender, sits under the header */}
           {audiosLoading ? (
@@ -2086,6 +2222,8 @@ function IELTSListeningPageInner() {
           onNext={goNext}
           onSubmit={submitMock}
         />
+        </>
+        )}
       </div>
     );
   }

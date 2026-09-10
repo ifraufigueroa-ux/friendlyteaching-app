@@ -191,6 +191,26 @@ export interface FormLayout {
   sections: FormSection[];
 }
 
+// Pre-Listening scaffolding for A2/A1 mocks. Presented BEFORE the audio
+// starts so the student meets the trickier words in a controlled panel
+// (Spanish gloss + short English example) before hearing them at speed.
+// Optional — regular B1+ mocks omit it. Keeps the runner backwards
+// compatible: sections without preListening jump straight to the audio.
+export interface PreListeningVocabItem {
+  word: string;                                 // exact form as it appears in the script
+  pos?: 'noun' | 'verb' | 'adjective' | 'phrase' | 'number';
+  translation: string;                          // Spanish gloss (LatAm neutral)
+  example?: string;                             // ≤10-word English sentence, ideally lifted from the script
+  soundsLike?: string;                          // simple pronunciation hint, e.g. "STOO-dent"
+}
+
+export interface PreListeningPrep {
+  headline: string;                             // "Antes de escuchar" or the topic in ES
+  scenarioPreview: string;                      // 1-2 sentences in ES: what the audio is about
+  vocabulary: PreListeningVocabItem[];          // 4-8 items max — beyond that overload
+  listenFor?: string[];                         // optional "escucha estas cosas" pointers, in ES
+}
+
 export interface ListeningSection {
   number: 1 | 2 | 3 | 4;
   contextType: 'social-transactional' | 'social-monologue' | 'academic-discussion' | 'academic-lecture';
@@ -201,6 +221,8 @@ export interface ListeningSection {
   // What the student sees before the audio starts — real IELTS shows the
   // instruction + Q numbers so they can preview.
   instructions: string;
+  // A2/A1 scaffolding step shown before the audio (see PreListeningPrep).
+  preListening?: PreListeningPrep;
   // Where uploaded audio lives (Firebase Storage URL) once the teacher
   // generates + uploads it. Optional so mocks ship with scripts only.
   audioUrl?: string;

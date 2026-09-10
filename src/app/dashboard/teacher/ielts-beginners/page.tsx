@@ -86,6 +86,10 @@ export default function IELTSBeginnersPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
+                <span><strong>Paso Pre-Listening antes de cada sección</strong> — vocabulario clave con traducción, pronunciación y ejemplo. El audio arranca cuando el estudiante toca el botón.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#10B981] font-bold mt-0.5">✓</span>
                 <span><strong>Audios ~2 minutos</strong> por sección — el foco está en escuchar bien, no en la resistencia.</span>
               </li>
               <li className="flex items-start gap-2">

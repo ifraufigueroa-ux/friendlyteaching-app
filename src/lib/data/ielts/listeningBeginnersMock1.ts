@@ -17,7 +17,7 @@
 // y legible para A2 en su primera exposición al examen, sin sonar robótico.
 
 import type {
-  ListeningMock, ListeningSection, ListeningQuestion,
+  ListeningMock, ListeningSection, ListeningQuestion, PreListeningPrep,
 } from '@/types/ielts';
 
 // ─── SECTION 1 · Library card call ───────────────────────────────────
@@ -98,11 +98,33 @@ const s1Questions: ListeningQuestion[] = [
   },
 ];
 
+const s1PreListening: PreListeningPrep = {
+  headline: 'Antes de escuchar · Llamando a la biblioteca',
+  scenarioPreview: 'Un estudiante llama a la biblioteca de la ciudad para pedir una tarjeta de socio. La bibliotecaria le pide sus datos personales y le pregunta qué día va a visitar la biblioteca.',
+  vocabulary: [
+    { word: 'library card',   pos: 'noun',   translation: 'tarjeta de la biblioteca',    example: 'I want a new library card, please.', soundsLike: 'LAI-brer-i card' },
+    { word: 'family name',    pos: 'noun',   translation: 'apellido',                     example: 'What is your family name?' },
+    { word: 'address',        pos: 'noun',   translation: 'dirección (donde vives)',      example: 'I live at 47 Green Road.', soundsLike: 'a-DRES' },
+    { word: 'phone number',   pos: 'noun',   translation: 'número de teléfono',           example: 'And your phone number?' },
+    { word: 'student card',   pos: 'noun',   translation: 'tarjeta de estudiante',        example: 'A student card, please.' },
+    { word: 'adult card',     pos: 'noun',   translation: 'tarjeta de adulto',            example: 'Adult card or student card?' },
+    { word: 'oh (for zero)',  pos: 'number', translation: 'se dice "oh" en vez de "zero" en números de teléfono',  example: 'Five, five, four, OH, nine, two.', soundsLike: 'oh (= 0)' },
+    { word: 'photo',          pos: 'noun',   translation: 'foto',                          example: 'Bring your ID and a photo.' },
+  ],
+  listenFor: [
+    'El apellido — se deletrea letra por letra.',
+    'El número de la calle y el número de teléfono.',
+    'Qué tipo de tarjeta elige el estudiante.',
+    'El día de la semana que va a visitar la biblioteca.',
+  ],
+};
+
 const section1: ListeningSection = {
   number: 1,
   contextType: 'social-transactional',
   title: 'City Library — new library card',
   scenario: 'A student calls the local library to open a new library card. The librarian takes his personal details, offers card options and confirms a visiting day.',
+  preListening: s1PreListening,
   speakers: [
     { id: 'librarian', displayName: 'Anna (librarian)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', note: 'ElevenLabs · warm female voice, clear for A2' } },
     { id: 'caller',    displayName: 'Tomas (caller)',   accent: 'UK', gender: 'm', suggestedVoice: { voiceId: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',    note: 'ElevenLabs · natural UK male' } },
@@ -229,11 +251,34 @@ const s2Questions: ListeningQuestion[] = [
   },
 ];
 
+const s2PreListening: PreListeningPrep = {
+  headline: 'Antes de escuchar · Bienvenida en la escuela',
+  scenarioPreview: 'Una asistente de la escuela le da la bienvenida a los estudiantes nuevos del curso de inglés Beginner. Explica el horario de clase, dónde está el aula y menciona un examen para la semana siguiente.',
+  vocabulary: [
+    { word: 'welcome',        pos: 'verb',      translation: 'dar la bienvenida',      example: 'Welcome to Sunrise School.' },
+    { word: 'beginner',       pos: 'noun',      translation: 'principiante',           example: 'The Beginner English course.', soundsLike: 'bi-GHI-ner' },
+    { word: 'assistant',      pos: 'noun',      translation: 'asistente',              example: 'I am the school assistant.', soundsLike: 'a-SIS-tant' },
+    { word: 'classroom',      pos: 'noun',      translation: 'aula, sala de clase',    example: 'The classroom is on the second floor.' },
+    { word: 'floor',          pos: 'noun',      translation: 'piso (del edificio)',    example: 'The classroom is on the second floor.' },
+    { word: 'break',          pos: 'noun',      translation: 'descanso, recreo',       example: 'A break of twenty minutes.' },
+    { word: 'notebook',       pos: 'noun',      translation: 'cuaderno',               example: 'You need a notebook and a pen.' },
+    { word: 'exam',           pos: 'noun',      translation: 'examen, prueba',         example: 'The exam is on Thursday.' },
+  ],
+  listenFor: [
+    'El nivel del curso.',
+    'Cuántos estudiantes hay en la clase.',
+    'A qué hora empieza la clase.',
+    'Cuánto dura el descanso.',
+    'Qué día es el examen.',
+  ],
+};
+
 const section2: ListeningSection = {
   number: 2,
   contextType: 'social-monologue',
   title: 'Welcome talk — Sunrise Language School',
   scenario: 'A school assistant welcomes new students to a Beginner English course. She introduces the teacher, gives the class schedule, and reminds students about a small exam.',
+  preListening: s2PreListening,
   speakers: [
     { id: 'assistant', displayName: 'Sofia (school assistant)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', note: 'ElevenLabs · clear female voice, ideal for slow monologue' } },
   ],
@@ -327,11 +372,33 @@ const s3Questions: ListeningQuestion[] = [
   },
 ];
 
+const s3PreListening: PreListeningPrep = {
+  headline: 'Antes de escuchar · Planificando un proyecto escolar',
+  scenarioPreview: 'Dos compañeros de clase, Maria y Peter, planifican un proyecto para la escuela sobre su comida favorita. Deciden cuántas fotos y palabras necesitan, y cuándo se van a juntar a trabajar.',
+  vocabulary: [
+    { word: 'project',        pos: 'noun',      translation: 'proyecto (tarea escolar)', example: 'Are you ready for the school project?' },
+    { word: 'topic',          pos: 'noun',      translation: 'tema',                     example: 'What is the topic?' },
+    { word: 'poster',         pos: 'noun',      translation: 'afiche, póster',           example: 'We need to make a poster.' },
+    { word: 'favorite food',  pos: 'phrase',    translation: 'comida favorita (US) / favourite (UK)', example: 'The topic is My Favorite Food.' },
+    { word: 'picture',        pos: 'noun',      translation: 'foto, imagen',             example: 'Two pictures, please.' },
+    { word: 'meet',           pos: 'verb',      translation: 'encontrarse, juntarse',    example: 'We can meet on Saturday morning.' },
+    { word: 'library',        pos: 'noun',      translation: 'biblioteca',               example: 'The library. It is quiet.', soundsLike: 'LAI-brer-i' },
+    { word: 'training',       pos: 'noun',      translation: 'entrenamiento',            example: 'I have football training on Sunday.' },
+  ],
+  listenFor: [
+    'El tema del proyecto.',
+    'Cuántas fotos y cuántas palabras necesita el póster.',
+    'Cuándo tienen que entregar el proyecto (¡ojo con los días — hay dos distractores!).',
+    'Dónde se juntan el sábado.',
+  ],
+};
+
 const section3: ListeningSection = {
   number: 3,
   contextType: 'academic-discussion',
   title: 'Class project — planning a food poster',
   scenario: 'Two classmates, Maria and Peter, plan a simple school project about their favorite food. They discuss the topic, the poster requirements and when they will meet to work on it.',
+  preListening: s3PreListening,
   speakers: [
     { id: 'maria', displayName: 'Maria (student)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', note: 'ElevenLabs · younger UK female' } },
     { id: 'peter', displayName: 'Peter (student)', accent: 'NZ', gender: 'm', suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam',    note: 'ElevenLabs · male voice, distinct from Maria' } },
@@ -435,11 +502,33 @@ const s4Questions: ListeningQuestion[] = [
   },
 ];
 
+const s4PreListening: PreListeningPrep = {
+  headline: 'Antes de escuchar · Hábitos saludables por la mañana',
+  scenarioPreview: 'Una profesora da una charla corta sobre tres hábitos saludables para empezar el día: agua, un buen desayuno y ejercicio ligero. También menciona cuántas horas de sueño necesitan los adultos y los niños.',
+  vocabulary: [
+    { word: 'habit',          pos: 'noun',      translation: 'hábito, costumbre',          example: 'Healthy morning habits.', soundsLike: 'HA-bit' },
+    { word: 'wake up',        pos: 'phrase',    translation: 'despertarse',                example: 'When you wake up, drink water.' },
+    { word: 'breakfast',      pos: 'noun',      translation: 'desayuno',                    example: 'Do not forget breakfast.', soundsLike: 'BREK-fast' },
+    { word: 'eggs',           pos: 'noun',      translation: 'huevos',                      example: 'Fruit, bread, and eggs.' },
+    { word: 'exercise',       pos: 'noun',      translation: 'ejercicio (físico)',          example: 'Third, exercise.', soundsLike: 'EK-ser-saiz' },
+    { word: 'walking',        pos: 'noun',      translation: 'caminar (como actividad)',    example: 'Ten minutes of walking is enough.' },
+    { word: 'sleep',          pos: 'noun',      translation: 'sueño, dormir',               example: 'Sleep is very important.' },
+    { word: 'adults / children', pos: 'noun',   translation: 'adultos / niños',             example: 'Adults need 8 hours; children need more.' },
+  ],
+  listenFor: [
+    'Qué se toma primero al despertarse.',
+    'Los tres alimentos del desayuno.',
+    'Cuántos minutos de caminata se recomiendan.',
+    'Cuántas horas de sueño necesitan los adultos vs los niños (¡son números cercanos!).',
+  ],
+};
+
 const section4: ListeningSection = {
   number: 4,
   contextType: 'academic-lecture',
   title: 'Healthy morning habits — short talk',
   scenario: 'A teacher gives a short, simple talk about three healthy morning habits: water, breakfast and light exercise. She also mentions how many hours of sleep adults and children need.',
+  preListening: s4PreListening,
   speakers: [
     { id: 'teacher', displayName: 'Ms Clark (teacher)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', note: 'ElevenLabs · calm UK female — clear at slow speed' } },
   ],
