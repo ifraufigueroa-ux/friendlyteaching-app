@@ -27,7 +27,7 @@ import {
 import type {
   ListeningMock, ListeningSection, ListeningQuestion, StudentAnswers,
   ListeningSessionMode, GradeResult, TableLayout, FlowChartLayout, SummaryLayout, FormLayout, FormRow,
-  PreListeningPrep,
+  PreListeningPrep, PreListeningVocabItem,
 } from '@/types/ielts';
 
 const MOCKS: ListeningMock[] = LISTENING_MOCKS;
@@ -1350,6 +1350,189 @@ function AudioPanel({
 // Spanish gloss and short example) + optional "listen for" bullets. When
 // the student clicks the primary CTA, the caller flips preListeningDone
 // for this section and the normal audio+questions view takes over.
+
+// POS → visual metadata. Color-coded chips make part-of-speech recognisable
+// at a glance and give the card family visual variety without extra decoration.
+type PosKey = NonNullable<PreListeningVocabItem['pos']>;
+const POS_META: Record<PosKey, { emoji: string; label: string; chip: string; card: string; strap: string }> = {
+  noun:      { emoji: '📦', label: 'sust.',    chip: 'bg-sky-100 text-sky-800',        card: 'from-sky-50 to-white',        strap: 'bg-sky-400' },
+  verb:      { emoji: '⚡', label: 'verbo',    chip: 'bg-amber-100 text-amber-800',    card: 'from-amber-50 to-white',      strap: 'bg-amber-400' },
+  adjective: { emoji: '🎨', label: 'adj.',     chip: 'bg-violet-100 text-violet-800',  card: 'from-violet-50 to-white',     strap: 'bg-violet-400' },
+  phrase:    { emoji: '💬', label: 'frase',    chip: 'bg-teal-100 text-teal-800',      card: 'from-teal-50 to-white',       strap: 'bg-teal-400' },
+  number:    { emoji: '🔢', label: 'número',   chip: 'bg-rose-100 text-rose-800',      card: 'from-rose-50 to-white',       strap: 'bg-rose-400' },
+};
+const POS_DEFAULT = { emoji: '·', label: '', chip: 'bg-gray-100 text-gray-700', card: 'from-white to-white', strap: 'bg-gray-300' };
+function posMeta(pos?: PreListeningVocabItem['pos']) {
+  return pos ? POS_META[pos] : POS_DEFAULT;
+}
+
+function VocabCards({ items }: { items: PreListeningVocabItem[] }) {
+  return (
+    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {items.map((v) => {
+        const meta = posMeta(v.pos);
+        return (
+          <li
+            key={v.word}
+            className={`relative rounded-2xl bg-gradient-to-br ${meta.card} border border-[#E8D5F0] pl-4 pr-3 py-3 shadow-[0_1px_0_rgba(90,61,122,0.04)] overflow-hidden`}
+          >
+            <span className={`absolute left-0 top-0 bottom-0 w-1.5 ${meta.strap}`} aria-hidden />
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-base leading-none">{meta.emoji}</span>
+                <span className="font-bold text-[#2D1B4E] leading-tight truncate">{v.word}</span>
+              </div>
+              {v.pos && (
+                <span className={`text-[9px] font-black uppercase tracking-widest rounded-full px-2 py-0.5 ${meta.chip} shrink-0`}>
+                  {meta.label}
+                </span>
+              )}
+            </div>
+            {v.soundsLike && (
+              <div className="text-[11px] italic text-[#5A3D7A]/70 mb-1 flex items-center gap-1">
+                <span aria-hidden>🔊</span><span>/{v.soundsLike}/</span>
+              </div>
+            )}
+            <div className="text-[13px] text-[#10B981] font-bold leading-snug">
+              → {v.translation}
+            </div>
+            {v.example && (
+              <div className="text-[12px] text-[#2D1B4E]/75 italic mt-1.5 leading-snug border-t border-[#E8D5F0]/70 pt-1.5">
+                “{v.example}”
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// Fisher-Yates in place (deterministic per mount — no jitter between renders
+// because we hand it a fresh array once, in useState's initialiser).
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Matching mini-game: two columns of chips (EN word ↔ ES translation). Click
+// one from each side; correct pair locks in green with ✓ and stays put, so
+// the layout doesn't jump. Wrong pair flashes red for 550ms then clears.
+// Completing all pairs unlocks a small celebratory badge above the CTA.
+function MatchingActivity({
+  items, onAllMatched,
+}: {
+  items: PreListeningVocabItem[];
+  onAllMatched?: () => void;
+}) {
+  const [leftOrder]  = useState(() => shuffle(items.map((i) => i.word)));
+  const [rightOrder] = useState(() => shuffle(items.map((i) => i.word)));
+  const [selLeft,  setSelLeft]  = useState<string | null>(null);
+  const [selRight, setSelRight] = useState<string | null>(null);
+  const [matched,  setMatched]  = useState<Set<string>>(new Set());
+  const [wrong,    setWrong]    = useState<[string, string] | null>(null);
+  const byWord = useMemo(() => new Map(items.map((i) => [i.word, i])), [items]);
+
+  useEffect(() => {
+    if (!selLeft || !selRight) return;
+    if (selLeft === selRight) {
+      setMatched((prev) => {
+        const next = new Set(prev);
+        next.add(selLeft);
+        return next;
+      });
+      setSelLeft(null);
+      setSelRight(null);
+    } else {
+      setWrong([selLeft, selRight]);
+      const t = setTimeout(() => {
+        setWrong(null);
+        setSelLeft(null);
+        setSelRight(null);
+      }, 550);
+      return () => clearTimeout(t);
+    }
+  }, [selLeft, selRight]);
+
+  const total = items.length;
+  const done = matched.size;
+
+  useEffect(() => {
+    if (done === total && total > 0) onAllMatched?.();
+  }, [done, total, onAllMatched]);
+
+  function chipClass(word: string, side: 'L' | 'R') {
+    const isMatched = matched.has(word);
+    const isSel     = side === 'L' ? selLeft === word : selRight === word;
+    const isWrong   = wrong ? (side === 'L' ? wrong[0] === word : wrong[1] === word) : false;
+    if (isMatched) return 'bg-emerald-50 border-emerald-300 text-emerald-800 cursor-default';
+    if (isWrong)   return 'bg-rose-50 border-rose-300 text-rose-800 animate-pulse';
+    if (isSel)     return 'bg-[#5A3D7A] border-[#5A3D7A] text-white shadow-md ring-2 ring-[#C8A8DC]';
+    return 'bg-white border-[#E8D5F0] text-[#2D1B4E] hover:border-[#5A3D7A]/50 hover:bg-[#FDFAFF]';
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-3">
+        <ul className="space-y-2">
+          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">🇬🇧 English</li>
+          {leftOrder.map((w) => (
+            <li key={`L-${w}`}>
+              <button
+                type="button"
+                disabled={matched.has(w)}
+                onClick={() => setSelLeft(w)}
+                className={`w-full text-left rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${chipClass(w, 'L')}`}
+              >
+                <span className="flex items-center gap-2">
+                  {matched.has(w) && <span aria-hidden>✓</span>}
+                  <span className="truncate">{byWord.get(w)?.word ?? w}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <ul className="space-y-2">
+          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">🇪🇸 Español</li>
+          {rightOrder.map((w) => (
+            <li key={`R-${w}`}>
+              <button
+                type="button"
+                disabled={matched.has(w)}
+                onClick={() => setSelRight(w)}
+                className={`w-full text-left rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${chipClass(w, 'R')}`}
+              >
+                <span className="flex items-center gap-2">
+                  {matched.has(w) && <span aria-hidden>✓</span>}
+                  <span className="truncate">{byWord.get(w)?.translation ?? ''}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between text-[11px] font-bold text-[#5A3D7A] mb-1">
+          <span>Emparejados</span>
+          <span className="tabular-nums">{done} / {total}</span>
+        </div>
+        <div className="h-2 rounded-full bg-white/70 border border-[#E8D5F0] overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#5A3D7A] to-[#10B981] transition-all duration-500"
+            style={{ width: `${total === 0 ? 0 : Math.round((done / total) * 100)}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PreListeningPanel({
   prep, sectionNumber, partFromQ, partToQ, onReady,
 }: {
@@ -1359,6 +1542,9 @@ function PreListeningPanel({
   partToQ:   number;
   onReady:   () => void;
 }) {
+  const [tab, setTab] = useState<'explorar' | 'emparejar'>('explorar');
+  const [matchingDone, setMatchingDone] = useState(false);
+
   return (
     <section className="max-w-3xl mx-auto">
       <div className="rounded-2xl border border-[#C8A8DC]/60 bg-gradient-to-br from-[#FDFAFF] to-[#F0E5FF] p-6 shadow-sm">
@@ -1378,39 +1564,53 @@ function PreListeningPanel({
           {prep.scenarioPreview}
         </p>
 
-        {/* Vocabulario clave */}
+        {/* Tabs · Explorar / Emparejar */}
         <div className="mt-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/80 mb-2">
-            🔑 Vocabulario clave ({prep.vocabulary.length})
-          </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {prep.vocabulary.map((v) => (
-              <li
-                key={v.word}
-                className="rounded-xl bg-white border border-[#E8D5F0] px-3 py-2 shadow-[0_1px_0_rgba(90,61,122,0.04)]"
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="inline-flex rounded-xl bg-white border border-[#E8D5F0] p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setTab('explorar')}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  tab === 'explorar'
+                    ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
+                    : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
+                }`}
               >
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-bold text-[#2D1B4E]">{v.word}</span>
-                  {v.pos && (
-                    <span className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">
-                      {v.pos}
-                    </span>
-                  )}
-                </div>
-                {v.soundsLike && (
-                  <div className="text-[11px] italic text-[#5A3D7A]/70 mt-0.5">/{v.soundsLike}/</div>
-                )}
-                <div className="text-[13px] text-[#10B981] font-semibold mt-1">
-                  → {v.translation}
-                </div>
-                {v.example && (
-                  <div className="text-[12px] text-[#2D1B4E]/70 italic mt-1 leading-snug">
-                    “{v.example}”
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+                🔑 Explorar
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('emparejar')}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  tab === 'emparejar'
+                    ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
+                    : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
+                }`}
+              >
+                🎯 Emparejar
+              </button>
+            </div>
+            <span className="text-[10px] font-bold text-[#5A3D7A]/70 tabular-nums">
+              {prep.vocabulary.length} palabras
+            </span>
+          </div>
+
+          {tab === 'explorar' ? (
+            <VocabCards items={prep.vocabulary} />
+          ) : (
+            <MatchingActivity
+              items={prep.vocabulary}
+              onAllMatched={() => setMatchingDone(true)}
+            />
+          )}
+
+          {tab === 'emparejar' && matchingDone && (
+            <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-300 px-4 py-2.5 text-sm font-bold text-emerald-800 flex items-center gap-2">
+              <span aria-hidden>🎉</span>
+              ¡Vocabulario dominado! Estás listo para el audio.
+            </div>
+          )}
         </div>
 
         {/* Listen-for hints */}
@@ -1451,6 +1651,44 @@ function PreListeningPanel({
         </p>
       </div>
     </section>
+  );
+}
+
+// Compact vocab reference for the running section — students can peek at
+// the vocab without losing the audio/questions view. Collapsed by default;
+// expanding it reveals the same POS-coloured cards the pre-listening panel
+// uses (single source of truth via VocabCards).
+function VocabAccordion({ prep }: { prep: PreListeningPrep }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`mb-4 rounded-xl border ${open ? 'border-[#C8A8DC]/70 bg-[#FDFAFF]' : 'border-[#E8D5F0] bg-white'} shadow-sm`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full px-4 py-2.5 flex items-center justify-between gap-3 text-left"
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-2 text-sm font-bold text-[#2D1B4E]">
+          <span aria-hidden>🔑</span>
+          Vocabulario clave
+          <span className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-widest tabular-nums">
+            {prep.vocabulary.length} palabras
+          </span>
+        </span>
+        <span className={`text-[#5A3D7A] transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden>▶</span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 border-t border-[#E8D5F0]/70">
+          <VocabCards items={prep.vocabulary} />
+          {prep.listenFor && prep.listenFor.length > 0 && (
+            <div className="mt-3 rounded-lg bg-[#FFF9E6] border border-[#F5D77A] px-3 py-2 text-[12px] text-[#2D1B4E]">
+              <span className="font-bold text-[#8A6B10]">👂 Escuchá:</span>{' '}
+              {prep.listenFor.join(' · ')}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -2057,6 +2295,11 @@ function IELTSListeningPageInner() {
             <div className="mb-4">
               <ScriptPreview section={activeSection} />
             </div>
+          )}
+
+          {/* Vocab reference — collapsible, only for sections with a pre-listening block */}
+          {activeSection.preListening && (
+            <VocabAccordion prep={activeSection.preListening} />
           )}
 
           <CBTPartBanner part={activeSection.number} from={partFromQ} to={partToQ} />
