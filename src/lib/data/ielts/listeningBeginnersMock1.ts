@@ -127,7 +127,7 @@ const section1: ListeningSection = {
   preListening: s1PreListening,
   speakers: [
     { id: 'librarian', displayName: 'Anna (librarian)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', note: 'ElevenLabs · warm female voice, clear for A2' } },
-    { id: 'caller',    displayName: 'Tomas (caller)',   accent: 'UK', gender: 'm', suggestedVoice: { voiceId: 'YImgdHB2KYPPVa2Ew8pp', name: 'Freddie',   note: 'ElevenLabs · well-spoken 20-30s London male — casual, conversational (previous Daniel sonaba a locutor de documental para un estudiante joven)' } },
+    { id: 'caller',    displayName: 'Tomas (caller)',   accent: 'UK', gender: 'm', suggestedVoice: { voiceId: 'Sq93GQT4X1lKDXsQcixO', name: 'Felix',     note: 'ElevenLabs · clear, warm, youthful British male — young-adult narration, calm pace' } },
   ],
   instructions: 'Questions 1-5. Listen and complete the form. Write NO MORE THAN ONE WORD OR A NUMBER for each answer.',
   targetDurationSec: 120,
