@@ -1617,7 +1617,7 @@ function PreListeningPanel({
         {prep.listenFor && prep.listenFor.length > 0 && (
           <div className="mt-5 rounded-xl bg-[#FFF9E6] border border-[#F5D77A] px-4 py-3">
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#8A6B10] mb-1.5">
-              👂 Escuchá especialmente
+              👂 Escucha especialmente
             </p>
             <ul className="space-y-1 text-sm text-[#2D1B4E]">
               {prep.listenFor.map((tip, i) => (
@@ -1647,7 +1647,7 @@ function PreListeningPanel({
           </button>
         </div>
         <p className="text-[11px] text-[#5A3D7A]/60 italic text-center mt-3">
-          El audio arranca cuando toques el botón. Tomate tu tiempo.
+          El audio arranca cuando toques el botón. Tómate tu tiempo.
         </p>
       </div>
     </section>
@@ -1682,7 +1682,7 @@ function VocabAccordion({ prep }: { prep: PreListeningPrep }) {
           <VocabCards items={prep.vocabulary} />
           {prep.listenFor && prep.listenFor.length > 0 && (
             <div className="mt-3 rounded-lg bg-[#FFF9E6] border border-[#F5D77A] px-3 py-2 text-[12px] text-[#2D1B4E]">
-              <span className="font-bold text-[#8A6B10]">👂 Escuchá:</span>{' '}
+              <span className="font-bold text-[#8A6B10]">👂 Escucha:</span>{' '}
               {prep.listenFor.join(' · ')}
             </div>
           )}
