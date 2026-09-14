@@ -71,20 +71,9 @@ export function WritingSection({
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
         <div className="bg-white rounded-2xl p-5 shadow-lg max-h-[80vh] overflow-y-auto"
           style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Writing Task 2 · Academic Discussion
-            </span>
-            {canShowSample && (
-              <button
-                type="button"
-                onClick={() => setSampleOpen(true)}
-                className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-colors"
-              >
-                ⭐ Ver ejemplo
-              </button>
-            )}
-          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
+            Writing Task 2 · Academic Discussion
+          </span>
           <p className="text-xs text-gray-600 mt-2 whitespace-pre-line leading-relaxed">{prompt.professorPost}</p>
 
           <div className="mt-4 space-y-3">
@@ -105,11 +94,23 @@ export function WritingSection({
 
         <div className="bg-white rounded-2xl p-5 shadow-lg self-start"
           style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Tu respuesta</span>
-            <span className={`text-xs font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
-              {wordCount} / {prompt.minWords} palabras {meets && '✓'}
-            </span>
+            <div className="flex items-center gap-2">
+              {canShowSample && (
+                <button
+                  type="button"
+                  onClick={() => setSampleOpen(true)}
+                  className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-colors"
+                  title="Ver una respuesta modelo score 5/5"
+                >
+                  ⭐ Ver ejemplo
+                </button>
+              )}
+              <span className={`text-xs font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {wordCount} / {prompt.minWords} palabras {meets && '✓'}
+              </span>
+            </div>
           </div>
           <textarea
             value={text}
