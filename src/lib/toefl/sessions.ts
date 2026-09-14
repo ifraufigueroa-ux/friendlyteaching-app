@@ -14,20 +14,30 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type {
-  TOEFLSession, TOEFLLiveSnapshot, TOEFLSection,
+  TOEFLSession, TOEFLLiveSnapshot, TOEFLSection, TOEFLSessionMode,
 } from '@/types/toefl';
 
 const COLL = 'toeflSessions';
 
 /** Look up an in-progress session for a given teacher + mock + student name.
  *  Case-sensitive match on the trimmed name — good enough for a "resume"
- *  prompt on the landing screen where the student re-types their name. */
+ *  prompt on the landing screen where the student re-types their name.
+ *
+ *  Optionally filter by sessionMode: when the URL says ?mode=practice we
+ *  only want to resume a practice session (and vice versa) — otherwise the
+ *  student clicking a practice link could accidentally reopen an exam
+ *  session and lose the "no timer" behaviour. */
 export async function findResumableSession(
   teacherId:   string,
   mockId:      string,
   studentName: string,
+  sessionMode?: TOEFLSessionMode,
 ): Promise<TOEFLSession | null> {
   if (!teacherId || !mockId || !studentName.trim()) return null;
+  // Firestore composite queries are expensive to add — do the mode filter
+  // client-side against a slightly larger candidate window. Legacy sessions
+  // (no sessionMode field) are treated as 'exam' since the practice mode
+  // didn't exist yet.
   const q = query(
     collection(db, COLL),
     where('teacherId',   '==', teacherId),
@@ -35,13 +45,19 @@ export async function findResumableSession(
     where('studentName', '==', studentName.trim()),
     where('status',      '==', 'in_progress'),
     orderBy('updatedAt', 'desc'),
-    limit(1),
+    limit(5),
   );
   try {
     const snap = await getDocs(q);
     if (snap.empty) return null;
-    const d = snap.docs[0];
-    return { id: d.id, ...(d.data() as Omit<TOEFLSession, 'id'>) };
+    for (const d of snap.docs) {
+      const data = d.data() as Omit<TOEFLSession, 'id'>;
+      const docMode: TOEFLSessionMode = data.sessionMode ?? 'exam';
+      if (!sessionMode || sessionMode === docMode) {
+        return { id: d.id, ...data };
+      }
+    }
+    return null;
   } catch (err) {
     // Missing composite index → let the caller fall back to a fresh session.
     console.warn('[toefl-sessions] findResumable lookup failed:', err);

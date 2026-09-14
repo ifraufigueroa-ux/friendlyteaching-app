@@ -171,12 +171,13 @@ function MCQCard({
 // screen listing all answered/unanswered questions with jump-to buttons.
 
 function ReadingSection({
-  passages, onDone, initial, onSnapshot,
+  passages, onDone, initial, onSnapshot, practiceMode,
 }: {
   passages:    TOEFLReadingPassage[];
   onDone:      (answers: ReadingAnswer[], timeLeftSec: number) => void;
   initial?:    { outerIdx: number; innerIdx: number; timeLeftSec?: number; answers?: ReadingAnswer[] };
   onSnapshot?: (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
+  practiceMode?: boolean;
 }) {
   const [pIdx, setPIdx] = useState(initial?.outerIdx ?? 0);
   const [qIdx, setQIdx] = useState(initial?.innerIdx ?? 0);
@@ -190,7 +191,10 @@ function ReadingSection({
 
   const totalSec = 35 * 60;
   const initialTimeLeft = initial?.timeLeftSec && initial.timeLeftSec > 0 ? initial.timeLeftSec : totalSec;
-  const left = useCountdown(initialTimeLeft, true, () => finish());
+  // Practice mode: timer isn't shown and never fires auto-submit. Countdown
+  // still ticks locally so the snapshot has *some* timeLeftSec, but the
+  // number is never rendered and finish() never runs on expiry.
+  const left = useCountdown(initialTimeLeft, !practiceMode, practiceMode ? undefined : () => finish());
 
   const passage = passages[pIdx];
   const q = passage.questions[qIdx];
@@ -311,7 +315,7 @@ function ReadingSection({
             </p>
           </div>
         </div>
-        <TimerBar label="Reading · 35 min" seconds={left} totalSec={totalSec} warn={120} />
+        {!practiceMode && <TimerBar label="Reading · 35 min" seconds={left} totalSec={totalSec} warn={120} />}
       </>
     );
   }
@@ -460,7 +464,7 @@ function ScriptViewer({ audio }: { audio: TOEFLListeningAudio }) {
 }
 
 function ListeningSection({
-  audios, audioUrls, onDone, onGenerateAudio, initial, onSnapshot,
+  audios, audioUrls, onDone, onGenerateAudio, initial, onSnapshot, practiceMode,
 }: {
   audios:          TOEFLListeningAudio[];
   audioUrls:       Record<string, string>;
@@ -468,6 +472,7 @@ function ListeningSection({
   onGenerateAudio: (audioId: string) => Promise<string | null>;
   initial?:        { outerIdx: number; innerIdx: number; audioPhase?: 'play' | 'quiz'; timeLeftSec?: number; answers?: ListeningAnswer[]; notes?: Record<string, string> };
   onSnapshot?:     (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
+  practiceMode?:   boolean;
 }) {
   const [aIdx, setAIdx] = useState(initial?.outerIdx ?? 0);
   const [phase, setPhase] = useState<'play' | 'quiz'>(initial?.audioPhase ?? 'play');
@@ -483,7 +488,8 @@ function ListeningSection({
 
   const totalSec = 20 * 60;
   const initialTimeLeft = initial?.timeLeftSec && initial.timeLeftSec > 0 ? initial.timeLeftSec : totalSec;
-  const left = useCountdown(initialTimeLeft, true, () => finish());
+  // Practice mode: no auto-submit, no visible countdown.
+  const left = useCountdown(initialTimeLeft, !practiceMode, practiceMode ? undefined : () => finish());
 
   const audio = audios[aIdx];
   const q = audio.questions[qIdx];
@@ -671,7 +677,7 @@ function ListeningSection({
           </p>
         </div>
       </div>
-      <TimerBar label="Listening · 20 min" seconds={left} totalSec={totalSec} warn={60} />
+      {!practiceMode && <TimerBar label="Listening · 20 min" seconds={left} totalSec={totalSec} warn={60} />}
     </>
   );
 }
@@ -816,6 +822,9 @@ export default function TOEFLMockPage() {
   const emailParam = searchParams.get('email') ?? '';
   const sectionsParam = searchParams.get('sections') ?? '';
   const resumeSessionIdParam = searchParams.get('resumeSessionId') ?? '';
+  // Practice mode: no hard timers, no auto-submit, no visible scores at
+  // the end for the student. Enable via ?mode=practice.
+  const practiceMode = searchParams.get('mode') === 'practice';
 
   // Selected sections come from ?sections=reading,writing (defaults to all
   // four for backwards-compat when the query param is absent).
@@ -903,7 +912,12 @@ export default function TOEFLMockPage() {
     if (!teacherId || !name.trim()) return;
     if (resumeSessionIdParam) return; // already resuming via explicit id
     const t = setTimeout(async () => {
-      const found = await findResumableSession(teacherId, mock?.id ?? mockId, name.trim());
+      const found = await findResumableSession(
+        teacherId,
+        mock?.id ?? mockId,
+        name.trim(),
+        practiceMode ? 'practice' : 'exam',
+      );
       setResumeCandidate(found);
     }, 500);
     return () => clearTimeout(t);
@@ -948,6 +962,7 @@ export default function TOEFLMockPage() {
       studentEmail: email.trim() || null,
       mockId:       mock?.id ?? mockId,
       enabledSections,
+      sessionMode:  practiceMode ? 'practice' : 'exam',
       results:      {},
       progress:     Object.fromEntries(enabledSections.map(s => [s, 'pending'])),
       status:       'in_progress',
@@ -1084,10 +1099,16 @@ export default function TOEFLMockPage() {
       <PageBg>
         <div className="w-full max-w-md rounded-3xl overflow-hidden bg-white" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
           <div className="px-8 py-7" style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A, #9B7CB8)' }}>
-            <BrandHeader subtitle="TOEFL Academic Simulator" />
+            <BrandHeader subtitle={practiceMode ? 'TOEFL Practice Mode' : 'TOEFL Academic Simulator'} />
             <h1 className="text-2xl font-black text-white leading-tight mt-6 pt-6 border-t border-white/10">
               {mock.title}
             </h1>
+            {practiceMode && (
+              <span className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-100 bg-emerald-500/30 border border-emerald-300/40 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                Modo práctica · sin timer
+              </span>
+            )}
           </div>
           <form onSubmit={landingSubmit} className="p-8 space-y-4">
             <div>
@@ -1110,9 +1131,16 @@ export default function TOEFLMockPage() {
 
             {resumeCandidate && (
               <div className="rounded-xl border border-[#5A3D7A]/40 bg-[#F0E5FF] p-3">
-                <p className="text-[11px] font-black uppercase tracking-widest text-[#5A3D7A]">
-                  📌 Test en curso
-                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[11px] font-black uppercase tracking-widest text-[#5A3D7A]">
+                    📌 {resumeCandidate.sessionMode === 'practice' ? 'Práctica en curso' : 'Test en curso'}
+                  </p>
+                  {resumeCandidate.sessionMode === 'practice' && (
+                    <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Practice
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-[#5A3D7A]/80 mt-1">
                   Encontramos una sesión sin terminar para <strong>{resumeCandidate.studentName}</strong>. Puedes continuar donde quedaste.
                 </p>
@@ -1164,15 +1192,27 @@ export default function TOEFLMockPage() {
       <PageBg>
         <div className="w-full max-w-lg rounded-3xl overflow-hidden bg-white" style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
           <div className="px-8 py-7" style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A, #9B7CB8)' }}>
-            <BrandHeader subtitle="TOEFL Academic Simulator" />
+            <BrandHeader subtitle={practiceMode ? 'TOEFL Practice Mode' : 'TOEFL Academic Simulator'} />
             <p className="text-lg font-serif font-bold text-white mt-4">Hola {name}, ¡vamos!</p>
+            {practiceMode && (
+              <span className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-100 bg-emerald-500/30 border border-emerald-300/40 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                Modo práctica · sin timer
+              </span>
+            )}
             {isPartial && (
               <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                Práctica parcial: {enabledSections.length} de {TOEFL_SECTIONS.length} secciones (~{totalMin} min)
+                Práctica parcial: {enabledSections.length} de {TOEFL_SECTIONS.length} secciones{practiceMode ? '' : ` (~${totalMin} min)`}
               </p>
             )}
           </div>
           <div className="p-8 space-y-4">
+            {practiceMode && (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2.5 text-[11px] text-emerald-900 leading-relaxed">
+                <strong className="font-black uppercase tracking-widest text-[9px] text-emerald-800">Práctica · sin timer</strong>
+                <p className="mt-0.5">Puedes salir y volver — el progreso se guarda automáticamente. Los scores no se muestran al final; tu profe los ve.</p>
+              </div>
+            )}
             <p className="text-sm text-gray-700">
               {isPartial ? 'Vas a hacer estas secciones en orden:' : 'Vas a hacer el mock completo en este orden:'}
             </p>
@@ -1223,6 +1263,7 @@ export default function TOEFLMockPage() {
           onDone={onReadingDone}
           initial={readingHydration}
           onSnapshot={(snap) => persistLiveSnapshot('reading', snap)}
+          practiceMode={practiceMode}
         />
       </PageBg>
     );
@@ -1246,6 +1287,7 @@ export default function TOEFLMockPage() {
           onGenerateAudio={generateAudioOnDemand}
           initial={listeningHydration}
           onSnapshot={(snap) => persistLiveSnapshot('listening', snap)}
+          practiceMode={practiceMode}
         />
       </PageBg>
     );
@@ -1284,6 +1326,7 @@ export default function TOEFLMockPage() {
           initial={writingHydration}
           onSnapshot={(snap) => persistLiveSnapshot('writing', snap)}
           confirmSubmit
+          practiceMode={practiceMode}
         />
       </PageBg>
     );
@@ -1336,6 +1379,38 @@ export default function TOEFLMockPage() {
               </ul>
             </div>
           )}
+        </div>
+      </PageBg>
+    );
+  }
+
+  // Practice mode: the student never sees the score or feedback — only a
+  // thank-you card. The teacher sees the full breakdown from the dashboard.
+  if (practiceMode) {
+    return (
+      <PageBg>
+        <div className="w-full max-w-md rounded-3xl overflow-hidden bg-white text-center"
+          style={{ boxShadow: '0 24px 64px -8px rgba(61,37,88,0.3)' }}>
+          <div className="px-8 py-8 text-white"
+            style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A, #9B7CB8)' }}>
+            <BrandHeader subtitle="TOEFL Practice Mode" />
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="text-6xl mb-3">🎉</div>
+              <h1 className="text-2xl font-black leading-tight">¡Práctica completada!</h1>
+              <p className="text-[12px] mt-2 opacity-80">{name}</p>
+            </div>
+          </div>
+          <div className="p-8 space-y-3 text-left">
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Tu profesor va a revisar tu práctica y darte feedback en la próxima clase.
+            </p>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              En modo práctica no se muestran los scores automáticamente — el profesor los ve en su panel.
+            </p>
+            <p className="text-xs text-[#5A3D7A]/60 italic pt-2">
+              Ya puedes cerrar esta ventana.
+            </p>
+          </div>
         </div>
       </PageBg>
     );

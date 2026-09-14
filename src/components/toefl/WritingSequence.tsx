@@ -36,10 +36,13 @@ export interface WritingSequenceProps {
   /** True in the live-mock flow; false in the async assignment flow.
    *  Controls whether short-draft submits require confirmation. */
   confirmSubmit?: boolean;
+  /** Practice mode: sub-timers don't auto-submit and the countdown is
+   *  hidden. Student decides when to advance. */
+  practiceMode?: boolean;
 }
 
 export function WritingSequence({
-  seq, onDone, initial, onSnapshot, confirmSubmit,
+  seq, onDone, initial, onSnapshot, confirmSubmit, practiceMode,
 }: WritingSequenceProps) {
   const [phase, setPhase] = useState<'build-sentence' | 'email' | 'discussion'>(
     initial?.subtask ?? 'build-sentence',
@@ -76,6 +79,7 @@ export function WritingSequence({
         items={seq.buildSentence}
         timerMin={4}
         initial={basDraft}
+        practiceMode={practiceMode}
         onSnapshot={(a) => { setBasDraft(a); emit('build-sentence', a, emailDraft, adDraft); }}
         onDone={(answers) => {
           setBasAnswers(answers);
@@ -92,6 +96,7 @@ export function WritingSequence({
         prompt={seq.email}
         initialText={emailDraft}
         confirmSubmit={confirmSubmit}
+        practiceMode={practiceMode}
         onSnapshot={(t) => { setEmailDraft(t); emit('email', basDraft, t, adDraft); }}
         onDone={(sub) => {
           setEmailSub(sub);
@@ -107,6 +112,7 @@ export function WritingSequence({
       prompt={seq.discussion}
       initialText={adDraft}
       confirmSubmit={confirmSubmit}
+      practiceMode={practiceMode}
       onSnapshot={(snap) => {
         setAdDraft(snap.writingText ?? '');
         emit('discussion', basDraft, emailDraft, snap.writingText ?? '');

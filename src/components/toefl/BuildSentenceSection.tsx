@@ -29,6 +29,9 @@ export interface BuildSentenceSectionProps {
   onSnapshot?: (answersById: Record<string, string>) => void;
   /** Prefill from a saved snapshot. */
   initial?:    Record<string, string>;
+  /** Practice mode: timer is hidden and doesn't auto-submit. Student
+   *  advances only by clicking Continuar. */
+  practiceMode?: boolean;
 }
 
 function normalise(s: string): string {
@@ -141,14 +144,15 @@ function BuildSentenceItem({
 }
 
 export function BuildSentenceSection({
-  items, timerMin = 4, onDone, onSnapshot, initial,
+  items, timerMin = 4, onDone, onSnapshot, initial, practiceMode,
 }: BuildSentenceSectionProps) {
   // Per-item bank state, keyed by item id → array of bank slot indices.
   // We keep the strings too (via `answersById`) for autosave/scoring.
   const [answersById, setAnswersById] = useState<Record<string, string>>(initial ?? {});
 
   const totalSec = timerMin * 60;
-  const left = useCountdown(totalSec, true, () => submit(/* auto */ true));
+  // Practice mode: countdown paused, no auto-submit.
+  const left = useCountdown(totalSec, !practiceMode, practiceMode ? undefined : () => submit(/* auto */ true));
 
   useEffect(() => {
     onSnapshot?.(answersById);
@@ -178,12 +182,17 @@ export function BuildSentenceSection({
           <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
             Writing Task 1 · Build a Sentence
           </span>
-          <span className={`text-xs font-mono tabular-nums font-bold ${left < 30 ? 'text-red-600' : 'text-[#5A3D7A]'}`}>
-            ⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
-          </span>
+          {!practiceMode && (
+            <span className={`text-xs font-mono tabular-nums font-bold ${left < 30 ? 'text-red-600' : 'text-[#5A3D7A]'}`}>
+              ⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
+            </span>
+          )}
         </div>
         <p className="text-xs text-gray-600 leading-relaxed">
-          Reorganiza las palabras para formar oraciones correctas en inglés. Tienes {timerMin} minutos para las {items.length} oraciones.
+          Reorganiza las palabras para formar oraciones correctas en inglés.
+          {practiceMode
+            ? ` Modo práctica: sin timer, tómate el tiempo que necesites para las ${items.length} oraciones.`
+            : ` Tienes ${timerMin} minutos para las ${items.length} oraciones.`}
         </p>
       </div>
 

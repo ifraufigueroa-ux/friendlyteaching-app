@@ -84,6 +84,10 @@ export default function TOEFLDashboardPage() {
   const [sessions, setSessions] = useState<TOEFLSession[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Practice mode toggle: switches the launch/share URL to include
+  // ?mode=practice so timers relax and the student sees a thank-you at
+  // the end instead of the score breakdown.
+  const [practiceMode, setPracticeMode] = useState(false);
 
   useEffect(() => {
     if (!teacherId) return;
@@ -121,9 +125,10 @@ export default function TOEFLDashboardPage() {
     if (orderedSelected.length > 0 && orderedSelected.length < TOEFL_SECTIONS.length) {
       params.set('sections', orderedSelected.join(','));
     }
+    if (practiceMode) params.set('mode', 'practice');
     const qs = params.toString();
     return `/toefl-mock/${selectedMockId}${qs ? '?' + qs : ''}`;
-  }, [teacherId, orderedSelected, selectedMockId]);
+  }, [teacherId, orderedSelected, selectedMockId, practiceMode]);
 
   // Absolute URL for the share flow — always explicit about the sections so
   // the recipient can't accidentally get a different mock config than the one
@@ -134,8 +139,9 @@ export default function TOEFLDashboardPage() {
       teacherId,
       sections: orderedSelected.join(','),
     });
+    if (practiceMode) params.set('mode', 'practice');
     return `${window.location.origin}/toefl-mock/${selectedMockId}?${params.toString()}`;
-  }, [teacherId, orderedSelected, selectedMockId]);
+  }, [teacherId, orderedSelected, selectedMockId, practiceMode]);
 
   async function handleCopyLink() {
     if (!shareUrl) return;
@@ -302,6 +308,38 @@ export default function TOEFLDashboardPage() {
             </div>
           </div>
 
+          {/* Mode toggle — exam (default) vs practice. Practice mode oculta
+              timers, no auto-submits y le muestra al alumno solo un thank-you
+              al final; el profe ve los scores en el dashboard. */}
+          <div className="flex justify-center">
+            <div className="inline-flex rounded-full bg-white border border-[#E8D5F0] p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setPracticeMode(false)}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  !practiceMode ? 'bg-[#5A3D7A] text-white shadow' : 'text-[#5A3D7A]/70 hover:text-[#5A3D7A]'
+                }`}
+              >
+                📝 Exam Mode
+              </button>
+              <button
+                type="button"
+                onClick={() => setPracticeMode(true)}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  practiceMode ? 'bg-emerald-500 text-white shadow' : 'text-[#5A3D7A]/70 hover:text-[#5A3D7A]'
+                }`}
+              >
+                🌱 Practice Mode
+              </button>
+            </div>
+          </div>
+
+          {practiceMode && (
+            <div className="max-w-2xl mx-auto rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-[11px] text-emerald-900 leading-relaxed">
+              <strong className="font-black uppercase tracking-widest text-[9px] text-emerald-800">Modo práctica</strong> — sin timers duros, el alumno puede salir y volver (el progreso se autoguarda). No ve scores al final; los ves tú desde el panel de sesiones.
+            </div>
+          )}
+
           {/* CTAs — dos flujos: en vivo (docente + alumno en la misma pantalla)
               o compartir un link para que el alumno lo haga solo. */}
           <div className="space-y-3">
@@ -313,9 +351,11 @@ export default function TOEFLDashboardPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
-                    style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
+                    style={{ background: practiceMode
+                      ? 'linear-gradient(135deg, #059669, #10B981)'
+                      : 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
                   >
-                    ▶ Iniciar Mock en Vivo
+                    ▶ {practiceMode ? 'Iniciar Práctica' : 'Iniciar Mock en Vivo'}
                   </a>
                   <button
                     onClick={handleCopyLink}
@@ -450,7 +490,14 @@ function SessionsTable({
                   style={{ background: idx % 2 === 0 ? 'white' : '#FDFAFF' }}
                 >
                   <td className="px-3 py-2.5">
-                    <p className="font-semibold text-[#5A3D7A]">{s.studentName}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="font-semibold text-[#5A3D7A]">{s.studentName}</p>
+                      {s.sessionMode === 'practice' && (
+                        <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          Practice
+                        </span>
+                      )}
+                    </div>
                     {s.studentEmail && <p className="text-xs text-[#5A3D7A]/60">{s.studentEmail}</p>}
                   </td>
                   <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70 tabular-nums">
@@ -481,7 +528,7 @@ function SessionsTable({
                       </span>
                       {isInProgress && (
                         <a
-                          href={`/toefl-mock/${s.mockId}?teacherId=${teacherId}&resumeSessionId=${s.id}`}
+                          href={`/toefl-mock/${s.mockId}?teacherId=${teacherId}&resumeSessionId=${s.id}${s.sessionMode === 'practice' ? '&mode=practice' : ''}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white hover:opacity-90"

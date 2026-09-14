@@ -301,6 +301,14 @@ export interface TOEFLLiveSnapshot {
   emailText?: string;
 }
 
+/** How the mock is being taken:
+ *  - 'exam'     → default, real conditions: hard timers auto-submit,
+ *                 student sees full breakdown at the end.
+ *  - 'practice' → unlimited (timers hidden), no auto-submit, student
+ *                 only sees a thank-you screen; the teacher reviews the
+ *                 breakdown from the dashboard. Resume is expected. */
+export type TOEFLSessionMode = 'exam' | 'practice';
+
 export interface TOEFLSession {
   id:              string;
   teacherId:       string;
@@ -310,6 +318,9 @@ export interface TOEFLSession {
   mockId:          string;
   /** Sections enabled at start (from ?sections=). Persisted so resume respects it. */
   enabledSections?: TOEFLSection[];
+  /** Persisted so resume knows whether to reopen in practice or exam
+   *  mode. Defaults to 'exam' for sessions created before this field. */
+  sessionMode?:    TOEFLSessionMode;
   results: {
     reading?:   { answers: ReadingAnswer[];    score: SectionScore };
     listening?: { answers: ListeningAnswer[];  score: SectionScore };

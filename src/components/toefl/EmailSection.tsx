@@ -24,14 +24,15 @@ export interface EmailSectionProps {
   initialText?: string;
   onSnapshot?: (text: string) => void;
   confirmSubmit?: boolean;
+  practiceMode?: boolean;
 }
 
 export function EmailSection({
-  prompt, onDone, initialText, onSnapshot, confirmSubmit,
+  prompt, onDone, initialText, onSnapshot, confirmSubmit, practiceMode,
 }: EmailSectionProps) {
   const [text, setText] = useState(initialText ?? '');
   const totalSec = prompt.timerMin * 60;
-  const left = useCountdown(totalSec, true, () => submit(true));
+  const left = useCountdown(totalSec, !practiceMode, practiceMode ? undefined : () => submit(true));
   const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
   const meets = wordCount >= prompt.minWords;
 
@@ -104,9 +105,13 @@ export function EmailSection({
           className="w-full min-h-[420px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
         />
         <div className="mt-2 flex items-center justify-between text-[10px] text-gray-500">
-          <span className={left < 30 ? 'text-red-600 font-bold' : ''}>
-            ⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} restantes
-          </span>
+          {practiceMode ? (
+            <span className="text-[#5A3D7A]/60 italic">Modo práctica — sin timer</span>
+          ) : (
+            <span className={left < 30 ? 'text-red-600 font-bold' : ''}>
+              ⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} restantes
+            </span>
+          )}
           {onSnapshot && <span className="text-emerald-600">✓ Autoguardado</span>}
         </div>
         <div className="mt-4 flex justify-end">
