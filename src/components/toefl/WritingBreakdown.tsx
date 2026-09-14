@@ -108,6 +108,32 @@ export function WritingBreakdown({
           )}
         </div>
       </div>
+
+      {prompt?.sampleAnswer && (
+        <details className="mt-3 rounded-xl border overflow-hidden bg-white"
+          style={{ borderColor: '#A7F3D0' }}>
+          <summary className="cursor-pointer px-3 py-2 text-[11px] font-black uppercase tracking-widest text-emerald-800 select-none bg-emerald-50 flex items-center justify-between">
+            <span>⭐ Ver respuesta modelo (score {prompt.sampleAnswer.scoreOn5}/5)</span>
+            <span className="text-[9px] font-medium text-emerald-700 normal-case tracking-normal">Cómo se ve una respuesta de alto puntaje</span>
+          </summary>
+          <div className="p-3 border-t border-emerald-100 space-y-3">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-emerald-700/70 mb-1">Texto modelo</p>
+              <div className="rounded-lg bg-emerald-50/40 border border-emerald-100 p-3 text-[12px] text-gray-800 whitespace-pre-wrap leading-relaxed">
+                {prompt.sampleAnswer.text}
+              </div>
+            </div>
+            {prompt.sampleAnswer.whyItWorks && prompt.sampleAnswer.whyItWorks.length > 0 && (
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-700/70 mb-1">Por qué funciona</p>
+                <ul className="text-[11px] text-gray-700 list-disc pl-4 space-y-0.5">
+                  {prompt.sampleAnswer.whyItWorks.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

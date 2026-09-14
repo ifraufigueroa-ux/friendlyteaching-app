@@ -283,7 +283,7 @@ export function SpeakingSection({
           <div className="text-center py-6 space-y-3">
             <div className="text-6xl font-black tabular-nums" style={{ color: B.purple }}>{prepLeft}</div>
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.purpleMed }}>Preparación</p>
-            <p className="text-[11px] text-gray-500">Pensá tu respuesta. La grabación arranca sola.</p>
+            <p className="text-[11px] text-gray-500">Piensa tu respuesta. La grabación arranca sola.</p>
             <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 mt-2">Empezar a grabar ahora →</button>
           </div>
         )}
@@ -292,7 +292,7 @@ export function SpeakingSection({
           <div className="text-center py-6 space-y-3">
             <div className="text-6xl font-black tabular-nums text-red-500 animate-pulse">{speakLeft}</div>
             <p className="text-xs font-bold uppercase tracking-widest text-red-600">🔴 Grabando</p>
-            <p className="text-[11px] text-gray-500">Hablá con claridad. La grabación se corta sola al llegar a 0.</p>
+            <p className="text-[11px] text-gray-500">Habla con claridad. La grabación se corta sola al llegar a 0.</p>
             <button
               onClick={stopSpeaking}
               className="px-5 py-2 rounded-full text-xs font-bold border border-gray-300 hover:bg-gray-50 transition-colors"

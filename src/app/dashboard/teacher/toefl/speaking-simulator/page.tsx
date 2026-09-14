@@ -189,9 +189,9 @@ export default function SpeakingSimulatorPage() {
         setResult({
           rawScore04: 0,
           rubric: { delivery: 0, languageUse: 0, topicDevelopment: 0 },
-          feedback: 'No se detectó voz en la grabación. Revisá el micrófono y probá de nuevo.',
+          feedback: 'No se detectó voz en la grabación. Revisa el micrófono y prueba de nuevo.',
           strengths: [],
-          improvements: ['Verificá que el micrófono esté captando audio', 'Hablá más cerca del micrófono'],
+          improvements: ['Verifica que el micrófono esté captando audio', 'Habla más cerca del micrófono'],
           transcript: '',
           durationSec,
         });
@@ -281,8 +281,8 @@ export default function SpeakingSimulatorPage() {
               Speaking Simulator
             </h1>
             <p className="text-sm text-[#5A3D7A]/70 max-w-xl mx-auto">
-              Elegí una categoría, grabá tu respuesta con timing real (15s prep + 45s speak),
-              y recibí score 0-4 con rubric + tips del AI en el momento.
+              Elige una categoría, graba tu respuesta con timing real (15s prep + 45s speak),
+              y recibe score 0-4 con rubric + tips del AI en el momento.
             </p>
           </div>
 
@@ -396,7 +396,7 @@ export default function SpeakingSimulatorPage() {
               <div className="text-center py-4 space-y-3">
                 <div className="text-6xl font-black tabular-nums" style={{ color: B.purple }}>{prepLeft}</div>
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.purpleMed }}>Preparación</p>
-                <p className="text-[11px] text-gray-500">Pensá tu respuesta. La grabación arranca sola.</p>
+                <p className="text-[11px] text-gray-500">Piensa tu respuesta. La grabación arranca sola.</p>
                 <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 mt-2">
                   Empezar a grabar ahora →
                 </button>
@@ -407,7 +407,7 @@ export default function SpeakingSimulatorPage() {
               <div className="text-center py-4 space-y-3">
                 <div className="text-6xl font-black tabular-nums text-red-500 animate-pulse">{speakLeft}</div>
                 <p className="text-xs font-bold uppercase tracking-widest text-red-600">🔴 Grabando</p>
-                <p className="text-[11px] text-gray-500">Hablá con claridad. Se corta sola al llegar a 0.</p>
+                <p className="text-[11px] text-gray-500">Habla con claridad. Se corta sola al llegar a 0.</p>
                 <button
                   onClick={stopSpeaking}
                   className="px-5 py-2 rounded-full text-xs font-bold border border-gray-300 hover:bg-gray-50 transition-colors"

@@ -99,7 +99,7 @@ export function WritingSection({
             value={text}
             onChange={e => setText(e.target.value)}
             autoFocus
-            placeholder="Escribí tu contribución al debate…"
+            placeholder="Escribe tu contribución al debate…"
             spellCheck
             className="w-full min-h-[420px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
           />

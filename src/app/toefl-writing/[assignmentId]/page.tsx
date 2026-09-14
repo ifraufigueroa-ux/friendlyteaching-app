@@ -267,8 +267,8 @@ export default function ToeflWritingAssignmentPage() {
             </p>
             <ul className="text-xs text-[#2D1B4E] space-y-2">
               <li className="flex gap-2"><span>✍️</span><span>Vas a contribuir al debate del profesor y sus dos alumnos.</span></li>
-              <li className="flex gap-2"><span>⏱</span><span>Tenés <strong>{mock.writing.timerMin} minutos</strong> — el timer no se puede pausar.</span></li>
-              <li className="flex gap-2"><span>💾</span><span>El texto se autoguarda mientras escribís, así no perdés nada si se corta la conexión.</span></li>
+              <li className="flex gap-2"><span>⏱</span><span>Tienes <strong>{mock.writing.timerMin} minutos</strong> — el timer no se puede pausar.</span></li>
+              <li className="flex gap-2"><span>💾</span><span>El texto se autoguarda mientras escribes, así no pierdes nada si se corta la conexión.</span></li>
               <li className="flex gap-2"><span>📏</span><span>Mínimo <strong>{mock.writing.minWords} palabras</strong>.</span></li>
               <li className="flex gap-2"><span>👩‍🏫</span><span>Tu profesor va a revisar tu respuesta y darte feedback en tu próxima clase.</span></li>
             </ul>

@@ -307,7 +307,7 @@ function ReadingSection({
             ))}
 
             <p className="text-[11px] text-gray-500 italic mt-4">
-              💡 Podés hacer click en cualquier número para volver a esa pregunta. Al Submit se calculan tus puntos y no podés modificar respuestas.
+              💡 Puedes hacer click en cualquier número para volver a esa pregunta. Al Submit se calculan tus puntos y no puedes modificar respuestas.
             </p>
           </div>
         </div>
@@ -561,8 +561,8 @@ function ListeningSection({
                 <div className="bg-[#F0E5FF] rounded-xl p-3 mb-3">
                   <audio src={url} controls className="w-full" preload="auto" />
                   <p className="text-[10px] text-gray-500 mt-2 text-center italic">
-                    Escuchá el audio con atención. Después vas a contestar {audio.questions.length} preguntas.
-                    Podés tomar notas en el panel de la derecha.
+                    Escucha el audio con atención. Después vas a contestar {audio.questions.length} preguntas.
+                    Puedes tomar notas en el panel de la derecha.
                   </p>
                 </div>
               ) : (
@@ -663,7 +663,7 @@ function ListeningSection({
             value={notes[audio.id] ?? ''}
             onChange={e => setNotesFor(audio.id, e.target.value)}
             rows={14}
-            placeholder="Escribí las palabras clave que escuchás. En el TOEFL real podés tomar notas mientras suena el audio."
+            placeholder="Escribe las palabras clave que escuchas. En el TOEFL real puedes tomar notas mientras suena el audio."
             className="w-full text-xs px-3 py-2 rounded-lg border border-[#E8D5F0] focus:outline-none focus:border-[#9B7CB8] focus:ring-1 focus:ring-[#C8A8DC] leading-snug resize-y font-mono text-gray-700"
           />
           <p className="text-[9px] text-gray-400 mt-1.5 italic">
@@ -1110,7 +1110,7 @@ export default function TOEFLMockPage() {
                   📌 Test en curso
                 </p>
                 <p className="text-[11px] text-[#5A3D7A]/80 mt-1">
-                  Encontramos una sesión sin terminar para <strong>{resumeCandidate.studentName}</strong>. Podés continuar donde quedaste.
+                  Encontramos una sesión sin terminar para <strong>{resumeCandidate.studentName}</strong>. Puedes continuar donde quedaste.
                 </p>
                 <div className="flex gap-2 mt-2">
                   <button

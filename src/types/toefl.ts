@@ -107,6 +107,15 @@ export interface TOEFLWritingPrompt {
   studentB:      { name: string; text: string };
   minWords:      100;
   timerMin:      10;
+  /** Optional high-score sample answer. Shown to the student after they
+   *  submit (in the WritingBreakdown), so they can see what a 5/5 response
+   *  looks like next to their own text. `whyItWorks` is the teacher's
+   *  short-form annotation of the moves the sample makes. */
+  sampleAnswer?: {
+    text:        string;
+    scoreOn5:    number;     // 5 for a top sample
+    whyItWorks?: string[];   // bullet points: what makes it high score
+  };
 }
 
 // ── Mock ───────────────────────────────────────────────────────────────────

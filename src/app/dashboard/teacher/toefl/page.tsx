@@ -172,7 +172,7 @@ export default function TOEFLDashboardPage() {
         <FullscreenButton />
         <TopBar
           title="TOEFL Academic Simulator"
-          subtitle="Elegí qué secciones evaluar según el tiempo de clase"
+          subtitle="Elige qué secciones evaluar según el tiempo de clase"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
@@ -214,7 +214,7 @@ export default function TOEFLDashboardPage() {
           {/* Mock picker */}
           <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5">
             <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">
-              Elegí el mock
+              Elige el mock
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {TOEFL_MOCKS.map((m) => {
@@ -328,7 +328,7 @@ export default function TOEFLDashboardPage() {
               ) : (
                 <button disabled className="px-6 py-3 rounded-full text-sm font-bold text-white opacity-40 cursor-not-allowed"
                   style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
-                  {!teacherId ? 'Iniciá sesión primero' : 'Elegí al menos una sección'}
+                  {!teacherId ? 'Inicia sesión primero' : 'Elige al menos una sección'}
                 </button>
               )}
             </div>
