@@ -105,8 +105,8 @@ export interface TOEFLWritingPrompt {
   question:      string;   // "Which side of the debate do you support?"
   studentA:      { name: string; text: string };
   studentB:      { name: string; text: string };
-  minWords:      100;
-  timerMin:      10;
+  minWords:      number;   // AD: 100
+  timerMin:      number;   // AD: 10
   /** Optional high-score sample answer. Shown to the student after they
    *  submit (in the WritingBreakdown), so they can see what a 5/5 response
    *  looks like next to their own text. `whyItWorks` is the teacher's
@@ -118,6 +118,48 @@ export interface TOEFLWritingPrompt {
   };
 }
 
+/** Build a Sentence — student reorders shuffled word chips to form the
+ *  target sentence. Auto-graded via exact string match against `correct`
+ *  (and any `altCorrect` alternatives, e.g. contraction variants). */
+export interface TOEFLBuildSentenceItem {
+  id:           string;         // 'w1-bas-1'
+  prompt:       string;         // Instruction shown above the chips
+  chips:        string[];       // Shuffled word/phrase chips
+  correct:      string;         // Canonical sentence (space-joined chips)
+  altCorrect?:  string[];       // Optional alternative valid orderings
+  teacherNote?: string;
+}
+
+/** Write an Email — student replies to a short scenario email covering
+ *  three key points. AI-graded on a task-response + language rubric. */
+export interface TOEFLEmailPrompt {
+  id:              string;
+  scenario:        string;      // 1-2 sentences framing the student's role
+  receivedEmail:   {
+    from:    string;            // 'Prof. Martin' / 'Housing Office'
+    subject: string;
+    body:    string;
+  };
+  taskInstruction: string;      // "Write a reply that addresses all three points."
+  keyPoints:       string[];    // 3 bullets the reply must cover
+  minWords:        number;      // typically 90
+  timerMin:        number;      // typically 7
+  sampleAnswer?: {
+    text:        string;
+    scoreOn5:    number;
+    whyItWorks?: string[];
+  };
+}
+
+/** Composite writing section — the three sub-tasks run in order (BAS →
+ *  Email → AD) with their own timers. Replaces the single-prompt shape
+ *  that `TOEFLMock.writing` used to hold. */
+export interface TOEFLWritingSequence {
+  buildSentence: TOEFLBuildSentenceItem[];   // 4-6 items, ~4 min total
+  email:         TOEFLEmailPrompt;           // 1 email, ~7 min
+  discussion:    TOEFLWritingPrompt;         // 1 AD prompt, ~10 min
+}
+
 // ── Mock ───────────────────────────────────────────────────────────────────
 
 export interface TOEFLMock {
@@ -126,7 +168,7 @@ export interface TOEFLMock {
   reading:         TOEFLReadingPassage[];       // 2 passages
   listening:       TOEFLListeningAudio[];       // 1 lecture + 1 conversation
   speaking:        TOEFLSpeakingPrompt[];       // 4 prompts
-  writing:         TOEFLWritingPrompt;          // 1 discussion prompt
+  writing:         TOEFLWritingSequence;        // BAS + Email + AD
 }
 
 // ── Results ────────────────────────────────────────────────────────────────
@@ -189,6 +231,40 @@ export interface WritingSubmission {
   aiError?:        string;   // captured HTTP/network error message when grading failed
 }
 
+/** Build a Sentence — auto-graded (no AI). One record per BAS item. */
+export interface BuildSentenceAnswer {
+  itemId:    string;         // matches TOEFLBuildSentenceItem.id
+  answer:    string;         // student's constructed sentence
+  correct:   boolean;
+}
+
+/** Write an Email — same AI-rubric shape as the AD, but scored 0-5 with
+ *  its own weight in the writing-section score. */
+export interface EmailSubmission {
+  promptId:    string;
+  text:        string;
+  wordCount:   number;
+  aiScore?:    number;   // 0-5 raw
+  aiFeedback?: string;
+  aiRubric?:   {
+    taskResponse: number;
+    organisation: number;
+    languageUse:  number;
+  };
+  aiStrengths?:    string[];
+  aiImprovements?: string[];
+  aiError?:        string;
+}
+
+/** Full Writing section submission — the three sub-tasks combined.
+ *  Persisted on the session; individual pieces still autosaved as they
+ *  are produced. */
+export interface WritingSectionSubmission {
+  buildSentence: BuildSentenceAnswer[];
+  email:         EmailSubmission;
+  discussion:    WritingSubmission;
+}
+
 // ── Session ────────────────────────────────────────────────────────────────
 
 export type TOEFLSessionStatus = 'in_progress' | 'completed' | 'partial';
@@ -212,9 +288,17 @@ export interface TOEFLLiveSnapshot {
   listeningNotes?:   Record<string, string>;
   /** Uploaded speaking recordings so a mid-section refresh keeps them. */
   speakingRecordings?: SpeakingRecording[];
-  /** Draft of the Writing textarea — autosaved every few keystrokes so a
-   *  refresh in the middle of the 10-min task doesn't wipe the response. */
+  /** Draft of the Academic Discussion textarea — autosaved every few
+   *  keystrokes so a refresh in the middle of the 10-min task doesn't wipe
+   *  the response. Kept as the legacy field for backward compatibility
+   *  with sessions started before the BAS+Email tasks landed. */
   writingText?: string;
+  /** Which sub-task of the composite Writing section is active. */
+  writingSubtask?: 'build-sentence' | 'email' | 'discussion';
+  /** BAS answers so far, keyed by item id (matches TOEFLBuildSentenceItem.id). */
+  buildSentenceAnswers?: Record<string, string>;
+  /** Draft of the Email textarea — autosaved. */
+  emailText?: string;
 }
 
 export interface TOEFLSession {
@@ -230,7 +314,7 @@ export interface TOEFLSession {
     reading?:   { answers: ReadingAnswer[];    score: SectionScore };
     listening?: { answers: ListeningAnswer[];  score: SectionScore };
     speaking?:  { recordings: SpeakingRecording[]; score: SectionScore };
-    writing?:   { submission: WritingSubmission;    score: SectionScore };
+    writing?:   { submission: WritingSectionSubmission; score: SectionScore };
   };
   progress:        Partial<Record<TOEFLSection, 'pending' | 'in_progress' | 'completed' | 'skipped'>>;
   overallScore?:   number;   // 0-120 sum of section scores
@@ -263,7 +347,7 @@ export interface TOEFLWritingAssignment {
   studentEmail?:   string;
   mockId:          string;
   status:          TOEFLWritingAssignmentStatus;
-  submission?:     WritingSubmission;
+  submission?:     WritingSectionSubmission;
   overallScore?:   number;
   gradingError?:   string;
   createdAt:       Timestamp;
@@ -341,12 +425,26 @@ export function speakingRawToScaled(taskScores: number[]): number {
   return Math.round(pct * 12);
 }
 
-/** Writing: T2 Academic Discussion, 0-5 raw → 0-15 (single-task MVP; the
- *  full mock with T1 would sum 0-10 → 0-30. Here we scale the single score
- *  linearly to 0-30 so overall stays comparable). */
+/** Writing: T2 Academic Discussion, 0-5 raw → 0-30 linear. Kept for
+ *  backward compatibility and for standalone AD grading. */
 export function writingRawToScaled(raw05: number): number {
   const clamped = Math.max(0, Math.min(5, raw05));
   return Math.round((clamped / 5) * 30);
+}
+
+/** Full Writing section score (0-30) from the three sub-task raw scores.
+ *  Weights: BAS 20% (0-6), Email 30% (0-9), AD 50% (0-15). BAS raw is the
+ *  fraction of items answered correctly (0-1). Email + AD raws are 0-5. */
+export function writingSectionRawToScaled(parts: {
+  basCorrectPct: number;    // 0..1, share of BAS items answered correctly
+  emailRaw05:    number;    // 0..5 AI rubric
+  adRaw05:       number;    // 0..5 AI rubric
+}): number {
+  const bas   = Math.max(0, Math.min(1, parts.basCorrectPct));
+  const email = Math.max(0, Math.min(5, parts.emailRaw05)) / 5;
+  const ad    = Math.max(0, Math.min(5, parts.adRaw05)) / 5;
+  const weighted = bas * 6 + email * 9 + ad * 15;   // out of 30
+  return Math.round(weighted);
 }
 
 /** CEFR-ish label for a total 0-120 score (rough guide for teachers). */

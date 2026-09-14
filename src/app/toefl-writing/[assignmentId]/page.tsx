@@ -17,8 +17,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getMock } from '@/lib/data/toefl/mock-1';
-import type { TOEFLWritingAssignment, WritingSubmission } from '@/types/toefl';
-import { WritingSection } from '@/components/toefl/WritingSection';
+import type { TOEFLWritingAssignment, WritingSectionSubmission } from '@/types/toefl';
+import { WritingSequence } from '@/components/toefl/WritingSequence';
 import {
   markToeflWritingAssignmentStarted,
   completeToeflWritingAssignment,
@@ -26,7 +26,7 @@ import {
   recordWritingGradingError,
   setWritingGuestIdentity,
 } from '@/hooks/useToeflWritingAssignments';
-import { gradeWritingSubmission } from '@/lib/toefl/gradeWriting';
+import { gradeWritingSection } from '@/lib/toefl/gradeWriting';
 
 const B = {
   purple:      '#5A3D7A',
@@ -146,7 +146,7 @@ export default function ToeflWritingAssignmentPage() {
     try { await markToeflWritingAssignmentStarted(assignment.id); } catch { /* non-fatal */ }
   }
 
-  async function handleWritingDone(submission: WritingSubmission) {
+  async function handleWritingDone(submission: WritingSectionSubmission) {
     if (!assignment || !mock) return;
     setUiPhase('completed');
     try {
@@ -156,7 +156,7 @@ export default function ToeflWritingAssignmentPage() {
       return;
     }
     try {
-      const { enriched, sectionScore } = await gradeWritingSubmission(submission, mock.writing);
+      const { enriched, sectionScore } = await gradeWritingSection(submission, mock.writing);
       await gradeToeflWritingAssignment(assignment.id, enriched, sectionScore);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -258,18 +258,18 @@ export default function ToeflWritingAssignmentPage() {
               Welcome to TOEFL iBT Writing Mocks
             </h1>
             <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.75)' }}>
-              {mock.title} · 1 task · {mock.writing.timerMin} min
+              {mock.title} · 3 tareas · ~21 min
             </p>
           </div>
           <div className="p-8 space-y-4">
             <p className="text-sm text-gray-700 leading-relaxed">
-              Hola <strong>{assignment.studentName}</strong>, tu profesor te asignó un mock del <strong>TOEFL Writing</strong> (Academic Discussion).
+              Hola <strong>{assignment.studentName}</strong>, tu profesor te asignó un mock del <strong>TOEFL Writing</strong> completo.
             </p>
             <ul className="text-xs text-[#2D1B4E] space-y-2">
-              <li className="flex gap-2"><span>✍️</span><span>Vas a contribuir al debate del profesor y sus dos alumnos.</span></li>
-              <li className="flex gap-2"><span>⏱</span><span>Tienes <strong>{mock.writing.timerMin} minutos</strong> — el timer no se puede pausar.</span></li>
-              <li className="flex gap-2"><span>💾</span><span>El texto se autoguarda mientras escribes, así no pierdes nada si se corta la conexión.</span></li>
-              <li className="flex gap-2"><span>📏</span><span>Mínimo <strong>{mock.writing.minWords} palabras</strong>.</span></li>
+              <li className="flex gap-2"><span>🧩</span><span><strong>Build a Sentence</strong> ({mock.writing.buildSentence.length} oraciones, ~4 min) — ordena palabras para armar oraciones correctas.</span></li>
+              <li className="flex gap-2"><span>📧</span><span><strong>Write an Email</strong> ({mock.writing.email.timerMin} min, mínimo {mock.writing.email.minWords} palabras) — respondes un email cubriendo 3 puntos clave.</span></li>
+              <li className="flex gap-2"><span>💬</span><span><strong>Academic Discussion</strong> ({mock.writing.discussion.timerMin} min, mínimo {mock.writing.discussion.minWords} palabras) — contribuyes al debate del profesor y sus alumnos.</span></li>
+              <li className="flex gap-2"><span>💾</span><span>Todo se autoguarda mientras escribes, así no pierdes nada si se corta la conexión.</span></li>
               <li className="flex gap-2"><span>👩‍🏫</span><span>Tu profesor va a revisar tu respuesta y darte feedback en tu próxima clase.</span></li>
             </ul>
             <button onClick={startWriting}
@@ -287,8 +287,8 @@ export default function ToeflWritingAssignmentPage() {
   if (uiPhase === 'writing') {
     return (
       <PageBg>
-        <WritingSection
-          prompt={mock.writing}
+        <WritingSequence
+          seq={mock.writing}
           onDone={handleWritingDone}
           confirmSubmit
         />

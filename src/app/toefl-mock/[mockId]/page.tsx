@@ -21,8 +21,8 @@ import { db } from '@/lib/firebase/config';
 import { getMock } from '@/lib/data/toefl/mock-1';
 import type {
   TOEFLMock, TOEFLReadingPassage, TOEFLListeningAudio, TOEFLSpeakingPrompt,
-  TOEFLWritingPrompt, ReadingAnswer, ListeningAnswer, SpeakingRecording,
-  WritingSubmission, SectionScore, TOEFLSection, TOEFLLiveSnapshot,
+  TOEFLWritingSequence, ReadingAnswer, ListeningAnswer, SpeakingRecording,
+  WritingSectionSubmission, SectionScore, TOEFLSection, TOEFLLiveSnapshot,
   TOEFLReadingQuestionType, TOEFLSession,
 } from '@/types/toefl';
 import {
@@ -36,10 +36,10 @@ import {
 import { useCountdown } from '@/hooks/useCountdown';
 import { SpeakingSection } from '@/components/toefl/SpeakingSection';
 import { SpeakingBreakdown } from '@/components/toefl/SpeakingBreakdown';
-import { WritingSection } from '@/components/toefl/WritingSection';
+import { WritingSequence } from '@/components/toefl/WritingSequence';
 import { WritingBreakdown } from '@/components/toefl/WritingBreakdown';
 import { gradeSpeakingRecordings } from '@/lib/toefl/gradeSpeaking';
-import { gradeWritingSubmission } from '@/lib/toefl/gradeWriting';
+import { gradeWritingSection } from '@/lib/toefl/gradeWriting';
 
 // ── Reading question-type friendly labels ─────────────────────────────────
 const READING_TYPE_LABEL: Record<TOEFLReadingQuestionType, string> = {
@@ -688,8 +688,8 @@ function ResultsScreen({
   enabledSections: TOEFLSection[];
   speakingResults?: SpeakingRecording[];
   speakingPrompts?: TOEFLSpeakingPrompt[];
-  writingResult?:   WritingSubmission | null;
-  writingPrompt?:   TOEFLWritingPrompt;
+  writingResult?:   WritingSectionSubmission | null;
+  writingPrompt?:   TOEFLWritingSequence;
 }) {
   const [downloading, setDownloading] = useState(false);
   const isPartial = enabledSections.length < 4;
@@ -848,7 +848,7 @@ export default function TOEFLMockPage() {
   // Full per-task Speaking details (transcript + rubric + feedback + errors)
   // used to render the detailed breakdown on the Results screen.
   const [speakingResults, setSpeakingResults] = useState<SpeakingRecording[]>([]);
-  const [writingResult, setWritingResult] = useState<WritingSubmission | null>(null);
+  const [writingResult, setWritingResult] = useState<WritingSectionSubmission | null>(null);
 
   const sessionIdRef = useRef<string>('');
   const [scores, setScores] = useState<Partial<Record<'reading'|'listening'|'speaking'|'writing', SectionScore>>>({});
@@ -1049,19 +1049,23 @@ export default function TOEFLMockPage() {
     await advanceFrom('speaking', score);
   }
 
-  async function onWritingDone(submission: WritingSubmission) {
+  async function onWritingDone(submission: WritingSectionSubmission) {
     setPhase('grading');
     setGradingMsg('Calificando Writing…');
-    let enriched: WritingSubmission = submission;
+    let enriched: WritingSectionSubmission = submission;
     let sectionScore = 0;
     try {
-      const result = await gradeWritingSubmission(submission, mock!.writing);
+      const result = await gradeWritingSection(submission, mock!.writing);
       enriched = result.enriched;
       sectionScore = result.sectionScore;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[toefl-mock] writing grade err:', msg);
-      enriched = { ...submission, aiError: msg, aiFeedback: `Error al calificar: ${msg}` };
+      // Attach the error to the AD sub-submission so the breakdown surfaces it.
+      enriched = {
+        ...submission,
+        discussion: { ...submission.discussion, aiError: msg, aiFeedback: `Error al calificar: ${msg}` },
+      };
     }
     const score: SectionScore = { section: 'writing', score: sectionScore };
     setScores(prev => ({ ...prev, writing: score }));
@@ -1266,13 +1270,18 @@ export default function TOEFLMockPage() {
     );
   }
   if (phase === 'writing') {
-    const writingHydration = hydration?.section === 'writing' ? hydration.writingText : undefined;
+    const writingHydration = hydration?.section === 'writing' ? {
+      subtask:              hydration.writingSubtask,
+      buildSentenceAnswers: hydration.buildSentenceAnswers,
+      emailText:            hydration.emailText,
+      writingText:          hydration.writingText,
+    } : undefined;
     return (
       <PageBg>
-        <WritingSection
-          prompt={mock!.writing}
+        <WritingSequence
+          seq={mock!.writing}
           onDone={onWritingDone}
-          initialText={writingHydration}
+          initial={writingHydration}
           onSnapshot={(snap) => persistLiveSnapshot('writing', snap)}
           confirmSubmit
         />

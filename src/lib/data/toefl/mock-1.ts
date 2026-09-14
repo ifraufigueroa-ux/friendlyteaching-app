@@ -11,6 +11,8 @@ import { lecture1 } from './listening/lecture-1';
 import { conversation1 } from './listening/conversation-1';
 import { speakingPromptsMock1 } from './speaking/independent-prompts';
 import { writingPromptMock1 } from './writing/academic-discussion';
+import { buildSentenceMock1 } from './writing/build-sentence';
+import { emailPromptMock1 } from './writing/email';
 import { toeflMock2 } from './mock-2';
 import { toeflMock3 } from './mock-3';
 import { toeflMock4 } from './mock-4';
@@ -21,7 +23,11 @@ export const toeflMock1: TOEFLMock = {
   reading:   [passage1, passage2],
   listening: [lecture1, conversation1],
   speaking:  speakingPromptsMock1,
-  writing:   writingPromptMock1,
+  writing:   {
+    buildSentence: buildSentenceMock1,
+    email:         emailPromptMock1,
+    discussion:    writingPromptMock1,
+  },
 };
 
 export const TOEFL_MOCKS: TOEFLMock[] = [

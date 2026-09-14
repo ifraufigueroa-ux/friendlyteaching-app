@@ -7,6 +7,8 @@ import { lecture3 } from './listening/lecture-3';
 import { conversation3 } from './listening/conversation-3';
 import { speakingPromptsMock3 } from './speaking/independent-prompts';
 import { writingPromptMock3 } from './writing/academic-discussion';
+import { buildSentenceMock3 } from './writing/build-sentence';
+import { emailPromptMock3 } from './writing/email';
 
 export const toeflMock3: TOEFLMock = {
   id:        'mock-3',
@@ -14,5 +16,9 @@ export const toeflMock3: TOEFLMock = {
   reading:   [passage5, passage6],
   listening: [lecture3, conversation3],
   speaking:  speakingPromptsMock3,
-  writing:   writingPromptMock3,
+  writing:   {
+    buildSentence: buildSentenceMock3,
+    email:         emailPromptMock3,
+    discussion:    writingPromptMock3,
+  },
 };

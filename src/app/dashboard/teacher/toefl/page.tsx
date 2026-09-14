@@ -35,7 +35,7 @@ import {
   recordWritingGradingError,
 } from '@/hooks/useToeflWritingAssignments';
 import { gradeSpeakingRecordings } from '@/lib/toefl/gradeSpeaking';
-import { gradeWritingSubmission } from '@/lib/toefl/gradeWriting';
+import { gradeWritingSection, upgradeWritingSubmission } from '@/lib/toefl/gradeWriting';
 import { SpeakingBreakdown } from '@/components/toefl/SpeakingBreakdown';
 import { WritingBreakdown } from '@/components/toefl/WritingBreakdown';
 
@@ -440,7 +440,9 @@ function SessionsTable({
               const listening = s.results?.listening?.score.score;
               const isInProgress = s.status === 'in_progress';
               const hasSpeaking  = (s.results?.speaking?.recordings?.length ?? 0) > 0;
-              const hasWriting   = !!s.results?.writing?.submission?.text;
+              const hasWriting   = !!s.results?.writing?.submission?.discussion?.text
+                                    || !!s.results?.writing?.submission?.email?.text
+                                    || (s.results?.writing?.submission?.buildSentence?.length ?? 0) > 0;
               return (
                 <tr
                   key={s.id}
@@ -584,7 +586,7 @@ function SessionWritingModal({
   onClose: () => void;
 }) {
   const mock = getMock(session.mockId);
-  const submission = session.results?.writing?.submission;
+  const submission = upgradeWritingSubmission(session.results?.writing?.submission);
   const writingScore = session.results?.writing?.score.score;
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
@@ -891,7 +893,8 @@ function WritingReviewModal({
     setRetrying(true);
     setRetryMsg('Recalificando…');
     try {
-      const { enriched, sectionScore } = await gradeWritingSubmission(assignment.submission, mock.writing);
+      const upgraded = upgradeWritingSubmission(assignment.submission)!;
+      const { enriched, sectionScore } = await gradeWritingSection(upgraded, mock.writing);
       await gradeToeflWritingAssignment(assignment.id, enriched, sectionScore);
       setRetryMsg(`✓ ${sectionScore}/30`);
     } catch (err) {
@@ -931,13 +934,16 @@ function WritingReviewModal({
               <p>{assignment.gradingError}</p>
             </div>
           )}
-          {assignment.status === 'completed' && !assignment.submission?.aiScore && (
+          {assignment.status === 'completed' && !assignment.submission?.discussion?.aiScore && (
             <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-[11px] text-amber-800">
               El estudiante ya envió el Writing. Grading corriendo en background — refresca en un minuto.
             </div>
           )}
           {mock && assignment.submission ? (
-            <WritingBreakdown submission={assignment.submission} prompt={mock.writing} />
+            <WritingBreakdown
+              submission={upgradeWritingSubmission(assignment.submission)!}
+              prompt={mock.writing}
+            />
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin submission aún.</p>
           )}

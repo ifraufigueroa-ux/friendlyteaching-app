@@ -14,7 +14,7 @@ import {
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot, type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import type { TOEFLWritingAssignment, WritingSubmission } from '@/types/toefl';
+import type { TOEFLWritingAssignment, WritingSectionSubmission } from '@/types/toefl';
 
 // ── Teacher: all writing assignments they created ─────────────
 
@@ -131,7 +131,7 @@ export async function markToeflWritingAssignmentStarted(assignmentId: string): P
 
 export async function completeToeflWritingAssignment(
   assignmentId: string,
-  submission:   WritingSubmission,
+  submission:   WritingSectionSubmission,
 ): Promise<void> {
   await updateDoc(doc(db, 'toeflWritingAssignments', assignmentId), {
     status:      'completed',
@@ -142,7 +142,7 @@ export async function completeToeflWritingAssignment(
 
 export async function gradeToeflWritingAssignment(
   assignmentId:      string,
-  enrichedSubmission: WritingSubmission,
+  enrichedSubmission: WritingSectionSubmission,
   overallScore:      number,
 ): Promise<void> {
   await updateDoc(doc(db, 'toeflWritingAssignments', assignmentId), {
