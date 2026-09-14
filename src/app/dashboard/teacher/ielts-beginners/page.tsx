@@ -1,18 +1,23 @@
 // FriendlyTeaching.cl — IELTS GT Beginners (A2)
 //
-// Landing dedicado para el producto "IELTS GT Beginners". Hoy sólo
-// enciende el Listening — el resto (Reading / Writing / Speaking) se
-// suma en pasos siguientes.
+// Landing dedicado para el producto "IELTS GT Beginners". Hoy enciende
+// Listening y Reading A2 — Writing y Speaking se suman en pasos
+// siguientes.
 //
-// Cada mock A2 se abre en el runner estándar (/dashboard/teacher/ielts/
-// listening?mock=<id>), que ya soporta secciones de N preguntas y
-// numera en base a los tamaños reales.
+// Cada mock A2 se abre en el runner estándar:
+//   · Listening → /dashboard/teacher/ielts/listening?mock=<id>
+//   · Reading   → /dashboard/teacher/ielts/reading/<id>
+// Ambos runners ya soportan secciones de N preguntas y timers de
+// duración variable — se lo pasamos por props del mock.
 'use client';
 
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { BEGINNERS_LISTENING_MOCKS } from '@/lib/data/ielts/mocks';
+import {
+  BEGINNERS_LISTENING_MOCKS,
+  BEGINNERS_READING_MOCKS,
+} from '@/lib/data/ielts/mocks';
 
 function fmtDuration(sec: number): string {
   const min = Math.round(sec / 60);
@@ -21,6 +26,7 @@ function fmtDuration(sec: number): string {
 
 export default function IELTSBeginnersPage() {
   const listeningMocks = BEGINNERS_LISTENING_MOCKS;
+  const readingMocks   = BEGINNERS_READING_MOCKS;
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
@@ -82,7 +88,11 @@ export default function IELTSBeginnersPage() {
             <ul className="space-y-2 text-sm text-[#2D1B4E]">
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>5 preguntas por sección</strong> (20 en total) en lugar de 40.</span>
+                <span><strong>Menos preguntas por sección</strong> — 5 en Listening (20 en total) y 5 en Reading (15 en total), en vez de las 40 del examen real.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#10B981] font-bold mt-0.5">✓</span>
+                <span><strong>Textos y audios más cortos</strong> — passages de ~150-220 palabras y audios de ~2 min por sección. El foco está en entender bien, no en la resistencia.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
@@ -90,19 +100,15 @@ export default function IELTSBeginnersPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>Audios ~2 minutos</strong> por sección — el foco está en escuchar bien, no en la resistencia.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#10B981] font-bold mt-0.5">✓</span>
                 <span><strong>Velocidad TTS 0.80x + pausas largas</strong> — natural pero con tiempo real para procesar cada línea.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>Tipos de pregunta simples</strong>: form-completion, note-completion, tabla, short-answer, multiple choice de 3 opciones.</span>
+                <span><strong>Tipos de pregunta simples</strong>: form/note/table-completion, sentence-completion, matching-features con banco visible, short-answer, TFNG y multiple choice de 3 opciones. Sin matching-headings ni YNNG.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>Vocabulario cotidiano</strong>: familia, comida, hobbies, escuela, tiempo, direcciones.</span>
+                <span><strong>Vocabulario cotidiano</strong>: familia, comida, hobbies, escuela, tiempo, direcciones, avisos de trabajo, animales.</span>
               </li>
             </ul>
           </div>
@@ -163,11 +169,66 @@ export default function IELTSBeginnersPage() {
             )}
           </div>
 
+          {/* Reading mocks */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white flex items-center justify-center text-xl shadow-md">
+                📖
+              </div>
+              <div>
+                <h2 className="font-serif text-xl font-bold text-[#2D1B4E]">Reading</h2>
+                <p className="text-[11px] text-[#5A3D7A]/70">
+                  {readingMocks.length} mock{readingMocks.length !== 1 ? 's' : ''} disponible{readingMocks.length !== 1 ? 's' : ''} · 15 preguntas · 30 min
+                </p>
+              </div>
+            </div>
+
+            {readingMocks.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-dashed border-[#E8D5F0] p-6 text-center">
+                <p className="text-sm text-gray-500">Todavía no hay mocks A2 de Reading.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {readingMocks.map((m) => {
+                  const href = `/dashboard/teacher/ielts/reading/${encodeURIComponent(m.id)}`;
+                  return (
+                    <Link
+                      key={m.id}
+                      href={href}
+                      className="group bg-white rounded-2xl border border-[#E8D5F0] hover:border-[#5A3D7A]/40 hover:shadow-md transition-all p-4 flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-black text-[#10B981] uppercase tracking-widest">
+                            {m.cefrLevel ?? 'A2'}
+                          </span>
+                          <span className="text-[10px] text-gray-400">·</span>
+                          <span className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-widest tabular-nums">
+                            {m.totalDurationMin} min
+                          </span>
+                        </div>
+                        <p className="text-sm font-bold text-[#2D1B4E] leading-tight">{m.title}</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          {m.sections.length} secciones · {m.totalQuestions} preguntas
+                        </p>
+                      </div>
+                      <span
+                        className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full text-white bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] group-hover:shadow-lg transition-shadow"
+                      >
+                        Abrir ↗
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Coming soon */}
           <div className="bg-white/60 rounded-2xl border border-dashed border-[#E8D5F0] p-4 text-center">
             <p className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-[0.25em] mb-1">Próximamente</p>
             <p className="text-xs text-[#5A3D7A]/70">
-              Reading, Writing y Speaking A2 en camino. Por ahora, arrancamos por Listening.
+              Writing y Speaking A2 en camino. Por ahora, arrancamos por Listening y Reading.
             </p>
           </div>
         </div>

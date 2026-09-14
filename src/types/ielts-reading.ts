@@ -4,9 +4,9 @@
 // has its own question-type family (TFNG / YNNG / matching-headings /
 // matching-features) and its own raw→band conversion table.
 
-import type { IELTSBandScore, BandBracket, CognitiveLoad, QuestionDifficulty } from '@/types/ielts';
+import type { IELTSBandScore, BandBracket, CEFRLevel, CognitiveLoad, QuestionDifficulty } from '@/types/ielts';
 
-export type { IELTSBandScore, BandBracket, CognitiveLoad, QuestionDifficulty };
+export type { IELTSBandScore, BandBracket, CEFRLevel, CognitiveLoad, QuestionDifficulty };
 
 // ─── Question types ─────────────────────────────────────────────────
 
@@ -140,8 +140,15 @@ export interface ReadingMock {
   createdAt: string;             // ISO
   targetBandRange: [IELTSBandScore, IELTSBandScore];
   sections: [ReadingSection, ReadingSection, ReadingSection];
-  totalQuestions: 40;
-  totalDurationMin: 60;
+  // Standard GT Reading is 40 (typically ~14/13/13). Beginner-oriented mocks
+  // can carry fewer questions per section — the runner reads this + each
+  // section's questions.length to number correctly. The grader scales raw
+  // score to /40 before mapping to band.
+  totalQuestions: number;
+  totalDurationMin: number;      // Standard GT is 60; A2 mocks trim this.
+  // Optional CEFR marker. Landing pages filter by it (Beginners = 'A2'); the
+  // grader uses it to attach a caveat to the estimated band.
+  cefrLevel?: CEFRLevel;
 }
 
 // ─── Grading & diagnostics ──────────────────────────────────────────

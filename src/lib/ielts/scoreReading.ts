@@ -332,7 +332,13 @@ export function gradeReadingAnswers(
   }
 
   const rawScore = marks.filter((m) => m.correct).length;
-  const { band, label } = rawToBandGT(rawScore);
+  // Beginner mocks carry fewer than 40 questions. Scale to /40 before mapping
+  // to the official GT band table so a 12/15 doesn't collapse to Band 3.
+  const totalQuestions = mock.sections.reduce((n, s) => n + s.questions.length, 0);
+  const scaledRaw = totalQuestions === 40
+    ? rawScore
+    : Math.round((rawScore * 40) / Math.max(1, totalQuestions));
+  const { band, label } = rawToBandGT(scaledRaw);
 
   const sectionBreakdown = bySection(marks, mock);
   const typeBreakdown = byType(marks, mock);

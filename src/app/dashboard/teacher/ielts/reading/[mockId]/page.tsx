@@ -18,7 +18,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import { READING_MOCKS, IELTS_MOCKS } from '@/lib/data/ielts/mocks';
+import { READING_MOCKS, IELTS_MOCKS, BEGINNERS_READING_MOCKS } from '@/lib/data/ielts/mocks';
 import { gradeReadingAnswers } from '@/lib/ielts/scoreReading';
 import type {
   ReadingMock, ReadingSection, ReadingQuestion, ReadingQuestionType,
@@ -32,10 +32,13 @@ type Phase = 'setup' | 'running' | 'results';
 // ─── Helpers ────────────────────────────────────────────────────────
 
 // Acepta tanto el reading-mock id ('reading-gt-mock-2') como el
-// aggregator id ('ielts-mock-2'), lo que sea que pasen desde el URL.
+// aggregator id ('ielts-mock-2'), o el id de un beginners-only mock
+// ('reading-beginners-mock-1') que no está registrado como IELTSMock.
 function findMock(id: string): ReadingMock | undefined {
   const direct = MOCKS.find((m) => m.id === id);
   if (direct) return direct;
+  const beginners = BEGINNERS_READING_MOCKS.find(m => m.id === id);
+  if (beginners) return beginners;
   return IELTS_MOCKS.find(m => m.id === id)?.reading;
 }
 
@@ -819,6 +822,9 @@ export default function ReadingRunnerPage() {
   const [answers, setAnswers] = useState<StudentReadingAnswers>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [activeQIndex, setActiveQIndex] = useState(0);
+  // Sembrado a 60 min (mock GT estándar). Al arrancar la sesión lo
+  // reajustamos con mock.totalDurationMin, así los mocks A2 (30 min)
+  // reciben su timer real en vez del de 60.
   const [timeLeftSec, setTimeLeftSec] = useState(60 * 60);
   const [result, setResult] = useState<ReadingGradeResult | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -869,7 +875,10 @@ export default function ReadingRunnerPage() {
         setStudentName={setStudentName}
         mode={mode}
         setMode={setMode}
-        onStart={() => setPhase('running')}
+        onStart={() => {
+          setTimeLeftSec((mock.totalDurationMin ?? 60) * 60);
+          setPhase('running');
+        }}
         onBack={() => router.push('/dashboard/teacher/ielts/reading')}
       />
     );
