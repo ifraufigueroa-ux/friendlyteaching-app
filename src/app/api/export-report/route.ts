@@ -71,6 +71,34 @@ export interface TOEFLReportData {
   completedAt?: string;
 }
 
+/** Per-task friendly report for the TOEFL Speaking mock (teacher-share PDF).
+ *  Same warm design language as the placement student PDF. */
+export interface TOEFLSpeakingFriendlyReportData {
+  type:         'toefl-speaking-friendly';
+  studentName:  string;
+  studentEmail?: string;
+  mockTitle:    string;
+  overallScore: number;   // 0-30
+  recordings: Array<{
+    promptId:      string;
+    audioUrl?:     string;
+    durationSec?:  number;
+    transcript?:   string;
+    aiScore?:      number;   // 0-4
+    aiFeedback?:   string;
+    aiRubric?:     { delivery: number; languageUse: number; topicDevelopment: number };
+    aiStrengths?:    string[];
+    aiImprovements?: string[];
+    aiError?:        string;
+  }>;
+  prompts: Array<{
+    id:       string;
+    prompt:   string;
+    category: string;
+  }>;
+  completedAt?: string;
+}
+
 export interface WritingFeedbackReportData {
   type:            'writing-feedback';
   studentName?:    string;
@@ -101,7 +129,7 @@ export interface PlacementReportData {
   learningProgram?: LearningProgram;
 }
 
-type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData | PlacementSuiteReportData | TOEFLReportData;
+type ExportRequest = ProgressReportData | InvoiceData | PlacementReportData | WritingFeedbackReportData | PlacementSuiteReportData | TOEFLReportData | TOEFLSpeakingFriendlyReportData;
 
 // ── PDF generation using pure HTML → PDF conversion ──────────
 
@@ -1044,6 +1072,235 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
 </html>`;
 }
 
+// ── TOEFL Speaking — Friendly student PDF ───────────────────────
+// Warm, plain-Spanish report styled like the Placement student PDF
+// (Juan_Fontecilla design language). Rating buckets are pedagogical, not the
+// raw 0-4 number — the goal is a report the student actually reads.
+
+function friendlyRating(scoreOn4: number): { label: string; color: string; bg: string; barBg: string; barFill: string; pct: number } {
+  const s = Math.max(0, Math.min(4, scoreOn4));
+  const pct = (s / 4) * 100;
+  if (s >= 3.5)  return { label: 'Excelente',   color: '#15803D', bg: '#DCFCE7', barBg: '#DCFCE7', barFill: '#22C55E', pct };
+  if (s >= 2.75) return { label: 'Muy bien',    color: '#5A3D7A', bg: '#F0E5FF', barBg: '#F0E5FF', barFill: '#9B7CB8', pct };
+  if (s >= 2)    return { label: 'Buen nivel',  color: '#B45309', bg: '#FEF3C7', barBg: '#FEF3C7', barFill: '#F59E0B', pct };
+  if (s >= 1)    return { label: 'A entrenar',  color: '#0F766E', bg: '#CCFBF1', barBg: '#CCFBF1', barFill: '#14B8A6', pct };
+  return           { label: 'Necesita foco', color: '#991B1B', bg: '#FEE2E2', barBg: '#FEE2E2', barFill: '#F87171', pct };
+}
+
+function generateTOEFLSpeakingFriendlyHTML(data: TOEFLSpeakingFriendlyReportData, logoUrl: string): string {
+  const dateStr = data.completedAt
+    ? new Date(data.completedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const firstName = (data.studentName || 'Estudiante').split(/\s+/)[0];
+
+  // Build per-task cards (friendly rating rather than raw 0-4)
+  const taskCards = data.recordings.map((r, i) => {
+    const prompt = data.prompts.find(p => p.id === r.promptId);
+    const errored = !!r.aiError;
+    const rating = friendlyRating(typeof r.aiScore === 'number' ? r.aiScore : 0);
+    const rubric = r.aiRubric;
+    return `
+      <div style="background:white;border:1px solid #F0E5FF;border-radius:14px;padding:18px;page-break-inside:avoid;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#9B7CB8;">
+            Task ${i + 1} · ${escapeHtml(prompt?.category ?? '')}
+          </div>
+          ${errored ? `<span style="font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;background:#FEE2E2;color:#991B1B;">Sin calificar</span>` : ''}
+        </div>
+        ${prompt ? `<p style="font-size:12px;color:#5A3D7A;margin-bottom:10px;line-height:1.5;">${escapeHtml(prompt.prompt)}</p>` : ''}
+        ${errored ? `
+          <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 12px;font-size:11px;color:#991B1B;">
+            No pudimos calificar esta respuesta esta vez (${escapeHtml(r.aiError ?? 'error desconocido')}). Tu profe la va a revisar contigo.
+          </div>
+        ` : `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:11px;font-weight:800;padding:3px 12px;border-radius:20px;background:${rating.bg};color:${rating.color};text-transform:uppercase;letter-spacing:0.5px;">${rating.label}</span>
+            <div style="flex:1;height:8px;background:${rating.barBg};border-radius:4px;overflow:hidden;">
+              <div style="height:100%;width:${rating.pct}%;background:${rating.barFill};border-radius:4px;"></div>
+            </div>
+          </div>
+          ${rubric ? `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+            ${[
+              { k: 'delivery',         label: 'Delivery' },
+              { k: 'languageUse',      label: 'Lenguaje' },
+              { k: 'topicDevelopment', label: 'Contenido' },
+            ].map(x => {
+              const val = rubric[x.k as keyof typeof rubric];
+              const r2 = friendlyRating(val);
+              return `
+                <div style="background:#FDFAFF;border:1px solid #F0E5FF;border-radius:10px;padding:8px;text-align:center;">
+                  <div style="font-size:9px;font-weight:700;color:#9B7CB8;text-transform:uppercase;letter-spacing:0.5px;">${x.label}</div>
+                  <div style="font-size:11px;font-weight:800;color:${r2.color};margin-top:3px;">${r2.label}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>` : ''}
+          ${r.aiFeedback ? `<p style="font-size:11px;color:#374151;line-height:1.6;margin:0;">${escapeHtml(r.aiFeedback)}</p>` : ''}
+        `}
+      </div>
+    `;
+  }).join('');
+
+  // Aggregate strengths & improvements across tasks. Dedup, cap to keep it tight.
+  const dedup = (arr: string[]) => Array.from(new Map(arr.map(s => [s.trim().toLowerCase(), s.trim()])).values()).filter(Boolean);
+  const allStrengths    = dedup(data.recordings.flatMap(r => r.aiStrengths    ?? []));
+  const allImprovements = dedup(data.recordings.flatMap(r => r.aiImprovements ?? []));
+
+  const strengthCards = allStrengths.slice(0, 4).map(s => `
+    <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:14px;padding:14px 16px;page-break-inside:avoid;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;background:#22C55E;color:white;text-transform:uppercase;letter-spacing:0.7px;">Genial</span>
+      </div>
+      <p style="font-size:12px;color:#065F46;line-height:1.5;margin:0;">${escapeHtml(s)}</p>
+    </div>
+  `).join('');
+
+  const focusCards = allImprovements.slice(0, 4).map((s, idx) => {
+    const tips = [
+      'Grabate hablando 3 minutos al día sobre un tema random — sin frenarte a corregir, solo soltarte.',
+      'Antes de responder, tomate 3 segundos para armar 2 ideas concretas. Menos improvisar, más estructura.',
+      'Escuchá un podcast en inglés (BBC 6-min English es ideal) y repetí frases enteras en voz alta.',
+      'Grabate contestando un prompt real, escuchate y anotá 1 cosa a mejorar. Repetí al día siguiente.',
+    ];
+    const tip = tips[idx % tips.length];
+    return `
+      <div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:14px;padding:14px 16px;page-break-inside:avoid;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;background:#F59E0B;color:white;text-transform:uppercase;letter-spacing:0.7px;">A practicar</span>
+        </div>
+        <p style="font-size:12px;color:#7C2D12;line-height:1.5;margin:0 0 10px;">${escapeHtml(s)}</p>
+        <div style="background:#FEF3C7;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:9px;font-weight:800;color:#92400E;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;">Tip para la casa</div>
+          <p style="font-size:11px;color:#78350F;line-height:1.5;margin:0;">${escapeHtml(tip)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Simple overall commentary based on score bucket.
+  const overallPct = (data.overallScore / 30) * 100;
+  const overallSummary =
+    overallPct >= 75 ? `Tu Speaking está muy bien, ${escapeHtml(firstName)}. Manejas las respuestas con soltura y estructura clara — ahora vamos por matices y ritmo natural.` :
+    overallPct >= 55 ? `Vas por buen camino, ${escapeHtml(firstName)}. Se entiende clarito lo que decís y armas las respuestas ordenadas. El próximo paso es soltarte más y ganar fluidez para no depender tanto de la pausa.` :
+    overallPct >= 35 ? `Tenés una base para trabajar, ${escapeHtml(firstName)}. En estas respuestas se nota que entendés los prompts — ahora vamos a enfocar en armar respuestas más completas y hablar con más confianza.` :
+                        `Recién empiezas a soltarte, ${escapeHtml(firstName)} — y eso está bien. Vamos a hacer mucho speaking en clase para bajar el miedo y agarrar ritmo. Ojo: la práctica constante es lo que más rápido mueve la aguja.`;
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Speaking Report — ${escapeHtml(data.studentName)}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #2D1B4E; background: white; font-size: 13px; line-height: 1.5; }
+  @media print {
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 40px; }
+  .hero { background: linear-gradient(120deg, #FEF3C7 0%, #FBCFE8 50%, #E9D5FF 100%); border-radius: 20px; padding: 32px 36px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .hero-tag { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #9B7CB8; text-transform: uppercase; margin-bottom: 12px; }
+  .hero-title { font-size: 28px; font-weight: 800; letter-spacing: -0.6px; color: #2D1B4E; line-height: 1.15; }
+  .hero-sub { font-size: 13px; font-weight: 600; color: #5A3D7A; margin-top: 8px; }
+  .hero-logo { position: absolute; top: 26px; right: 32px; width: 44px; height: 44px; border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.6); display:flex;align-items:center;justify-content:center; }
+  .intro-card { background: #F5EFFF; border-radius: 14px; padding: 18px 22px; margin-bottom: 28px; font-size: 12.5px; color: #4B3B65; line-height: 1.7; }
+  h2 { font-size: 18px; font-weight: 800; color: #2D1B4E; margin: 26px 0 14px; letter-spacing: -0.3px; }
+  h2:first-of-type { margin-top: 4px; }
+  .divider { height: 1px; background: #E0D5FF; margin: 6px 0 16px; }
+  .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: white; border: 1px solid #E5E7EB; border-radius: 14px; padding: 16px 14px; text-align: center; }
+  .stat-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #9B7CB8; }
+  .stat-value { font-size: 20px; font-weight: 800; margin-top: 6px; letter-spacing: -0.3px; }
+  .stat-sub { font-size: 11px; color: #6B7280; margin-top: 4px; }
+  .stat-bar { height: 6px; background: #E5E7EB; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .stat-bar > div { height: 100%; border-radius: 3px; }
+  .banner { background: linear-gradient(120deg, #A7F3D0 0%, #FBCFE8 100%); border-radius: 14px; padding: 20px 24px; text-align: center; font-size: 14px; font-weight: 800; color: #1F2937; margin-top: 24px; }
+  .footer { margin-top: 28px; padding-top: 16px; border-top: 1px dashed #C8A8DC; text-align: center; font-size: 10px; color: #9B7CB8; }
+  .print-btn { position: fixed; bottom: 24px; right: 24px; background: linear-gradient(135deg, #6B4F8A, #5A3D7A); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(90,61,122,0.35); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-tag">Friendly Teaching · Tus resultados</div>
+    <div class="hero-title">¡Hola, ${escapeHtml(firstName)}! Aquí están tus resultados</div>
+    <div class="hero-sub">Un resumen de tu Speaking Mock, para que sepas dónde estás y hacia dónde vamos juntos</div>
+    <div class="hero-logo">
+      <img src="${logoUrl}" alt="FT" style="width:44px;height:44px;object-fit:cover;" onerror="this.style.display='none'"/>
+    </div>
+  </div>
+
+  <div class="intro-card">
+    Hola ${escapeHtml(firstName)}. Ya terminaste tu <strong>${escapeHtml(data.mockTitle)}</strong> de Speaking, y estos son tus resultados explicados de forma simple — sin tecnicismos, para que entiendas exactamente qué se te da bien y en qué vamos a enfocarnos en tus próximas clases. Este test no es un examen para aprobar o reprobar: es una <strong>foto de dónde estás hoy</strong>, para armar un plan que tenga sentido para ti.
+  </div>
+
+  <h2>¿Cómo te fue?</h2>
+  <div class="divider"></div>
+  <div class="cards-3">
+    <div class="stat-card">
+      <div class="stat-label">Speaking global</div>
+      <div class="stat-value" style="color:#5A3D7A;">${data.overallScore}<span style="font-size:12px;color:#9B7CB8;font-weight:600;"> / 30</span></div>
+      <div class="stat-sub">Escala oficial TOEFL</div>
+      <div class="stat-bar"><div style="width:${Math.min(100, overallPct)}%;background:linear-gradient(90deg,#9B7CB8,#5A3D7A);"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tareas completadas</div>
+      <div class="stat-value" style="color:#0F766E;">${data.recordings.filter(r => !!r.audioUrl || (r.aiScore ?? 0) > 0 || !!r.transcript).length}<span style="font-size:12px;color:#9B7CB8;font-weight:600;"> / ${data.recordings.length}</span></div>
+      <div class="stat-sub">Tasks respondidas</div>
+      <div class="stat-bar"><div style="width:${Math.round((data.recordings.filter(r => !!r.transcript || (r.aiScore ?? 0) > 0).length / Math.max(1, data.recordings.length)) * 100)}%;background:linear-gradient(90deg,#5EEAD4,#14B8A6);"></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Fecha del mock</div>
+      <div class="stat-value" style="color:#B45309;font-size:14px;">${dateStr}</div>
+      <div class="stat-sub">${escapeHtml(data.mockTitle)}</div>
+      <div class="stat-bar"><div style="width:100%;background:linear-gradient(90deg,#FCD34D,#F59E0B);"></div></div>
+    </div>
+  </div>
+
+  <div class="intro-card" style="background:#FDFAFF;border:1px solid #E0D5FF;">
+    <div style="font-size:14px;font-weight:800;color:#5A3D7A;margin-bottom:6px;">En simple, ¿qué significa esto?</div>
+    <p style="margin:0;color:#4B3B65;">${overallSummary}</p>
+  </div>
+
+  <h2>Detalle por task</h2>
+  <div class="divider"></div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+    ${taskCards}
+  </div>
+
+  ${strengthCards ? `
+    <h2 class="page-break">Lo que ya tienes ganado</h2>
+    <div class="divider"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      ${strengthCards}
+    </div>
+  ` : ''}
+
+  ${focusCards ? `
+    <h2>En qué nos vamos a enfocar</h2>
+    <div class="divider"></div>
+    ${focusCards}
+  ` : ''}
+
+  <div class="banner">
+    Cada mock te muestra un paso concreto. Vas muy bien, ${escapeHtml(firstName)} — nos vemos en la próxima clase.
+  </div>
+
+  <div class="footer">
+    Resultados de tu TOEFL Speaking Mock — Friendly Teaching CL · ${new Date().toLocaleDateString('es-CL')}
+  </div>
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</body>
+</html>`;
+}
+
 export async function POST(request: NextRequest) {
   let body: ExportRequest;
   try {
@@ -1087,6 +1344,12 @@ export async function POST(request: NextRequest) {
     const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
     html = generateTOEFLHTML(d, logoUrl);
     filename = `TOEFL_${d.studentName.replace(/\s+/g, '_')}.html`;
+  } else if (body.type === 'toefl-speaking-friendly') {
+    const d = body as TOEFLSpeakingFriendlyReportData;
+    const origin = request.nextUrl.origin;
+    const logoUrl = `${origin}/logo-friendlyteaching.jpg`;
+    html = generateTOEFLSpeakingFriendlyHTML(d, logoUrl);
+    filename = `Speaking_${d.studentName.replace(/\s+/g, '_')}.html`;
   } else {
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   }

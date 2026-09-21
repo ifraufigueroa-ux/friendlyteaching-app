@@ -589,6 +589,36 @@ function SessionSpeakingModal({
   const mock = getMock(session.mockId);
   const recordings = session.results?.speaking?.recordings ?? [];
   const speakingScore = session.results?.speaking?.score.score;
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  async function handleDownloadPdf() {
+    if (!mock || recordings.length === 0) return;
+    setPdfBusy(true);
+    try {
+      const res = await fetch('/api/export-report', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:         'toefl-speaking-friendly',
+          studentName:  session.studentName,
+          studentEmail: session.studentEmail,
+          mockTitle:    mock.title,
+          overallScore: speakingScore ?? 0,
+          recordings,
+          prompts:      mock.speaking,
+          completedAt:  new Date().toISOString(),
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}>
@@ -614,7 +644,19 @@ function SessionSpeakingModal({
         </div>
         <div className="overflow-y-auto p-6">
           {mock && recordings.length > 0 ? (
-            <SpeakingBreakdown recordings={recordings} prompts={mock.speaking} />
+            <>
+              <div className="mb-4 flex justify-end">
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={pdfBusy}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+                >
+                  {pdfBusy ? '⏳ Generando…' : '📄 Generar PDF'}
+                </button>
+              </div>
+              <SpeakingBreakdown recordings={recordings} prompts={mock.speaking} />
+            </>
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones disponibles.</p>
           )}
@@ -1552,11 +1594,15 @@ function ReviewModal({
   const mock = getMock(assignment.mockId);
   const [retrying, setRetrying] = useState(false);
   const [retryProgress, setRetryProgress] = useState<string>('');
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const failedPromptIds = (assignment.recordings ?? [])
+    .filter(r => !!r.aiError)
+    .map(r => r.promptId);
 
-  async function handleRetry() {
+  async function handleRetry(onlyFailed = false) {
     if (!mock || !assignment.recordings) return;
     setRetrying(true);
-    setRetryProgress('Iniciando…');
+    setRetryProgress(onlyFailed ? `Reintentando ${failedPromptIds.length} tarea(s) fallidas…` : 'Iniciando…');
     try {
       const { enriched, overallScore } = await gradeSpeakingRecordings(
         assignment.recordings,
@@ -1566,6 +1612,7 @@ function ReviewModal({
           const err  = progress.filter(p => p.status === 'error').length;
           setRetryProgress(`${done}/${progress.length} · ${err ? `${err} err` : 'sin errores'}`);
         },
+        onlyFailed ? { onlyPromptIds: failedPromptIds } : undefined,
       );
       await gradeToeflSpeakingAssignment(assignment.id, enriched, overallScore);
     } catch (err) {
@@ -1574,6 +1621,34 @@ function ReviewModal({
       setRetryProgress(`Error: ${msg}`);
     } finally {
       setRetrying(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!mock || !assignment.recordings) return;
+    setPdfBusy(true);
+    try {
+      const res = await fetch('/api/export-report', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:         'toefl-speaking-friendly',
+          studentName:  assignment.studentName,
+          studentEmail: assignment.studentEmail,
+          mockTitle:    mock.title,
+          overallScore: assignment.overallScore ?? 0,
+          recordings:   assignment.recordings,
+          prompts:      mock.speaking,
+          completedAt:  new Date().toISOString(),
+        }),
+      });
+      const html = await res.text();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url  = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } finally {
+      setPdfBusy(false);
     }
   }
 
@@ -1622,15 +1697,33 @@ function ReviewModal({
           )}
 
           {(assignment.status === 'graded' || assignment.gradingError) && mock && assignment.recordings && assignment.recordings.length > 0 && (
-            <div className="pt-3 border-t border-[#E8D5F0] flex items-center gap-3">
+            <div className="pt-3 border-t border-[#E8D5F0] flex items-center gap-2 flex-wrap">
+              {failedPromptIds.length > 0 && (
+                <button
+                  onClick={() => handleRetry(true)}
+                  disabled={retrying}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #DC2626, #EF4444)' }}
+                >
+                  {retrying ? '⏳ Recalificando…' : `↻ Reintentar solo fallidas (${failedPromptIds.length})`}
+                </button>
+              )}
               <button
-                onClick={handleRetry}
+                onClick={() => handleRetry(false)}
                 disabled={retrying}
                 className="text-[11px] font-bold px-3 py-1.5 rounded-full border-2 border-[#5A3D7A] text-[#5A3D7A] hover:bg-[#F0E5FF] disabled:opacity-40"
               >
-                {retrying ? '⏳ Recalificando…' : '↻ Reintentar grading'}
+                {retrying ? '⏳ Recalificando…' : '↻ Reintentar todas'}
               </button>
-              {retryProgress && <span className="text-[11px] text-[#5A3D7A]/70">{retryProgress}</span>}
+              <button
+                onClick={handleDownloadPdf}
+                disabled={pdfBusy || retrying}
+                className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40 ml-auto"
+                style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
+              >
+                {pdfBusy ? '⏳ Generando…' : '📄 Generar PDF'}
+              </button>
+              {retryProgress && <span className="text-[11px] text-[#5A3D7A]/70 basis-full">{retryProgress}</span>}
             </div>
           )}
         </div>

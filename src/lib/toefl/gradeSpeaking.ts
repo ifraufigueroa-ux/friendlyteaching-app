@@ -28,12 +28,25 @@ export interface GradeSpeakingResult {
   overallScore: number;   // 0-30
 }
 
+export interface GradeSpeakingOptions {
+  /** If given, ONLY these prompt IDs are re-graded. Recordings with other
+   *  prompt IDs are passed through unchanged (their existing aiScore etc.
+   *  are preserved). Used by the teacher "retry failed tasks only" flow so
+   *  we don't waste Whisper/Claude calls on tasks that already graded fine. */
+  onlyPromptIds?: string[];
+}
+
 export async function gradeSpeakingRecordings(
   recordings: SpeakingRecording[],
   prompts:    TOEFLSpeakingPrompt[],
   onProgress?: (progress: SpeakingTaskProgress[]) => void,
+  options?:   GradeSpeakingOptions,
 ): Promise<GradeSpeakingResult> {
-  const progress: SpeakingTaskProgress[] = recordings.map(r => ({ promptId: r.promptId, status: 'pending' }));
+  const onlySet = options?.onlyPromptIds ? new Set(options.onlyPromptIds) : null;
+  const progress: SpeakingTaskProgress[] = recordings.map(r => ({
+    promptId: r.promptId,
+    status:   onlySet && !onlySet.has(r.promptId) ? 'done' : 'pending',
+  }));
   onProgress?.(progress);
 
   const enriched: SpeakingRecording[] = [];
@@ -43,6 +56,14 @@ export async function gradeSpeakingRecordings(
     const rec = recordings[i];
     const prompt = prompts.find(p => p.id === rec.promptId);
     if (!prompt) { enriched.push(rec); continue; }
+
+    // Selective retry: keep the existing recording (score, transcript, etc.)
+    // and skip the API calls for tasks we weren't asked to re-grade.
+    if (onlySet && !onlySet.has(rec.promptId)) {
+      rawScores.push(typeof rec.aiScore === 'number' ? rec.aiScore : 0);
+      enriched.push(rec);
+      continue;
+    }
 
     if (!rec.audioUrl) {
       rawScores.push(0);
@@ -90,14 +111,20 @@ export async function gradeSpeakingRecordings(
 
       const rawScore = Number(gJson.rawScore04 ?? 0);
       rawScores.push(rawScore);
-      enriched.push({
-        ...rec, transcript,
+      // Drop `aiError` from the previous attempt on success — Firestore rejects
+      // `undefined` values, so we strip the property with destructuring instead
+      // of assigning aiError: undefined.
+      const { aiError: _prevErr, ...cleanRec } = rec;
+      void _prevErr;
+      const nextRec: SpeakingRecording = {
+        ...cleanRec, transcript,
         aiScore:        rawScore,
         aiFeedback:     String(gJson.feedback ?? ''),
         aiRubric:       gJson.rubric,
-        aiStrengths:    Array.isArray(gJson.strengths)    ? gJson.strengths    : undefined,
-        aiImprovements: Array.isArray(gJson.improvements) ? gJson.improvements : undefined,
-      });
+      };
+      if (Array.isArray(gJson.strengths))    nextRec.aiStrengths    = gJson.strengths;
+      if (Array.isArray(gJson.improvements)) nextRec.aiImprovements = gJson.improvements;
+      enriched.push(nextRec);
       progress[i] = { ...progress[i], status: 'done', message: `Score ${rawScore}/4` };
       onProgress?.(progress);
     } catch (err) {
