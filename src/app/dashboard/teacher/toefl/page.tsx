@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
@@ -16,6 +16,7 @@ import {
   TOEFL_SECTION_META, TOEFL_SECTIONS,
   type TOEFLSection, type TOEFLSession, type TOEFLListeningAudio,
   type TOEFLSpeakingAssignment, type TOEFLWritingAssignment,
+  type SpeakingRecording, type SectionScore,
 } from '@/types/toefl';
 import { listSessionsForTeacher, sectionsSummary } from '@/lib/toefl/sessions';
 import { TOEFL_MOCKS, getMock } from '@/lib/data/toefl/mock-1';
@@ -587,12 +588,56 @@ function SessionSpeakingModal({
   onClose: () => void;
 }) {
   const mock = getMock(session.mockId);
-  const recordings = session.results?.speaking?.recordings ?? [];
-  const speakingScore = session.results?.speaking?.score.score;
+  // Local mirror so retries update the modal without waiting for a Firestore
+  // roundtrip. Initialised from the incoming session and replaced whenever
+  // handleRetry re-grades.
+  const [liveRecordings, setLiveRecordings]     = useState<SpeakingRecording[]>(session.results?.speaking?.recordings ?? []);
+  const [liveSpeakingScore, setLiveSpeakingScore] = useState<number | undefined>(session.results?.speaking?.score.score);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [retrying, setRetrying]         = useState(false);
+  const [retryProgress, setRetryProgress] = useState('');
+  const failedPromptIds = liveRecordings.filter(r => !!r.aiError).map(r => r.promptId);
+
+  async function handleRetry(onlyFailed = false) {
+    if (!mock || liveRecordings.length === 0) return;
+    setRetrying(true);
+    setRetryProgress(onlyFailed ? `Reintentando ${failedPromptIds.length} tarea(s)…` : 'Iniciando…');
+    try {
+      const { enriched, overallScore } = await gradeSpeakingRecordings(
+        liveRecordings,
+        mock.speaking,
+        (progress) => {
+          const done = progress.filter(p => p.status === 'done' || p.status === 'skipped').length;
+          const err  = progress.filter(p => p.status === 'error').length;
+          setRetryProgress(`${done}/${progress.length} · ${err ? `${err} err` : 'sin errores'}`);
+        },
+        onlyFailed ? { onlyPromptIds: failedPromptIds } : undefined,
+      );
+      const newSpeakingScore: SectionScore = { section: 'speaking', score: overallScore };
+      // Recompute overall session score = sum of every section's current score.
+      const otherScores =
+        (session.results?.reading?.score.score   ?? 0) +
+        (session.results?.listening?.score.score ?? 0) +
+        (session.results?.writing?.score.score   ?? 0);
+      const newOverall = otherScores + overallScore;
+      await updateDoc(doc(db, 'toeflSessions', session.id), {
+        'results.speaking.recordings': enriched,
+        'results.speaking.score':      newSpeakingScore,
+        overallScore:                  newOverall,
+      });
+      setLiveRecordings(enriched);
+      setLiveSpeakingScore(overallScore);
+      setRetryProgress(`✓ ${overallScore}/30`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setRetryProgress(`Error: ${msg}`);
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   async function handleDownloadPdf() {
-    if (!mock || recordings.length === 0) return;
+    if (!mock || liveRecordings.length === 0) return;
     setPdfBusy(true);
     try {
       const res = await fetch('/api/export-report', {
@@ -603,8 +648,8 @@ function SessionSpeakingModal({
           studentName:  session.studentName,
           studentEmail: session.studentEmail,
           mockTitle:    mock.title,
-          overallScore: speakingScore ?? 0,
-          recordings,
+          overallScore: liveSpeakingScore ?? 0,
+          recordings:   liveRecordings,
           prompts:      mock.speaking,
           completedAt:  new Date().toISOString(),
         }),
@@ -633,29 +678,47 @@ function SessionSpeakingModal({
             {session.studentEmail && <p className="text-xs text-[#5A3D7A]/60 truncate">{session.studentEmail}</p>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {speakingScore != null && (
+            {liveSpeakingScore != null && (
               <div className="text-right">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Speaking</p>
-                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{speakingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{liveSpeakingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
               </div>
             )}
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
           </div>
         </div>
         <div className="overflow-y-auto p-6">
-          {mock && recordings.length > 0 ? (
+          {mock && liveRecordings.length > 0 ? (
             <>
-              <div className="mb-4 flex justify-end">
+              <div className="mb-4 flex items-center gap-2 flex-wrap">
+                {failedPromptIds.length > 0 && (
+                  <button
+                    onClick={() => handleRetry(true)}
+                    disabled={retrying}
+                    className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40"
+                    style={{ background: 'linear-gradient(135deg, #DC2626, #EF4444)' }}
+                  >
+                    {retrying ? '⏳ Recalificando…' : `↻ Reintentar solo fallidas (${failedPromptIds.length})`}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleRetry(false)}
+                  disabled={retrying}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-full border-2 border-[#5A3D7A] text-[#5A3D7A] hover:bg-[#F0E5FF] disabled:opacity-40"
+                >
+                  {retrying ? '⏳ Recalificando…' : '↻ Reintentar todas'}
+                </button>
                 <button
                   onClick={handleDownloadPdf}
-                  disabled={pdfBusy}
-                  className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40"
+                  disabled={pdfBusy || retrying}
+                  className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white shadow-sm hover:opacity-90 disabled:opacity-40 ml-auto"
                   style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
                 >
                   {pdfBusy ? '⏳ Generando…' : '📄 Generar PDF'}
                 </button>
+                {retryProgress && <span className="text-[11px] text-[#5A3D7A]/70 basis-full">{retryProgress}</span>}
               </div>
-              <SpeakingBreakdown recordings={recordings} prompts={mock.speaking} />
+              <SpeakingBreakdown recordings={liveRecordings} prompts={mock.speaking} />
             </>
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones disponibles.</p>
