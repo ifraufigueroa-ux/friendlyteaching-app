@@ -103,7 +103,7 @@ export function SpeakingSection({
       recorder.current = rec;
     } catch (err) {
       console.error('[speaking] mic error:', err);
-      setError('No se pudo acceder al micrófono. Revisá permisos del navegador.');
+      setError('No se pudo acceder al micrófono. Revisa los permisos del navegador.');
       setPhase('read');
       setMicStatus('denied');
     }
@@ -134,7 +134,7 @@ export function SpeakingSection({
     const blob = new Blob(chunks.current, { type: recMime });
     if (blob.size === 0) {
       console.error('[speaking] empty recording — no audio chunks');
-      setError('La grabación quedó vacía. Revisá el micrófono y probá de nuevo.');
+      setError('La grabación quedó vacía. Revisa el micrófono y prueba de nuevo.');
       setPhase('speak');
       return;
     }

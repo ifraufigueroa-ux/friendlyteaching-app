@@ -58,7 +58,7 @@ ${body.task === 2 ? `- T2 essay: must present a clear position/answer throughout
 
 LENGTH: student wrote ${body.wordCount} words (minimum ${body.minWords}). If below minimum, apply the standard IELTS under-length penalty to the task criterion.
 
-FEEDBACK LANGUAGE: Spanish (español), with English quotes when referencing the student's text.
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "sabés", "entendés", "decís", "querés", "sos". Usa las formas de "tú" con acentuación estándar. Puedes citar frases cortas en inglés del texto del estudiante.
 
 Return ONLY valid JSON matching this schema. NO markdown code fences. NO commentary.
 {

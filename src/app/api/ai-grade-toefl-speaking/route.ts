@@ -33,7 +33,7 @@ CALIBRATION NOTES:
 - A response over ~80 words that stays on-topic and shows range → potential 4.
 - Grammar errors that don't obscure meaning should not cap the score below 3.
 
-FEEDBACK LANGUAGE: Spanish (español).
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas todas las formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "mirá", "andá", "dejá", "sabés", "entendés", "decís", "querés", "sos", "armás", "confirmás", "avanzás", "repetí", "anotá", "contá", "creá", "practicá", etc. Usa las formas de "tú" con acentuación estándar: "escucha", "grábate", "tómate", "revisa", "prueba", "elige", "usa", "haz", "mira", "anda", "deja", "sabes", "entiendes", "dices", "quieres", "eres", "armas", "confirmas", "avanzas", "repite", "anota", "cuenta", "crea", "practica". Este PDF se lee en toda Latinoamérica: mantén el registro neutro.
 
 Return ONLY valid JSON. Schema:
 {

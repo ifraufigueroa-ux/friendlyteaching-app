@@ -44,7 +44,7 @@ CALIBRATION NOTES:
 - Purely copied classmate text with no new content caps at 1.
 - Off-topic (didn't address the professor's question) → 0 or 1.
 
-FEEDBACK LANGUAGE: Spanish (español), with brief English quotes when referencing the student's text.
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "sabés", "entendés", "decís", "querés", "sos". Usa las formas de "tú" con acentuación estándar. Puedes citar frases cortas en inglés del texto del estudiante.
 
 Return ONLY valid JSON. NO markdown fences. NO commentary. Schema:
 {
@@ -77,7 +77,7 @@ CALIBRATION NOTES:
 - Under length (< 90 words) caps at 3.
 - Off-topic reply (didn't address the received email) → 0 or 1.
 
-FEEDBACK LANGUAGE: Spanish (español), with brief English quotes when referencing the student's text.
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "sabés", "entendés", "decís", "querés", "sos". Usa las formas de "tú" con acentuación estándar. Puedes citar frases cortas en inglés del texto del estudiante.
 
 Return ONLY valid JSON. NO markdown fences. NO commentary. Schema:
 {

@@ -1390,7 +1390,7 @@ function PlacementListeningRunner({
               <div className="bg-[#F0E5FF] rounded-xl p-3 mb-3">
                 <audio src={audioUrl} controls className="w-full" />
                 <p className="text-[10px] text-gray-500 mt-2 text-center italic">
-                  Escuchá el audio con atención. Después vas a contestar {currentClip.questions.length} preguntas.
+                  Escucha el audio con atención. Después vas a contestar {currentClip.questions.length} preguntas.
                 </p>
               </div>
             ) : (
@@ -1628,7 +1628,7 @@ function PlacementSpeakingRunner({
       recorder.current = rec;
     } catch (err) {
       console.error('[placement-speaking] mic:', err);
-      setError('No se pudo acceder al micrófono. Revisá permisos.');
+      setError('No se pudo acceder al micrófono. Revisa los permisos.');
     }
   }
   function startPrep() { setError(''); setPhase('prep'); }
@@ -2393,7 +2393,7 @@ export default function PlacementSuitePage() {
 
             <div className="rounded-xl px-3 py-2 mb-4" style={{ background: B.lavender }}>
               <p className="text-[11px]" style={{ color: B.purple }}>
-                💡 Tomate el tiempo que necesites en cada pregunta. No hay retrocesos: una vez confirmás, avanzás.
+                💡 Tómate el tiempo que necesites en cada pregunta. No hay retrocesos: una vez confirmas, avanzas.
               </p>
             </div>
 

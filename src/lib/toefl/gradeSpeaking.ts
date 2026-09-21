@@ -90,7 +90,7 @@ export async function gradeSpeakingRecordings(
         rawScores.push(0);
         enriched.push({
           ...rec, transcript: '', aiScore: 0,
-          aiFeedback: 'No se detectó voz en el audio grabado. Revisá el micrófono.',
+          aiFeedback: 'No se detectó voz en el audio grabado. Revisa el micrófono.',
           aiError:    'Empty transcript',
         });
         progress[i] = { ...progress[i], status: 'error', message: 'Sin voz detectada' };

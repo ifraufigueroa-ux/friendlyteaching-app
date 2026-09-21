@@ -1159,10 +1159,10 @@ function generateTOEFLSpeakingFriendlyHTML(data: TOEFLSpeakingFriendlyReportData
 
   const focusCards = allImprovements.slice(0, 4).map((s, idx) => {
     const tips = [
-      'Grabate hablando 3 minutos al día sobre un tema random — sin frenarte a corregir, solo soltarte.',
-      'Antes de responder, tomate 3 segundos para armar 2 ideas concretas. Menos improvisar, más estructura.',
-      'Escuchá un podcast en inglés (BBC 6-min English es ideal) y repetí frases enteras en voz alta.',
-      'Grabate contestando un prompt real, escuchate y anotá 1 cosa a mejorar. Repetí al día siguiente.',
+      'Grábate hablando 3 minutos al día sobre un tema random — sin frenarte a corregir, solo suéltate.',
+      'Antes de responder, tómate 3 segundos para armar 2 ideas concretas. Menos improvisar, más estructura.',
+      'Escucha un podcast en inglés (BBC 6-min English es ideal) y repite frases enteras en voz alta.',
+      'Grábate contestando un prompt real, escúchate y anota 1 cosa a mejorar. Repite al día siguiente.',
     ];
     const tip = tips[idx % tips.length];
     return `
@@ -1183,8 +1183,8 @@ function generateTOEFLSpeakingFriendlyHTML(data: TOEFLSpeakingFriendlyReportData
   const overallPct = (data.overallScore / 30) * 100;
   const overallSummary =
     overallPct >= 75 ? `Tu Speaking está muy bien, ${escapeHtml(firstName)}. Manejas las respuestas con soltura y estructura clara — ahora vamos por matices y ritmo natural.` :
-    overallPct >= 55 ? `Vas por buen camino, ${escapeHtml(firstName)}. Se entiende clarito lo que decís y armas las respuestas ordenadas. El próximo paso es soltarte más y ganar fluidez para no depender tanto de la pausa.` :
-    overallPct >= 35 ? `Tenés una base para trabajar, ${escapeHtml(firstName)}. En estas respuestas se nota que entendés los prompts — ahora vamos a enfocar en armar respuestas más completas y hablar con más confianza.` :
+    overallPct >= 55 ? `Vas por buen camino, ${escapeHtml(firstName)}. Se entiende clarito lo que dices y armas las respuestas ordenadas. El próximo paso es soltarte más y ganar fluidez para no depender tanto de la pausa.` :
+    overallPct >= 35 ? `Tienes una base para trabajar, ${escapeHtml(firstName)}. En estas respuestas se nota que entiendes los prompts — ahora vamos a enfocarnos en armar respuestas más completas y hablar con más confianza.` :
                         `Recién empiezas a soltarte, ${escapeHtml(firstName)} — y eso está bien. Vamos a hacer mucho speaking en clase para bajar el miedo y agarrar ritmo. Ojo: la práctica constante es lo que más rápido mueve la aguja.`;
 
   return `<!DOCTYPE html>

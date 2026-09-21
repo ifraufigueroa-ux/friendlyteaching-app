@@ -39,7 +39,7 @@ CALIBRATION RULES:
 - Grammar and lexis errors that don't obscure meaning should not cap below B1.
 - promptLevel is context. Place based on the response ITSELF; place higher if the response is clearly beyond promptLevel, lower if clearly below.
 
-FEEDBACK LANGUAGE: Spanish.
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas todas las formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "sabés", "entendés", "decís", "querés", "sos". Usa "tú" con acentuación estándar: "tienes", "puedes", "escucha", "grábate", "tómate", "revisa", "prueba", "elige", "usa", "haz", "sabes", "entiendes", "dices", "quieres", "eres".
 
 Return ONLY valid JSON. Schema:
 {

@@ -39,6 +39,8 @@ CALIBRATION RULES:
 - If the response is clearly better than the prompt targeted, place higher (up to C1).
 - If it is clearly weaker, place lower (down to A1).
 
+FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "sabés", "entendés", "decís", "querés", "sos". Usa las formas de "tú" con acentuación estándar.
+
 Return ONLY valid JSON. NO markdown fences. Schema:
 {
   "placedLevel": "A1" | "A2" | "B1" | "B1+" | "B2" | "C1",
