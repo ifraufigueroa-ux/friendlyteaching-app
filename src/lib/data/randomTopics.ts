@@ -606,6 +606,477 @@ export const RANDOM_TOPICS: RandomTopic[] = [
       'Would you make it again on purpose if it meant learning the same thing?',
     ],
   },
+
+  // ── Second pass — bring every category up to 10 ─────────────────────
+
+  // Life ×4
+  {
+    id: 'life-nickname',
+    category: 'Life',
+    emoji: '🏷️',
+    topic: 'A nickname you\'ve had — one you loved or one you hated.',
+    followUps: [
+      'Who started calling you that, and when?',
+      'How did you feel about it back then vs. now?',
+      'Does anyone still use it?',
+    ],
+  },
+  {
+    id: 'life-superstition',
+    category: 'Life',
+    emoji: '🍀',
+    topic: 'A superstition you secretly still follow.',
+    followUps: [
+      'What is it, and where did you pick it up?',
+      'Have you ever "tested" it on purpose?',
+      'Would you feel weird breaking it, honestly?',
+    ],
+  },
+  {
+    id: 'life-advice-to-younger-self',
+    category: 'Life',
+    emoji: '⏳',
+    topic: 'Advice you\'d give your 15-year-old self.',
+    followUps: [
+      'What\'s the one thing you\'d say first?',
+      'Would younger-you have actually listened?',
+      'Is there anything you\'re glad they didn\'t know yet?',
+    ],
+  },
+  {
+    id: 'life-first-adult-moment',
+    category: 'Life',
+    emoji: '🗝️',
+    topic: 'The exact moment you realized you were an adult.',
+    followUps: [
+      'What were you doing?',
+      'Was it exciting, scary, or just quiet?',
+      'Do you feel like an adult every day, or does it come and go?',
+    ],
+  },
+
+  // Work ×4
+  {
+    id: 'work-worst-interview',
+    category: 'Work',
+    emoji: '😬',
+    topic: 'Your worst job interview.',
+    followUps: [
+      'What went wrong — you, them, or both?',
+      'Did you get the job anyway?',
+      'What would you do differently now?',
+    ],
+  },
+  {
+    id: 'work-side-project',
+    category: 'Work',
+    emoji: '🧪',
+    topic: 'A side project or idea you can\'t stop thinking about.',
+    followUps: [
+      'What is it, in one sentence?',
+      'What\'s the tiniest first step you could take this week?',
+      'What are you actually afraid of if you try it?',
+    ],
+  },
+  {
+    id: 'work-annoying-habit',
+    category: 'Work',
+    emoji: '🙄',
+    topic: 'A coworker habit that drives you quietly crazy.',
+    followUps: [
+      'What is it, and who does it?',
+      'Have you ever said something, or just suffered in silence?',
+      'Do you have a habit that probably annoys them back?',
+    ],
+  },
+  {
+    id: 'work-money-vs-passion',
+    category: 'Work',
+    emoji: '💸',
+    topic: 'Money vs. passion when choosing a job.',
+    followUps: [
+      'Which one are you leaning on right now?',
+      'Have you ever chosen one over the other and regretted it?',
+      'Is "do what you love" honest advice, or a bit of a lie?',
+    ],
+  },
+
+  // Culture ×5
+  {
+    id: 'culture-santiago-vs-regions',
+    category: 'Culture',
+    emoji: '🚆',
+    topic: 'Santiago vs. the rest of Chile.',
+    followUps: [
+      'Which one do you feel closer to?',
+      'What does each one get right that the other doesn\'t?',
+      'If you had to move tomorrow, where would you go?',
+    ],
+  },
+  {
+    id: 'culture-chilean-humor',
+    category: 'Culture',
+    emoji: '😂',
+    topic: 'What makes Chilean humor different.',
+    followUps: [
+      'How would you describe it to someone from another country?',
+      'Who is the funniest person you know in real life?',
+      'Does it translate on the internet, or is it a "you had to be there" thing?',
+    ],
+  },
+  {
+    id: 'culture-18-de-septiembre',
+    category: 'Culture',
+    emoji: '🎉',
+    topic: 'How you actually spend the 18 de septiembre.',
+    followUps: [
+      'Family asado, ramada, escape from the city, or none of the above?',
+      'What\'s the one dish you can\'t skip?',
+      'Do you enjoy it, or is it more of an obligation now?',
+    ],
+  },
+  {
+    id: 'culture-foreign-obsession',
+    category: 'Culture',
+    emoji: '🎌',
+    topic: 'A foreign culture you\'re a little obsessed with.',
+    followUps: [
+      'Which one, and how did it start?',
+      'What have you learned or picked up from it?',
+      'Would you actually want to live there, or just visit?',
+    ],
+  },
+  {
+    id: 'culture-generation-gap',
+    category: 'Culture',
+    emoji: '👴',
+    topic: 'Something your parents\' generation did that yours never would.',
+    followUps: [
+      'What is it, and why has it disappeared?',
+      'Do you actually miss it, or is it better gone?',
+      'What will your generation be remembered for?',
+    ],
+  },
+
+  // Tech ×4
+  {
+    id: 'tech-first-computer',
+    category: 'Tech',
+    emoji: '💾',
+    topic: 'Your first computer, console or phone.',
+    followUps: [
+      'What was it, and how did you get it?',
+      'What did you spend most of your time doing on it?',
+      'What would it feel like to hold it again today?',
+    ],
+  },
+  {
+    id: 'tech-regret-purchase',
+    category: 'Tech',
+    emoji: '🧾',
+    topic: 'A tech purchase you completely regret.',
+    followUps: [
+      'What was it, and what did it promise?',
+      'How long before you knew it was a mistake?',
+      'Do you still own it, or did you get rid of it?',
+    ],
+  },
+  {
+    id: 'tech-privacy',
+    category: 'Tech',
+    emoji: '🕵️',
+    topic: 'What you actually think about apps tracking everything you do.',
+    followUps: [
+      'Does it bother you, or have you made peace with it?',
+      'What\'s the creepiest ad or recommendation you\'ve ever gotten?',
+      'Would you pay to opt out completely?',
+    ],
+  },
+  {
+    id: 'tech-remote-friendship',
+    category: 'Tech',
+    emoji: '📨',
+    topic: 'A friendship that only exists through messages.',
+    followUps: [
+      'Who is it, and how did it start?',
+      'Is it as real as the in-person ones, honestly?',
+      'What would happen if you actually met up?',
+    ],
+  },
+
+  // Society ×5
+  {
+    id: 'society-education-broken',
+    category: 'Society',
+    emoji: '🏫',
+    topic: 'What\'s broken about the education system today.',
+    followUps: [
+      'What\'s the biggest thing you\'d fix?',
+      'What did school teach you that turned out to be useless?',
+      'What should schools teach that they don\'t?',
+    ],
+  },
+  {
+    id: 'society-cancel-culture',
+    category: 'Society',
+    emoji: '🚫',
+    topic: 'Cancel culture — real problem or overblown?',
+    followUps: [
+      'Where do you actually land on it?',
+      'Have you ever changed your mind about someone who was "cancelled"?',
+      'Is there a line, and where would you draw it?',
+    ],
+  },
+  {
+    id: 'society-mental-health',
+    category: 'Society',
+    emoji: '🧠',
+    topic: 'How your generation talks about mental health.',
+    followUps: [
+      'Is it healthier now, or has it become a trend?',
+      'What did your parents\' generation get right or wrong about it?',
+      'Do you find it easy to talk about your own?',
+    ],
+  },
+  {
+    id: 'society-work-life-boundary',
+    category: 'Society',
+    emoji: '🛑',
+    topic: 'The blurring line between work and personal life.',
+    followUps: [
+      'Do you check work messages after hours?',
+      'Whose responsibility is it to draw the line — you or your job?',
+      'When was the last time you truly disconnected?',
+    ],
+  },
+  {
+    id: 'society-consumerism',
+    category: 'Society',
+    emoji: '🛍️',
+    topic: 'Something you own way too many of.',
+    followUps: [
+      'What is it, and how did that happen?',
+      'What do you think is really behind buying more of it?',
+      'Could you go a year without buying another one?',
+    ],
+  },
+
+  // Fun ×4
+  {
+    id: 'fun-comfort-food-secret',
+    category: 'Fun',
+    emoji: '🍜',
+    topic: 'A comfort food you only eat when nobody\'s watching.',
+    followUps: [
+      'What is it, and why the secrecy?',
+      'When do you usually reach for it?',
+      'Would you order it in front of a date?',
+    ],
+  },
+  {
+    id: 'fun-danced-and-meant-it',
+    category: 'Fun',
+    emoji: '💃',
+    topic: 'The last time you danced and actually meant it.',
+    followUps: [
+      'Where were you, and what was playing?',
+      'Who were you with — or were you alone?',
+      'How long since the time before that?',
+    ],
+  },
+  {
+    id: 'fun-nostalgia-album',
+    category: 'Fun',
+    emoji: '💿',
+    topic: 'An album that instantly transports you to a specific year.',
+    followUps: [
+      'Which album, and what year?',
+      'What were you doing back then?',
+      'Can you still listen to it without feeling something?',
+    ],
+  },
+  {
+    id: 'fun-hidden-talent',
+    category: 'Fun',
+    emoji: '🎩',
+    topic: 'A hidden talent nobody thinks to ask you about.',
+    followUps: [
+      'What is it, and how did you get good at it?',
+      'When was the last time you actually used it?',
+      'Could you make money from it if you wanted to?',
+    ],
+  },
+
+  // Travel ×5
+  {
+    id: 'travel-hyped-city-disappointment',
+    category: 'Travel',
+    emoji: '📍',
+    topic: 'A hyped city that turned out to disappoint you.',
+    followUps: [
+      'Where was it, and what were you expecting?',
+      'What was actually the problem — the place, or your mood?',
+      'Would you give it a second chance?',
+    ],
+  },
+  {
+    id: 'travel-best-food-abroad',
+    category: 'Travel',
+    emoji: '🍽️',
+    topic: 'The best thing you ever ate in another country.',
+    followUps: [
+      'Where were you, and what were you eating?',
+      'Can you get anything close to it here?',
+      'Would you fly back just for that meal?',
+    ],
+  },
+  {
+    id: 'travel-stranger-helped',
+    category: 'Travel',
+    emoji: '🤲',
+    topic: 'A stranger who helped you in a country you didn\'t know.',
+    followUps: [
+      'What was going wrong before they showed up?',
+      'How did the two of you even communicate?',
+      'Do you think you\'d do the same for a tourist here?',
+    ],
+  },
+  {
+    id: 'travel-packing-style',
+    category: 'Travel',
+    emoji: '🎒',
+    topic: 'Your packing philosophy.',
+    followUps: [
+      'Minimalist, over-prepared, or last-minute chaos?',
+      'What\'s the one thing you always forget?',
+      'What\'s the weirdest thing you always take?',
+    ],
+  },
+  {
+    id: 'travel-tourist-trap-worth-it',
+    category: 'Travel',
+    emoji: '🎪',
+    topic: 'A "tourist trap" that was actually worth it.',
+    followUps: [
+      'Which one, and why do people usually skip it?',
+      'What surprised you about it?',
+      'Would you tell friends to go, or keep it to yourself?',
+    ],
+  },
+
+  // Relationships ×5
+  {
+    id: 'rel-family-story-late',
+    category: 'Relationships',
+    emoji: '🗂️',
+    topic: 'A family story you only fully understood as an adult.',
+    followUps: [
+      'What was the story, roughly?',
+      'What did you assume as a kid, and what was really going on?',
+      'Has it changed how you see the person involved?',
+    ],
+  },
+  {
+    id: 'rel-forgiveness',
+    category: 'Relationships',
+    emoji: '🕊️',
+    topic: 'Someone you forgave — or someone you probably should.',
+    followUps: [
+      'What did they do, without naming them?',
+      'What did forgiving them (or not) actually cost you?',
+      'Would you handle it the same way today?',
+    ],
+  },
+  {
+    id: 'rel-first-crush',
+    category: 'Relationships',
+    emoji: '💘',
+    topic: 'Your first real crush.',
+    followUps: [
+      'Who were they, and how old were you?',
+      'Did they ever find out?',
+      'What was it about them, honestly, looking back?',
+    ],
+  },
+  {
+    id: 'rel-hard-goodbye',
+    category: 'Relationships',
+    emoji: '👋',
+    topic: 'A goodbye that hit harder than you expected.',
+    followUps: [
+      'Who or what were you saying goodbye to?',
+      'What tipped it from routine into something heavier?',
+      'Would you do the goodbye differently now?',
+    ],
+  },
+  {
+    id: 'rel-boundary-set',
+    category: 'Relationships',
+    emoji: '🧱',
+    topic: 'A boundary you had to set with someone close.',
+    followUps: [
+      'What was crossing the line?',
+      'How did they react when you finally said it?',
+      'What did setting it teach you about the relationship?',
+    ],
+  },
+
+  // Gaming ×5
+  {
+    id: 'gaming-character-crush',
+    category: 'Gaming',
+    emoji: '💖',
+    topic: 'A game character you kind of fell for.',
+    followUps: [
+      'Who was it, and what game?',
+      'What was it about them — looks, story, voice, all of it?',
+      'Would that same character work as a real person?',
+    ],
+  },
+  {
+    id: 'gaming-side-character-remembered',
+    category: 'Gaming',
+    emoji: '🗨️',
+    topic: 'A minor character or side quest you still remember years later.',
+    followUps: [
+      'What was it, and why did it stick?',
+      'Did the main story even need it?',
+      'What kind of story tends to stay with you the longest?',
+    ],
+  },
+  {
+    id: 'gaming-cheat-or-not',
+    category: 'Gaming',
+    emoji: '🃏',
+    topic: 'The time you cheated in a game — or refused to.',
+    followUps: [
+      'What was the game and the temptation?',
+      'What did cheating (or resisting) actually feel like?',
+      'Is there a line between "cheating" and "playing smart"?',
+    ],
+  },
+  {
+    id: 'gaming-console-bring-back',
+    category: 'Gaming',
+    emoji: '📼',
+    topic: 'An old console or era of gaming you\'d bring back.',
+    followUps: [
+      'Which one, and what did it get right?',
+      'What would kids today not understand about it?',
+      'Was it actually better, or is it just nostalgia?',
+    ],
+  },
+  {
+    id: 'gaming-outgrew',
+    category: 'Gaming',
+    emoji: '🚪',
+    topic: 'A game or genre you\'ve completely outgrown.',
+    followUps: [
+      'What used to hook you about it?',
+      'What changed — you, the games, or both?',
+      'Is there anything you miss about that phase?',
+    ],
+  },
 ];
 
 /** Filter the topic bank by category. Passing `null` returns the full bank. */
