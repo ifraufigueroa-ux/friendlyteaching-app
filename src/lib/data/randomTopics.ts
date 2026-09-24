@@ -12,7 +12,8 @@ export type RandomTopicCategory =
   | 'Society'
   | 'Fun'
   | 'Travel'
-  | 'Relationships';
+  | 'Relationships'
+  | 'Gaming';
 
 export interface RandomTopic {
   id:        string;
@@ -23,7 +24,7 @@ export interface RandomTopic {
 }
 
 export const RANDOM_TOPIC_CATEGORIES: RandomTopicCategory[] = [
-  'Life', 'Work', 'Culture', 'Tech', 'Society', 'Fun', 'Travel', 'Relationships',
+  'Life', 'Work', 'Culture', 'Tech', 'Society', 'Fun', 'Travel', 'Relationships', 'Gaming',
 ];
 
 export interface RandomTopicCategoryMeta {
@@ -42,6 +43,7 @@ export const RANDOM_TOPIC_CATEGORY_META: Record<RandomTopicCategory, RandomTopic
   'Fun':           { icon: '🎨', gradient: 'from-fuchsia-500 to-purple-500', chipBg: 'bg-fuchsia-500',  chipText: 'text-white' },
   'Travel':        { icon: '✈️', gradient: 'from-cyan-500 to-teal-500',      chipBg: 'bg-cyan-500',     chipText: 'text-white' },
   'Relationships': { icon: '👥', gradient: 'from-red-500 to-rose-500',       chipBg: 'bg-red-500',      chipText: 'text-white' },
+  'Gaming':        { icon: '🎮', gradient: 'from-purple-600 to-pink-600',    chipBg: 'bg-purple-600',   chipText: 'text-white' },
 };
 
 export const RANDOM_TOPICS: RandomTopic[] = [
@@ -499,6 +501,109 @@ export const RANDOM_TOPICS: RandomTopic[] = [
       'Who are they, without naming them?',
       'How do you usually deal with them?',
       'What have they taught you — even without wanting to?',
+    ],
+  },
+
+  // ── Gaming ───────────────────────────────────────────────────────────
+  {
+    id: 'gaming-first-obsession',
+    category: 'Gaming',
+    emoji: '🕹️',
+    topic: 'The first game you got completely obsessed with.',
+    followUps: [
+      'What was it, and how old were you?',
+      'How many hours a day were you sinking into it?',
+      'Did anyone in your life try to pull you away from it?',
+    ],
+  },
+  {
+    id: 'gaming-best-multiplayer-moment',
+    category: 'Gaming',
+    emoji: '🎧',
+    topic: 'A moment online with friends you still talk about.',
+    followUps: [
+      'What game was it, and who were you playing with?',
+      'What happened — a clutch win, a wipe, something ridiculous?',
+      'Do you still play together?',
+    ],
+  },
+  {
+    id: 'gaming-rage-quit',
+    category: 'Gaming',
+    emoji: '💢',
+    topic: 'The last time a game truly made you rage.',
+    followUps: [
+      'What was going wrong — bad teammates, difficulty, lag?',
+      'Did you throw anything, unplug, walk away?',
+      'How long before you booted it back up?',
+    ],
+  },
+  {
+    id: 'gaming-story-that-stayed',
+    category: 'Gaming',
+    emoji: '📖',
+    topic: 'A game story that stayed with you like a movie would.',
+    followUps: [
+      'Which game, and which moment in particular?',
+      'What did it make you feel — grief, awe, guilt, hope?',
+      'Would you replay it, or is it better as a memory?',
+    ],
+  },
+  {
+    id: 'gaming-comfort-game',
+    category: 'Gaming',
+    emoji: '🛋️',
+    topic: 'Your comfort game — the one you go back to on a bad day.',
+    followUps: [
+      'What is it, and what makes it feel like home?',
+      'How is it different from the games you play to compete?',
+      'What was going on in your life when you first fell for it?',
+    ],
+  },
+
+  // ── Extra variety across existing categories ────────────────────────
+  {
+    id: 'fun-guilty-pleasure-show',
+    category: 'Fun',
+    emoji: '📺',
+    topic: 'A show or movie you\'d never admit you love — but you do.',
+    followUps: [
+      'What is it, and why the secrecy?',
+      'Who would tease you if they found out?',
+      'What does it give you that "prestige" stuff doesn\'t?',
+    ],
+  },
+  {
+    id: 'tech-app-cant-delete',
+    category: 'Tech',
+    emoji: '📲',
+    topic: 'The app you keep saying you\'ll delete but never do.',
+    followUps: [
+      'Which one, and what pulled you back the last time you tried?',
+      'How much time does it actually eat from your day?',
+      'What would replace it if it were gone tomorrow?',
+    ],
+  },
+  {
+    id: 'life-small-daily-ritual',
+    category: 'Life',
+    emoji: '☕',
+    topic: 'A tiny daily ritual that grounds you.',
+    followUps: [
+      'When does it happen, and what does it look like?',
+      'How do you feel on the days you skip it?',
+      'Would it still work if someone else joined in?',
+    ],
+  },
+  {
+    id: 'work-mistake-that-taught-you',
+    category: 'Work',
+    emoji: '🧯',
+    topic: 'A mistake at work that ended up teaching you something big.',
+    followUps: [
+      'What happened, and how public was the mess?',
+      'How did the people around you react?',
+      'Would you make it again on purpose if it meant learning the same thing?',
     ],
   },
 ];
