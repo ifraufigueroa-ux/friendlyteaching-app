@@ -13,11 +13,9 @@ import type {
 } from '@/types/toefl';
 import { useCountdown } from '@/hooks/useCountdown';
 import { SampleAnswerModal } from './SampleAnswerModal';
-
-const B = {
-  purple:      '#5A3D7A',
-  purpleMed:   '#9B7CB8',
-};
+import {
+  B, TaskRibbon, TimerPill, WordCountMeter, AutosaveChip, SubmitButton, BrandCard,
+} from './WritingTaskShell';
 
 export interface WritingSectionProps {
   prompt:      TOEFLWritingPrompt;
@@ -33,6 +31,14 @@ export interface WritingSectionProps {
   practiceMode?: boolean;
 }
 
+// Turn "Kelly M." → "KM" for the avatar circle.
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function WritingSection({
   prompt, onDone, initialText, onSnapshot, confirmSubmit, practiceMode,
 }: WritingSectionProps) {
@@ -41,7 +47,6 @@ export function WritingSection({
   const totalSec = prompt.timerMin * 60;
   const left = useCountdown(totalSec, !practiceMode, practiceMode ? undefined : () => submit(/* auto */ true));
   const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
-  const meets = wordCount >= prompt.minWords;
   const canShowSample = practiceMode && !!prompt.sampleAnswer;
 
   // Autosave: emit a snapshot on every text change. Parent debounces.
@@ -68,74 +73,137 @@ export function WritingSection({
 
   return (
     <>
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
-        <div className="bg-white rounded-2xl p-5 shadow-lg max-h-[80vh] overflow-y-auto"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-            Writing Task 2 · Academic Discussion
-          </span>
-          <p className="text-xs text-gray-600 mt-2 whitespace-pre-line leading-relaxed">{prompt.professorPost}</p>
+      <div className="w-full max-w-5xl pb-24 space-y-4">
+        <TaskRibbon
+          taskNumber={3}
+          taskName="Academic Discussion"
+          emoji="💬"
+          title="Únete al debate — argumenta con claridad."
+          subtitle={`Mínimo ${prompt.minWords} palabras · ${prompt.timerMin} min recomendados`}
+          right={<TimerPill leftSec={left} practiceMode={practiceMode} />}
+        />
 
-          <div className="mt-4 space-y-3">
-            <div className="rounded-lg bg-[#F0E5FF] p-3">
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: B.purple }}>Prof.</p>
-              <p className="text-xs text-[#2D1B4E] mt-1 leading-relaxed">{prompt.question}</p>
-            </div>
-            <div className="rounded-lg bg-white border border-gray-200 p-3">
-              <p className="text-[10px] font-bold" style={{ color: B.purpleMed }}>{prompt.studentA.name}</p>
-              <p className="text-xs text-gray-700 mt-1 leading-relaxed">{prompt.studentA.text}</p>
-            </div>
-            <div className="rounded-lg bg-white border border-gray-200 p-3">
-              <p className="text-[10px] font-bold" style={{ color: B.purpleMed }}>{prompt.studentB.name}</p>
-              <p className="text-xs text-gray-700 mt-1 leading-relaxed">{prompt.studentB.text}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-lg self-start"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-2 gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Tu respuesta</span>
-            <div className="flex items-center gap-2">
-              {canShowSample && (
-                <button
-                  type="button"
-                  onClick={() => setSampleOpen(true)}
-                  className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-colors"
-                  title="Ver una respuesta modelo score 5/5"
-                >
-                  ⭐ Ver ejemplo
-                </button>
-              )}
-              <span className={`text-xs font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {wordCount} / {prompt.minWords} palabras {meets && '✓'}
-              </span>
-            </div>
-          </div>
-          <textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            autoFocus
-            placeholder="Escribe tu contribución al debate…"
-            spellCheck
-            className="w-full min-h-[420px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
-          />
-          <div className="mt-2 flex items-center justify-between text-[10px] text-gray-500">
-            {practiceMode ? (
-              <span className="text-[#5A3D7A]/60 italic">Modo práctica — sin timer</span>
-            ) : (
-              <span>⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} restantes</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* ── Prompt panel ─────────────────────────────── */}
+          <BrandCard scroll>
+            {prompt.professorPost && (
+              <p className="text-[12px] text-gray-600 leading-relaxed whitespace-pre-line mb-4">
+                {prompt.professorPost}
+              </p>
             )}
-            {onSnapshot && <span className="text-emerald-600">✓ Autoguardado</span>}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => submit(false)}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all"
+
+            {/* Professor question — the anchor of the whole debate */}
+            <div
+              className="rounded-2xl p-4 mb-3 relative overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${B.lavenderBg} 0%, #E8DBFF 100%)`,
+                border:     `1px solid rgba(155,124,184,0.35)`,
+              }}
             >
-              ✓ Submit Writing
-            </button>
-          </div>
+              <div className="flex items-start gap-3">
+                <div
+                  className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-white"
+                  style={{ background: `linear-gradient(135deg, ${B.purpleDeep}, ${B.purple})`, boxShadow: '0 4px 10px -4px rgba(90,61,122,0.5)' }}
+                >
+                  Pf
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: B.gold }}>
+                    Professor
+                  </p>
+                  <p className="text-[13px] text-[#2D1B4E] mt-0.5 leading-relaxed font-medium">
+                    {prompt.question}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Student A + Student B — chat-style bubbles */}
+            {[prompt.studentA, prompt.studentB].map((s, i) => (
+              <div key={i} className="flex items-start gap-3 mb-3 last:mb-0">
+                <div
+                  className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black text-white"
+                  style={{
+                    background: i === 0
+                      ? 'linear-gradient(135deg,#E8B547,#B8860B)'
+                      : 'linear-gradient(135deg,#9B7CB8,#5A3D7A)',
+                    boxShadow: '0 4px 10px -4px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  {initialsOf(s.name)}
+                </div>
+                <div
+                  className="flex-1 rounded-2xl px-3.5 py-2.5"
+                  style={{
+                    background: '#FDFAFF',
+                    border:     '1px solid #E8D5F0',
+                  }}
+                >
+                  <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: B.purpleMed }}>
+                    {s.name}
+                  </p>
+                  <p className="text-[12px] text-gray-700 mt-1 leading-relaxed">{s.text}</p>
+                </div>
+              </div>
+            ))}
+          </BrandCard>
+
+          {/* ── Editor panel ─────────────────────────────── */}
+          <BrandCard className="self-start">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+              <span
+                className="text-[10px] font-black uppercase tracking-[0.3em]"
+                style={{ color: B.purpleMed }}
+              >
+                ✍️ Tu contribución
+              </span>
+              <div className="flex items-center gap-2">
+                {canShowSample && (
+                  <button
+                    type="button"
+                    onClick={() => setSampleOpen(true)}
+                    className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full transition-colors"
+                    style={{
+                      background: 'rgba(232,181,71,0.15)',
+                      color:      B.goldDeep,
+                      border:     `1px solid ${B.gold}66`,
+                    }}
+                    title="Ver una respuesta modelo score 5/5"
+                  >
+                    ⭐ Ver ejemplo
+                  </button>
+                )}
+                <WordCountMeter count={wordCount} min={prompt.minWords} />
+              </div>
+            </div>
+
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              autoFocus
+              placeholder="Responde al profe y a tus compañeros — toma postura, da una razón y un ejemplo…"
+              spellCheck
+              className="w-full min-h-[420px] px-4 py-3.5 rounded-2xl text-[15px] text-[#2D1B4E] leading-relaxed focus:outline-none focus:ring-4 resize-y transition-shadow"
+              style={{
+                background:  '#FDFAFF',
+                border:      '1px solid #E8D5F0',
+                fontFamily:  '"Georgia", "Cambria", serif',
+                boxShadow:   'inset 0 2px 6px -2px rgba(90,61,122,0.08)',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = B.purpleMed; e.currentTarget.style.boxShadow = `0 0 0 4px ${B.lavenderBg}, inset 0 2px 6px -2px rgba(90,61,122,0.10)`; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = '#E8D5F0';   e.currentTarget.style.boxShadow = 'inset 0 2px 6px -2px rgba(90,61,122,0.08)'; }}
+            />
+
+            <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <TimerPill leftSec={left} practiceMode={practiceMode} />
+                {onSnapshot && <AutosaveChip />}
+              </div>
+              <SubmitButton onClick={() => submit(false)}>
+                ✓ Enviar Writing
+              </SubmitButton>
+            </div>
+          </BrandCard>
         </div>
       </div>
 

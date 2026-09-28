@@ -13,11 +13,9 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TOEFLEmailPrompt, EmailSubmission } from '@/types/toefl';
 import { useCountdown } from '@/hooks/useCountdown';
 import { SampleAnswerModal } from './SampleAnswerModal';
-
-const B = {
-  purple:      '#5A3D7A',
-  purpleMed:   '#9B7CB8',
-};
+import {
+  B, TaskRibbon, TimerPill, WordCountMeter, AutosaveChip, SubmitButton, BrandCard,
+} from './WritingTaskShell';
 
 export interface EmailSectionProps {
   prompt:      TOEFLEmailPrompt;
@@ -36,7 +34,6 @@ export function EmailSection({
   const totalSec = prompt.timerMin * 60;
   const left = useCountdown(totalSec, !practiceMode, practiceMode ? undefined : () => submit(true));
   const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
-  const meets = wordCount >= prompt.minWords;
   const canShowSample = practiceMode && !!prompt.sampleAnswer;
 
   useEffect(() => {
@@ -56,87 +53,147 @@ export function EmailSection({
   }
 
   return (
-    <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
-      <div className="bg-white rounded-2xl p-5 shadow-lg max-h-[80vh] overflow-y-auto"
-        style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-        <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-          Writing Task 2 · Write an Email
-        </span>
-        <p className="text-xs text-gray-600 mt-2 leading-relaxed">{prompt.scenario}</p>
+    <div className="w-full max-w-5xl pb-24 space-y-4">
+      <TaskRibbon
+        taskNumber={2}
+        taskName="Write an Email"
+        emoji="📧"
+        title="Responde el email — resuelve, no describas."
+        subtitle={`Mínimo ${prompt.minWords} palabras · ${prompt.timerMin} min · cubre los 3 puntos`}
+        right={<TimerPill leftSec={left} practiceMode={practiceMode} />}
+      />
 
-        <div className="mt-4 rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] overflow-hidden">
-          <div className="px-3 py-2 bg-[#F0E5FF] border-b border-[#E8D5F0]">
-            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: B.purple }}>From</p>
-            <p className="text-[11px] text-[#2D1B4E]">{prompt.receivedEmail.from}</p>
-          </div>
-          <div className="px-3 py-2 border-b border-[#E8D5F0]">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Subject</p>
-            <p className="text-[12px] font-bold text-[#2D1B4E]">{prompt.receivedEmail.subject}</p>
-          </div>
-          <div className="px-3 py-3 text-[12px] text-gray-700 leading-relaxed whitespace-pre-line">
-            {prompt.receivedEmail.body}
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-800 mb-1.5">
-            Cubre estos 3 puntos
-          </p>
-          <ol className="text-[11px] text-emerald-900 list-decimal pl-5 space-y-1">
-            {prompt.keyPoints.map((k, i) => <li key={i}>{k}</li>)}
-          </ol>
-          <p className="text-[10px] text-emerald-800/80 mt-2 italic">
-            {prompt.taskInstruction}
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-5 shadow-lg self-start"
-        style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-        <div className="flex items-center justify-between mb-2 gap-2">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Tu email</span>
-          <div className="flex items-center gap-2">
-            {canShowSample && (
-              <button
-                type="button"
-                onClick={() => setSampleOpen(true)}
-                className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 transition-colors"
-                title="Ver un email modelo score 5/5"
-              >
-                ⭐ Ver ejemplo
-              </button>
-            )}
-            <span className={`text-xs font-mono tabular-nums font-bold ${meets ? 'text-emerald-600' : 'text-amber-600'}`}>
-              {wordCount} / {prompt.minWords} palabras {meets && '✓'}
-            </span>
-          </div>
-        </div>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          autoFocus
-          placeholder="Escribe tu respuesta al email…"
-          spellCheck
-          className="w-full min-h-[420px] px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm text-[#2D1B4E] leading-relaxed focus:outline-none focus:border-[#9B7CB8] focus:ring-2 focus:ring-[#C8A8DC]/40 font-mono resize-y"
-        />
-        <div className="mt-2 flex items-center justify-between text-[10px] text-gray-500">
-          {practiceMode ? (
-            <span className="text-[#5A3D7A]/60 italic">Modo práctica — sin timer</span>
-          ) : (
-            <span className={left < 30 ? 'text-red-600 font-bold' : ''}>
-              ⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')} restantes
-            </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* ── Prompt panel (received email + key points) ─────── */}
+        <BrandCard scroll>
+          {prompt.scenario && (
+            <p className="text-[12px] text-gray-600 leading-relaxed mb-4">{prompt.scenario}</p>
           )}
-          {onSnapshot && <span className="text-emerald-600">✓ Autoguardado</span>}
-        </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={() => submit(false)}
-            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all"
+
+          {/* Fake email client — inbox card */}
+          <div
+            className="rounded-2xl overflow-hidden mb-4"
+            style={{
+              background: '#FDFAFF',
+              border:     '1px solid #E8D5F0',
+              boxShadow:  'inset 0 1px 0 rgba(255,255,255,0.9)',
+            }}
           >
-            ✓ Continuar al Debate →
-          </button>
-        </div>
+            <div className="px-3.5 py-2.5 flex items-center gap-2"
+              style={{ background: B.lavenderBg, borderBottom: '1px solid #E8D5F0' }}>
+              <div className="flex gap-1">
+                <span className="w-2 h-2 rounded-full bg-red-400" />
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] ml-1"
+                style={{ color: B.purple }}>
+                Inbox · 1 new
+              </span>
+            </div>
+
+            <div className="px-4 py-3 space-y-2 text-[12px]">
+              <div className="grid grid-cols-[46px_1fr] gap-x-2 gap-y-1 items-baseline">
+                <span className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">From</span>
+                <span className="text-[#2D1B4E] truncate">{prompt.receivedEmail.from}</span>
+
+                <span className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Subj.</span>
+                <span className="font-bold text-[#2D1B4E]">{prompt.receivedEmail.subject}</span>
+              </div>
+              <div className="pt-2 border-t border-[#F0E5FF] text-gray-700 leading-relaxed whitespace-pre-line">
+                {prompt.receivedEmail.body}
+              </div>
+            </div>
+          </div>
+
+          {/* 3 key points — big numbered cards */}
+          <div className="rounded-2xl p-4"
+            style={{
+              background: 'linear-gradient(135deg, rgba(232,181,71,0.12) 0%, rgba(232,181,71,0.04) 100%)',
+              border:     `1px solid ${B.gold}55`,
+            }}
+          >
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3"
+              style={{ color: B.goldDeep }}>
+              ✦ Cubre estos 3 puntos
+            </p>
+            <ol className="space-y-2">
+              {prompt.keyPoints.map((k, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span
+                    className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white"
+                    style={{ background: `linear-gradient(135deg,${B.gold},${B.goldDeep})` }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="text-[12px] text-[#2D1B4E] leading-relaxed">{k}</span>
+                </li>
+              ))}
+            </ol>
+            {prompt.taskInstruction && (
+              <p className="text-[10px] text-[#78350F]/80 mt-3 italic border-t border-[#F5E5C4] pt-2">
+                {prompt.taskInstruction}
+              </p>
+            )}
+          </div>
+        </BrandCard>
+
+        {/* ── Editor panel ───────────────────────────────────── */}
+        <BrandCard className="self-start">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+            <span
+              className="text-[10px] font-black uppercase tracking-[0.3em]"
+              style={{ color: B.purpleMed }}
+            >
+              📮 Tu respuesta
+            </span>
+            <div className="flex items-center gap-2">
+              {canShowSample && (
+                <button
+                  type="button"
+                  onClick={() => setSampleOpen(true)}
+                  className="shrink-0 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full transition-colors"
+                  style={{
+                    background: 'rgba(232,181,71,0.15)',
+                    color:      B.goldDeep,
+                    border:     `1px solid ${B.gold}66`,
+                  }}
+                  title="Ver un email modelo score 5/5"
+                >
+                  ⭐ Ver ejemplo
+                </button>
+              )}
+              <WordCountMeter count={wordCount} min={prompt.minWords} />
+            </div>
+          </div>
+
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            autoFocus
+            placeholder={'Hola…\n\n(Contesta directo. Salúdalo, resuelve los 3 puntos y cierra con una línea de despedida.)'}
+            spellCheck
+            className="w-full min-h-[420px] px-4 py-3.5 rounded-2xl text-[15px] text-[#2D1B4E] leading-relaxed focus:outline-none resize-y transition-shadow"
+            style={{
+              background:  '#FDFAFF',
+              border:      '1px solid #E8D5F0',
+              fontFamily:  '"Georgia", "Cambria", serif',
+              boxShadow:   'inset 0 2px 6px -2px rgba(90,61,122,0.08)',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = B.purpleMed; e.currentTarget.style.boxShadow = `0 0 0 4px ${B.lavenderBg}, inset 0 2px 6px -2px rgba(90,61,122,0.10)`; }}
+            onBlur={(e)  => { e.currentTarget.style.borderColor = '#E8D5F0';   e.currentTarget.style.boxShadow = 'inset 0 2px 6px -2px rgba(90,61,122,0.08)'; }}
+          />
+
+          <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <TimerPill leftSec={left} practiceMode={practiceMode} />
+              {onSnapshot && <AutosaveChip />}
+            </div>
+            <SubmitButton onClick={() => submit(false)}>
+              ✓ Continuar al Debate →
+            </SubmitButton>
+          </div>
+        </BrandCard>
       </div>
 
       {sampleOpen && prompt.sampleAnswer && (
@@ -150,4 +207,3 @@ export function EmailSection({
     </div>
   );
 }
-
