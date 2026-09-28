@@ -38,6 +38,7 @@ import { SpeakingSection } from '@/components/toefl/SpeakingSection';
 import { SpeakingBreakdown } from '@/components/toefl/SpeakingBreakdown';
 import { WritingSequence } from '@/components/toefl/WritingSequence';
 import { WritingBreakdown } from '@/components/toefl/WritingBreakdown';
+import { TaskRibbon, BrandCard, SubmitButton, B as SHELL } from '@/components/toefl/MockShell';
 import { gradeSpeakingRecordings } from '@/lib/toefl/gradeSpeaking';
 import { gradeWritingSection } from '@/lib/toefl/gradeWriting';
 
@@ -139,7 +140,7 @@ function MCQCard({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-base font-semibold leading-snug" style={{ color: B.purpleDark }}>{prompt}</p>
+      <p className="text-[15px] font-semibold leading-snug" style={{ color: B.purpleDark }}>{prompt}</p>
       <div className="space-y-2">
         {options.map((opt, idx) => {
           const on = selected === idx;
@@ -147,15 +148,33 @@ function MCQCard({
             <button
               key={idx}
               onClick={() => onSelect(idx)}
-              className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                on ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A] font-semibold'
-                   : 'border-gray-200 bg-white text-gray-700 hover:border-[#C8A8DC]'
+              className={`w-full text-left px-4 py-3 rounded-2xl transition-all flex items-center gap-3 ${
+                on ? '' : 'hover:-translate-y-0.5'
               }`}
+              style={{
+                background: on ? SHELL.lavenderBg : '#FDFAFF',
+                border:     on ? `1.5px solid ${SHELL.purpleMed}` : '1px solid #E8D5F0',
+                color:      on ? SHELL.purpleDeep : '#374151',
+                fontWeight: on ? 600 : 500,
+                boxShadow:  on
+                  ? `0 8px 20px -10px ${SHELL.purpleMed}80, inset 0 1px 0 rgba(255,255,255,0.7)`
+                  : '0 2px 6px -2px rgba(90,61,122,0.08)',
+              }}
             >
-              <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0 ${
-                on ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300 text-gray-400'
-              }`}>{String.fromCharCode(65 + idx)}</span>
-              <span className="flex-1">{opt}</span>
+              <span
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
+                style={{
+                  background: on
+                    ? `linear-gradient(135deg,${SHELL.purpleDeep},${SHELL.purpleMed})`
+                    : '#FFFFFF',
+                  color:      on ? '#FFFFFF' : '#9CA3AF',
+                  border:     on ? 'none' : '1.5px solid #E5E7EB',
+                  boxShadow:  on ? `0 4px 8px -3px ${SHELL.purple}80` : 'none',
+                }}
+              >
+                {String.fromCharCode(65 + idx)}
+              </span>
+              <span className="flex-1 text-sm">{opt}</span>
             </button>
           );
         })}
@@ -265,27 +284,18 @@ function ReadingSection({
     return (
       <>
         <div className="w-full max-w-3xl space-y-4 pb-24">
-          <div className="bg-white rounded-2xl p-6 shadow-lg"
-            style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-            <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>Review</span>
-                <h2 className="font-serif text-2xl font-bold mt-1" style={{ color: B.purpleDark }}>
-                  Reading · {answeredCount}/{totalQ} answered
-                </h2>
-              </div>
-              <button
-                onClick={finish}
-                className="px-4 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: '#059669' }}
-              >
-                ✓ Submit Reading
-              </button>
-            </div>
+          <TaskRibbon
+            eyebrow={`TOEFL · Reading · Review`}
+            emoji="📖"
+            title={`${answeredCount} de ${totalQ} respondidas`}
+            subtitle="Toca cualquier número para volver a la pregunta antes de enviar."
+            right={<SubmitButton onClick={finish}>✓ Enviar Reading</SubmitButton>}
+          />
 
+          <BrandCard>
             {passages.map((p, pi) => (
-              <div key={p.id} className="mt-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: B.purple }}>
+              <div key={p.id} className="mt-1 mb-4 last:mb-0">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: SHELL.purple }}>
                   Passage {pi + 1} — {p.title}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -295,11 +305,18 @@ function ReadingSection({
                       <button
                         key={qu.id}
                         onClick={() => jumpTo(pi, qi)}
-                        className={`w-9 h-9 rounded-lg text-xs font-bold border-2 transition-colors ${
-                          answered
-                            ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
-                            : 'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
+                        className={`w-9 h-9 rounded-xl text-xs font-black transition-all hover:-translate-y-0.5 ${
+                          answered ? 'text-white' : 'text-gray-400 hover:text-[#5A3D7A]'
                         }`}
+                        style={{
+                          background: answered
+                            ? `linear-gradient(135deg,${SHELL.purpleDeep},${SHELL.purpleMed})`
+                            : '#FFFFFF',
+                          border:    answered ? 'none' : '1.5px solid #E5E7EB',
+                          boxShadow: answered
+                            ? `0 4px 10px -4px ${SHELL.purple}80`
+                            : '0 1px 3px rgba(0,0,0,0.05)',
+                        }}
                         title={`Q${qi + 1} · ${READING_TYPE_LABEL[qu.type]}`}
                       >
                         {qi + 1}
@@ -310,10 +327,10 @@ function ReadingSection({
               </div>
             ))}
 
-            <p className="text-[11px] text-gray-500 italic mt-4">
-              💡 Puedes hacer click en cualquier número para volver a esa pregunta. Al Submit se calculan tus puntos y no puedes modificar respuestas.
+            <p className="text-[11px] text-gray-500 italic mt-2">
+              💡 Al enviar se calculan tus puntos y no puedes modificar respuestas.
             </p>
-          </div>
+          </BrandCard>
         </div>
         {!practiceMode && <TimerBar label="Reading · 35 min" seconds={left} totalSec={totalSec} warn={120} />}
       </>
@@ -326,107 +343,129 @@ function ReadingSection({
 
   return (
     <>
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-4 pb-24">
-        {/* Passage with paragraph markers */}
-        <div ref={passageRef} className="bg-white rounded-2xl p-6 shadow-lg max-h-[80vh] overflow-y-auto"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Passage {pIdx + 1} of {passages.length}
-            </span>
-            <span className="text-[10px] text-gray-400 tabular-nums">{passage.wordCount} words</span>
-          </div>
-          <h2 className="font-serif text-2xl font-bold mb-4" style={{ color: B.purpleDark }}>{passage.title}</h2>
-          <div className="space-y-3 text-sm leading-relaxed text-gray-800">
-            {passage.paragraphs.map((p, i) => {
-              const highlighted = q.refPara === i + 1;
-              return (
-                <p
-                  key={i}
-                  data-para-idx={i}
-                  className={`flex gap-3 rounded-lg px-2 py-1 -mx-2 transition-colors ${
-                    highlighted ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3' : ''
-                  }`}
-                >
-                  <span
-                    className="shrink-0 font-black text-[11px] tracking-widest tabular-nums select-none"
-                    style={{ color: highlighted ? '#B45309' : B.purpleMed }}
-                  >
-                    ¶{paraTag(i)}
-                  </span>
-                  <span className="flex-1">{p}</span>
-                </p>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Question */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg self-start"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Question {qIdx + 1} of {passage.questions.length}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: B.lavender, color: B.purple }}>
-                {READING_TYPE_LABEL[q.type]}
-              </span>
-              {q.refPara && (
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">
-                  → ¶{paraTag(q.refPara - 1)}
-                </span>
-              )}
-            </div>
-          </div>
-          <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
-
-          {/* Question dots for this passage */}
-          <div className="mt-5 flex flex-wrap gap-1.5">
-            {passage.questions.map((qu, qi) => {
-              const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
-              const active   = qi === qIdx;
-              return (
-                <button
-                  key={qu.id}
-                  onClick={() => setQIdx(qi)}
-                  className={`w-7 h-7 rounded text-[10px] font-bold border-2 transition-colors ${
-                    active    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
-                    : answered ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
-                    :            'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
-                  }`}
-                >
-                  {qi + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 flex justify-between gap-2">
-            <button
-              onClick={prevQuestion}
-              disabled={isFirst}
-              className="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50 transition-colors"
+      <div className="w-full max-w-6xl pb-24 space-y-4">
+        <TaskRibbon
+          eyebrow={`TOEFL · Reading · Passage ${pIdx + 1} of ${passages.length}`}
+          emoji="📖"
+          title={passage.title}
+          subtitle={`${passage.wordCount} palabras · ${passage.questions.length} preguntas`}
+          right={
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#FFF', border: '1px solid rgba(255,255,255,0.25)' }}
             >
-              ← Back
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setReviewing(true)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors"
-              >
-                Review all
-              </button>
-              <button
-                onClick={nextQuestion}
-                disabled={selected === null}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
-                style={{ background: B.purple }}
-              >
-                {isLast ? 'Review →' : 'Next →'}
-              </button>
-            </div>
+              Pregunta {qIdx + 1} de {passage.questions.length}
+            </span>
+          }
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Passage with paragraph markers */}
+          <div ref={passageRef}>
+            <BrandCard scroll>
+              <div className="space-y-3 text-sm leading-relaxed text-gray-800">
+                {passage.paragraphs.map((p, i) => {
+                  const highlighted = q.refPara === i + 1;
+                  return (
+                    <p
+                      key={i}
+                      data-para-idx={i}
+                      className="flex gap-3 rounded-xl px-2 py-1.5 -mx-2 transition-colors"
+                      style={highlighted ? {
+                        background: `linear-gradient(135deg, ${SHELL.gold}18, ${SHELL.gold}08)`,
+                        borderLeft: `3px solid ${SHELL.gold}`,
+                        paddingLeft: '12px',
+                      } : undefined}
+                    >
+                      <span
+                        className="shrink-0 font-black text-[11px] tracking-widest tabular-nums select-none"
+                        style={{ color: highlighted ? SHELL.goldDeep : SHELL.purpleMed }}
+                      >
+                        ¶{paraTag(i)}
+                      </span>
+                      <span className="flex-1">{p}</span>
+                    </p>
+                  );
+                })}
+              </div>
+            </BrandCard>
+          </div>
+
+          {/* Question */}
+          <div className="self-start">
+            <BrandCard>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: SHELL.purpleMed }}>
+                  Pregunta {qIdx + 1} de {passage.questions.length}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
+                    style={{ background: SHELL.lavenderBg, color: SHELL.purple, border: `1px solid ${SHELL.purpleMed}33` }}>
+                    {READING_TYPE_LABEL[q.type]}
+                  </span>
+                  {q.refPara && (
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-full"
+                      style={{ background: `${SHELL.gold}22`, color: SHELL.goldDeep, border: `1px solid ${SHELL.gold}55` }}>
+                      → ¶{paraTag(q.refPara - 1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
+
+              {/* Question dots for this passage */}
+              <div className="mt-5 flex flex-wrap gap-1.5">
+                {passage.questions.map((qu, qi) => {
+                  const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
+                  const active   = qi === qIdx;
+                  return (
+                    <button
+                      key={qu.id}
+                      onClick={() => setQIdx(qi)}
+                      className="w-8 h-8 rounded-lg text-[11px] font-black transition-all hover:-translate-y-0.5"
+                      style={{
+                        background: active
+                          ? `linear-gradient(135deg,${SHELL.purpleDeep},${SHELL.purpleMed})`
+                          : answered
+                            ? SHELL.lavenderBg
+                            : '#FFFFFF',
+                        color:  active ? '#FFFFFF' : answered ? SHELL.purple : '#9CA3AF',
+                        border: active ? 'none' : `1.5px solid ${answered ? SHELL.purpleMed : '#E5E7EB'}`,
+                        boxShadow: active ? `0 6px 12px -4px ${SHELL.purple}80` : 'none',
+                      }}
+                    >
+                      {qi + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 flex justify-between gap-2 flex-wrap">
+                <button
+                  onClick={prevQuestion}
+                  disabled={isFirst}
+                  className="px-4 py-2 rounded-2xl text-sm font-semibold border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50 transition-colors"
+                >
+                  ← Volver
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setReviewing(true)}
+                    className="px-4 py-2 rounded-2xl text-sm font-semibold transition-colors"
+                    style={{
+                      border: `1.5px solid ${SHELL.purpleMed}`,
+                      color:  SHELL.purple,
+                      background: 'transparent',
+                    }}
+                  >
+                    Ver todas
+                  </button>
+                  <SubmitButton onClick={nextQuestion} disabled={selected === null}>
+                    {isLast ? 'Revisar →' : 'Siguiente →'}
+                  </SubmitButton>
+                </div>
+              </div>
+            </BrandCard>
           </div>
         </div>
       </div>
@@ -549,132 +588,172 @@ function ListeningSection({
     if (!url) setGenError('No se pudo generar el audio. Avisale al profesor.');
   }
 
+  const isLastOfAll = qIdx === audio.questions.length - 1 && aIdx === audios.length - 1;
+
   return (
     <>
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4 pb-24">
-        <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              Audio {aIdx + 1} of {audios.length} · {audio.type === 'lecture' ? 'Lecture' : 'Conversation'}
+      <div className="w-full max-w-5xl pb-24 space-y-4">
+        <TaskRibbon
+          eyebrow={`TOEFL · Listening · Audio ${aIdx + 1} of ${audios.length} · ${audio.type === 'lecture' ? 'Lecture' : 'Conversation'}`}
+          emoji="🎧"
+          title={audio.title}
+          subtitle={audio.subject ? `${audio.subject} · ${audio.questions.length} preguntas` : `${audio.questions.length} preguntas`}
+          right={
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#FFF', border: '1px solid rgba(255,255,255,0.25)' }}
+            >
+              {phase === 'play' ? '🔊 Escuchar' : `Pregunta ${qIdx + 1}/${audio.questions.length}`}
             </span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest">{audio.subject}</span>
-          </div>
-          <h2 className="font-serif text-2xl font-bold mb-3" style={{ color: B.purpleDark }}>{audio.title}</h2>
+          }
+        />
 
-          {phase === 'play' && (
-            <>
-              {url ? (
-                <div className="bg-[#F0E5FF] rounded-xl p-3 mb-3">
-                  <audio src={url} controls className="w-full" preload="auto" />
-                  <p className="text-[10px] text-gray-500 mt-2 text-center italic">
-                    Escucha el audio con atención. Después vas a contestar {audio.questions.length} preguntas.
-                    Puedes tomar notas en el panel de la derecha.
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-3">
-                  <p className="text-xs text-amber-800 font-semibold">⚠ Audio pendiente</p>
-                  <p className="text-[11px] text-amber-700 mt-1 leading-relaxed">
-                    Tu profesor todavía no subió el audio para este clip. Avisale para que lo suba
-                    desde su dashboard (menú TOEFL → panel &ldquo;Audios de Listening&rdquo;) y recargá esta página.
-                  </p>
-                  <button
-                    onClick={requestGeneration}
-                    disabled={generating}
-                    className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold text-amber-800 border border-amber-300 bg-white/70 hover:bg-white disabled:opacity-60 transition-colors"
-                    title="Intenta generar el audio con TTS (requiere API key configurada en el servidor)"
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+          <BrandCard>
+            {phase === 'play' && (
+              <>
+                {url ? (
+                  <div
+                    className="rounded-2xl p-4 mb-4"
+                    style={{
+                      background: `linear-gradient(135deg, ${SHELL.lavenderBg}, #E8DBFF)`,
+                      border:     `1px solid ${SHELL.purpleMed}33`,
+                    }}
                   >
-                    {generating ? '⏳ Intentando generar…' : '🎙 Intentar generación automática'}
-                  </button>
-                  {genError && <p className="text-[11px] text-red-600 mt-2">{genError}</p>}
-                </div>
-              )}
-
-              <ScriptViewer audio={audio} />
-
-              <button
-                onClick={() => setPhase('quiz')}
-                disabled={!url}
-                className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed mt-3"
-                style={{ background: B.purple }}
-              >
-                Continuar a las preguntas →
-              </button>
-            </>
-          )}
-
-          {phase === 'quiz' && (
-            <>
-              <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-                  Question {qIdx + 1} of {audio.questions.length}
-                </span>
-                <button
-                  onClick={() => setPhase('play')}
-                  className="text-[10px] font-semibold text-[#5A3D7A] hover:underline"
-                >
-                  ↩ volver al audio
-                </button>
-              </div>
-              <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
-
-              <ScriptViewer audio={audio} />
-
-              {/* Question dots for this audio */}
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {audio.questions.map((qu, qi) => {
-                  const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
-                  const active   = qi === qIdx;
-                  return (
+                    <audio src={url} controls className="w-full" preload="auto" />
+                    <p className="text-[11px] text-[#5A3D7A]/70 mt-2 text-center italic leading-relaxed">
+                      Escucha con atención. Después contestas {audio.questions.length} preguntas —
+                      puedes tomar notas en el panel de la derecha.
+                    </p>
+                  </div>
+                ) : (
+                  <div
+                    className="rounded-2xl p-4 mb-4"
+                    style={{
+                      background: `linear-gradient(135deg, ${SHELL.gold}18, ${SHELL.gold}08)`,
+                      border:     `1px solid ${SHELL.gold}55`,
+                    }}
+                  >
+                    <p className="text-xs font-black uppercase tracking-widest" style={{ color: SHELL.goldDeep }}>
+                      ⚠ Audio pendiente
+                    </p>
+                    <p className="text-[11px] mt-2 leading-relaxed" style={{ color: '#78350F' }}>
+                      Tu profesor todavía no subió el audio para este clip. Avísale para que lo suba
+                      desde su dashboard (menú TOEFL → panel &ldquo;Audios de Listening&rdquo;) y recarga esta página.
+                    </p>
                     <button
-                      key={qu.id}
-                      onClick={() => setQIdx(qi)}
-                      className={`w-7 h-7 rounded text-[10px] font-bold border-2 transition-colors ${
-                        active    ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
-                        : answered ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
-                        :            'border-gray-200 bg-white text-gray-400 hover:border-[#C8A8DC]'
-                      }`}
+                      onClick={requestGeneration}
+                      disabled={generating}
+                      className="mt-3 w-full py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors disabled:opacity-60"
+                      style={{
+                        background: '#FFFFFF',
+                        color:      SHELL.goldDeep,
+                        border:     `1.5px solid ${SHELL.gold}`,
+                      }}
                     >
-                      {qi + 1}
+                      {generating ? '⏳ Intentando generar…' : '🎙 Intentar generación automática'}
                     </button>
-                  );
-                })}
-              </div>
+                    {genError && <p className="text-[11px] text-red-600 mt-2">{genError}</p>}
+                  </div>
+                )}
 
-              <div className="mt-5 flex justify-end">
-                <button
-                  onClick={nextQuestion}
-                  disabled={selected === null}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-90"
-                  style={{ background: B.purple }}
-                >
-                  {qIdx === audio.questions.length - 1 && aIdx === audios.length - 1
-                    ? 'Finish Listening →'
-                    : 'Next →'}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+                <ScriptViewer audio={audio} />
 
-        {/* Notes sidebar — always visible, per-audio */}
-        <div className="bg-white rounded-2xl p-4 shadow-lg self-start"
-          style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-              📝 Notas — audio {aIdx + 1}
-            </p>
+                <div className="mt-4 flex justify-end">
+                  <SubmitButton onClick={() => setPhase('quiz')} disabled={!url}>
+                    Continuar a las preguntas →
+                  </SubmitButton>
+                </div>
+              </>
+            )}
+
+            {phase === 'quiz' && (
+              <>
+                <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: SHELL.purpleMed }}>
+                    Pregunta {qIdx + 1} de {audio.questions.length}
+                  </span>
+                  <button
+                    onClick={() => setPhase('play')}
+                    className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full transition-colors"
+                    style={{
+                      color:      SHELL.purple,
+                      background: SHELL.lavenderBg,
+                      border:     `1px solid ${SHELL.purpleMed}55`,
+                    }}
+                  >
+                    ↩ Volver al audio
+                  </button>
+                </div>
+                <MCQCard prompt={q.prompt} options={q.options} selected={selected} onSelect={record} />
+
+                <div className="mt-4">
+                  <ScriptViewer audio={audio} />
+                </div>
+
+                {/* Question dots for this audio */}
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {audio.questions.map((qu, qi) => {
+                    const answered = answers[qu.id]?.selected !== undefined && answers[qu.id]?.selected !== null;
+                    const active   = qi === qIdx;
+                    return (
+                      <button
+                        key={qu.id}
+                        onClick={() => setQIdx(qi)}
+                        className="w-8 h-8 rounded-lg text-[11px] font-black transition-all hover:-translate-y-0.5"
+                        style={{
+                          background: active
+                            ? `linear-gradient(135deg,${SHELL.purpleDeep},${SHELL.purpleMed})`
+                            : answered
+                              ? SHELL.lavenderBg
+                              : '#FFFFFF',
+                          color:  active ? '#FFFFFF' : answered ? SHELL.purple : '#9CA3AF',
+                          border: active ? 'none' : `1.5px solid ${answered ? SHELL.purpleMed : '#E5E7EB'}`,
+                          boxShadow: active ? `0 6px 12px -4px ${SHELL.purple}80` : 'none',
+                        }}
+                      >
+                        {qi + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-5 flex justify-end">
+                  <SubmitButton onClick={nextQuestion} disabled={selected === null}>
+                    {isLastOfAll ? '✓ Enviar Listening' : 'Siguiente →'}
+                  </SubmitButton>
+                </div>
+              </>
+            )}
+          </BrandCard>
+
+          {/* Notes sidebar — always visible, per-audio */}
+          <div className="self-start">
+            <BrandCard>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: SHELL.purpleMed }}>
+                  📝 Notas · Audio {aIdx + 1}
+                </p>
+              </div>
+              <textarea
+                value={notes[audio.id] ?? ''}
+                onChange={e => setNotesFor(audio.id, e.target.value)}
+                rows={14}
+                placeholder="Palabras clave, nombres, cifras, estructura del audio…"
+                className="w-full text-[13px] px-3 py-2 rounded-xl focus:outline-none focus:ring-4 leading-snug resize-y text-gray-700 transition-shadow"
+                style={{
+                  background:  '#FDFAFF',
+                  border:      '1px solid #E8D5F0',
+                  fontFamily:  '"Georgia", "Cambria", serif',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = SHELL.purpleMed; e.currentTarget.style.boxShadow = `0 0 0 4px ${SHELL.lavenderBg}`; }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = '#E8D5F0';       e.currentTarget.style.boxShadow = 'none'; }}
+              />
+              <p className="text-[9px] text-gray-400 mt-1.5 italic">
+                Se guardan solas y se mantienen entre audios.
+              </p>
+            </BrandCard>
           </div>
-          <textarea
-            value={notes[audio.id] ?? ''}
-            onChange={e => setNotesFor(audio.id, e.target.value)}
-            rows={14}
-            placeholder="Escribe las palabras clave que escuchas. En el TOEFL real puedes tomar notas mientras suena el audio."
-            className="w-full text-xs px-3 py-2 rounded-lg border border-[#E8D5F0] focus:outline-none focus:border-[#9B7CB8] focus:ring-1 focus:ring-[#C8A8DC] leading-snug resize-y font-mono text-gray-700"
-          />
-          <p className="text-[9px] text-gray-400 mt-1.5 italic">
-            Tus notas se guardan solas y se mantienen entre audios.
-          </p>
         </div>
       </div>
       {!practiceMode && <TimerBar label="Listening · 20 min" seconds={left} totalSec={totalSec} warn={60} />}

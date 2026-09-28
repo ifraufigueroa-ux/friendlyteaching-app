@@ -17,7 +17,7 @@ import type { TOEFLBuildSentenceItem, BuildSentenceAnswer } from '@/types/toefl'
 import { useCountdown } from '@/hooks/useCountdown';
 import {
   B, TaskRibbon, TimerPill, AutosaveChip, SubmitButton, BrandCard,
-} from './WritingTaskShell';
+} from './MockShell';
 
 export interface BuildSentenceSectionProps {
   items:       TOEFLBuildSentenceItem[];

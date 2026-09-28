@@ -1,10 +1,10 @@
-// FriendlyTeaching.cl — Shared visual atoms for TOEFL Writing tasks
+// FriendlyTeaching.cl — Shared visual atoms for TOEFL & IELTS mock runners
 //
-// The 3 Writing sub-tasks (Build a Sentence, Email, Academic Discussion)
-// used to be visually flat and generic. This module gives them one
-// shared identity — brand purples, gold accents, animated status pills —
-// without collapsing the 3 layouts into one component, so each task can
-// still tune its own prompt panel.
+// Every section of every mock (TOEFL Reading/Listening/Speaking/Writing,
+// IELTS Reading/Listening/Writing) used to look flat and anonymous. This
+// module gives them ONE shared visual identity — brand purples, gold
+// accents, animated status pills — without collapsing their layouts, so
+// each section can still tune its own prompt panel.
 
 'use client';
 import type { ReactNode } from 'react';
@@ -19,17 +19,26 @@ export const B = {
   goldDeep:    '#B8860B',
 } as const;
 
-/** Big header ribbon shared across the 3 tasks. Emoji + task tag + title. */
+/** Big header ribbon shared across every mock section. Emoji + eyebrow + title. */
 export function TaskRibbon({
-  taskNumber, taskName, title, subtitle, emoji, right,
+  eyebrow, title, subtitle, emoji, right, taskNumber, taskName,
 }: {
-  taskNumber: 1 | 2 | 3;
-  taskName:   string;   // "Build a Sentence" · "Write an Email" · "Academic Discussion"
-  title:      string;   // one-line human hook, warm
-  subtitle?:  string;   // small helper copy under the title
-  emoji:      string;   // 🧱 / 📧 / 💬
-  right?:     ReactNode;
+  /** Eyebrow line in gold caps. Fully custom — takes precedence over
+   *  taskNumber/taskName. Use it for "Reading · Passage 1 of 2",
+   *  "Listening · Lecture 1", "IELTS · Writing Task 1", etc. */
+  eyebrow?:   string;
+  /** Back-compat with the Writing tasks: pass taskNumber + taskName and the
+   *  eyebrow becomes "Writing · Task N · <taskName>". */
+  taskNumber?: 1 | 2 | 3;
+  taskName?:   string;
+  title:       string;   // one-line human hook, warm
+  subtitle?:   string;   // small helper copy under the title
+  emoji:       string;   // 🧱 / 📧 / 💬 / 📖 / 🎧 / 🎤
+  right?:      ReactNode;
 }) {
+  const eyebrowText =
+    eyebrow ??
+    (taskNumber && taskName ? `Writing · Task ${taskNumber} · ${taskName}` : '');
   return (
     <div
       className="relative overflow-hidden rounded-3xl px-5 md:px-6 py-4 md:py-5 flex items-center gap-4"
@@ -55,14 +64,16 @@ export function TaskRibbon({
       </div>
 
       <div className="relative flex-1 min-w-0 text-white">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: B.gold }}>
-          Writing · Task {taskNumber} · {taskName}
-        </p>
+        {eyebrowText && (
+          <p className="text-[10px] font-black uppercase tracking-[0.4em]" style={{ color: B.gold }}>
+            {eyebrowText}
+          </p>
+        )}
         <p className="font-serif text-lg md:text-xl leading-tight mt-0.5 truncate">{title}</p>
         {subtitle && <p className="text-[11px] text-white/70 mt-1 leading-snug">{subtitle}</p>}
       </div>
 
-      {right && <div className="relative shrink-0 flex items-center gap-2">{right}</div>}
+      {right && <div className="relative shrink-0 flex items-center gap-2 flex-wrap justify-end">{right}</div>}
     </div>
   );
 }

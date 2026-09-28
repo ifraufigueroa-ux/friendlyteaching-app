@@ -14,11 +14,7 @@ import type {
   TOEFLSpeakingPrompt, SpeakingRecording, TOEFLLiveSnapshot,
 } from '@/types/toefl';
 import { useCountdown } from '@/hooks/useCountdown';
-
-const B = {
-  purple:      '#5A3D7A',
-  purpleMed:   '#9B7CB8',
-};
+import { TaskRibbon, BrandCard, SubmitButton, B } from './MockShell';
 
 type MicStatus = 'unknown' | 'checking' | 'ok' | 'denied' | 'unsupported';
 
@@ -193,12 +189,18 @@ export function SpeakingSection({
   const finalMsg = finalTaskSavingMessage ?? 'Última task. Al terminar arranca la calificación con AI (~1-2 min).';
 
   return (
-    <div className="w-full max-w-2xl">
-      <div className="bg-white rounded-2xl p-6 shadow-lg" style={{ boxShadow: '0 8px 32px -8px rgba(90,61,122,0.15)' }}>
-        <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: B.purpleMed }}>
-            Speaking · Task {pIdx + 1} of {prompts.length} · {prompt.category}
-          </span>
+    <div className="w-full max-w-2xl space-y-4">
+      <TaskRibbon
+        eyebrow={`TOEFL · Speaking · Task ${pIdx + 1} of ${prompts.length} · ${prompt.category}`}
+        emoji="🎤"
+        title={
+          phase === 'read'   ? 'Lee el prompt, ordena tu idea.' :
+          phase === 'prep'   ? 'Preparación — 15s para pensar.' :
+          phase === 'speak'  ? 'Grabando — habla con claridad.' :
+                               'Guardando tu grabación…'
+        }
+        subtitle={`${prompt.prepSec}s prep · ${prompt.speakSec}s speak`}
+        right={
           <div className="flex gap-1.5">
             {prompts.map((p, i) => {
               const done = doneIds.has(p.id);
@@ -207,33 +209,60 @@ export function SpeakingSection({
                 <span
                   key={p.id}
                   title={`Task ${i + 1}${done ? ' · grabada' : active ? ' · actual' : ' · pendiente'}`}
-                  className={`w-6 h-6 rounded text-[10px] font-bold border-2 flex items-center justify-center ${
-                    active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white'
-                    : done  ? 'border-[#5A3D7A] bg-[#F0E5FF] text-[#5A3D7A]'
-                    :         'border-gray-200 bg-white text-gray-400'
-                  }`}
+                  className="w-6 h-6 rounded-lg text-[10px] font-black flex items-center justify-center"
+                  style={{
+                    background: active
+                      ? '#FFFFFF'
+                      : done
+                        ? 'rgba(255,255,255,0.35)'
+                        : 'rgba(255,255,255,0.10)',
+                    color:  active ? B.purple : '#FFFFFF',
+                    border: active ? 'none' : `1px solid rgba(255,255,255,${done ? '0.5' : '0.25'})`,
+                  }}
                 >
                   {i + 1}
                 </span>
               );
             })}
           </div>
-        </div>
-        <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl p-4 mb-4">
-          <p className="text-sm text-[#2D1B4E] leading-relaxed">{prompt.prompt}</p>
+        }
+      />
+
+      <BrandCard>
+        {/* Prompt card */}
+        <div
+          className="rounded-2xl p-4 mb-4 relative overflow-hidden"
+          style={{
+            background: `linear-gradient(135deg, ${B.lavenderBg} 0%, #E8DBFF 100%)`,
+            border:     `1px solid ${B.purpleMed}33`,
+          }}
+        >
+          <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: B.gold }}>
+            Prompt · {prompt.category}
+          </p>
+          <p className="text-[15px] leading-relaxed" style={{ color: B.purpleDeep }}>
+            {prompt.prompt}
+          </p>
         </div>
 
         {phase !== 'speak' && phase !== 'saving' && micStatus !== 'ok' && (
-          <div className={`mb-3 rounded-xl px-3 py-2 text-xs flex items-center justify-between gap-2 border ${
-            micStatus === 'checking'    ? 'bg-blue-50 border-blue-200 text-blue-800'
-            : micStatus === 'denied'    ? 'bg-red-50 border-red-200 text-red-700'
-            : micStatus === 'unsupported' ? 'bg-red-50 border-red-200 text-red-700'
-            :                              'bg-amber-50 border-amber-200 text-amber-800'
-          }`}>
+          <div className="mb-3 rounded-2xl px-3 py-2 text-xs flex items-center justify-between gap-2"
+            style={{
+              background: micStatus === 'checking' ? 'rgba(59,130,246,0.10)'
+                : (micStatus === 'denied' || micStatus === 'unsupported') ? 'rgba(220,38,38,0.10)'
+                : 'rgba(245,158,11,0.10)',
+              border: micStatus === 'checking' ? '1px solid rgba(59,130,246,0.35)'
+                : (micStatus === 'denied' || micStatus === 'unsupported') ? '1px solid rgba(220,38,38,0.35)'
+                : '1px solid rgba(245,158,11,0.35)',
+              color: micStatus === 'checking' ? '#1E40AF'
+                : (micStatus === 'denied' || micStatus === 'unsupported') ? '#B91C1C'
+                : '#92400E',
+            }}
+          >
             <span>
               {micStatus === 'checking'    && '🎙 Verificando micrófono…'}
-              {micStatus === 'denied'      && '⚠ Micrófono bloqueado. Habilitá permisos en el candado de la barra de direcciones y recargá.'}
-              {micStatus === 'unsupported' && '⚠ Tu navegador no soporta grabación. Usá Chrome/Edge/Firefox actualizado.'}
+              {micStatus === 'denied'      && '⚠ Micrófono bloqueado. Habilita permisos en el candado de la barra y recarga.'}
+              {micStatus === 'unsupported' && '⚠ Tu navegador no soporta grabación. Usa Chrome/Edge/Firefox actualizado.'}
               {micStatus === 'unknown'     && '⚠ Estado del micrófono desconocido.'}
             </span>
             {micStatus === 'denied' && (
@@ -244,7 +273,7 @@ export function SpeakingSection({
                     .then((s) => { s.getTracks().forEach(t => t.stop()); setMicStatus('ok'); })
                     .catch(() => setMicStatus('denied'));
                 }}
-                className="text-red-700 underline whitespace-nowrap"
+                className="text-red-700 underline whitespace-nowrap font-bold"
               >
                 Reintentar
               </button>
@@ -253,18 +282,14 @@ export function SpeakingSection({
         )}
 
         {phase === 'read' && (
-          <div className="text-center space-y-3">
-            <p className="text-[11px] text-gray-500">
-              Vas a tener <strong>{prompt.prepSec}s de preparación</strong>, y después <strong>{prompt.speakSec}s para grabar</strong> tu respuesta.
+          <div className="text-center space-y-4 py-2">
+            <p className="text-[12px] text-gray-600">
+              Vas a tener <strong style={{ color: B.purple }}>{prompt.prepSec}s de preparación</strong>,
+              y después <strong style={{ color: B.purple }}>{prompt.speakSec}s para grabar</strong>.
             </p>
-            <button
-              onClick={startPrep}
-              disabled={micStatus !== 'ok'}
-              className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: B.purple }}
-            >
+            <SubmitButton onClick={startPrep} disabled={micStatus !== 'ok'}>
               ▶ Empezar preparación
-            </button>
+            </SubmitButton>
             {recordings.length > 0 && (
               <p className="text-[10px] text-gray-400">
                 {recordings.length} de {prompts.length} tasks completadas.
@@ -272,7 +297,7 @@ export function SpeakingSection({
             )}
             <button
               onClick={skip}
-              className="text-[10px] text-gray-400 hover:text-red-500 underline block mx-auto mt-2"
+              className="text-[10px] text-gray-400 hover:text-red-500 underline block mx-auto"
             >
               Saltar esta task
             </button>
@@ -280,22 +305,51 @@ export function SpeakingSection({
         )}
 
         {phase === 'prep' && (
-          <div className="text-center py-6 space-y-3">
-            <div className="text-6xl font-black tabular-nums" style={{ color: B.purple }}>{prepLeft}</div>
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.purpleMed }}>Preparación</p>
-            <p className="text-[11px] text-gray-500">Piensa tu respuesta. La grabación arranca sola.</p>
-            <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 mt-2">Empezar a grabar ahora →</button>
+          <div className="text-center py-8 space-y-3">
+            <div className="relative inline-flex items-center justify-center">
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center relative"
+                style={{
+                  background: `conic-gradient(${B.purpleMed} ${(prepLeft / prompt.prepSec) * 360}deg, ${B.lavenderBg} 0deg)`,
+                }}
+              >
+                <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
+                  <span className="text-5xl font-black tabular-nums" style={{ color: B.purpleDeep }}>{prepLeft}</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.35em]" style={{ color: B.purpleMed }}>Preparación</p>
+            <p className="text-[12px] text-gray-500">Piensa tu respuesta. La grabación arranca sola.</p>
+            <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 underline">
+              Empezar a grabar ahora →
+            </button>
           </div>
         )}
 
         {phase === 'speak' && (
-          <div className="text-center py-6 space-y-3">
-            <div className="text-6xl font-black tabular-nums text-red-500 animate-pulse">{speakLeft}</div>
-            <p className="text-xs font-bold uppercase tracking-widest text-red-600">🔴 Grabando</p>
-            <p className="text-[11px] text-gray-500">Habla con claridad. La grabación se corta sola al llegar a 0.</p>
+          <div className="text-center py-8 space-y-3">
+            <div className="relative inline-flex items-center justify-center">
+              <div className="absolute w-40 h-40 rounded-full animate-ping"
+                style={{ background: 'rgba(239,68,68,0.15)' }} />
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center relative"
+                style={{
+                  background: `conic-gradient(#EF4444 ${(speakLeft / prompt.speakSec) * 360}deg, #FEE2E2 0deg)`,
+                }}
+              >
+                <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
+                  <span className="text-5xl font-black tabular-nums text-red-500">{speakLeft}</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.35em] text-red-600 flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Grabando
+            </p>
+            <p className="text-[12px] text-gray-500">Habla con claridad. Se corta sola al llegar a 0.</p>
             <button
               onClick={stopSpeaking}
-              className="px-5 py-2 rounded-full text-xs font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+              className="px-5 py-2 rounded-2xl text-xs font-bold transition-colors"
+              style={{ border: '1.5px solid #E5E7EB', color: '#4B5563', background: 'white' }}
             >
               Terminar ahora
             </button>
@@ -304,8 +358,9 @@ export function SpeakingSection({
 
         {phase === 'saving' && (
           <div className="text-center py-8">
-            <div className="w-10 h-10 rounded-full border-4 border-[#C8A8DC] border-t-transparent animate-spin mx-auto mb-3" />
-            <p className="text-sm font-bold" style={{ color: B.purple }}>Guardando audio…</p>
+            <div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mx-auto mb-3"
+              style={{ borderColor: B.purpleMed, borderTopColor: 'transparent' }} />
+            <p className="text-sm font-black" style={{ color: B.purpleDeep }}>Guardando audio…</p>
             <p className="text-[11px] text-gray-500 mt-1">
               {pIdx < prompts.length - 1
                 ? 'Cuando termine, pasamos a la próxima task.'
@@ -315,12 +370,14 @@ export function SpeakingSection({
         )}
 
         {error && (
-          <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-700 flex items-center justify-between gap-2">
+          <div className="mt-3 rounded-2xl px-3 py-2 text-xs flex items-center justify-between gap-2"
+            style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.35)', color: '#B91C1C' }}
+          >
             <span>{error}</span>
-            <button onClick={skip} className="text-red-600 underline whitespace-nowrap">Saltar task →</button>
+            <button onClick={skip} className="text-red-600 underline whitespace-nowrap font-bold">Saltar task →</button>
           </div>
         )}
-      </div>
+      </BrandCard>
     </div>
   );
 }

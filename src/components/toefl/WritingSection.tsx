@@ -15,7 +15,7 @@ import { useCountdown } from '@/hooks/useCountdown';
 import { SampleAnswerModal } from './SampleAnswerModal';
 import {
   B, TaskRibbon, TimerPill, WordCountMeter, AutosaveChip, SubmitButton, BrandCard,
-} from './WritingTaskShell';
+} from './MockShell';
 
 export interface WritingSectionProps {
   prompt:      TOEFLWritingPrompt;
