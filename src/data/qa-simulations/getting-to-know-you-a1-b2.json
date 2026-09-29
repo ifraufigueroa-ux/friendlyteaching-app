@@ -1,7 +1,9 @@
 {
   "id":            "getting-to-know-you-a1-b2",
   "title":         "Getting to Know You — A1 to B2",
+  "titleEn":       "Getting to Know You — A1 to B2",
   "description":   "Cuestionario diagnóstico de primera clase. Sube progresivamente del A1 al B2 mientras conoces al estudiante: información personal, preferencias, experiencias y expectativas.",
+  "descriptionEn": "First-class diagnostic questionnaire. Climbs progressively from A1 to B2 while you get to know the student: personal information, preferences, experiences and expectations.",
   "topic":         "First-class diagnostic · A1 → B2 · Personal info, preferences, experiences, expectations",
   "icon":          "🎯",
   "gradient":      "from-[#6366F1] to-[#A78BFA]",

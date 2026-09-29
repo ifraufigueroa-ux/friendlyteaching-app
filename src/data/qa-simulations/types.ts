@@ -53,8 +53,12 @@ export interface QASimulation {
   id:           string;
   /** Display title shown in the index and during play. */
   title:        string;
+  /** Optional English title used when the runner is switched to EN. */
+  titleEn?:     string;
   /** Short one-line description for the card. */
   description:  string;
+  /** Optional English description used when the runner is switched to EN. */
+  descriptionEn?: string;
   /** Optional student name this sim was built for. */
   studentName?: string;
   /** Optional research topic / context. */

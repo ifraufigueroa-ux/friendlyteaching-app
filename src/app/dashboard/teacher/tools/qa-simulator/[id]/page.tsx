@@ -753,7 +753,7 @@ function SetupScreen({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
-      <FullscreenButton />
+      <FullscreenButton title={lang === 'en' ? 'Fullscreen' : 'Pantalla completa'} />
       {/* ── Hero header ──────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] px-8 py-10">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
@@ -771,8 +771,12 @@ function SetupScreen({
             <span>{simulation.icon}</span>
             <span>{t('brand.tag')}</span>
           </p>
-          <h1 className="text-3xl font-extrabold text-white mb-1">{simulation.title}</h1>
-          <p className="text-white/60 text-sm mb-4">{simulation.description}</p>
+          <h1 className="text-3xl font-extrabold text-white mb-1">
+            {(lang === 'en' && simulation.titleEn) ? simulation.titleEn : simulation.title}
+          </h1>
+          <p className="text-white/60 text-sm mb-4">
+            {(lang === 'en' && simulation.descriptionEn) ? simulation.descriptionEn : simulation.description}
+          </p>
 
           {hasCefr && (
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/15">
@@ -1068,7 +1072,7 @@ function PlayingScreen({
             <StatBadge label={t('play.score')} value={score} color="#5A3D7A" />
             <StatBadge label={t('play.streak')} value={streak} color={streak >= 3 ? '#B91C1C' : '#6B7280'} icon={streak >= 3 ? '🔥' : undefined} pulse={streakBurst > 0} />
             <LanguageToggle lang={lang} setLang={setLang} />
-            <FullscreenButton variant="inline" />
+            <FullscreenButton variant="inline" title={lang === 'en' ? 'Fullscreen' : 'Pantalla completa'} />
           </div>
         </div>
       </div>
@@ -1441,7 +1445,7 @@ function FinishedScreen({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
-      <FullscreenButton />
+      <FullscreenButton title={lang === 'en' ? 'Fullscreen' : 'Pantalla completa'} />
       {/* ── Hero ───────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#5A3D7A] via-[#7B5EA7] to-[#9B7CB8] px-8 py-12">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
