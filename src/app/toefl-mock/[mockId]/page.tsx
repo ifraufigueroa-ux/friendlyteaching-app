@@ -26,7 +26,7 @@ import type {
   TOEFLReadingQuestionType, TOEFLSession,
 } from '@/types/toefl';
 import {
-  readingRawToScaled, listeningRawToScaled,
+  readingRawToScaled, listeningRawToScaled, combineOverallBand,
   TOEFL_SECTIONS, TOEFL_SECTION_META,
 } from '@/types/toefl';
 import {
@@ -778,7 +778,8 @@ function ResultsScreen({
 }) {
   const [downloading, setDownloading] = useState(false);
   const isPartial = enabledSections.length < 4;
-  const maxScore = enabledSections.length * 30;
+  // ETS 2026: every section and the overall use the same 1-6 band scale.
+  const maxScore = 6;
   const meta: Record<string, { icon: string; label: string }> = {
     reading:   { icon: '📖', label: 'Reading' },
     listening: { icon: '🎧', label: 'Listening' },
@@ -818,9 +819,11 @@ function ResultsScreen({
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
           <div className="relative">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-70">
-              {isPartial ? `Subtotal (${enabledSections.length}/4)` : 'Total TOEFL'}
+              {isPartial ? `Subtotal (${enabledSections.length}/4)` : 'TOEFL iBT Band'}
             </p>
-            <p className="text-7xl font-black mt-1 tabular-nums">{overall}</p>
+            <p className="text-7xl font-black mt-1 tabular-nums">
+              {overall.toFixed(1)}
+            </p>
             <p className="text-sm mt-2 opacity-80">/ {maxScore} · {studentName}</p>
           </div>
         </div>
@@ -840,11 +843,14 @@ function ResultsScreen({
                         <span className="text-lg">{meta[s].icon}</span>
                         <p className="text-sm font-bold" style={{ color: B.purple }}>{meta[s].label}</p>
                       </div>
-                      <span className="text-lg font-black tabular-nums" style={{ color: B.purple }}>{sc?.score ?? 0}</span>
+                      <span className="text-lg font-black tabular-nums" style={{ color: B.purple }}>
+                        {sc?.score != null ? sc.score.toFixed(1) : '—'}
+                        <span className="text-[10px] font-bold opacity-60"> / 6</span>
+                      </span>
                     </div>
                     <div className="h-1.5 bg-[#F0E5FF] rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] rounded-full"
-                        style={{ width: `${((sc?.score ?? 0) / 30) * 100}%` }} />
+                        style={{ width: `${((sc?.score ?? 0) / 6) * 100}%` }} />
                     </div>
                     {sc?.raw !== undefined && sc.outOf !== undefined && (
                       <p className="text-[10px] text-gray-500 mt-1 tabular-nums">
@@ -1082,7 +1088,10 @@ export default function TOEFLMockPage() {
     if (next) { setPhase(next as Phase); return; }
     // Last enabled section → finalise session and go to results.
     const combined = { ...scores, ...(extraScore ? { [current]: extraScore } : {}) };
-    const overall = Object.values(combined).reduce((s, v) => s + (v?.score ?? 0), 0);
+    const bands = Object.values(combined).map(v => v?.score ?? 0).filter(n => n > 0);
+    // ETS 2026: overall = average of the enabled section bands, rounded to
+    // nearest 0.5 (not the pre-2026 sum-to-120).
+    const overall = combineOverallBand(bands);
     try {
       const sid = await ensureSession();
       await updateDoc(doc(db, 'toeflSessions', sid), {

@@ -25,7 +25,7 @@ export interface SpeakingTaskProgress {
 
 export interface GradeSpeakingResult {
   enriched:     SpeakingRecording[];
-  overallScore: number;   // 0-30
+  overallScore: number;   // 1.0-6.0 in 0.5 steps (ETS 2026 band)
 }
 
 export interface GradeSpeakingOptions {
@@ -109,7 +109,7 @@ export async function gradeSpeakingRecordings(
       const gJson = await gRes.json().catch(() => ({}));
       if (!gRes.ok) throw new Error(`Grade ${gRes.status}: ${gJson?.error ?? 'sin respuesta'}`);
 
-      const rawScore = Number(gJson.rawScore04 ?? 0);
+      const rawScore = Number(gJson.rawScore05 ?? gJson.rawScore04 ?? 0);
       rawScores.push(rawScore);
       // Drop `aiError` from the previous attempt on success — Firestore rejects
       // `undefined` values, so we strip the property with destructuring instead

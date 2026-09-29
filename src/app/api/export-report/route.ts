@@ -78,7 +78,7 @@ export interface TOEFLSpeakingFriendlyReportData {
   studentName:  string;
   studentEmail?: string;
   mockTitle:    string;
-  overallScore: number;   // 0-30
+  overallScore: number;   // 1.0-6.0 in 0.5 steps (ETS 2026 band)
   recordings: Array<{
     promptId:      string;
     audioUrl?:     string;
@@ -980,7 +980,7 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
 
   const rows = (['reading','listening','speaking','writing'] as const).map(s => {
     const sc = data.scores[s];
-    const pct = sc ? (sc.score / 30) * 100 : 0;
+    const pct = sc ? (sc.score / 6) * 100 : 0;
     return `
     <tr>
       <td style="padding:14px;vertical-align:middle;">
@@ -999,8 +999,8 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
         </div>
       </td>
       <td style="padding:14px;text-align:right;width:100px;vertical-align:middle;">
-        <span style="font-size:22px;font-weight:900;color:#5A3D7A;">${sc?.score ?? 0}</span>
-        <span style="font-size:11px;color:#9B7CB8;"> / 30</span>
+        <span style="font-size:22px;font-weight:900;color:#5A3D7A;">${sc ? sc.score.toFixed(1) : '—'}</span>
+        <span style="font-size:11px;color:#9B7CB8;"> / 6</span>
       </td>
     </tr>`;
   }).join('');
@@ -1054,8 +1054,8 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
         <div class="student-sub">${dateStr}</div>
       </div>
       <div class="total-pill">
-        <div class="total-value">${data.overall}</div>
-        <div class="total-label">Total / 120</div>
+        <div class="total-value">${data.overall.toFixed(1)}</div>
+        <div class="total-label">Band / 6</div>
       </div>
     </div>
   </div>
@@ -1077,13 +1077,16 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
 // (Juan_Fontecilla design language). Rating buckets are pedagogical, not the
 // raw 0-4 number — the goal is a report the student actually reads.
 
-function friendlyRating(scoreOn4: number): { label: string; color: string; bg: string; barBg: string; barFill: string; pct: number } {
-  const s = Math.max(0, Math.min(4, scoreOn4));
-  const pct = (s / 4) * 100;
-  if (s >= 3.5)  return { label: 'Excelente',   color: '#15803D', bg: '#DCFCE7', barBg: '#DCFCE7', barFill: '#22C55E', pct };
-  if (s >= 2.75) return { label: 'Muy bien',    color: '#5A3D7A', bg: '#F0E5FF', barBg: '#F0E5FF', barFill: '#9B7CB8', pct };
-  if (s >= 2)    return { label: 'Buen nivel',  color: '#B45309', bg: '#FEF3C7', barBg: '#FEF3C7', barFill: '#F59E0B', pct };
-  if (s >= 1)    return { label: 'A entrenar',  color: '#0F766E', bg: '#CCFBF1', barBg: '#CCFBF1', barFill: '#14B8A6', pct };
+// TOEFL iBT 2026: task-level rubric is 0-5 (was 0-4 pre-2026). Buckets
+// re-thresholded so "Excelente" now needs a 4.5+ (top-band feel), keeping
+// pedagogical labels instead of the raw digit.
+function friendlyRating(scoreOn5: number): { label: string; color: string; bg: string; barBg: string; barFill: string; pct: number } {
+  const s = Math.max(0, Math.min(5, scoreOn5));
+  const pct = (s / 5) * 100;
+  if (s >= 4.5) return { label: 'Excelente',    color: '#15803D', bg: '#DCFCE7', barBg: '#DCFCE7', barFill: '#22C55E', pct };
+  if (s >= 3.5) return { label: 'Muy bien',     color: '#5A3D7A', bg: '#F0E5FF', barBg: '#F0E5FF', barFill: '#9B7CB8', pct };
+  if (s >= 2.5) return { label: 'Buen nivel',   color: '#B45309', bg: '#FEF3C7', barBg: '#FEF3C7', barFill: '#F59E0B', pct };
+  if (s >= 1.25) return { label: 'A entrenar',  color: '#0F766E', bg: '#CCFBF1', barBg: '#CCFBF1', barFill: '#14B8A6', pct };
   return           { label: 'Necesita foco', color: '#991B1B', bg: '#FEE2E2', barBg: '#FEE2E2', barFill: '#F87171', pct };
 }
 
@@ -1180,7 +1183,7 @@ function generateTOEFLSpeakingFriendlyHTML(data: TOEFLSpeakingFriendlyReportData
   }).join('');
 
   // Simple overall commentary based on score bucket.
-  const overallPct = (data.overallScore / 30) * 100;
+  const overallPct = (data.overallScore / 6) * 100;
   const overallSummary =
     overallPct >= 75 ? `Tu Speaking está muy bien, ${escapeHtml(firstName)}. Manejas las respuestas con soltura y estructura clara — ahora vamos por matices y ritmo natural.` :
     overallPct >= 55 ? `Vas por buen camino, ${escapeHtml(firstName)}. Se entiende clarito lo que dices y armas las respuestas ordenadas. El próximo paso es soltarte más y ganar fluidez para no depender tanto de la pausa.` :
@@ -1244,8 +1247,8 @@ function generateTOEFLSpeakingFriendlyHTML(data: TOEFLSpeakingFriendlyReportData
   <div class="cards-3">
     <div class="stat-card">
       <div class="stat-label">Speaking global</div>
-      <div class="stat-value" style="color:#5A3D7A;">${data.overallScore}<span style="font-size:12px;color:#9B7CB8;font-weight:600;"> / 30</span></div>
-      <div class="stat-sub">Escala oficial TOEFL</div>
+      <div class="stat-value" style="color:#5A3D7A;">${data.overallScore.toFixed(1)}<span style="font-size:12px;color:#9B7CB8;font-weight:600;"> / 6</span></div>
+      <div class="stat-sub">Escala oficial TOEFL iBT 2026 · Band 1–6</div>
       <div class="stat-bar"><div style="width:${Math.min(100, overallPct)}%;background:linear-gradient(90deg,#9B7CB8,#5A3D7A);"></div></div>
     </div>
     <div class="stat-card">

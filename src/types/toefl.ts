@@ -173,12 +173,13 @@ export interface TOEFLMock {
 
 // ── Results ────────────────────────────────────────────────────────────────
 
-/** Per-section 0-30. Sum = overall 0-120. */
+/** Per-section band 1-6 in 0.5 increments (ETS 2026 scale). Overall = average
+ *  of the enabled sections' bands, also 1-6 in 0.5 increments. */
 export interface SectionScore {
   section:    TOEFLSection;
   raw?:       number;         // reading/listening: correct count
   outOf?:     number;         // reading/listening: total questions
-  score:      number;         // 0-30 (final section score)
+  score:      number;         // 1.0..6.0 in 0.5 steps (final section band)
 }
 
 export interface ReadingAnswer {
@@ -203,10 +204,10 @@ export interface SpeakingRecording {
   audioUrl:      string;   // download URL with token
   durationSec:   number;
   transcript?:   string;
-  aiScore?:      number;   // 0-4 raw, then mapped to 0-30 section-wide
+  aiScore?:      number;   // 0-5 raw per ETS 2026 task rubric
   aiFeedback?:   string;
   aiRubric?: {
-    delivery:         number;
+    delivery:         number;   // each 0-5
     languageUse:      number;
     topicDevelopment: number;
   };
@@ -328,7 +329,7 @@ export interface TOEFLSession {
     writing?:   { submission: WritingSectionSubmission; score: SectionScore };
   };
   progress:        Partial<Record<TOEFLSection, 'pending' | 'in_progress' | 'completed' | 'skipped'>>;
-  overallScore?:   number;   // 0-120 sum of section scores
+  overallScore?:   number;   // 1.0-6.0 ETS 2026 average band (0.5 steps)
   status:          TOEFLSessionStatus;
   /** Latest live snapshot for the in-flight section. Cleared on completion. */
   liveSnapshot?:          TOEFLLiveSnapshot;
@@ -380,7 +381,7 @@ export interface TOEFLSpeakingAssignment {
   status:          TOEFLSpeakingAssignmentStatus;
   /** Recordings uploaded by the student. One per prompt. */
   recordings?:     SpeakingRecording[];
-  /** Overall Speaking score 0-30 (only present when graded). */
+  /** Overall Speaking band 1.0-6.0 in 0.5 steps (only present when graded). */
   overallScore?:   number;
   /** Latest error from the auto-grading pipeline, if it failed. Teacher can retry. */
   gradingError?:   string;
@@ -398,54 +399,38 @@ export interface TOEFLSpeakingAssignment {
 export function readingRawToScaled(correct: number, totalQuestions: number): number {
   if (totalQuestions === 0) return 0;
   const pct = correct / totalQuestions;
-  // Curve-ish mapping — favours the mid range (14-23) which is where most
-  // real test-takers land. Extremes are rare.
-  if (pct >= 0.95) return 30;
-  if (pct >= 0.90) return 28;
-  if (pct >= 0.85) return 26;
-  if (pct >= 0.80) return 24;
-  if (pct >= 0.75) return 22;
-  if (pct >= 0.70) return 20;
-  if (pct >= 0.65) return 18;
-  if (pct >= 0.55) return 16;
-  if (pct >= 0.45) return 13;
-  if (pct >= 0.35) return 10;
-  if (pct >= 0.25) return 7;
-  return Math.round(pct * 12);
+  return pctToBand16(pct);
 }
 
 export function listeningRawToScaled(correct: number, totalQuestions: number): number {
-  return readingRawToScaled(correct, totalQuestions);   // similar curve
+  return readingRawToScaled(correct, totalQuestions);   // same curve
 }
 
-/** Speaking: 4 tasks, each 0-4 raw. Sum (0-16) → 0-30 scaled per ETS table. */
+/** Speaking: N tasks, each 0-5 raw (new ETS 2026 scale). Sum → 1-6 band per
+ *  ETS 2026 scale table.
+ *
+ *  Historical note: the pre-2026 ETS TOEFL rubric used a 0-4 task scale
+ *  (Independent) mapped to a 0-30 section score. From 21 January 2026 ETS
+ *  moved every task to 0-5 and every section to 1-6 with 0.5 increments.
+ *  This app follows the 2026 scale. */
 export function speakingRawToScaled(taskScores: number[]): number {
-  if (taskScores.length === 0) return 0;
+  if (taskScores.length === 0) return 1;
   const sum = taskScores.reduce((a, b) => a + b, 0);
-  const max = taskScores.length * 4;
-  const pct = sum / max;
-  if (pct >= 1)    return 30;
-  if (pct >= 0.9)  return 28;
-  if (pct >= 0.8)  return 26;
-  if (pct >= 0.7)  return 23;
-  if (pct >= 0.6)  return 20;
-  if (pct >= 0.5)  return 17;
-  if (pct >= 0.4)  return 14;
-  if (pct >= 0.3)  return 10;
-  if (pct >= 0.2)  return 7;
-  return Math.round(pct * 12);
+  const max = taskScores.length * 5;
+  return pctToBand16(sum / max);
 }
 
-/** Writing: T2 Academic Discussion, 0-5 raw → 0-30 linear. Kept for
- *  backward compatibility and for standalone AD grading. */
+/** Writing: T2 Academic Discussion — 0-5 raw → 1-6 band. Kept for standalone
+ *  AD grading (assignments flow). */
 export function writingRawToScaled(raw05: number): number {
   const clamped = Math.max(0, Math.min(5, raw05));
-  return Math.round((clamped / 5) * 30);
+  return pctToBand16(clamped / 5);
 }
 
-/** Full Writing section score (0-30) from the three sub-task raw scores.
- *  Weights: BAS 20% (0-6), Email 30% (0-9), AD 50% (0-15). BAS raw is the
- *  fraction of items answered correctly (0-1). Email + AD raws are 0-5. */
+/** Full Writing section score (1-6) from the three sub-task raw scores.
+ *  Weights follow ETS 2026 guidance: the two written responses (Email + AD)
+ *  carry more weight than the 10 Build-a-Sentence items.
+ *   · BAS 20%, Email 30%, AD 50%. */
 export function writingSectionRawToScaled(parts: {
   basCorrectPct: number;    // 0..1, share of BAS items answered correctly
   emailRaw05:    number;    // 0..5 AI rubric
@@ -454,17 +439,50 @@ export function writingSectionRawToScaled(parts: {
   const bas   = Math.max(0, Math.min(1, parts.basCorrectPct));
   const email = Math.max(0, Math.min(5, parts.emailRaw05)) / 5;
   const ad    = Math.max(0, Math.min(5, parts.adRaw05)) / 5;
-  const weighted = bas * 6 + email * 9 + ad * 15;   // out of 30
-  return Math.round(weighted);
+  const weightedPct = bas * 0.20 + email * 0.30 + ad * 0.50;
+  return pctToBand16(weightedPct);
 }
 
-/** CEFR-ish label for a total 0-120 score (rough guide for teachers). */
-export function totalToCefrHint(total: number): string {
-  if (total >= 110) return 'C2 mastery';
-  if (total >= 95)  return 'C1 advanced';
-  if (total >= 80)  return 'B2 upper-intermediate';
-  if (total >= 60)  return 'B1+ intermediate';
-  if (total >= 45)  return 'B1 lower-intermediate';
-  if (total >= 30)  return 'A2 elementary';
+/** Overall TOEFL score (1-6) = average of the enabled sections' bands,
+ *  rounded to the nearest 0.5 — matches ETS 2026 aggregation. */
+export function combineOverallBand(sectionBands: number[]): number {
+  if (sectionBands.length === 0) return 1;
+  const avg = sectionBands.reduce((a, b) => a + b, 0) / sectionBands.length;
+  return roundToHalf(Math.max(1, Math.min(6, avg)));
+}
+
+/** Round to the nearest 0.5. */
+export function roundToHalf(n: number): number {
+  return Math.round(n * 2) / 2;
+}
+
+/** Percentage of the max possible score (0..1) → TOEFL 2026 band (1..6 in
+ *  0.5 increments). Curve favours the mid range (3.0-4.5) where most
+ *  test-takers land; 6 requires ~95%, floor of 1 for anyone who attempts. */
+export function pctToBand16(pct: number): number {
+  const p = Math.max(0, Math.min(1, pct));
+  if (p >= 0.95) return 6.0;
+  if (p >= 0.90) return 5.5;
+  if (p >= 0.85) return 5.0;
+  if (p >= 0.80) return 4.5;
+  if (p >= 0.70) return 4.0;
+  if (p >= 0.60) return 3.5;
+  if (p >= 0.50) return 3.0;
+  if (p >= 0.40) return 2.5;
+  if (p >= 0.30) return 2.0;
+  if (p >= 0.15) return 1.5;
+  return 1.0;
+}
+
+/** CEFR label for a 1-6 band (aligned to ETS 2026 CEFR mapping table). */
+export function bandToCefrHint(band: number): string {
+  if (band >= 5.5) return 'C2 mastery';
+  if (band >= 4.5) return 'C1 advanced';
+  if (band >= 3.5) return 'B2 upper-intermediate';
+  if (band >= 2.5) return 'B1 intermediate';
+  if (band >= 1.5) return 'A2 elementary';
   return 'A1 or below';
 }
+
+/** Legacy name kept as an alias so existing imports don't break. */
+export const totalToCefrHint = bandToCefrHint;

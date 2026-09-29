@@ -52,7 +52,7 @@ export function SpeakingBreakdown({
                   </span>
                 </div>
                 <span className={`text-sm font-black tabular-nums shrink-0 ${errored ? 'text-red-600' : 'text-[#5A3D7A]'}`}>
-                  {errored ? '⚠' : `${r.aiScore ?? 0}/4`}
+                  {errored ? '⚠' : `${r.aiScore ?? 0}/5`}
                 </span>
               </summary>
               <div className="p-3 space-y-2 border-t" style={{ borderColor: errored ? '#FECACA' : B.lavenderDark }}>
@@ -69,7 +69,7 @@ export function SpeakingBreakdown({
                         <p className="text-[8px] font-black uppercase tracking-widest text-[#5A3D7A]/60">
                           {k === 'delivery' ? 'Delivery' : k === 'languageUse' ? 'Language' : 'Topic dev'}
                         </p>
-                        <p className="text-lg font-black tabular-nums" style={{ color: B.purple }}>{r.aiRubric![k]}/4</p>
+                        <p className="text-lg font-black tabular-nums" style={{ color: B.purple }}>{r.aiRubric![k]}/5</p>
                       </div>
                     ))}
                   </div>

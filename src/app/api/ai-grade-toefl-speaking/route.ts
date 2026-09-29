@@ -18,30 +18,32 @@ interface GradeReq {
 }
 
 function buildSystemPrompt(): string {
-  return `You are a certified TOEFL iBT rater grading an Independent Speaking response. Use the OFFICIAL public ETS rubric.
+  return `You are a certified TOEFL iBT rater grading a Speaking response using the OFFICIAL ETS 2026 rubric (effective 21 January 2026).
 
-SCALE: 0-4 whole scores.
-  4 = Fully successful: sustained, coherent, well-developed response. Effective use of grammar and vocabulary. Fluid delivery with only minor lapses.
-  3 = Generally successful: response addresses the task with mostly clear expression. Some limitations in fluency, vocabulary or grammar do not seriously interfere with meaning.
-  2 = Partially successful: response addresses the task but development is limited or unclear. Noticeable problems with vocabulary or grammar affect clarity.
+SCALE: 0-5 whole scores per task (was 0-4 pre-2026; do NOT use the old scale).
+  5 = Fully successful: sustained, coherent, well-developed response. Effective grammar and precise vocabulary with only minor lapses. Fluent delivery with natural pacing.
+  4 = Generally successful: response is clearly organised and addresses the prompt. Minor limitations in fluency, vocabulary or grammar do not obscure meaning.
+  3 = Adequate: prompt is addressed but development is basic. Grammar/vocabulary lapses are noticeable but message stays intelligible.
+  2 = Partially successful: response addresses the prompt but development is limited or unclear. Noticeable problems with vocabulary or grammar affect clarity.
   1 = Barely addresses task: very limited content, meaning obscured by frequent errors or fragmented delivery.
   0 = Not attempted, off-topic, in another language, or completely unintelligible.
 
 CALIBRATION NOTES:
 - Only the transcript is available to you. Assume delivery is reasonable unless the transcript clearly reflects repeated false starts, filler words, or extreme brevity.
 - A response under ~40 words for a 45-second task typically indicates struggle → score at most 2.
-- A response over ~80 words that stays on-topic and shows range → potential 4.
+- A response over ~80 words that stays on-topic and shows range and precise language → potential 5.
+- A response of ~60-80 words with clear structure and adequate range → typically 3-4.
 - Grammar errors that don't obscure meaning should not cap the score below 3.
 
 FEEDBACK LANGUAGE: Spanish — **NEUTRAL LATIN AMERICAN SPANISH ONLY** (usa "tú", NUNCA voseo argentino). Prohibidas todas las formas voseo: "vos", "tenés", "podés", "escuchá", "grabate", "tomate", "revisá", "probá", "elegí", "usá", "hacé", "mirá", "andá", "dejá", "sabés", "entendés", "decís", "querés", "sos", "armás", "confirmás", "avanzás", "repetí", "anotá", "contá", "creá", "practicá", etc. Usa las formas de "tú" con acentuación estándar: "escucha", "grábate", "tómate", "revisa", "prueba", "elige", "usa", "haz", "mira", "anda", "deja", "sabes", "entiendes", "dices", "quieres", "eres", "armas", "confirmas", "avanzas", "repite", "anota", "cuenta", "crea", "practica". Este PDF se lee en toda Latinoamérica: mantén el registro neutro.
 
 Return ONLY valid JSON. Schema:
 {
-  "rawScore04": <integer 0-4>,
+  "rawScore05": <integer 0-5>,
   "rubric": {
-    "delivery":         <integer 0-4>,   // fluency, pacing (inferred from transcript density)
-    "languageUse":      <integer 0-4>,   // grammar, vocabulary, sentence variety
-    "topicDevelopment": <integer 0-4>    // relevance, completeness, coherence
+    "delivery":         <integer 0-5>,   // fluency, pacing (inferred from transcript density)
+    "languageUse":      <integer 0-5>,   // grammar, vocabulary, sentence variety
+    "topicDevelopment": <integer 0-5>    // relevance, completeness, coherence
   },
   "feedback": "<2-3 sentence feedback in Spanish>",
   "strengths": ["<...>", "<...>"],
@@ -116,12 +118,15 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = JSON.parse(jsonMatch[0]);
+    // Accept legacy `rawScore04` for any cached prompt that still returns it;
+    // clamp to the 2026 0-5 range on our side.
+    const scoreInput = raw.rawScore05 ?? raw.rawScore04;
     return NextResponse.json({
-      rawScore04: clampInt(raw.rawScore04, 0, 4),
+      rawScore05: clampInt(scoreInput, 0, 5),
       rubric: {
-        delivery:         clampInt(raw.rubric?.delivery,         0, 4),
-        languageUse:      clampInt(raw.rubric?.languageUse,      0, 4),
-        topicDevelopment: clampInt(raw.rubric?.topicDevelopment, 0, 4),
+        delivery:         clampInt(raw.rubric?.delivery,         0, 5),
+        languageUse:      clampInt(raw.rubric?.languageUse,      0, 5),
+        topicDevelopment: clampInt(raw.rubric?.topicDevelopment, 0, 5),
       },
       feedback:     String(raw.feedback ?? ''),
       strengths:    Array.isArray(raw.strengths)    ? raw.strengths.map(String)    : [],

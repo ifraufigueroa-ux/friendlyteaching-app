@@ -514,7 +514,7 @@ function SessionsTable({
                     {listening != null ? `${listening}` : <span className="text-gray-300 font-normal">—</span>}
                   </td>
                   <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
-                    {s.overallScore != null ? s.overallScore : <span className="text-gray-300 font-normal">—</span>}
+                    {s.overallScore != null ? s.overallScore.toFixed(1) : <span className="text-gray-300 font-normal">—</span>}
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">
@@ -627,7 +627,7 @@ function SessionSpeakingModal({
       });
       setLiveRecordings(enriched);
       setLiveSpeakingScore(overallScore);
-      setRetryProgress(`✓ ${overallScore}/30`);
+      setRetryProgress(`✓ ${overallScore.toFixed(1)}/6`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setRetryProgress(`Error: ${msg}`);
@@ -681,7 +681,7 @@ function SessionSpeakingModal({
             {liveSpeakingScore != null && (
               <div className="text-right">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Speaking</p>
-                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{liveSpeakingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{liveSpeakingScore?.toFixed(1)}<span className="text-sm text-[#5A3D7A]/60">/6</span></p>
               </div>
             )}
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
@@ -756,7 +756,7 @@ function SessionWritingModal({
             {writingScore != null && (
               <div className="text-right">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Writing</p>
-                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{writingScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{writingScore?.toFixed(1)}<span className="text-sm text-[#5A3D7A]/60">/6</span></p>
               </div>
             )}
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
@@ -970,7 +970,7 @@ function WritingAssignmentsPanel({ teacherId }: { teacherId: string }) {
                     <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70">{mock?.title ?? a.mockId}</td>
                     <td className="px-3 py-2.5 text-xs text-[#5A3D7A]/70 tabular-nums">{fmtDate(a.createdAt)}</td>
                     <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
-                      {a.overallScore != null ? `${a.overallScore}/30` : <span className="text-gray-300 font-normal">—</span>}
+                      {a.overallScore != null ? `${a.overallScore.toFixed(1)}/6` : <span className="text-gray-300 font-normal">—</span>}
                     </td>
                     <td className="px-3 py-2.5">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
@@ -1048,7 +1048,7 @@ function WritingReviewModal({
       const upgraded = upgradeWritingSubmission(assignment.submission)!;
       const { enriched, sectionScore } = await gradeWritingSection(upgraded, mock.writing);
       await gradeToeflWritingAssignment(assignment.id, enriched, sectionScore);
-      setRetryMsg(`✓ ${sectionScore}/30`);
+      setRetryMsg(`✓ ${sectionScore.toFixed(1)}/6`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       try { await recordWritingGradingError(assignment.id, msg); } catch { /* ignore */ }
@@ -1073,7 +1073,7 @@ function WritingReviewModal({
             {assignment.overallScore != null && (
               <div className="text-right">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Writing</p>
-                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{assignment.overallScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{assignment.overallScore?.toFixed(1)}<span className="text-sm text-[#5A3D7A]/60">/6</span></p>
               </div>
             )}
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
@@ -1579,7 +1579,7 @@ function SpeakingAssignmentsPanel({ teacherId }: { teacherId: string }) {
                       {fmtDate(a.createdAt)}
                     </td>
                     <td className="px-3 py-2.5 text-sm font-black tabular-nums text-[#5A3D7A]">
-                      {a.overallScore != null ? `${a.overallScore}/30` : <span className="text-gray-300 font-normal">—</span>}
+                      {a.overallScore != null ? `${a.overallScore.toFixed(1)}/6` : <span className="text-gray-300 font-normal">—</span>}
                     </td>
                     <td className="px-3 py-2.5">
                       <span
@@ -1732,7 +1732,7 @@ function ReviewModal({
             {assignment.overallScore != null && (
               <div className="text-right">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60">Overall</p>
-                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{assignment.overallScore}<span className="text-sm text-[#5A3D7A]/60">/30</span></p>
+                <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{assignment.overallScore?.toFixed(1)}<span className="text-sm text-[#5A3D7A]/60">/6</span></p>
               </div>
             )}
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
