@@ -164,7 +164,7 @@ export default function ToeflSpeakingAssignmentPage() {
       return;
     }
     try {
-      const { enriched, overallScore } = await gradeSpeakingRecordings(recordings, mock.speaking);
+      const { enriched, overallScore } = await gradeSpeakingRecordings(recordings, mock.speaking ?? mock.speakingLegacy ?? []);
       await gradeToeflSpeakingAssignment(assignment.id, enriched, overallScore);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -304,7 +304,8 @@ export default function ToeflSpeakingAssignmentPage() {
     return (
       <PageBg>
         <SpeakingSection
-          prompts={mock.speaking}
+          section={mock.speaking}
+          sectionLegacy={mock.speakingLegacy}
           teacherId={assignment.teacherId}
           sessionId={assignment.id}
           onDone={handleSpeakingDone}

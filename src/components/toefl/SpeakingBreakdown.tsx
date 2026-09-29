@@ -4,22 +4,65 @@
 // transcript, feedback, strengths/improvements and audio player.
 // Used by the live full-mock results screen and by the teacher's
 // assignment review modal.
+//
+// Handles all three rubric shapes:
+//   · Listen and Repeat (ETS 2026, holistic — no rubric object)
+//   · Take an Interview (ETS 2026, 4 dims: fluency/intelligibility/languageUse/organization)
+//   · Legacy Independent Speaking (pre-2026, 3 dims: delivery/languageUse/topicDevelopment)
 
 'use client';
-import type { SpeakingRecording, TOEFLSpeakingPrompt } from '@/types/toefl';
+import type {
+  SpeakingRecording, TOEFLSpeakingPrompt, TOEFLSpeakingSection, TOEFLSpeakingItem,
+} from '@/types/toefl';
+import { speakingSectionItems } from '@/types/toefl';
 
 const B = {
   purple:       '#5A3D7A',
   lavenderDark: '#E0D5FF',
 };
 
+/** Item lookup that accepts both the 2026 section and the legacy prompt array. */
+function itemsFor(content: TOEFLSpeakingSection | TOEFLSpeakingPrompt[] | undefined): {
+  byId: Map<string, TOEFLSpeakingItem>;
+  topic: string | null;
+} {
+  const byId = new Map<string, TOEFLSpeakingItem>();
+  if (!content) return { byId, topic: null };
+  if (Array.isArray(content)) {
+    for (const p of content) {
+      byId.set(p.id, { id: p.id, type: 'take-an-interview', question: p.prompt, speakSec: p.speakSec });
+    }
+    return { byId, topic: null };
+  }
+  for (const it of speakingSectionItems(content)) byId.set(it.id, it);
+  return { byId, topic: content.interviewTopic };
+}
+
+// Human-friendly labels for whatever rubric fields are present on a record.
+const RUBRIC_LABELS: Record<string, string> = {
+  // Take an Interview (ETS 2026)
+  fluency:          'Fluency',
+  intelligibility:  'Intelligibility',
+  languageUse:      'Language',
+  organization:     'Organization',
+  // Legacy Independent (pre-2026) — languageUse re-used
+  delivery:         'Delivery',
+  topicDevelopment: 'Topic dev',
+};
+const RUBRIC_ORDER = ['fluency', 'intelligibility', 'languageUse', 'organization', 'delivery', 'topicDevelopment'] as const;
+
 export function SpeakingBreakdown({
-  recordings, prompts,
+  recordings, prompts, section,
 }: {
   recordings: SpeakingRecording[];
-  prompts:    TOEFLSpeakingPrompt[];
+  /** Legacy prompt array (pre-2026 content). */
+  prompts?:   TOEFLSpeakingPrompt[];
+  /** ETS 2026 section content. Preferred over `prompts`. */
+  section?:   TOEFLSpeakingSection;
 }) {
+  const { byId, topic } = itemsFor(section ?? prompts);
   const anyError = recordings.some(r => r.aiError);
+
   return (
     <div>
       <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-3" style={{ color: B.purple }}>
@@ -32,8 +75,16 @@ export function SpeakingBreakdown({
       )}
       <div className="space-y-3">
         {recordings.map((r, i) => {
-          const prompt = prompts.find(p => p.id === r.promptId);
+          const item    = byId.get(r.promptId);
           const errored = !!r.aiError;
+          const isLR    = (r.taskType ?? item?.type) === 'listen-and-repeat';
+          const targetSentence = item && item.type === 'listen-and-repeat' ? item.targetSentence : null;
+          const questionText   = item && item.type === 'take-an-interview' ? item.question       : null;
+          const promptCategory = isLR ? 'Listen & Repeat' : (topic ?? 'Interview');
+          const rubricEntries  = r.aiRubric
+            ? RUBRIC_ORDER.filter(k => typeof r.aiRubric?.[k] === 'number')
+            : [];
+
           return (
             <details
               key={r.promptId}
@@ -48,7 +99,7 @@ export function SpeakingBreakdown({
                     Task {i + 1}
                   </span>
                   <span className="text-[10px] text-gray-500 truncate">
-                    {prompt?.category ?? ''} · {r.durationSec.toFixed(0)}s
+                    {promptCategory} · {r.durationSec.toFixed(0)}s
                   </span>
                 </div>
                 <span className={`text-sm font-black tabular-nums shrink-0 ${errored ? 'text-red-600' : 'text-[#5A3D7A]'}`}>
@@ -56,20 +107,28 @@ export function SpeakingBreakdown({
                 </span>
               </summary>
               <div className="p-3 space-y-2 border-t" style={{ borderColor: errored ? '#FECACA' : B.lavenderDark }}>
-                {prompt && (
+                {targetSentence && (
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Prompt</p>
-                    <p className="text-[11px] text-gray-600 leading-snug">{prompt.prompt}</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Target</p>
+                    <p className="text-[11px] text-gray-700 leading-snug">&ldquo;{targetSentence}&rdquo;</p>
                   </div>
                 )}
-                {r.aiRubric && (
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    {(['delivery', 'languageUse', 'topicDevelopment'] as const).map((k) => (
+                {questionText && (
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/60 mb-0.5">Question</p>
+                    <p className="text-[11px] text-gray-600 leading-snug">{questionText}</p>
+                  </div>
+                )}
+                {rubricEntries.length > 0 && (
+                  <div className={`grid gap-2 pt-1 ${rubricEntries.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                    {rubricEntries.map((k) => (
                       <div key={k} className="rounded-lg border p-2 text-center" style={{ borderColor: B.lavenderDark }}>
                         <p className="text-[8px] font-black uppercase tracking-widest text-[#5A3D7A]/60">
-                          {k === 'delivery' ? 'Delivery' : k === 'languageUse' ? 'Language' : 'Topic dev'}
+                          {RUBRIC_LABELS[k]}
                         </p>
-                        <p className="text-lg font-black tabular-nums" style={{ color: B.purple }}>{r.aiRubric![k]}/5</p>
+                        <p className="text-lg font-black tabular-nums" style={{ color: B.purple }}>
+                          {r.aiRubric?.[k]}/5
+                        </p>
                       </div>
                     ))}
                   </div>

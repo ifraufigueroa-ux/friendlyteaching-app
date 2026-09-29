@@ -605,7 +605,7 @@ function SessionSpeakingModal({
     try {
       const { enriched, overallScore } = await gradeSpeakingRecordings(
         liveRecordings,
-        mock.speaking,
+        mock.speaking ?? mock.speakingLegacy ?? [],
         (progress) => {
           const done = progress.filter(p => p.status === 'done' || p.status === 'skipped').length;
           const err  = progress.filter(p => p.status === 'error').length;
@@ -718,7 +718,7 @@ function SessionSpeakingModal({
                 </button>
                 {retryProgress && <span className="text-[11px] text-[#5A3D7A]/70 basis-full">{retryProgress}</span>}
               </div>
-              <SpeakingBreakdown recordings={liveRecordings} prompts={mock.speaking} />
+              <SpeakingBreakdown recordings={liveRecordings} section={mock.speaking} prompts={mock.speakingLegacy} />
             </>
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones disponibles.</p>
@@ -1669,7 +1669,7 @@ function ReviewModal({
     try {
       const { enriched, overallScore } = await gradeSpeakingRecordings(
         assignment.recordings,
-        mock.speaking,
+        mock.speaking ?? mock.speakingLegacy ?? [],
         (progress) => {
           const done = progress.filter(p => p.status === 'done' || p.status === 'skipped').length;
           const err  = progress.filter(p => p.status === 'error').length;
@@ -1754,7 +1754,7 @@ function ReviewModal({
           )}
 
           {mock && assignment.recordings && assignment.recordings.length > 0 ? (
-            <SpeakingBreakdown recordings={assignment.recordings} prompts={mock.speaking} />
+            <SpeakingBreakdown recordings={assignment.recordings} section={mock.speaking} prompts={mock.speakingLegacy} />
           ) : (
             <p className="text-sm text-[#5A3D7A]/60 text-center py-8">Sin grabaciones aún.</p>
           )}

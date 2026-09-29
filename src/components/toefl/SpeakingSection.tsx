@@ -1,25 +1,47 @@
-// FriendlyTeaching.cl — TOEFL Speaking recorder
+// FriendlyTeaching.cl — TOEFL Speaking runner (ETS 2026)
 //
-// Reusable Speaking runner used by both the live full-mock (`/toefl-mock/…`)
-// and the assigned-mock student flow (`/dashboard/student/toefl-speaking/…`).
-// Flow per task: read → prep (15s) → speak (45s, MediaRecorder) → saving
-// (blob upload to Storage). Mid-recording is intentionally NOT snapshotted —
-// the browser can't resume a MediaRecorder chunk stream across a page reload.
+// Runs the ETS 2026 Speaking section: 7 Listen-and-Repeat items + 4
+// Take-an-Interview items (11 total, ~8 minutes). Every item is scored
+// 0-5; the section band 1.0-6.0 is computed on the client from the raw sum.
+//
+// Flow per LR item:  intro → play (SpeechSynthesis) → speak (recordSec) → save
+// Flow per TI item:  intro → play (SpeechSynthesis) → speak (45s)      → save
+// Between LR and TI: a short "interview intro" card with the topic + intro
+//                    line, so the student knows who is asking and about what.
+//
+// SpeechSynthesis (browser TTS) is used for prompt playback so no ElevenLabs
+// key is required for the mock to work — quality is not perfect but voices
+// are consistent, gender-neutral and English-tuned. In production we can
+// swap the `speakUtterance` helper for a real audio clip URL.
+//
+// Reusable across the live full-mock and the assigned-mock student flow. Also
+// falls back to a legacy Independent-Speaking layout when the mock only ships
+// `speakingLegacy` (pre-2026 content).
 
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase/config';
 import type {
-  TOEFLSpeakingPrompt, SpeakingRecording, TOEFLLiveSnapshot,
+  TOEFLSpeakingPrompt, TOEFLSpeakingSection, TOEFLSpeakingItem,
+  SpeakingRecording, TOEFLLiveSnapshot,
 } from '@/types/toefl';
+import { speakingSectionItems } from '@/types/toefl';
 import { useCountdown } from '@/hooks/useCountdown';
 import { TaskRibbon, BrandCard, SubmitButton, B } from './MockShell';
 
 type MicStatus = 'unknown' | 'checking' | 'ok' | 'denied' | 'unsupported';
+type Phase =
+  | 'intro'              // "Task N — listen, then repeat" (or interview intro before TI)
+  | 'playing'            // browser is speaking the prompt
+  | 'speak'              // recording student's answer
+  | 'saving';            // uploading blob to storage
 
 export interface SpeakingSectionProps {
-  prompts:    TOEFLSpeakingPrompt[];
+  /** ETS 2026 section (preferred). */
+  section?:       TOEFLSpeakingSection;
+  /** Legacy Independent Speaking prompts. Used when `section` is absent. */
+  sectionLegacy?: TOEFLSpeakingPrompt[];
   teacherId:  string;
   /** Groups uploaded audios in Storage under a stable id (session or assignment). */
   sessionId:  string;
@@ -27,27 +49,87 @@ export interface SpeakingSectionProps {
   initial?:   { outerIdx: number; recordings?: SpeakingRecording[] };
   onSnapshot?: (snap: Omit<TOEFLLiveSnapshot, 'section'>) => void;
   /** Copy shown while uploading the final task's audio. The default mentions
-   *  auto AI grading, which is only true in the live full-mock flow. Assigned
-   *  mocks override this so students don't expect immediate feedback. */
+   *  auto AI grading, which is only true in the live full-mock flow. */
   finalTaskSavingMessage?: string;
 }
 
+/** Build a normalised item list from either the 2026 section or the legacy
+ *  prompts. Legacy prompts are treated as Interview-style items so the flow
+ *  stays consistent (no prep, just listen → speak). */
+function itemsFor(section?: TOEFLSpeakingSection, legacy?: TOEFLSpeakingPrompt[]): {
+  items: TOEFLSpeakingItem[];
+  interviewTopic: string | null;
+  interviewIntro: string | null;
+  firstInterviewIndex: number;
+} {
+  if (section) {
+    return {
+      items: speakingSectionItems(section),
+      interviewTopic: section.interviewTopic,
+      interviewIntro: section.interviewIntro,
+      firstInterviewIndex: section.listenAndRepeat.length,
+    };
+  }
+  const legacyItems: TOEFLSpeakingItem[] = (legacy ?? []).map((p) => ({
+    id:       p.id,
+    type:     'take-an-interview',
+    question: p.prompt,
+    speakSec: p.speakSec,
+  }));
+  return {
+    items: legacyItems,
+    interviewTopic: null,
+    interviewIntro: null,
+    firstInterviewIndex: 0,
+  };
+}
+
+/** Wraps SpeechSynthesis.speak in a promise that resolves when playback ends
+ *  (or immediately if TTS isn't available). Cancels any in-flight utterance
+ *  first so switching items mid-speech doesn't queue up leftovers. */
+function speakUtterance(text: string, opts?: { rate?: number; pitch?: number }): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return resolve();
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang  = 'en-US';
+    u.rate  = opts?.rate ?? 0.95;
+    u.pitch = opts?.pitch ?? 1;
+    u.onend   = () => resolve();
+    u.onerror = () => resolve();
+    window.speechSynthesis.speak(u);
+  });
+}
+
 export function SpeakingSection({
-  prompts, teacherId, sessionId, onDone, initial, onSnapshot,
+  section, sectionLegacy, teacherId, sessionId, onDone, initial, onSnapshot,
   finalTaskSavingMessage,
 }: SpeakingSectionProps) {
+  const { items, interviewTopic, interviewIntro, firstInterviewIndex } =
+    itemsFor(section, sectionLegacy);
+
   const [pIdx, setPIdx] = useState(initial?.outerIdx ?? 0);
-  const [phase, setPhase] = useState<'read' | 'prep' | 'speak' | 'saving'>('read');
+  const [phase, setPhase] = useState<Phase>('intro');
   const [recordings, setRecordings] = useState<SpeakingRecording[]>(initial?.recordings ?? []);
   const [error, setError] = useState('');
   const [micStatus, setMicStatus] = useState<MicStatus>('unknown');
+  /** True while the student is looking at the "Interview intro" card that
+   *  appears once, right before the first TI item. */
+  const [interviewIntroPending, setInterviewIntroPending] = useState(
+    !!interviewIntro && pIdx === firstInterviewIndex,
+  );
+
   const chunks = useRef<Blob[]>([]);
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
-  const prompt = prompts[pIdx];
 
-  const prepLeft = useCountdown(prompt.prepSec, phase === 'prep', () => startSpeaking());
-  const speakLeft = useCountdown(prompt.speakSec, phase === 'speak', () => stopSpeaking());
+  const item = items[pIdx];
+  const isLR = item?.type === 'listen-and-repeat';
+  const recordSec = item
+    ? (item.type === 'listen-and-repeat' ? item.recordSec : item.speakSec)
+    : 0;
+
+  const speakLeft = useCountdown(recordSec, phase === 'speak', () => stopSpeaking());
 
   // Emit snapshot on every task advance (not mid-recording).
   useEffect(() => {
@@ -79,12 +161,27 @@ export function SpeakingSection({
       });
   }, []);
 
+  // Cancel any in-flight TTS if the student unmounts / navigates away.
+  useEffect(() => {
+    return () => {
+      try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+    };
+  }, []);
+
+  async function startPromptPlayback() {
+    if (!item) return;
+    setError('');
+    setPhase('playing');
+    const text = item.type === 'listen-and-repeat' ? item.targetSentence : item.question;
+    await speakUtterance(text);
+    // Auto-arm the recorder as soon as the prompt finishes speaking.
+    startRecording();
+  }
+
   async function startRecording() {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.current = s;
-      // Chrome/Firefox/Edge speak webm+opus; Safari (iPhone/iPad/macOS) only
-      // supports mp4/aac. Fall through the list until one hits.
       const candidates = [
         'audio/webm;codecs=opus',
         'audio/webm',
@@ -97,25 +194,17 @@ export function SpeakingSection({
       rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
       rec.start();
       recorder.current = rec;
+      setPhase('speak');
     } catch (err) {
       console.error('[speaking] mic error:', err);
       setError('No se pudo acceder al micrófono. Revisa los permisos del navegador.');
-      setPhase('read');
+      setPhase('intro');
       setMicStatus('denied');
     }
   }
 
-  function startPrep() {
-    setError('');
-    setPhase('prep');
-  }
-  function startSpeaking() {
-    setPhase('speak');
-    startRecording();
-  }
-
   async function stopSpeaking() {
-    if (!recorder.current) { setPhase('saving'); return; }
+    if (!recorder.current || !item) { setPhase('saving'); return; }
     setPhase('saving');
     await new Promise<void>((resolve) => {
       const rec = recorder.current!;
@@ -124,8 +213,6 @@ export function SpeakingSection({
     });
     stream.current?.getTracks().forEach(t => t.stop());
     const recMime = recorder.current!.mimeType || 'audio/webm';
-    // Storage rules regex matches on the bare mime — strip any ;codecs=…
-    // parameter so audio/webm;codecs=opus still passes the audio/.* rule.
     const bareMime = recMime.split(';')[0].trim() || 'audio/webm';
     const blob = new Blob(chunks.current, { type: recMime });
     if (blob.size === 0) {
@@ -134,82 +221,154 @@ export function SpeakingSection({
       setPhase('speak');
       return;
     }
-    // Extension must match the actual codec so Storage / Whisper can decode it.
     const ext = bareMime.includes('mp4') ? 'mp4' : bareMime.includes('wav') ? 'wav' : 'webm';
-    // Path uses real segments (not a flat filename) so Storage rules can
-    // match it unambiguously without regex.
-    const path = `audio/toefl-speaking/${teacherId}/${sessionId}/${prompt.id}-${Date.now()}.${ext}`;
+    const path = `audio/toefl-speaking/${teacherId}/${sessionId}/${item.id}-${Date.now()}.${ext}`;
     try {
       const sref = storageRef(storage, path);
       await uploadBytes(sref, blob, { contentType: bareMime });
       const url = await getDownloadURL(sref);
       const rec: SpeakingRecording = {
-        promptId:    prompt.id,
+        promptId:    item.id,
+        taskType:    item.type,
         storagePath: path,
         audioUrl:    url,
-        durationSec: prompt.speakSec - speakLeft,
+        durationSec: recordSec - speakLeft,
       };
-      const next = [...recordings, rec];
-      setRecordings(next);
-      if (pIdx < prompts.length - 1) {
-        setPIdx(i => i + 1);
-        setPhase('read');
-      } else {
-        onDone(next);
-      }
+      advanceTo(rec);
     } catch (err) {
       const code = (err as { code?: string })?.code ?? 'unknown';
       const msg  = err instanceof Error ? err.message : String(err);
       const server = (err as { serverResponse?: string })?.serverResponse ?? '';
-      console.error('[speaking] upload error:', { code, msg, server, path, mime: bareMime, size: blob.size, err });
-      setError(`Error subiendo audio (${code}). Path: ${path.slice(0, 60)}… · ${server.slice(0, 80)}`);
+      console.error('[speaking] upload error:', { code, msg, server, path });
+      setError(`Error subiendo audio (${code}). ${server.slice(0, 80)}`);
       setPhase('speak');
     }
   }
 
   function skip() {
+    if (!item) return;
     const placeholder: SpeakingRecording = {
-      promptId:    prompt.id,
+      promptId:    item.id,
+      taskType:    item.type,
       storagePath: '',
       audioUrl:    '',
       durationSec: 0,
     };
-    const next = [...recordings, placeholder];
+    advanceTo(placeholder);
+  }
+
+  function advanceTo(rec: SpeakingRecording) {
+    const next = [...recordings, rec];
     setRecordings(next);
     setError('');
-    if (pIdx < prompts.length - 1) {
-      setPIdx(i => i + 1);
-      setPhase('read');
+    if (pIdx < items.length - 1) {
+      const nextIdx = pIdx + 1;
+      setPIdx(nextIdx);
+      // Show the interview-intro card exactly once, right before the first TI item.
+      if (interviewIntro && nextIdx === firstInterviewIndex) {
+        setInterviewIntroPending(true);
+      }
+      setPhase('intro');
     } else {
       onDone(next);
     }
   }
 
+  if (!item) {
+    return (
+      <div className="w-full max-w-2xl">
+        <BrandCard>
+          <p className="text-sm text-[#5A3D7A]/70 text-center py-8">
+            Sin tasks disponibles en esta sección.
+          </p>
+        </BrandCard>
+      </div>
+    );
+  }
+
   const doneIds = new Set(recordings.map(r => r.promptId));
   const finalMsg = finalTaskSavingMessage ?? 'Última task. Al terminar arranca la calificación con AI (~1-2 min).';
+  const totalItems = items.length;
+  const humanTaskNumber = pIdx + 1;
+
+  // Interview-intro overlay: shown ONCE, right before the first Take-an-Interview
+  // item. It gives the student the topic + the "interviewer" opening line.
+  if (interviewIntroPending && interviewIntro) {
+    return (
+      <div className="w-full max-w-2xl space-y-4">
+        <TaskRibbon
+          eyebrow={`TOEFL · Speaking · Interview intro`}
+          emoji="🎙️"
+          title={`Topic: ${interviewTopic ?? ''}`}
+          subtitle="4 preguntas · 45s cada una · sin preparación"
+        />
+        <BrandCard>
+          <div
+            className="rounded-2xl p-4 mb-4"
+            style={{
+              background: `linear-gradient(135deg, ${B.lavenderBg} 0%, #E8DBFF 100%)`,
+              border:     `1px solid ${B.purpleMed}33`,
+            }}
+          >
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: B.gold }}>
+              Interviewer
+            </p>
+            <p className="text-[15px] leading-relaxed" style={{ color: B.purpleDeep }}>
+              &ldquo;{interviewIntro}&rdquo;
+            </p>
+          </div>
+          <p className="text-[12px] text-gray-600 text-center mb-4">
+            Vas a escuchar 4 preguntas seguidas sobre el mismo tema. Después de cada pregunta,
+            arranca tu tiempo de <strong style={{ color: B.purple }}>45 segundos</strong> — sin preparación.
+          </p>
+          <div className="flex justify-center gap-2 flex-wrap">
+            <button
+              onClick={async () => { await speakUtterance(interviewIntro); }}
+              className="text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl transition-colors"
+              style={{
+                background: 'transparent',
+                border:     `1.5px solid ${B.purpleMed}`,
+                color:      B.purple,
+              }}
+            >
+              🔊 Escuchar intro
+            </button>
+            <SubmitButton onClick={() => setInterviewIntroPending(false)}>
+              Empezar interview →
+            </SubmitButton>
+          </div>
+        </BrandCard>
+      </div>
+    );
+  }
+
+  // Compact section eyebrow that changes with the task type.
+  const eyebrow = isLR
+    ? `TOEFL · Speaking · Listen & Repeat · ${humanTaskNumber}/${totalItems}`
+    : `TOEFL · Speaking · Interview · ${humanTaskNumber}/${totalItems}`;
 
   return (
     <div className="w-full max-w-2xl space-y-4">
       <TaskRibbon
-        eyebrow={`TOEFL · Speaking · Task ${pIdx + 1} of ${prompts.length} · ${prompt.category}`}
-        emoji="🎤"
+        eyebrow={eyebrow}
+        emoji={isLR ? '🔁' : '🎤'}
         title={
-          phase === 'read'   ? 'Lee el prompt, ordena tu idea.' :
-          phase === 'prep'   ? 'Preparación — 15s para pensar.' :
-          phase === 'speak'  ? 'Grabando — habla con claridad.' :
-                               'Guardando tu grabación…'
+          phase === 'intro'   ? (isLR ? 'Escucha la frase y repítela exactamente.' : 'Escucha la pregunta, luego responde.')
+          : phase === 'playing' ? (isLR ? 'Escuchando frase…' : 'Escuchando pregunta…')
+          : phase === 'speak'   ? (isLR ? 'Repite ahora — habla claro.' : 'Responde — 45s para tu idea.')
+                                : 'Guardando tu grabación…'
         }
-        subtitle={`${prompt.prepSec}s prep · ${prompt.speakSec}s speak`}
+        subtitle={isLR ? `Ventana de grabación · ${recordSec}s` : '45s de respuesta · sin prep'}
         right={
-          <div className="flex gap-1.5">
-            {prompts.map((p, i) => {
-              const done = doneIds.has(p.id);
+          <div className="flex gap-1.5 flex-wrap justify-end max-w-[220px]">
+            {items.map((it, i) => {
+              const done = doneIds.has(it.id);
               const active = i === pIdx;
               return (
                 <span
-                  key={p.id}
-                  title={`Task ${i + 1}${done ? ' · grabada' : active ? ' · actual' : ' · pendiente'}`}
-                  className="w-6 h-6 rounded-lg text-[10px] font-black flex items-center justify-center"
+                  key={it.id}
+                  title={`${it.type === 'listen-and-repeat' ? 'LR' : 'Interview'} · task ${i + 1}${done ? ' · grabada' : active ? ' · actual' : ' · pendiente'}`}
+                  className="w-5 h-5 rounded text-[9px] font-black flex items-center justify-center"
                   style={{
                     background: active
                       ? '#FFFFFF'
@@ -229,7 +388,7 @@ export function SpeakingSection({
       />
 
       <BrandCard>
-        {/* Prompt card */}
+        {/* Task-context card — shows the ETS-visible framing */}
         <div
           className="rounded-2xl p-4 mb-4 relative overflow-hidden"
           style={{
@@ -238,11 +397,20 @@ export function SpeakingSection({
           }}
         >
           <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: B.gold }}>
-            Prompt · {prompt.category}
+            {isLR ? 'Listen & Repeat' : `Interview · ${interviewTopic ?? 'question'}`}
           </p>
-          <p className="text-[15px] leading-relaxed" style={{ color: B.purpleDeep }}>
-            {prompt.prompt}
-          </p>
+          {isLR
+            ? (
+              <p className="text-[13px] text-[#5A3D7A]/80 leading-relaxed italic">
+                Vas a escuchar una frase. Repítela exactamente como la oíste, con la misma pronunciación.
+              </p>
+            )
+            : (
+              <p className="text-[15px] leading-relaxed" style={{ color: B.purpleDeep }}>
+                &ldquo;{item.type === 'take-an-interview' ? item.question : ''}&rdquo;
+              </p>
+            )
+          }
         </div>
 
         {phase !== 'speak' && phase !== 'saving' && micStatus !== 'ok' && (
@@ -261,7 +429,7 @@ export function SpeakingSection({
           >
             <span>
               {micStatus === 'checking'    && '🎙 Verificando micrófono…'}
-              {micStatus === 'denied'      && '⚠ Micrófono bloqueado. Habilita permisos en el candado de la barra y recarga.'}
+              {micStatus === 'denied'      && '⚠ Micrófono bloqueado. Habilita permisos y recarga.'}
               {micStatus === 'unsupported' && '⚠ Tu navegador no soporta grabación. Usa Chrome/Edge/Firefox actualizado.'}
               {micStatus === 'unknown'     && '⚠ Estado del micrófono desconocido.'}
             </span>
@@ -281,18 +449,20 @@ export function SpeakingSection({
           </div>
         )}
 
-        {phase === 'read' && (
+        {phase === 'intro' && (
           <div className="text-center space-y-4 py-2">
             <p className="text-[12px] text-gray-600">
-              Vas a tener <strong style={{ color: B.purple }}>{prompt.prepSec}s de preparación</strong>,
-              y después <strong style={{ color: B.purple }}>{prompt.speakSec}s para grabar</strong>.
+              {isLR
+                ? <>Toca &ldquo;Escuchar frase&rdquo;. Cuando termine, tendrás <strong style={{ color: B.purple }}>{recordSec}s</strong> para repetirla.</>
+                : <>Toca &ldquo;Escuchar pregunta&rdquo;. Cuando termine, tendrás <strong style={{ color: B.purple }}>{recordSec}s</strong> para responder.</>
+              }
             </p>
-            <SubmitButton onClick={startPrep} disabled={micStatus !== 'ok'}>
-              ▶ Empezar preparación
+            <SubmitButton onClick={startPromptPlayback} disabled={micStatus !== 'ok'}>
+              🔊 {isLR ? 'Escuchar frase' : 'Escuchar pregunta'}
             </SubmitButton>
             {recordings.length > 0 && (
               <p className="text-[10px] text-gray-400">
-                {recordings.length} de {prompts.length} tasks completadas.
+                {recordings.length} de {totalItems} tasks completadas.
               </p>
             )}
             <button
@@ -304,25 +474,19 @@ export function SpeakingSection({
           </div>
         )}
 
-        {phase === 'prep' && (
+        {phase === 'playing' && (
           <div className="text-center py-8 space-y-3">
-            <div className="relative inline-flex items-center justify-center">
-              <div
-                className="w-32 h-32 rounded-full flex items-center justify-center relative"
-                style={{
-                  background: `conic-gradient(${B.purpleMed} ${(prepLeft / prompt.prepSec) * 360}deg, ${B.lavenderBg} 0deg)`,
-                }}
-              >
-                <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
-                  <span className="text-5xl font-black tabular-nums" style={{ color: B.purpleDeep }}>{prepLeft}</span>
-                </div>
-              </div>
+            <div className="inline-flex items-center justify-center gap-2">
+              <span className="w-2 h-6 rounded-full animate-pulse" style={{ background: B.purpleMed }} />
+              <span className="w-2 h-8 rounded-full animate-pulse" style={{ background: B.purple, animationDelay: '150ms' }} />
+              <span className="w-2 h-4 rounded-full animate-pulse" style={{ background: B.purpleMed, animationDelay: '300ms' }} />
+              <span className="w-2 h-10 rounded-full animate-pulse" style={{ background: B.purpleDeep, animationDelay: '450ms' }} />
+              <span className="w-2 h-6 rounded-full animate-pulse" style={{ background: B.purpleMed, animationDelay: '600ms' }} />
             </div>
-            <p className="text-[11px] font-black uppercase tracking-[0.35em]" style={{ color: B.purpleMed }}>Preparación</p>
-            <p className="text-[12px] text-gray-500">Piensa tu respuesta. La grabación arranca sola.</p>
-            <button onClick={startSpeaking} className="text-xs text-gray-400 hover:text-gray-600 underline">
-              Empezar a grabar ahora →
-            </button>
+            <p className="text-[11px] font-black uppercase tracking-[0.35em]" style={{ color: B.purpleMed }}>
+              {isLR ? 'Escuchando frase' : 'Escuchando pregunta'}
+            </p>
+            <p className="text-[12px] text-gray-500">La grabación arranca automáticamente al terminar.</p>
           </div>
         )}
 
@@ -334,7 +498,7 @@ export function SpeakingSection({
               <div
                 className="w-32 h-32 rounded-full flex items-center justify-center relative"
                 style={{
-                  background: `conic-gradient(#EF4444 ${(speakLeft / prompt.speakSec) * 360}deg, #FEE2E2 0deg)`,
+                  background: `conic-gradient(#EF4444 ${(speakLeft / Math.max(1, recordSec)) * 360}deg, #FEE2E2 0deg)`,
                 }}
               >
                 <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
@@ -345,7 +509,9 @@ export function SpeakingSection({
             <p className="text-[11px] font-black uppercase tracking-[0.35em] text-red-600 flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Grabando
             </p>
-            <p className="text-[12px] text-gray-500">Habla con claridad. Se corta sola al llegar a 0.</p>
+            <p className="text-[12px] text-gray-500">
+              {isLR ? 'Repite la frase exacta que escuchaste.' : 'Se corta sola al llegar a 0.'}
+            </p>
             <button
               onClick={stopSpeaking}
               className="px-5 py-2 rounded-2xl text-xs font-bold transition-colors"
@@ -362,7 +528,7 @@ export function SpeakingSection({
               style={{ borderColor: B.purpleMed, borderTopColor: 'transparent' }} />
             <p className="text-sm font-black" style={{ color: B.purpleDeep }}>Guardando audio…</p>
             <p className="text-[11px] text-gray-500 mt-1">
-              {pIdx < prompts.length - 1
+              {pIdx < items.length - 1
                 ? 'Cuando termine, pasamos a la próxima task.'
                 : finalMsg}
             </p>

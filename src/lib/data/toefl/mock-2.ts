@@ -6,6 +6,7 @@ import { passage4 } from './reading/passage-4';
 import { lecture2 } from './listening/lecture-2';
 import { conversation2 } from './listening/conversation-2';
 import { speakingPromptsMock2 } from './speaking/independent-prompts';
+import { speakingSection2026Mock2 } from './speaking/section-2026';
 import { writingPromptMock2 } from './writing/academic-discussion';
 import { buildSentenceMock2 } from './writing/build-sentence';
 import { emailPromptMock2 } from './writing/email';
@@ -15,7 +16,8 @@ export const toeflMock2: TOEFLMock = {
   title:     'Mock 2 · Life sciences & humanities',
   reading:   [passage3, passage4],
   listening: [lecture2, conversation2],
-  speaking:  speakingPromptsMock2,
+  speaking:       speakingSection2026Mock2,
+  speakingLegacy: speakingPromptsMock2,
   writing:   {
     buildSentence: buildSentenceMock2,
     email:         emailPromptMock2,

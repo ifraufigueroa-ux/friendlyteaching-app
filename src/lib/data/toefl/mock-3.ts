@@ -6,6 +6,7 @@ import { passage6 } from './reading/passage-6';
 import { lecture3 } from './listening/lecture-3';
 import { conversation3 } from './listening/conversation-3';
 import { speakingPromptsMock3 } from './speaking/independent-prompts';
+import { speakingSection2026Mock3 } from './speaking/section-2026';
 import { writingPromptMock3 } from './writing/academic-discussion';
 import { buildSentenceMock3 } from './writing/build-sentence';
 import { emailPromptMock3 } from './writing/email';
@@ -15,7 +16,8 @@ export const toeflMock3: TOEFLMock = {
   title:     'Mock 3 · Earth & anthropology',
   reading:   [passage5, passage6],
   listening: [lecture3, conversation3],
-  speaking:  speakingPromptsMock3,
+  speaking:       speakingSection2026Mock3,
+  speakingLegacy: speakingPromptsMock3,
   writing:   {
     buildSentence: buildSentenceMock3,
     email:         emailPromptMock3,

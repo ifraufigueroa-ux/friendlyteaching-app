@@ -10,6 +10,7 @@ import { passage2 } from './reading/passage-2';
 import { lecture1 } from './listening/lecture-1';
 import { conversation1 } from './listening/conversation-1';
 import { speakingPromptsMock1 } from './speaking/independent-prompts';
+import { speakingSection2026Mock1 } from './speaking/section-2026';
 import { writingPromptMock1 } from './writing/academic-discussion';
 import { buildSentenceMock1 } from './writing/build-sentence';
 import { emailPromptMock1 } from './writing/email';
@@ -22,7 +23,8 @@ export const toeflMock1: TOEFLMock = {
   title:     'Mock 1 · Introductory',
   reading:   [passage1, passage2],
   listening: [lecture1, conversation1],
-  speaking:  speakingPromptsMock1,
+  speaking:       speakingSection2026Mock1,
+  speakingLegacy: speakingPromptsMock1,
   writing:   {
     buildSentence: buildSentenceMock1,
     email:         emailPromptMock1,

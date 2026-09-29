@@ -87,7 +87,56 @@ export interface TOEFLListeningAudio {
 }
 
 // ── Speaking ───────────────────────────────────────────────────────────────
+//
+// TOEFL iBT 2026 restructured Speaking: no more Independent tasks. The section
+// runs 11 items total across two task types:
+//
+//   · Listen and Repeat (7 items) — hear a sentence, repeat it exactly.
+//     Record window 8-12s depending on sentence length. Holistic 0-5 per
+//     item. No prep. No retake.
+//   · Take an Interview (4 items) — a virtual interviewer asks 4 questions
+//     on a single everyday topic; 45s per answer; no prep. Scored 0-5 on
+//     four ETS dimensions (fluency, intelligibility, language use,
+//     organization).
 
+export type TOEFLSpeakingTaskType = 'listen-and-repeat' | 'take-an-interview';
+
+export interface TOEFLListenAndRepeatItem {
+  id:             string;
+  type:           'listen-and-repeat';
+  /** The sentence the student hears and must repeat verbatim. */
+  targetSentence: string;
+  /** Recording window in seconds. ETS 2026: 8 for items 1-2, 10 for 3-5,
+   *  12 for 6-7. */
+  recordSec:      number;
+}
+
+export interface TOEFLTakeInterviewItem {
+  id:        string;
+  type:      'take-an-interview';
+  /** The question the interviewer asks. All 4 items share a common topic
+   *  (see TOEFLSpeakingSection.interviewTopic). */
+  question:  string;
+  /** 45s per response, ETS-standard. Kept configurable in case ETS tweaks
+   *  the window in future editions. */
+  speakSec:  number;
+}
+
+export type TOEFLSpeakingItem = TOEFLListenAndRepeatItem | TOEFLTakeInterviewItem;
+
+/** Full ETS 2026 Speaking section: 7 Listen-and-Repeat + 4 Take-an-Interview
+ *  items sharing a common everyday topic (e.g. "Talking about your studies",
+ *  "Your neighbourhood"). */
+export interface TOEFLSpeakingSection {
+  listenAndRepeat: TOEFLListenAndRepeatItem[];   // exactly 7 in the real test
+  interviewTopic:  string;                        // shown before the interview begins
+  interviewIntro:  string;                        // 1-2 sentences the "interviewer" opens with
+  takeInterview:   TOEFLTakeInterviewItem[];      // exactly 4 in the real test
+}
+
+/** Legacy pre-2026 Independent-Speaking prompt. Kept exported so existing
+ *  mock records and the Speaking assignment flow keep type-checking during
+ *  the migration to the 2026 format. New content should use TOEFLSpeakingItem. */
 export interface TOEFLSpeakingPrompt {
   id:        string;
   prompt:    string;
@@ -167,8 +216,20 @@ export interface TOEFLMock {
   title:           string;
   reading:         TOEFLReadingPassage[];       // 2 passages
   listening:       TOEFLListeningAudio[];       // 1 lecture + 1 conversation
-  speaking:        TOEFLSpeakingPrompt[];       // 4 prompts
+  /** ETS 2026 restructured Speaking section (7 Listen&Repeat + 4 Interview).
+   *  When absent, the legacy `speakingLegacy` (4 Independent prompts) is
+   *  used — kept during the transition to the new format. New content must
+   *  populate `speaking`. */
+  speaking?:       TOEFLSpeakingSection;
+  speakingLegacy?: TOEFLSpeakingPrompt[];       // pre-2026, 4 prompts
   writing:         TOEFLWritingSequence;        // BAS + Email + AD
+}
+
+/** Flatten a Speaking section into an ordered list of items the runner
+ *  advances through: 7 LR first, then 4 TI. Used by the runner + the
+ *  grader loop so we don't repeat the ordering rule in five places. */
+export function speakingSectionItems(sec: TOEFLSpeakingSection): TOEFLSpeakingItem[] {
+  return [...sec.listenAndRepeat, ...sec.takeInterview];
 }
 
 // ── Results ────────────────────────────────────────────────────────────────
@@ -200,16 +261,29 @@ export interface ListeningAnswer {
 
 export interface SpeakingRecording {
   promptId:      string;
+  /** ETS 2026 task type. Missing on legacy records — treat as
+   *  Independent-Speaking (pre-2026) when absent. */
+  taskType?:     TOEFLSpeakingTaskType;
   storagePath:   string;   // Firebase Storage path (audio/toefl-speaking-…)
   audioUrl:      string;   // download URL with token
   durationSec:   number;
   transcript?:   string;
   aiScore?:      number;   // 0-5 raw per ETS 2026 task rubric
   aiFeedback?:   string;
+  /** Rubric is task-type-specific:
+   *   · Listen and Repeat is holistic — none of these fields are set.
+   *   · Take an Interview uses the 4 ETS 2026 dimensions.
+   *   · Legacy Independent Speaking (pre-2026) uses delivery/languageUse/
+   *     topicDevelopment. Kept optional so old records still type-check. */
   aiRubric?: {
-    delivery:         number;   // each 0-5
-    languageUse:      number;
-    topicDevelopment: number;
+    // Take an Interview (ETS 2026) — each 0-5
+    fluency?:          number;
+    intelligibility?:  number;
+    languageUse?:      number;
+    organization?:     number;
+    // Legacy Independent Speaking (pre-2026) — each 0-5 after 2026 rescale
+    delivery?:         number;
+    topicDevelopment?: number;
   };
   aiStrengths?:    string[];
   aiImprovements?: string[];

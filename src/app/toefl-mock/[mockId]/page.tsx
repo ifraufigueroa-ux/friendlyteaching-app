@@ -20,7 +20,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import { getMock } from '@/lib/data/toefl/mock-1';
 import type {
-  TOEFLMock, TOEFLReadingPassage, TOEFLListeningAudio, TOEFLSpeakingPrompt,
+  TOEFLMock, TOEFLReadingPassage, TOEFLListeningAudio, TOEFLSpeakingPrompt, TOEFLSpeakingSection,
   TOEFLWritingSequence, ReadingAnswer, ListeningAnswer, SpeakingRecording,
   WritingSectionSubmission, SectionScore, TOEFLSection, TOEFLLiveSnapshot,
   TOEFLReadingQuestionType, TOEFLSession,
@@ -764,7 +764,7 @@ function ListeningSection({
 // ── Results ───────────────────────────────────────────────────────────────
 
 function ResultsScreen({
-  studentName, scores, overall, enabledSections, speakingResults, speakingPrompts,
+  studentName, scores, overall, enabledSections, speakingResults, speakingSection, speakingPrompts,
   writingResult, writingPrompt,
 }: {
   studentName:     string;
@@ -772,7 +772,8 @@ function ResultsScreen({
   overall:         number;
   enabledSections: TOEFLSection[];
   speakingResults?: SpeakingRecording[];
-  speakingPrompts?: TOEFLSpeakingPrompt[];
+  speakingSection?: TOEFLSpeakingSection;
+  speakingPrompts?: TOEFLSpeakingPrompt[];   // legacy fallback
   writingResult?:   WritingSectionSubmission | null;
   writingPrompt?:   TOEFLWritingSequence;
 }) {
@@ -866,8 +867,8 @@ function ResultsScreen({
           {/* Per-task Speaking breakdown — only shown if we actually ran
               Speaking and have per-task results (transcript + rubric + AI
               feedback or captured error). */}
-          {speakingResults && speakingResults.length > 0 && speakingPrompts && (
-            <SpeakingBreakdown recordings={speakingResults} prompts={speakingPrompts} />
+          {speakingResults && speakingResults.length > 0 && (speakingSection || speakingPrompts) && (
+            <SpeakingBreakdown recordings={speakingResults} section={speakingSection} prompts={speakingPrompts} />
           )}
 
           {/* Writing breakdown — student text + rubric + AI feedback. */}
@@ -1140,7 +1141,7 @@ export default function TOEFLMockPage() {
     setSpeakingProgress(recordings.map((r) => ({ promptId: r.promptId, status: 'pending' })));
     const { enriched, overallScore } = await gradeSpeakingRecordings(
       recordings,
-      mock!.speaking,
+      mock!.speaking ?? mock!.speakingLegacy ?? [],
       (progress) => setSpeakingProgress(progress),
     );
     const score: SectionScore = { section: 'speaking', score: overallScore };
@@ -1389,7 +1390,8 @@ export default function TOEFLMockPage() {
     return (
       <PageBg>
         <SpeakingSection
-          prompts={mock!.speaking}
+          section={mock!.speaking}
+          sectionLegacy={mock!.speakingLegacy}
           teacherId={teacherId}
           sessionId={sessionIdRef.current || 'anon'}
           onDone={onSpeakingDone}
@@ -1512,7 +1514,8 @@ export default function TOEFLMockPage() {
         overall={overallLive}
         enabledSections={enabledSections}
         speakingResults={speakingResults}
-        speakingPrompts={mock!.speaking}
+        speakingSection={mock!.speaking}
+        speakingPrompts={mock!.speakingLegacy}
         writingResult={writingResult}
         writingPrompt={mock!.writing}
       />
