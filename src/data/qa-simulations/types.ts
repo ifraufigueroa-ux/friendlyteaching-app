@@ -14,6 +14,29 @@ export type QACefrLevel  = 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1';
 
 export const QA_CEFR_ORDER: QACefrLevel[] = ['A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
+/** Visual + label meta per CEFR level. Colors progress from calm/beginner
+ *  (emerald) through the app's violet palette to warm/advanced (rose),
+ *  giving learners a subtle "getting harder" cue as they climb levels. */
+export interface CefrMeta {
+  color:  string;
+  bg:     string;
+  border: string;
+  label:  string;
+}
+
+export const CEFR_META: Record<QACefrLevel, CefrMeta> = {
+  'A1':  { color: '#047857', bg: '#D1FAE5', border: '#6EE7B7', label: 'Básico' },
+  'A2':  { color: '#0284C7', bg: '#E0F2FE', border: '#7DD3FC', label: 'Elemental' },
+  'B1':  { color: '#7C3AED', bg: '#EDE9FE', border: '#C4B5FD', label: 'Intermedio' },
+  'B1+': { color: '#A21CAF', bg: '#FAE8FF', border: '#F0ABFC', label: 'Intermedio +' },
+  'B2':  { color: '#BE185D', bg: '#FCE7F3', border: '#F9A8D4', label: 'Intermedio alto' },
+  'C1':  { color: '#B91C1C', bg: '#FEE2E2', border: '#FCA5A5', label: 'Avanzado' },
+};
+
+export function getCefrMeta(level: QACefrLevel): CefrMeta {
+  return CEFR_META[level];
+}
+
 export interface QAQuestion {
   id:         number;
   category:   string;

@@ -12,8 +12,10 @@ import { useParams } from 'next/navigation';
 import {
   getSimulation,
   getCategoryMeta,
+  getCefrMeta,
   categoriesInSimulation,
   cefrLevelsInSimulation,
+  QA_CEFR_ORDER,
   type QASimulation,
   type QAQuestion,
   type QACefrLevel,
@@ -51,6 +53,59 @@ function shuffle<T>(arr: T[]): T[] {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+/** Take N questions from a CEFR-tagged pool, distributed proportionally across
+ *  the levels present so the session actually spans A1 → B2 instead of stopping
+ *  at "the first N A1 questions". Result stays in CEFR order (A1 → C1),
+ *  and inside each level keeps declaration order — matching the sim's
+ *  preserveOrder contract. */
+function stratifiedByCefr(pool: QAQuestion[], n: number): QAQuestion[] {
+  if (n >= pool.length) return [...pool];
+
+  const byLevel = new Map<QACefrLevel, QAQuestion[]>();
+  for (const q of pool) {
+    const level = q.cefr ?? 'A1';
+    const bucket = byLevel.get(level) ?? [];
+    bucket.push(q);
+    byLevel.set(level, bucket);
+  }
+  const levels = QA_CEFR_ORDER.filter(l => byLevel.has(l));
+
+  // Proportional quotas with at least 1 per present level, then adjust to N.
+  const quotas = new Map<QACefrLevel, number>();
+  const remainders = new Map<QACefrLevel, number>();
+  let assigned = 0;
+  for (const l of levels) {
+    const size = byLevel.get(l)!.length;
+    const raw = (size / pool.length) * n;
+    const floor = Math.max(1, Math.floor(raw));
+    quotas.set(l, Math.min(floor, size));
+    remainders.set(l, raw - Math.floor(raw));
+    assigned += quotas.get(l)!;
+  }
+  // Grow: bump levels with largest fractional remainder first, respecting
+  // per-level capacity.
+  while (assigned < n) {
+    const candidate = levels
+      .filter(l => quotas.get(l)! < byLevel.get(l)!.length)
+      .sort((a, b) => (remainders.get(b) ?? 0) - (remainders.get(a) ?? 0))[0];
+    if (!candidate) break;
+    quotas.set(candidate, quotas.get(candidate)! + 1);
+    remainders.set(candidate, (remainders.get(candidate) ?? 0) - 1); // fairness
+    assigned++;
+  }
+  // Trim: pull from the level with the largest quota (>1) first.
+  while (assigned > n) {
+    const victim = levels
+      .filter(l => quotas.get(l)! > 1)
+      .sort((a, b) => quotas.get(b)! - quotas.get(a)!)[0];
+    if (!victim) break;
+    quotas.set(victim, quotas.get(victim)! - 1);
+    assigned--;
+  }
+
+  return levels.flatMap(l => byLevel.get(l)!.slice(0, quotas.get(l)!));
 }
 
 function formatMs(ms: number): string {
@@ -197,8 +252,14 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
     // Beginner sims (A1/A2) opt into preserveOrder so questions play in the
     // authored flow (personal info → family → hobbies → …). Everyone else
     // shuffles for spaced-recall variety.
+    //
+    // When the sim is preserveOrder AND CEFR-tagged, sample proportionally
+    // across levels so a shorter session still spans A1 → B2 — otherwise a
+    // 10-question run of a 45-question diagnostic returns only A1 items.
     const pool = simulation?.preserveOrder
-      ? filteredPool.slice(0, effectiveCount)
+      ? (hasCefr
+          ? stratifiedByCefr(filteredPool, effectiveCount)
+          : filteredPool.slice(0, effectiveCount))
       : shuffle(filteredPool).slice(0, effectiveCount);
     setQuestions(pool);
     setCurrentIdx(0);
@@ -363,6 +424,7 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
   return (
     <PlayingScreen
       question={currentQuestion!}
+      questions={questions}
       currentIdx={currentIdx}
       total={questions.length}
       score={score}
@@ -442,7 +504,26 @@ function SetupScreen({
             <span>Q&A Simulator</span>
           </p>
           <h1 className="text-3xl font-extrabold text-white mb-1">{simulation.title}</h1>
-          <p className="text-white/60 text-sm">{simulation.description}</p>
+          <p className="text-white/60 text-sm mb-4">{simulation.description}</p>
+
+          {hasCefr && (
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/15">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 mr-1">Progresión</span>
+              {availableLevels.map((level, i) => (
+                <span key={level} className="flex items-center gap-2">
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums"
+                    style={{ background: getCefrMeta(level).bg, color: getCefrMeta(level).color }}
+                  >
+                    {level}
+                  </span>
+                  {i < availableLevels.length - 1 && (
+                    <span className="text-white/40 text-xs">→</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -451,39 +532,44 @@ function SetupScreen({
         {/* ── Nivel CEFR (solo si el sim tiene questions tageadas) ─── */}
         {hasCefr && (
           <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Nivel CEFR</h2>
+            <div className="flex items-start justify-between mb-4 gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Progresión CEFR</h2>
+                <p className="text-xs text-gray-500 mt-1">De estructuras simples (A1) a razonamiento avanzado (B2+).</p>
+              </div>
               <button
                 onClick={selectAllLevels}
                 disabled={availableLevels.every(l => selectedLevels.has(l))}
-                className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-40 disabled:cursor-not-allowed"
+                className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                Seleccionar todos
+                Todos
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
               {availableLevels.map(level => {
                 const active = selectedLevels.has(level);
                 const count = simulation.questions.filter(q => q.cefr === level).length;
+                const cm = getCefrMeta(level);
                 return (
                   <button
                     key={level}
                     onClick={() => toggleLevel(level)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-bold transition-all tabular-nums ${
-                      active
-                        ? 'bg-[#F0E5FF] border-[#9B7CB8] text-[#5A3D7A] shadow-sm'
-                        : 'opacity-50 border-gray-200 bg-white text-gray-500 hover:opacity-75'
+                    className={`relative flex flex-col items-center gap-0.5 px-2 py-3 rounded-xl border-2 transition-all tabular-nums ${
+                      active ? 'shadow-sm scale-100' : 'opacity-45 grayscale hover:opacity-70'
                     }`}
+                    style={
+                      active
+                        ? { background: cm.bg, borderColor: cm.color, color: cm.color }
+                        : { background: '#FFFFFF', borderColor: '#E5E7EB', color: '#6B7280' }
+                    }
                   >
-                    <span>{level}</span>
-                    <span className="text-[10px] opacity-60">({count})</span>
+                    <span className="text-base font-extrabold leading-none">{level}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide opacity-80 leading-tight">{cm.label}</span>
+                    <span className="text-[10px] opacity-70 leading-none mt-0.5">{count} preg.</span>
                   </button>
                 );
               })}
             </div>
-            <p className="text-xs text-gray-500 mt-3">
-              Filtra las preguntas por nivel CEFR estimado. Combina con categorías más abajo.
-            </p>
           </section>
         )}
 
@@ -649,7 +735,7 @@ function ModeCard({
 // ══════════════════════════════════════════════════════════════════════════════
 
 function PlayingScreen({
-  question, currentIdx, total,
+  question, questions, currentIdx, total,
   score, streak, streakBurst,
   timerSec, timeLeft,
   answerMode, reviewing,
@@ -659,6 +745,7 @@ function PlayingScreen({
   onReadyToEvaluate, onPickVerdict, onBackToSetup,
 }: {
   question:           QAQuestion;
+  questions:          QAQuestion[];
   currentIdx:         number;
   total:              number;
   score:              number;
@@ -681,6 +768,8 @@ function PlayingScreen({
   onBackToSetup:      () => void;
 }) {
   const meta = getCategoryMeta(question.category);
+  const cefr = question.cefr;
+  const cefrMeta = cefr ? getCefrMeta(cefr) : null;
   const timerActive = timerSec > 0;
   const timerWarn = timerActive && timeLeft <= 10 && !reviewing;
   const timerPct = timerActive ? Math.max(0, (timeLeft / timerSec) * 100) : 100;
@@ -698,7 +787,7 @@ function PlayingScreen({
             ← Salir
           </button>
           <div className="flex-1 flex items-center gap-3">
-            <ProgressDots current={currentIdx} total={total} />
+            <ProgressDots current={currentIdx} total={total} questions={questions} />
           </div>
           <div className="flex items-center gap-3">
             <StatBadge label="Score" value={score} color="#5A3D7A" />
@@ -711,15 +800,29 @@ function PlayingScreen({
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 w-full">
         <div className="w-full max-w-3xl space-y-6">
 
-          {/* ── Category + timer ──────────────────────────────── */}
-          <div className="flex items-center justify-between">
-            <span
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border-2"
-              style={{ background: meta.bg, color: meta.color, borderColor: meta.color }}
-            >
-              <span>{meta.icon}</span>
-              {question.category}
-            </span>
+          {/* ── Category + level + timer ───────────────────────── */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              {cefrMeta && (
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold border-2 tabular-nums shadow-sm"
+                  style={{ background: cefrMeta.bg, color: cefrMeta.color, borderColor: cefrMeta.color }}
+                  title={cefrMeta.label}
+                >
+                  <span className="text-sm">{cefr}</span>
+                  <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide opacity-80">
+                    {cefrMeta.label}
+                  </span>
+                </span>
+              )}
+              <span
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border-2"
+                style={{ background: meta.bg, color: meta.color, borderColor: meta.color }}
+              >
+                <span>{meta.icon}</span>
+                {question.category}
+              </span>
+            </div>
 
             {timerActive && (
               <div className={`flex items-center gap-2 ${timerWarn ? 'animate-pulse' : ''}`}>
@@ -732,8 +835,20 @@ function PlayingScreen({
           </div>
 
           {/* ── Question card ─────────────────────────────────── */}
-          <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-lg p-8 sm:p-10">
-            <p className="text-xs uppercase tracking-widest font-bold text-gray-400 mb-3">Pregunta {currentIdx + 1} de {total}</p>
+          <div
+            className="relative bg-white rounded-3xl border border-[#E8D5F0] shadow-lg p-8 sm:p-10 overflow-hidden"
+          >
+            {cefrMeta && (
+              <div
+                className="absolute top-0 left-0 right-0 h-1"
+                style={{ background: `linear-gradient(90deg, ${cefrMeta.color}, ${cefrMeta.border})` }}
+              />
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-xs uppercase tracking-widest font-bold text-gray-400">
+                Pregunta {currentIdx + 1} de {total}
+              </p>
+            </div>
             <h2 className="text-xl sm:text-2xl font-bold text-[#2D1B4E] leading-snug">{question.question}</h2>
           </div>
 
@@ -791,7 +906,7 @@ function PlayingScreen({
   );
 }
 
-function ProgressDots({ current, total }: { current: number; total: number }) {
+function ProgressDots({ current, total, questions }: { current: number; total: number; questions?: QAQuestion[] }) {
   const max = Math.min(total, 20); // cap dots to keep bar tidy
   const compact = total > 20;
   return (
@@ -801,12 +916,27 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
         const idx = compact ? Math.round((i / (max - 1)) * (total - 1)) : i;
         const filled = idx < current;
         const active = idx === current;
+        const level = questions?.[idx]?.cefr;
+        const cm = level ? getCefrMeta(level) : null;
+        // With CEFR: filled dots take the level's color, active is a lighter
+        // shade of the same, upcoming keeps a neutral gray. Without CEFR:
+        // fall back to the original purple palette.
+        const style = cm
+          ? filled
+            ? { background: cm.color }
+            : active
+            ? { background: cm.color, opacity: 0.55 }
+            : { background: '#E5E7EB' }
+          : undefined;
+        const fallbackClass = cm
+          ? ''
+          : filled ? 'bg-[#5A3D7A]' : active ? 'bg-[#C8A8DC]' : 'bg-gray-200';
         return (
           <div
             key={i}
-            className={`h-1.5 flex-1 rounded-full transition-all ${
-              filled ? 'bg-[#5A3D7A]' : active ? 'bg-[#C8A8DC]' : 'bg-gray-200'
-            }`}
+            className={`h-1.5 flex-1 rounded-full transition-all ${fallbackClass}`}
+            style={style}
+            title={level ? `${level}` : undefined}
           />
         );
       })}
@@ -995,6 +1125,22 @@ function FinishedScreen({
     return Array.from(map.entries());
   }, [log]);
 
+  // Per-CEFR breakdown (only shown when the session had level tags)
+  const byCefr = useMemo(() => {
+    const map = new Map<QACefrLevel, { total: number; score: number }>();
+    log.forEach(entry => {
+      const level = entry.question.cefr;
+      if (!level) return;
+      const existing = map.get(level) ?? { total: 0, score: 0 };
+      existing.total += 1;
+      existing.score += VERDICT_META[entry.verdict].pts;
+      map.set(level, existing);
+    });
+    return QA_CEFR_ORDER
+      .filter(l => map.has(l))
+      .map(l => [l, map.get(l)!] as const);
+  }, [log]);
+
   // Per-verdict count
   const verdictCounts = useMemo(() => {
     const counts: Record<Verdict, number> = { great: 0, good: 0, 'needs-work': 0, skip: 0 };
@@ -1057,6 +1203,45 @@ function FinishedScreen({
           </div>
         </section>
 
+        {/* ── Per-CEFR breakdown ───────────────────────────── */}
+        {byCefr.length > 0 && (
+          <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Progresión por nivel</h2>
+              <span className="text-[10px] text-gray-400">A1 → B2+</span>
+            </div>
+            <div className="space-y-3">
+              {byCefr.map(([level, stats]) => {
+                const cm = getCefrMeta(level);
+                const max = stats.total * 3;
+                const lvlPct = max > 0 ? (stats.score / max) * 100 : 0;
+                return (
+                  <div key={level}>
+                    <div className="flex items-center justify-between mb-1 text-xs">
+                      <span className="font-extrabold flex items-center gap-2" style={{ color: cm.color }}>
+                        <span
+                          className="px-2 py-0.5 rounded-full text-[11px] tabular-nums"
+                          style={{ background: cm.bg, border: `1px solid ${cm.border}` }}
+                        >
+                          {level}
+                        </span>
+                        <span className="uppercase tracking-wide text-[10px] opacity-80">{cm.label}</span>
+                      </span>
+                      <span className="text-gray-500 tabular-nums">{stats.score} / {max} pts · {stats.total} preg.</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${lvlPct}%`, background: cm.color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* ── Per-category breakdown ───────────────────────── */}
         {byCategory.length > 0 && (
           <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
@@ -1094,12 +1279,22 @@ function FinishedScreen({
             {log.map((entry, i) => {
               const meta = getCategoryMeta(entry.question.category);
               const vm = VERDICT_META[entry.verdict];
+              const level = entry.question.cefr;
+              const cm = level ? getCefrMeta(level) : null;
               return (
                 <li key={`${entry.question.id}-${i}`} className="p-3 rounded-xl border border-gray-100 bg-gray-50">
                   <div className="flex items-start gap-3">
                     <span className="text-xl mt-0.5">{vm.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {cm && (
+                          <span
+                            className="text-[10px] font-extrabold px-2 py-0.5 rounded-full tabular-nums"
+                            style={{ background: cm.bg, color: cm.color, border: `1px solid ${cm.border}` }}
+                          >
+                            {level}
+                          </span>
+                        )}
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: meta.bg, color: meta.color }}>
                           {meta.icon} {entry.question.category}
                         </span>
