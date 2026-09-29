@@ -29,12 +29,258 @@ type AnswerMode = 'verbal' | 'recording' | 'written';
 type Verdict = 'great' | 'good' | 'needs-work' | 'skip';
 type TimerOption = 0 | 30 | 60 | 90 | 120;
 
-const VERDICT_META: Record<Verdict, { label: string; pts: number; emoji: string; color: string; bg: string; border: string }> = {
-  'great':      { label: 'Excelente', pts: 3, emoji: '🎯', color: '#047857', bg: '#D1FAE5', border: '#6EE7B7' },
-  'good':       { label: 'Bien',      pts: 2, emoji: '👍', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' },
-  'needs-work': { label: 'A mejorar', pts: 1, emoji: '🔁', color: '#B45309', bg: '#FEF3C7', border: '#FCD34D' },
-  'skip':       { label: 'Saltada',   pts: 0, emoji: '⏭️', color: '#6B7280', bg: '#F3F4F6', border: '#D1D5DB' },
+const VERDICT_META: Record<Verdict, { pts: number; emoji: string; color: string; bg: string; border: string }> = {
+  'great':      { pts: 3, emoji: '🎯', color: '#047857', bg: '#D1FAE5', border: '#6EE7B7' },
+  'good':       { pts: 2, emoji: '👍', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' },
+  'needs-work': { pts: 1, emoji: '🔁', color: '#B45309', bg: '#FEF3C7', border: '#FCD34D' },
+  'skip':       { pts: 0, emoji: '⏭️', color: '#6B7280', bg: '#F3F4F6', border: '#D1D5DB' },
 };
+
+// ── i18n ──────────────────────────────────────────────────────────────────────
+// Small in-file dictionary so the runner can be shown in Spanish (default) or
+// English — useful when the student is meant to stay fully immersed in EN.
+// The question text itself is always English (it's the practice content).
+
+type Lang = 'es' | 'en';
+const LANG_KEY = 'qa-sim-lang';
+
+const STRINGS = {
+  es: {
+    // Not found
+    'not_found.title':      'Simulación no encontrada',
+    'not_found.body':       'No existe una simulación con ese identificador.',
+    'not_found.cta':        'Ver simulaciones',
+    // Common
+    'nav.back':             '← Simulaciones',
+    'nav.exit':             '← Salir',
+    'brand.tag':            'Q&A Simulator',
+    'progression.label':    'Progresión',
+    // Setup — CEFR
+    'setup.cefr.title':     'Progresión CEFR',
+    'setup.cefr.hint':      'De estructuras simples (A1) a razonamiento avanzado (B2+).',
+    'setup.select_all':     'Todos',
+    'setup.questions_short':'preg.',
+    // Setup — categories
+    'setup.categories.title':      'Categorías',
+    'setup.categories.select_all': 'Seleccionar todas',
+    'setup.categories.pool':       '{n} preguntas en el pool',
+    // Setup — count
+    'setup.count.title':    'Cantidad de preguntas',
+    'setup.count.all':      'Todas ({n})',
+    'setup.count.session':  'Esta sesión:',
+    'setup.count.session_suffix': 'preguntas',
+    // Setup — timer
+    'setup.timer.title':    'Tiempo por pregunta',
+    'setup.timer.none':     'Sin tiempo',
+    // Setup — mode
+    'setup.mode.title':     'Modo de respuesta',
+    'setup.mode.verbal.title':     'Verbal + auto-eval',
+    'setup.mode.verbal.desc':      'Responde en voz alta; al terminar el profesor evalúa.',
+    'setup.mode.recording.title':  'Grabación',
+    'setup.mode.recording.desc':   'Graba tu respuesta y escúchala antes de evaluar.',
+    'setup.mode.written.title':    'Escrito',
+    'setup.mode.written.desc':     'Escribe la respuesta y luego evalúala.',
+    // Setup — start
+    'setup.start':          'Empezar simulación →',
+    // Playing — top bar
+    'play.score':           'Score',
+    'play.streak':          'Racha',
+    'play.question_x_of_y': 'Pregunta {i} de {n}',
+    // Playing — verdicts
+    'play.verdict_prompt':  '¿Cómo estuvo la respuesta?',
+    'verdict.great':        'Excelente',
+    'verdict.good':         'Bien',
+    'verdict.needs-work':   'A mejorar',
+    'verdict.skip':         'Saltada',
+    'play.streak_burst':    '🔥 Racha de {n}! Sigue así',
+    // Answer area
+    'answer.verbal.hint':   'Responde en voz alta. Cuando termines (o cuando se acabe el tiempo) pasamos a la evaluación.',
+    'answer.ready':         'Listo, evaluar →',
+    'answer.record.hint':   'Pulsa para empezar a grabar tu respuesta.',
+    'answer.record.start':  'Grabar',
+    'answer.record.now':    'Grabando…',
+    'answer.record.stop':   'Detener',
+    'answer.record.listen': 'Escucha tu respuesta antes de evaluar.',
+    'answer.record.redo':   'Regrabar',
+    'answer.written.title': 'Tu respuesta',
+    'answer.written.placeholder': 'Escribe tu respuesta aquí...',
+    // Finished — medals
+    'medal.mastery':        'Maestría',
+    'medal.excellent':      'Excelente',
+    'medal.solid':          'Sólido',
+    'medal.on_track':       'En camino',
+    'medal.practice':       'Sigamos practicando',
+    'medal.default':        'Bien hecho',
+    'finished.pct_of_max':  '{pct}% del máximo · {n} preguntas',
+    'stat.score':           'Score',
+    'stat.best_streak':     'Mejor racha',
+    'stat.avg_time':        'T° promedio',
+    'stat.success_rate':    'Tasa de éxito',
+    'finished.self_eval':   'Auto-evaluación',
+    'finished.by_level':    'Progresión por nivel',
+    'finished.by_level.range': 'A1 → B2+',
+    'finished.by_category': 'Por categoría',
+    'finished.review':      'Revisión de preguntas',
+    'finished.play_again':  'Jugar otra ronda →',
+    'finished.back_setup':  'Volver al setup',
+    'finished.pts_of':      '{score} / {max} pts',
+    'finished.pts_of_count':'{score} / {max} pts · {n} preg.',
+    // CEFR labels
+    'cefr.A1':              'Básico',
+    'cefr.A2':              'Elemental',
+    'cefr.B1':              'Intermedio',
+    'cefr.B1+':             'Intermedio +',
+    'cefr.B2':              'Intermedio alto',
+    'cefr.C1':              'Avanzado',
+  },
+  en: {
+    'not_found.title':      'Simulation not found',
+    'not_found.body':       "There's no simulation with that ID.",
+    'not_found.cta':        'Browse simulations',
+    'nav.back':             '← Simulations',
+    'nav.exit':             '← Exit',
+    'brand.tag':            'Q&A Simulator',
+    'progression.label':    'Progression',
+    'setup.cefr.title':     'CEFR progression',
+    'setup.cefr.hint':      'From simple structures (A1) to advanced reasoning (B2+).',
+    'setup.select_all':     'All',
+    'setup.questions_short':'q.',
+    'setup.categories.title':      'Categories',
+    'setup.categories.select_all': 'Select all',
+    'setup.categories.pool':       '{n} questions in the pool',
+    'setup.count.title':    'Number of questions',
+    'setup.count.all':      'All ({n})',
+    'setup.count.session':  'This session:',
+    'setup.count.session_suffix': 'questions',
+    'setup.timer.title':    'Time per question',
+    'setup.timer.none':     'No timer',
+    'setup.mode.title':     'Answer mode',
+    'setup.mode.verbal.title':     'Verbal + self-eval',
+    'setup.mode.verbal.desc':      "Answer out loud; when you're done, the teacher rates it.",
+    'setup.mode.recording.title':  'Recording',
+    'setup.mode.recording.desc':   'Record your answer and listen back before rating.',
+    'setup.mode.written.title':    'Written',
+    'setup.mode.written.desc':     'Type your answer and then rate it.',
+    'setup.start':          'Start simulation →',
+    'play.score':           'Score',
+    'play.streak':          'Streak',
+    'play.question_x_of_y': 'Question {i} of {n}',
+    'play.verdict_prompt':  'How was the answer?',
+    'verdict.great':        'Excellent',
+    'verdict.good':         'Good',
+    'verdict.needs-work':   'Needs work',
+    'verdict.skip':         'Skipped',
+    'play.streak_burst':    '🔥 {n} in a row! Keep going',
+    'answer.verbal.hint':   "Answer out loud. When you're done (or time runs out) we move to rating.",
+    'answer.ready':         'Done, rate →',
+    'answer.record.hint':   'Press to start recording your answer.',
+    'answer.record.start':  'Record',
+    'answer.record.now':    'Recording…',
+    'answer.record.stop':   'Stop',
+    'answer.record.listen': 'Listen to your answer before rating.',
+    'answer.record.redo':   'Re-record',
+    'answer.written.title': 'Your answer',
+    'answer.written.placeholder': 'Type your answer here...',
+    'medal.mastery':        'Mastery',
+    'medal.excellent':      'Excellent',
+    'medal.solid':          'Solid',
+    'medal.on_track':       'On track',
+    'medal.practice':       "Let's keep practicing",
+    'medal.default':        'Well done',
+    'finished.pct_of_max':  '{pct}% of max · {n} questions',
+    'stat.score':           'Score',
+    'stat.best_streak':     'Best streak',
+    'stat.avg_time':        'Avg. time',
+    'stat.success_rate':    'Success rate',
+    'finished.self_eval':   'Self-evaluation',
+    'finished.by_level':    'Progression by level',
+    'finished.by_level.range': 'A1 → B2+',
+    'finished.by_category': 'By category',
+    'finished.review':      'Question review',
+    'finished.play_again':  'Play another round →',
+    'finished.back_setup':  'Back to setup',
+    'finished.pts_of':      '{score} / {max} pts',
+    'finished.pts_of_count':'{score} / {max} pts · {n} q.',
+    'cefr.A1':              'Beginner',
+    'cefr.A2':              'Elementary',
+    'cefr.B1':              'Intermediate',
+    'cefr.B1+':             'Intermediate +',
+    'cefr.B2':              'Upper Intermediate',
+    'cefr.C1':              'Advanced',
+  },
+} as const satisfies Record<Lang, Record<string, string>>;
+
+type StringKey = keyof (typeof STRINGS)['es'];
+
+function useLanguage(): [Lang, (l: Lang) => void] {
+  const [lang, setLangState] = useState<Lang>('es');
+  // Hydrate from localStorage after mount so SSR + first render stay stable.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LANG_KEY);
+      if (stored === 'es' || stored === 'en') setLangState(stored);
+    } catch { /* private mode / blocked storage — keep default */ }
+  }, []);
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try { localStorage.setItem(LANG_KEY, l); } catch { /* ignore */ }
+  };
+  return [lang, setLang];
+}
+
+function makeT(lang: Lang) {
+  return function t(key: StringKey, params?: Record<string, string | number>): string {
+    let s: string = STRINGS[lang][key] ?? STRINGS.es[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+      }
+    }
+    return s;
+  };
+}
+
+function cefrLabel(lang: Lang, level: QACefrLevel): string {
+  return STRINGS[lang][`cefr.${level}` as StringKey] ?? STRINGS.es[`cefr.${level}` as StringKey];
+}
+
+function LanguageToggle({
+  lang, setLang, variant = 'default',
+}: { lang: Lang; setLang: (l: Lang) => void; variant?: 'default' | 'onDark' }) {
+  const onDark = variant === 'onDark';
+  return (
+    <div
+      className={`inline-flex items-center rounded-full p-0.5 border ${
+        onDark ? 'bg-white/10 border-white/20 backdrop-blur-sm' : 'bg-white border-[#E8D5F0] shadow-sm'
+      }`}
+      role="group"
+      aria-label="Language"
+    >
+      {(['es', 'en'] as Lang[]).map(l => {
+        const active = lang === l;
+        return (
+          <button
+            key={l}
+            type="button"
+            onClick={() => setLang(l)}
+            aria-pressed={active}
+            className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wide transition-all ${
+              active
+                ? onDark
+                  ? 'bg-white text-[#5A3D7A] shadow'
+                  : 'bg-[#5A3D7A] text-white shadow'
+                : onDark
+                  ? 'text-white/70 hover:text-white'
+                  : 'text-[#9B7CB8] hover:text-[#5A3D7A]'
+            }`}
+          >
+            {l.toUpperCase()}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 interface PlayLog {
   question:       QAQuestion;
@@ -128,15 +374,17 @@ export default function QASimulatorRunnerPage() {
 }
 
 function NotFoundScreen() {
+  const [lang] = useLanguage();
+  const t = makeT(lang);
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF] flex items-center justify-center p-6">
       <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm">
         <div className="text-5xl mb-3">🔎</div>
-        <h1 className="text-lg font-bold text-[#5A3D7A] mb-1">Simulación no encontrada</h1>
-        <p className="text-sm text-gray-500 mb-5">No existe una simulación con ese identificador.</p>
+        <h1 className="text-lg font-bold text-[#5A3D7A] mb-1">{t('not_found.title')}</h1>
+        <p className="text-sm text-gray-500 mb-5">{t('not_found.body')}</p>
         <Link href="/dashboard/teacher/tools/qa-simulator"
           className="inline-block px-6 py-3 rounded-xl bg-[#5A3D7A] text-white text-sm font-bold hover:bg-[#7B5EA7] transition-colors">
-          Ver simulaciones
+          {t('not_found.cta')}
         </Link>
       </div>
     </div>
@@ -149,6 +397,10 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
   const allCategories = useMemo(() => categoriesInSimulation(simulation), [simulation]);
   const availableLevels = useMemo(() => cefrLevelsInSimulation(simulation), [simulation]);
   const hasCefr = availableLevels.length > 0;
+
+  // Language toggle (ES default, persisted to localStorage).
+  const [lang, setLang] = useLanguage();
+  const t = useMemo(() => makeT(lang), [lang]);
 
   // Phase state
   const [phase, setPhase] = useState<Phase>('setup');
@@ -403,6 +655,9 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
         poolCount={poolCount}
         effectiveCount={effectiveCount}
         onStart={startGame}
+        lang={lang}
+        setLang={setLang}
+        t={t}
       />
     );
   }
@@ -416,6 +671,9 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
         totalQuestions={questions.length}
         onPlayAgain={playAgain}
         onBackToSetup={backToSetup}
+        lang={lang}
+        setLang={setLang}
+        t={t}
       />
     );
   }
@@ -445,6 +703,9 @@ function QASimulator({ simulation }: { simulation: QASimulation }) {
       onReadyToEvaluate={readyToEvaluate}
       onPickVerdict={pickVerdict}
       onBackToSetup={backToSetup}
+      lang={lang}
+      setLang={setLang}
+      t={t}
     />
   );
 }
@@ -462,6 +723,7 @@ function SetupScreen({
   requestedQuestions, setRequestedQuestions,
   poolCount, effectiveCount,
   onStart,
+  lang, setLang, t,
 }: {
   simulation:            QASimulation;
   allCategories:         string[];
@@ -482,6 +744,9 @@ function SetupScreen({
   poolCount:             number;
   effectiveCount:        number;
   onStart:               () => void;
+  lang:                  Lang;
+  setLang:               (l: Lang) => void;
+  t:                     ReturnType<typeof makeT>;
 }) {
   const allSelected = allCategories.every(c => selectedCategories.has(c));
   const totalQuestionsInSim = simulation.questions.length;
@@ -495,20 +760,23 @@ function SetupScreen({
         <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/5 blur-xl" />
 
         <div className="relative max-w-3xl mx-auto">
-          <Link href="/dashboard/teacher/tools/qa-simulator"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/10 mb-3">
-            ← Simulaciones
-          </Link>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <Link href="/dashboard/teacher/tools/qa-simulator"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/10">
+              {t('nav.back')}
+            </Link>
+            <LanguageToggle lang={lang} setLang={setLang} variant="onDark" />
+          </div>
           <p className="text-[#C8A8DC] text-xs font-bold uppercase tracking-widest mb-1 flex items-center gap-2">
             <span>{simulation.icon}</span>
-            <span>Q&A Simulator</span>
+            <span>{t('brand.tag')}</span>
           </p>
           <h1 className="text-3xl font-extrabold text-white mb-1">{simulation.title}</h1>
           <p className="text-white/60 text-sm mb-4">{simulation.description}</p>
 
           {hasCefr && (
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/15">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 mr-1">Progresión</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 mr-1">{t('progression.label')}</span>
               {availableLevels.map((level, i) => (
                 <span key={level} className="flex items-center gap-2">
                   <span
@@ -534,15 +802,15 @@ function SetupScreen({
           <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
             <div className="flex items-start justify-between mb-4 gap-3">
               <div>
-                <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Progresión CEFR</h2>
-                <p className="text-xs text-gray-500 mt-1">De estructuras simples (A1) a razonamiento avanzado (B2+).</p>
+                <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">{t('setup.cefr.title')}</h2>
+                <p className="text-xs text-gray-500 mt-1">{t('setup.cefr.hint')}</p>
               </div>
               <button
                 onClick={selectAllLevels}
                 disabled={availableLevels.every(l => selectedLevels.has(l))}
                 className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                Todos
+                {t('setup.select_all')}
               </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
@@ -564,8 +832,8 @@ function SetupScreen({
                     }
                   >
                     <span className="text-base font-extrabold leading-none">{level}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide opacity-80 leading-tight">{cm.label}</span>
-                    <span className="text-[10px] opacity-70 leading-none mt-0.5">{count} preg.</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide opacity-80 leading-tight">{cefrLabel(lang, level)}</span>
+                    <span className="text-[10px] opacity-70 leading-none mt-0.5">{count} {t('setup.questions_short')}</span>
                   </button>
                 );
               })}
@@ -576,13 +844,13 @@ function SetupScreen({
         {/* ── Categorías ───────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Categorías</h2>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">{t('setup.categories.title')}</h2>
             <button
               onClick={selectAllCategories}
               disabled={allSelected}
               className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Seleccionar todas
+              {t('setup.categories.select_all')}
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -608,12 +876,12 @@ function SetupScreen({
               );
             })}
           </div>
-          <p className="text-xs text-gray-500 mt-3">{poolCount} preguntas en el pool</p>
+          <p className="text-xs text-gray-500 mt-3">{t('setup.categories.pool', { n: poolCount })}</p>
         </section>
 
         {/* ── Número de preguntas ──────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Cantidad de preguntas</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('setup.count.title')}</h2>
           <div className="flex flex-wrap gap-2">
             {Array.from(new Set([5, 10, 20, 30, 40, totalQuestionsInSim])).sort((a, b) => a - b).map(n => {
               const isAll = n === totalQuestionsInSim;
@@ -632,31 +900,33 @@ function SetupScreen({
                       : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#9B7CB8]'
                   }`}
                 >
-                  {isAll ? `Todas (${poolCount})` : n}
+                  {isAll ? t('setup.count.all', { n: poolCount }) : n}
                 </button>
               );
             })}
           </div>
-          <p className="text-xs text-gray-500 mt-3">Esta sesión: <strong className="text-[#5A3D7A]">{effectiveCount}</strong> preguntas</p>
+          <p className="text-xs text-gray-500 mt-3">
+            {t('setup.count.session')} <strong className="text-[#5A3D7A]">{effectiveCount}</strong> {t('setup.count.session_suffix')}
+          </p>
         </section>
 
         {/* ── Timer ──────────────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Tiempo por pregunta</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('setup.timer.title')}</h2>
           <div className="flex flex-wrap gap-2">
-            {([0, 30, 60, 90, 120] as TimerOption[]).map(t => {
-              const active = t === timerSec;
+            {([0, 30, 60, 90, 120] as TimerOption[]).map(opt => {
+              const active = opt === timerSec;
               return (
                 <button
-                  key={t}
-                  onClick={() => setTimerSec(t)}
+                  key={opt}
+                  onClick={() => setTimerSec(opt)}
                   className={`px-5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
                     active
                       ? 'bg-[#5A3D7A] text-white border-[#5A3D7A] shadow-sm'
                       : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#9B7CB8]'
                   }`}
                 >
-                  {t === 0 ? 'Sin tiempo' : `${t}s`}
+                  {opt === 0 ? t('setup.timer.none') : `${opt}s`}
                 </button>
               );
             })}
@@ -665,28 +935,28 @@ function SetupScreen({
 
         {/* ── Modo de respuesta ──────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-6 shadow-sm">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Modo de respuesta</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('setup.mode.title')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ModeCard
               active={answerMode === 'verbal'}
               onClick={() => setAnswerMode('verbal')}
               icon="🗣️"
-              title="Verbal + auto-eval"
-              description="Responde en voz alta; al terminar el profesor evalúa."
+              title={t('setup.mode.verbal.title')}
+              description={t('setup.mode.verbal.desc')}
             />
             <ModeCard
               active={answerMode === 'recording'}
               onClick={() => setAnswerMode('recording')}
               icon="🎙️"
-              title="Grabación"
-              description="Graba tu respuesta y escúchala antes de evaluar."
+              title={t('setup.mode.recording.title')}
+              description={t('setup.mode.recording.desc')}
             />
             <ModeCard
               active={answerMode === 'written'}
               onClick={() => setAnswerMode('written')}
               icon="✍️"
-              title="Escrito"
-              description="Escribe la respuesta y luego evalúala."
+              title={t('setup.mode.written.title')}
+              description={t('setup.mode.written.desc')}
             />
           </div>
         </section>
@@ -698,7 +968,7 @@ function SetupScreen({
           className="w-full py-4 rounded-2xl text-white text-base font-bold shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-[1.01] active:scale-[0.99]"
           style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
         >
-          Empezar simulación →
+          {t('setup.start')}
         </button>
       </div>
     </div>
@@ -743,6 +1013,7 @@ function PlayingScreen({
   recordingState, currentAudioUrl, recordError,
   onStartRecording, onStopRecording, onDiscardRecording,
   onReadyToEvaluate, onPickVerdict, onBackToSetup,
+  lang, setLang, t,
 }: {
   question:           QAQuestion;
   questions:          QAQuestion[];
@@ -766,10 +1037,14 @@ function PlayingScreen({
   onReadyToEvaluate:  () => void;
   onPickVerdict:      (v: Verdict) => void;
   onBackToSetup:      () => void;
+  lang:               Lang;
+  setLang:            (l: Lang) => void;
+  t:                  ReturnType<typeof makeT>;
 }) {
   const meta = getCategoryMeta(question.category);
   const cefr = question.cefr;
   const cefrMeta = cefr ? getCefrMeta(cefr) : null;
+  const cefrLbl = cefr ? cefrLabel(lang, cefr) : null;
   const timerActive = timerSec > 0;
   const timerWarn = timerActive && timeLeft <= 10 && !reviewing;
   const timerPct = timerActive ? Math.max(0, (timeLeft / timerSec) * 100) : 100;
@@ -784,14 +1059,15 @@ function PlayingScreen({
             onClick={onBackToSetup}
             className="text-xs font-semibold text-gray-500 hover:text-[#5A3D7A] px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            ← Salir
+            {t('nav.exit')}
           </button>
           <div className="flex-1 flex items-center gap-3">
             <ProgressDots current={currentIdx} total={total} questions={questions} />
           </div>
           <div className="flex items-center gap-3">
-            <StatBadge label="Score" value={score} color="#5A3D7A" />
-            <StatBadge label="Racha" value={streak} color={streak >= 3 ? '#B91C1C' : '#6B7280'} icon={streak >= 3 ? '🔥' : undefined} pulse={streakBurst > 0} />
+            <StatBadge label={t('play.score')} value={score} color="#5A3D7A" />
+            <StatBadge label={t('play.streak')} value={streak} color={streak >= 3 ? '#B91C1C' : '#6B7280'} icon={streak >= 3 ? '🔥' : undefined} pulse={streakBurst > 0} />
+            <LanguageToggle lang={lang} setLang={setLang} />
             <FullscreenButton variant="inline" />
           </div>
         </div>
@@ -807,11 +1083,11 @@ function PlayingScreen({
                 <span
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold border-2 tabular-nums shadow-sm"
                   style={{ background: cefrMeta.bg, color: cefrMeta.color, borderColor: cefrMeta.color }}
-                  title={cefrMeta.label}
+                  title={cefrLbl ?? undefined}
                 >
                   <span className="text-sm">{cefr}</span>
                   <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide opacity-80">
-                    {cefrMeta.label}
+                    {cefrLbl}
                   </span>
                 </span>
               )}
@@ -846,7 +1122,7 @@ function PlayingScreen({
             )}
             <div className="flex items-center gap-2 mb-3">
               <p className="text-xs uppercase tracking-widest font-bold text-gray-400">
-                Pregunta {currentIdx + 1} de {total}
+                {t('play.question_x_of_y', { i: currentIdx + 1, n: total })}
               </p>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-[#2D1B4E] leading-snug">{question.question}</h2>
@@ -865,13 +1141,14 @@ function PlayingScreen({
               onStopRecording={onStopRecording}
               onDiscardRecording={onDiscardRecording}
               onReadyToEvaluate={onReadyToEvaluate}
+              t={t}
             />
           )}
 
           {/* ── Verdict buttons ───────────────────────────────── */}
           {reviewing && (
             <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-lg p-6 sm:p-8 space-y-4">
-              <p className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest text-center">¿Cómo estuvo la respuesta?</p>
+              <p className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest text-center">{t('play.verdict_prompt')}</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {(['great', 'good', 'needs-work', 'skip'] as Verdict[]).map(v => {
                   const m = VERDICT_META[v];
@@ -883,7 +1160,7 @@ function PlayingScreen({
                       style={{ background: m.bg, color: m.color, borderColor: m.border }}
                     >
                       <span className="text-3xl">{m.emoji}</span>
-                      <span className="text-sm">{m.label}</span>
+                      <span className="text-sm">{t(`verdict.${v}` as StringKey)}</span>
                       <span className="text-xs font-semibold opacity-60">+{m.pts}pts</span>
                     </button>
                   );
@@ -896,7 +1173,7 @@ function PlayingScreen({
           {streak >= 3 && !reviewing && (
             <div key={streakBurst} className="text-center animate-bounce">
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-extrabold text-sm shadow-lg">
-                🔥 Racha de {streak}! Sigue así
+                {t('play.streak_burst', { n: streak })}
               </span>
             </div>
           )}
@@ -984,6 +1261,7 @@ function AnswerArea({
   recordingState, currentAudioUrl, recordError,
   onStartRecording, onStopRecording, onDiscardRecording,
   onReadyToEvaluate,
+  t,
 }: {
   mode:               AnswerMode;
   writtenAnswer:      string;
@@ -995,19 +1273,20 @@ function AnswerArea({
   onStopRecording:    () => void;
   onDiscardRecording: () => void;
   onReadyToEvaluate:  () => void;
+  t:                  ReturnType<typeof makeT>;
 }) {
   if (mode === 'verbal') {
     return (
       <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-lg p-6 sm:p-8 text-center space-y-4">
         <div className="text-5xl">🗣️</div>
         <p className="text-sm text-gray-500 max-w-md mx-auto">
-          Responde en voz alta. Cuando termines (o cuando se acabe el tiempo) pasamos a la evaluación.
+          {t('answer.verbal.hint')}
         </p>
         <button
           onClick={onReadyToEvaluate}
           className="px-6 py-3 rounded-xl bg-[#5A3D7A] text-white text-sm font-bold hover:bg-[#7B5EA7] transition-colors"
         >
-          Listo, evaluar →
+          {t('answer.ready')}
         </button>
       </div>
     );
@@ -1019,45 +1298,45 @@ function AnswerArea({
         {recordingState === 'idle' && (
           <>
             <div className="text-5xl">🎙️</div>
-            <p className="text-sm text-gray-500">Pulsa para empezar a grabar tu respuesta.</p>
+            <p className="text-sm text-gray-500">{t('answer.record.hint')}</p>
             <button
               onClick={onStartRecording}
               className="px-6 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors inline-flex items-center gap-2"
             >
               <span className="w-2.5 h-2.5 rounded-full bg-white" />
-              Grabar
+              {t('answer.record.start')}
             </button>
           </>
         )}
         {recordingState === 'recording' && (
           <>
             <div className="text-5xl animate-pulse">🔴</div>
-            <p className="text-sm text-red-600 font-bold">Grabando…</p>
+            <p className="text-sm text-red-600 font-bold">{t('answer.record.now')}</p>
             <button
               onClick={onStopRecording}
               className="px-6 py-3 rounded-xl bg-[#5A3D7A] text-white text-sm font-bold hover:bg-[#7B5EA7] transition-colors"
             >
-              Detener
+              {t('answer.record.stop')}
             </button>
           </>
         )}
         {recordingState === 'recorded' && currentAudioUrl && (
           <>
             <div className="text-5xl">✅</div>
-            <p className="text-sm text-gray-500">Escucha tu respuesta antes de evaluar.</p>
+            <p className="text-sm text-gray-500">{t('answer.record.listen')}</p>
             <audio controls src={currentAudioUrl} className="w-full max-w-md mx-auto" />
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={onDiscardRecording}
                 className="px-4 py-2 rounded-xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200"
               >
-                Regrabar
+                {t('answer.record.redo')}
               </button>
               <button
                 onClick={onReadyToEvaluate}
                 className="px-6 py-3 rounded-xl bg-[#5A3D7A] text-white text-sm font-bold hover:bg-[#7B5EA7] transition-colors"
               >
-                Listo, evaluar →
+                {t('answer.ready')}
               </button>
             </div>
           </>
@@ -1074,12 +1353,12 @@ function AnswerArea({
     <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-lg p-6 sm:p-8 space-y-3">
       <div className="flex items-center gap-2">
         <span className="text-2xl">✍️</span>
-        <p className="text-sm font-bold text-[#5A3D7A]">Tu respuesta</p>
+        <p className="text-sm font-bold text-[#5A3D7A]">{t('answer.written.title')}</p>
       </div>
       <textarea
         value={writtenAnswer}
         onChange={e => setWrittenAnswer(e.target.value)}
-        placeholder="Escribe tu respuesta aquí..."
+        placeholder={t('answer.written.placeholder')}
         rows={6}
         className="w-full px-4 py-3 rounded-xl border border-[#E8D5F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] resize-none"
       />
@@ -1087,7 +1366,7 @@ function AnswerArea({
         onClick={onReadyToEvaluate}
         className="w-full px-6 py-3 rounded-xl bg-[#5A3D7A] text-white text-sm font-bold hover:bg-[#7B5EA7] transition-colors"
       >
-        Listo, evaluar →
+        {t('answer.ready')}
       </button>
     </div>
   );
@@ -1100,6 +1379,7 @@ function AnswerArea({
 function FinishedScreen({
   log, score, maxStreak, totalQuestions,
   onPlayAgain, onBackToSetup,
+  lang, setLang, t,
 }: {
   log:            PlayLog[];
   score:          number;
@@ -1107,6 +1387,9 @@ function FinishedScreen({
   totalQuestions: number;
   onPlayAgain:    () => void;
   onBackToSetup:  () => void;
+  lang:           Lang;
+  setLang:        (l: Lang) => void;
+  t:              ReturnType<typeof makeT>;
 }) {
   const maxPossible = totalQuestions * 3;
   const pct = maxPossible > 0 ? Math.round((score / maxPossible) * 100) : 0;
@@ -1149,12 +1432,12 @@ function FinishedScreen({
   }, [log]);
 
   let medal = '🎓';
-  let medalLabel = 'Bien hecho';
-  if (pct >= 90) { medal = '🏆'; medalLabel = 'Maestría'; }
-  else if (pct >= 75) { medal = '🥇'; medalLabel = 'Excelente'; }
-  else if (pct >= 60) { medal = '🥈'; medalLabel = 'Sólido'; }
-  else if (pct >= 40) { medal = '🥉'; medalLabel = 'En camino'; }
-  else { medal = '📚'; medalLabel = 'Sigamos practicando'; }
+  let medalKey: StringKey = 'medal.default';
+  if (pct >= 90) { medal = '🏆'; medalKey = 'medal.mastery'; }
+  else if (pct >= 75) { medal = '🥇'; medalKey = 'medal.excellent'; }
+  else if (pct >= 60) { medal = '🥈'; medalKey = 'medal.solid'; }
+  else if (pct >= 40) { medal = '🥉'; medalKey = 'medal.on_track'; }
+  else { medal = '📚'; medalKey = 'medal.practice'; }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5FF] via-[#F3EEFF] to-[#EEF2FF]">
@@ -1164,11 +1447,16 @@ function FinishedScreen({
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
         <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/5 blur-xl" />
 
-        <div className="relative max-w-3xl mx-auto text-center">
-          <div className="text-7xl mb-3">{medal}</div>
-          <p className="text-[#C8A8DC] text-xs font-bold uppercase tracking-widest mb-1">{medalLabel}</p>
-          <h1 className="text-4xl font-extrabold text-white mb-2">{score} <span className="text-white/50 text-2xl">/ {maxPossible}</span></h1>
-          <p className="text-white/70 text-sm">{pct}% del máximo · {totalQuestions} preguntas</p>
+        <div className="relative max-w-3xl mx-auto">
+          <div className="flex justify-end mb-3">
+            <LanguageToggle lang={lang} setLang={setLang} variant="onDark" />
+          </div>
+          <div className="text-center">
+            <div className="text-7xl mb-3">{medal}</div>
+            <p className="text-[#C8A8DC] text-xs font-bold uppercase tracking-widest mb-1">{t(medalKey)}</p>
+            <h1 className="text-4xl font-extrabold text-white mb-2">{score} <span className="text-white/50 text-2xl">/ {maxPossible}</span></h1>
+            <p className="text-white/70 text-sm">{t('finished.pct_of_max', { pct, n: totalQuestions })}</p>
+          </div>
         </div>
       </div>
 
@@ -1176,15 +1464,15 @@ function FinishedScreen({
 
         {/* ── Quick stats ──────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <BigStat label="Score" value={score.toString()} />
-          <BigStat label="Mejor racha" value={`🔥 ${maxStreak}`} />
-          <BigStat label="T° promedio" value={formatMs(avgTimeMs)} />
-          <BigStat label="Tasa de éxito" value={`${pct}%`} />
+          <BigStat label={t('stat.score')} value={score.toString()} />
+          <BigStat label={t('stat.best_streak')} value={`🔥 ${maxStreak}`} />
+          <BigStat label={t('stat.avg_time')} value={formatMs(avgTimeMs)} />
+          <BigStat label={t('stat.success_rate')} value={`${pct}%`} />
         </div>
 
         {/* ── Verdict counts ───────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Auto-evaluación</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('finished.self_eval')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {(['great', 'good', 'needs-work', 'skip'] as Verdict[]).map(v => {
               const m = VERDICT_META[v];
@@ -1195,7 +1483,7 @@ function FinishedScreen({
                   style={{ background: m.bg, borderColor: m.border, color: m.color }}
                 >
                   <span className="text-2xl mb-0.5">{m.emoji}</span>
-                  <span className="text-xs font-semibold opacity-80">{m.label}</span>
+                  <span className="text-xs font-semibold opacity-80">{t(`verdict.${v}` as StringKey)}</span>
                   <span className="text-xl font-extrabold">{verdictCounts[v]}</span>
                 </div>
               );
@@ -1207,8 +1495,8 @@ function FinishedScreen({
         {byCefr.length > 0 && (
           <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
             <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Progresión por nivel</h2>
-              <span className="text-[10px] text-gray-400">A1 → B2+</span>
+              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">{t('finished.by_level')}</h2>
+              <span className="text-[10px] text-gray-400">{t('finished.by_level.range')}</span>
             </div>
             <div className="space-y-3">
               {byCefr.map(([level, stats]) => {
@@ -1225,9 +1513,9 @@ function FinishedScreen({
                         >
                           {level}
                         </span>
-                        <span className="uppercase tracking-wide text-[10px] opacity-80">{cm.label}</span>
+                        <span className="uppercase tracking-wide text-[10px] opacity-80">{cefrLabel(lang, level)}</span>
                       </span>
-                      <span className="text-gray-500 tabular-nums">{stats.score} / {max} pts · {stats.total} preg.</span>
+                      <span className="text-gray-500 tabular-nums">{t('finished.pts_of_count', { score: stats.score, max, n: stats.total })}</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                       <div
@@ -1245,7 +1533,7 @@ function FinishedScreen({
         {/* ── Per-category breakdown ───────────────────────── */}
         {byCategory.length > 0 && (
           <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
-            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Por categoría</h2>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('finished.by_category')}</h2>
             <div className="space-y-3">
               {byCategory.map(([cat, stats]) => {
                 const meta = getCategoryMeta(cat);
@@ -1257,7 +1545,7 @@ function FinishedScreen({
                       <span className="font-bold flex items-center gap-1.5" style={{ color: meta.color }}>
                         <span>{meta.icon}</span>{cat}
                       </span>
-                      <span className="text-gray-500 tabular-nums">{stats.score} / {max} pts</span>
+                      <span className="text-gray-500 tabular-nums">{t('finished.pts_of', { score: stats.score, max })}</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                       <div
@@ -1274,7 +1562,7 @@ function FinishedScreen({
 
         {/* ── Question log ─────────────────────────────────── */}
         <section className="bg-white rounded-2xl border border-[#E8D5F0] p-5 shadow-sm">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">Revisión de preguntas</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest mb-4">{t('finished.review')}</h2>
           <ol className="space-y-3">
             {log.map((entry, i) => {
               const meta = getCategoryMeta(entry.question.category);
@@ -1322,13 +1610,13 @@ function FinishedScreen({
             className="w-full py-3.5 rounded-2xl text-white text-sm font-bold shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
             style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
           >
-            Jugar otra ronda →
+            {t('finished.play_again')}
           </button>
           <button
             onClick={onBackToSetup}
             className="w-full py-3.5 rounded-2xl bg-white border-2 border-[#E8D5F0] text-[#5A3D7A] text-sm font-bold hover:border-[#9B7CB8] transition-colors"
           >
-            Volver al setup
+            {t('finished.back_setup')}
           </button>
         </div>
       </div>
