@@ -13,6 +13,7 @@ import { ieltsMock1 } from './mock-1';
 import { ieltsMock2 } from './mock-2';
 import { ieltsMock3 } from './mock-3';
 import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
+import { listeningIntermediateMock1 } from './listeningIntermediateMock1';
 import { readingBeginnersMock1 } from './reading/gtBeginnersMock1';
 import type { IELTSMock } from './mock-1';
 import type { ListeningMock } from '@/types/ielts';
@@ -52,11 +53,19 @@ export const BEGINNERS_READING_MOCKS: ReadingMock[] = [
   readingBeginnersMock1,
 ];
 
-// Todos los listening mocks (regulares + beginners). Usar para lookup por
-// id (URL ?mock=), no para renderizar pickers.
+// Intermediate product — puente entre A2 y el simulacro completo. Por ahora
+// sólo Listening; Reading/Writing/Speaking B1/B2 se suman en pasos
+// siguientes. La landing dedicada de /ielts-intermediate los consume.
+export const INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
+  listeningIntermediateMock1,
+];
+
+// Todos los listening mocks (regulares + beginners + intermediate). Usar
+// para lookup por id (URL ?mock=), no para renderizar pickers.
 export const ALL_LISTENING_MOCKS: ListeningMock[] = [
   ...LISTENING_MOCKS,
   ...BEGINNERS_LISTENING_MOCKS,
+  ...INTERMEDIATE_LISTENING_MOCKS,
 ];
 
 // Idem reading. El runner de /ielts/reading/[mockId] usa esto para poder
@@ -70,6 +79,7 @@ export function getListeningMock(mockId: string): ListeningMock | undefined {
   return (
     getIeltsMock(mockId)?.listening
     ?? BEGINNERS_LISTENING_MOCKS.find(m => m.id === mockId)
+    ?? INTERMEDIATE_LISTENING_MOCKS.find(m => m.id === mockId)
   );
 }
 

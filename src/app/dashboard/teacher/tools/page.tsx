@@ -56,6 +56,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts-intermediate',
+    icon:        '🌿',
+    title:       'IELTS GT Intermediate',
+    description: 'Versión B1/B2 del simulacro: 32 preguntas, audios de ~3 min por sección, velocidad 0.95x. Puente entre Beginners y el simulacro completo.',
+    gradient:    'from-[#3B82F6] to-[#5A3D7A]',
+    glow:        'shadow-blue-200/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',
