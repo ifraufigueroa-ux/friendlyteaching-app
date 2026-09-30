@@ -65,6 +65,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts-upper-intermediate',
+    icon:        '🌳',
+    title:       'IELTS GT Upper-Intermediate',
+    description: 'Versión B2 del simulacro: 40 preguntas (volumen del examen real), velocidad natural 1.0x, todos los tipos de pregunta incluyendo plan-map y multi-select.',
+    gradient:    'from-[#A855F7] to-[#5A3D7A]',
+    glow:        'shadow-purple-200/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',

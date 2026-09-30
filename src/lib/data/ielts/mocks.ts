@@ -14,6 +14,7 @@ import { ieltsMock2 } from './mock-2';
 import { ieltsMock3 } from './mock-3';
 import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
 import { listeningIntermediateMock1 } from './listeningIntermediateMock1';
+import { listeningUpperIntermediateMock1 } from './listeningUpperIntermediateMock1';
 import { readingBeginnersMock1 } from './reading/gtBeginnersMock1';
 import type { IELTSMock } from './mock-1';
 import type { ListeningMock } from '@/types/ielts';
@@ -60,12 +61,20 @@ export const INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
   listeningIntermediateMock1,
 ];
 
-// Todos los listening mocks (regulares + beginners + intermediate). Usar
-// para lookup por id (URL ?mock=), no para renderizar pickers.
+// Upper-Intermediate product — volumen y velocidad del examen real (40 Q,
+// 1.0x) con vocab B2 y sin scaffolding preListening. Puente entre
+// Intermediate y los mocks Full IELTS (B2-C1).
+export const UPPER_INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
+  listeningUpperIntermediateMock1,
+];
+
+// Todos los listening mocks (regulares + beginners + intermediate + upper).
+// Usar para lookup por id (URL ?mock=), no para renderizar pickers.
 export const ALL_LISTENING_MOCKS: ListeningMock[] = [
   ...LISTENING_MOCKS,
   ...BEGINNERS_LISTENING_MOCKS,
   ...INTERMEDIATE_LISTENING_MOCKS,
+  ...UPPER_INTERMEDIATE_LISTENING_MOCKS,
 ];
 
 // Idem reading. El runner de /ielts/reading/[mockId] usa esto para poder
@@ -80,6 +89,7 @@ export function getListeningMock(mockId: string): ListeningMock | undefined {
     getIeltsMock(mockId)?.listening
     ?? BEGINNERS_LISTENING_MOCKS.find(m => m.id === mockId)
     ?? INTERMEDIATE_LISTENING_MOCKS.find(m => m.id === mockId)
+    ?? UPPER_INTERMEDIATE_LISTENING_MOCKS.find(m => m.id === mockId)
   );
 }
 
