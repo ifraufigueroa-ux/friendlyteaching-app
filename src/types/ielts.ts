@@ -199,9 +199,13 @@ export interface FormLayout {
 export interface PreListeningVocabItem {
   word: string;                                 // exact form as it appears in the script
   pos?: 'noun' | 'verb' | 'adjective' | 'phrase' | 'number';
-  translation: string;                          // Spanish gloss (LatAm neutral)
+  translation: string;                          // Spanish gloss (LatAm neutral) — kept for VocabCards
   example?: string;                             // ≤10-word English sentence, ideally lifted from the script
   soundsLike?: string;                          // simple pronunciation hint, e.g. "STOO-dent"
+  // Short English definition used by the Matching activity (right column).
+  // Should NOT contain the word itself. CEFR-appropriate for the mock's
+  // level. When absent, the matching activity falls back to translation.
+  definition?: string;
 }
 
 export interface PreListeningPrep {

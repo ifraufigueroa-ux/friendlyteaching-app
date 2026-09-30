@@ -1479,7 +1479,7 @@ function MatchingActivity({
     <div>
       <div className="grid grid-cols-2 gap-3">
         <ul className="space-y-2">
-          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">🇬🇧 English</li>
+          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">Word</li>
           {leftOrder.map((w) => (
             <li key={`L-${w}`}>
               <button
@@ -1497,18 +1497,18 @@ function MatchingActivity({
           ))}
         </ul>
         <ul className="space-y-2">
-          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">🇪🇸 Español</li>
+          <li className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/70">Definition</li>
           {rightOrder.map((w) => (
             <li key={`R-${w}`}>
               <button
                 type="button"
                 disabled={matched.has(w)}
                 onClick={() => setSelRight(w)}
-                className={`w-full text-left rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${chipClass(w, 'R')}`}
+                className={`w-full text-left rounded-xl border px-3 py-2 text-sm font-normal leading-snug transition-all ${chipClass(w, 'R')}`}
               >
-                <span className="flex items-center gap-2">
-                  {matched.has(w) && <span aria-hidden>✓</span>}
-                  <span className="truncate">{byWord.get(w)?.translation ?? ''}</span>
+                <span className="flex items-start gap-2">
+                  {matched.has(w) && <span aria-hidden className="mt-0.5">✓</span>}
+                  <span>{byWord.get(w)?.definition ?? byWord.get(w)?.translation ?? ''}</span>
                 </span>
               </button>
             </li>
@@ -1519,7 +1519,7 @@ function MatchingActivity({
       {/* Progress bar */}
       <div className="mt-4">
         <div className="flex items-center justify-between text-[11px] font-bold text-[#5A3D7A] mb-1">
-          <span>Emparejados</span>
+          <span>Matched</span>
           <span className="tabular-nums">{done} / {total}</span>
         </div>
         <div className="h-2 rounded-full bg-white/70 border border-[#E8D5F0] overflow-hidden">
@@ -1542,7 +1542,7 @@ function PreListeningPanel({
   partToQ:   number;
   onReady:   () => void;
 }) {
-  const [tab, setTab] = useState<'explorar' | 'emparejar'>('explorar');
+  const [tab, setTab] = useState<'explorar' | 'matching'>('explorar');
   const [matchingDone, setMatchingDone] = useState(false);
 
   return (
@@ -1564,7 +1564,7 @@ function PreListeningPanel({
           {prep.scenarioPreview}
         </p>
 
-        {/* Tabs · Explorar / Emparejar */}
+        {/* Tabs · Explorar / Matching */}
         <div className="mt-5">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="inline-flex rounded-xl bg-white border border-[#E8D5F0] p-1 shadow-sm">
@@ -1581,14 +1581,14 @@ function PreListeningPanel({
               </button>
               <button
                 type="button"
-                onClick={() => setTab('emparejar')}
+                onClick={() => setTab('matching')}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
-                  tab === 'emparejar'
+                  tab === 'matching'
                     ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
                     : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
                 }`}
               >
-                🎯 Emparejar
+                🎯 Matching
               </button>
             </div>
             <span className="text-[10px] font-bold text-[#5A3D7A]/70 tabular-nums">
@@ -1605,7 +1605,7 @@ function PreListeningPanel({
             />
           )}
 
-          {tab === 'emparejar' && matchingDone && (
+          {tab === 'matching' && matchingDone && (
             <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-300 px-4 py-2.5 text-sm font-bold text-emerald-800 flex items-center gap-2">
               <span aria-hidden>🎉</span>
               ¡Vocabulario dominado! Estás listo para el audio.
