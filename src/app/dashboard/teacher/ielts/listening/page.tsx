@@ -331,7 +331,14 @@ function groupInstructions(g: QGroup): string {
 /** Instructions for a form-layout-wrapped section: computes the max
  *  word-limit across the fill-family questions inside so the CBT
  *  heading matches the strictest constraint (mirrors what real IELTS
- *  prints above a mixed form). Non-fill types (MCQ) don't count. */
+ *  prints above a mixed form). When the section also carries
+ *  matching / MCQ / plan-map questions whose option TEXT contains
+ *  multi-word phrases (like "Not offered this month"), we floor the
+ *  displayed limit at TWO WORDS — otherwise the "ONE WORD" instruction
+ *  reads as inconsistent with the correct-answer text students see in
+ *  review. Fills still enforce their own per-question wordLimit for
+ *  grading; this only widens the READ-OFF instruction to match what's
+ *  visible in the mixed form. */
 function sectionFormInstructions(section: ListeningSection): string {
   const fills = section.questions.filter((q) =>
     q.type === 'form-completion' || q.type === 'note-completion'
@@ -340,7 +347,15 @@ function sectionFormInstructions(section: ListeningSection): string {
     || q.type === 'short-answer'
   ) as (ListeningQuestion & { wordLimit: number; allowNumbers: boolean })[];
   if (fills.length === 0) return 'Complete the form.';
-  const wl = Math.max(...fills.map((q) => q.wordLimit));
+  const hasMultiWordOption = section.questions.some((q) => {
+    if (
+      q.type !== 'matching' && q.type !== 'plan-map-labelling'
+      && q.type !== 'multiple-choice' && q.type !== 'multiple-choice-multi'
+    ) return false;
+    return q.options.some((o) => o.text.trim().split(/\s+/).length > 1);
+  });
+  const wlFills = Math.max(...fills.map((q) => q.wordLimit));
+  const wl = Math.max(wlFills, hasMultiWordOption ? 2 : 1);
   const anyNum = fills.some((q) => q.allowNumbers);
   const words = wl === 1 ? 'ONE WORD' : wl === 2 ? 'TWO WORDS' : wl === 3 ? 'THREE WORDS' : `${wl} WORDS`;
   const num = anyNum ? ' AND/OR A NUMBER' : '';
