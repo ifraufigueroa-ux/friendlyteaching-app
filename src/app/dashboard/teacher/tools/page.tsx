@@ -74,6 +74,15 @@ const INTERNAL_TOOLS = [
     badge:       'Nuevo',
   },
   {
+    href:        '/dashboard/teacher/ielts-advanced',
+    icon:        '🔥',
+    title:       'IELTS GT Advanced',
+    description: 'Versión B2+/C1 del simulacro: densidad léxica y distractores del examen real, scripts más largos, preguntas mayormente inferenciales. Para band 7+.',
+    gradient:    'from-[#F43F5E] to-[#5A3D7A]',
+    glow:        'shadow-rose-200/40',
+    badge:       'Nuevo',
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',

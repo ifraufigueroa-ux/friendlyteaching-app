@@ -15,6 +15,7 @@ import { ieltsMock3 } from './mock-3';
 import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
 import { listeningIntermediateMock1 } from './listeningIntermediateMock1';
 import { listeningUpperIntermediateMock1 } from './listeningUpperIntermediateMock1';
+import { listeningAdvancedMock1 } from './listeningAdvancedMock1';
 import { readingBeginnersMock1 } from './reading/gtBeginnersMock1';
 import type { IELTSMock } from './mock-1';
 import type { ListeningMock } from '@/types/ielts';
@@ -68,13 +69,21 @@ export const UPPER_INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
   listeningUpperIntermediateMock1,
 ];
 
-// Todos los listening mocks (regulares + beginners + intermediate + upper).
-// Usar para lookup por id (URL ?mock=), no para renderizar pickers.
+// Advanced product — nivel máximo antes de Full IELTS. C1 con densidad
+// léxica y distractores más finos; scripts más largos y preguntas
+// mayormente inferenciales.
+export const ADVANCED_LISTENING_MOCKS: ListeningMock[] = [
+  listeningAdvancedMock1,
+];
+
+// Todos los listening mocks conocidos. Usar para lookup por id (URL
+// ?mock=), no para renderizar pickers.
 export const ALL_LISTENING_MOCKS: ListeningMock[] = [
   ...LISTENING_MOCKS,
   ...BEGINNERS_LISTENING_MOCKS,
   ...INTERMEDIATE_LISTENING_MOCKS,
   ...UPPER_INTERMEDIATE_LISTENING_MOCKS,
+  ...ADVANCED_LISTENING_MOCKS,
 ];
 
 // Idem reading. El runner de /ielts/reading/[mockId] usa esto para poder
@@ -90,6 +99,7 @@ export function getListeningMock(mockId: string): ListeningMock | undefined {
     ?? BEGINNERS_LISTENING_MOCKS.find(m => m.id === mockId)
     ?? INTERMEDIATE_LISTENING_MOCKS.find(m => m.id === mockId)
     ?? UPPER_INTERMEDIATE_LISTENING_MOCKS.find(m => m.id === mockId)
+    ?? ADVANCED_LISTENING_MOCKS.find(m => m.id === mockId)
   );
 }
 
