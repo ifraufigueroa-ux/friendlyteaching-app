@@ -2376,41 +2376,54 @@ function IELTSListeningPageInner() {
         ) : (
         <>
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-4">
-          {/* Compact audio block — lavender, sits under the header */}
+          {/* Compact audio block — lavender, sits under the CBT header.
+              Sticky so it travels with the scroll: students can pause,
+              scrub or change speed from any question without jumping
+              back to the top. CBTHeader is sticky at top-0 with z-40
+              and ~56-60px tall; this sits right below it at top-16 with
+              z-30 so the header always stays on top of this bar.
+              Only the player (loading / ready) states are sticky — the
+              AudioPanel setup card is left in normal flow, since it's a
+              one-time teacher-side action and would otherwise obscure
+              the content below. */}
           {audiosLoading ? (
-            <div className="mb-4 rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] p-3 flex items-center gap-2 text-xs text-gray-500">
-              <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
-              Cargando audio…
+            <div className="sticky top-16 z-30 -mx-4 px-4 pt-2 pb-1 bg-white/95 backdrop-blur-sm mb-4">
+              <div className="rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] p-3 flex items-center gap-2 text-xs text-gray-500 shadow-sm">
+                <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
+                Cargando audio…
+              </div>
             </div>
           ) : audioUrl ? (
-            <div className="mb-4 rounded-lg bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
-                  Part {activeSection.number} · {activeSection.title}
-                </span>
-                {mode !== 'exam' && (
-                  <button
-                    onClick={() => {
-                      if (confirm('¿Borrar este audio y generar uno nuevo? Consume tokens de ElevenLabs otra vez.')) {
-                        clearAudioBinding(activeSection.number);
-                      }
-                    }}
-                    className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A] underline"
-                  >
-                    🔄 Regenerar
-                  </button>
+            <div className="sticky top-16 z-30 -mx-4 px-4 pt-2 pb-1 bg-white/95 backdrop-blur-sm mb-4">
+              <div className="rounded-lg bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3 shadow-md ring-1 ring-black/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
+                    Part {activeSection.number} · {activeSection.title}
+                  </span>
+                  {mode !== 'exam' && (
+                    <button
+                      onClick={() => {
+                        if (confirm('¿Borrar este audio y generar uno nuevo? Consume tokens de ElevenLabs otra vez.')) {
+                          clearAudioBinding(activeSection.number);
+                        }
+                      }}
+                      className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A] underline"
+                    >
+                      🔄 Regenerar
+                    </button>
+                  )}
+                </div>
+                <AudioWithSpeed
+                  src={audioUrl}
+                  mode={mode}
+                  autoPlay={mode === 'exam'}
+                  tone="light"
+                  onPlayingChange={setAudioPlaying}
+                />
+                {mode === 'exam' && (
+                  <p className="text-[10px] text-[#5A3D7A]/70 italic mt-1">Exam mode: audio plays once, no pause.</p>
                 )}
               </div>
-              <AudioWithSpeed
-                src={audioUrl}
-                mode={mode}
-                autoPlay={mode === 'exam'}
-                tone="light"
-                onPlayingChange={setAudioPlaying}
-              />
-              {mode === 'exam' && (
-                <p className="text-[10px] text-[#5A3D7A]/70 italic mt-1">Exam mode: audio plays once, no pause.</p>
-              )}
             </div>
           ) : (
             <div className="mb-4">
