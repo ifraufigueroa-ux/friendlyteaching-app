@@ -1701,11 +1701,38 @@ function PreListeningPanel({
 // Compact vocab reference for the running section — students can peek at
 // the vocab without losing the audio/questions view. Collapsed by default;
 // expanding it reveals the same POS-coloured cards the pre-listening panel
-// uses (single source of truth via VocabCards).
-function VocabAccordion({ prep }: { prep: PreListeningPrep }) {
+// uses (single source of truth via VocabCards) PLUS the matching exercise.
+//
+// Why the matching lives here too: PreListeningPanel only fires once per
+// section (and gets skipped entirely on resume), so a student jumping
+// into Parts 2/3/4 would otherwise lose the matching warm-up. Exposing
+// it inside the always-available accordion means they can re-run it per
+// Part at any moment during the test.
+//
+// `sectionNumber` scopes React state (tabs, matched set) per section —
+// without it, keeping internal state across Part changes would carry
+// Part 1's selections into Part 2.
+function VocabAccordion({
+  prep, sectionNumber,
+}: {
+  prep: PreListeningPrep;
+  sectionNumber: 1 | 2 | 3 | 4;
+}) {
   const [open, setOpen] = useState(false);
+  const [tab, setTab]   = useState<'explorar' | 'matching'>('explorar');
+  const [matchingDone, setMatchingDone] = useState(false);
+
+  // Reset per-section state when the Part changes. Keeps the accordion
+  // closed by default on each new Part so it doesn't steal the audio's
+  // visual focus.
+  useEffect(() => {
+    setOpen(false);
+    setTab('explorar');
+    setMatchingDone(false);
+  }, [sectionNumber]);
+
   return (
-    <div className={`mb-4 rounded-xl border ${open ? 'border-[#C8A8DC]/70 bg-[#FDFAFF]' : 'border-[#E8D5F0] bg-white'} shadow-sm`}>
+    <div className={`mb-4 rounded-xl border transition-colors ${open ? 'border-[#C8A8DC]/70 bg-[#FDFAFF]' : 'border-[#E8D5F0] bg-white'} shadow-sm`}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -1718,12 +1745,68 @@ function VocabAccordion({ prep }: { prep: PreListeningPrep }) {
           <span className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-widest tabular-nums">
             {prep.vocabulary.length} palabras
           </span>
+          <span className="hidden sm:inline text-[10px] font-black text-[#10B981] uppercase tracking-widest">
+            · 🎯 Matching dispo
+          </span>
         </span>
         <span className={`text-[#5A3D7A] transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden>▶</span>
       </button>
       {open && (
         <div className="px-4 pb-4 pt-1 border-t border-[#E8D5F0]/70">
-          <VocabCards items={prep.vocabulary} />
+          {/* Tabs · Explorar / Matching — mirrors the PreListeningPanel so
+              students see the same shape whether this is their first
+              time with the vocab or a mid-test warm-up. */}
+          <div className="mt-2 flex items-center justify-between gap-3 mb-3">
+            <div className="inline-flex rounded-xl bg-white border border-[#E8D5F0] p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setTab('explorar')}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  tab === 'explorar'
+                    ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
+                    : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
+                }`}
+              >
+                🔑 Explorar
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('matching')}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
+                  tab === 'matching'
+                    ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
+                    : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
+                }`}
+              >
+                🎯 Matching
+              </button>
+            </div>
+            <span className="text-[10px] font-bold text-[#5A3D7A]/70 tabular-nums">
+              Part {sectionNumber}
+            </span>
+          </div>
+
+          {tab === 'explorar' ? (
+            <VocabCards items={prep.vocabulary} />
+          ) : (
+            // key=sectionNumber forces a fresh MatchingActivity instance
+            // on Part change so shuffled columns and matched state start
+            // over. Without this, moving between Parts would carry stale
+            // selections from the previous section's vocabulary set.
+            <MatchingActivity
+              key={`match-s${sectionNumber}`}
+              items={prep.vocabulary}
+              onAllMatched={() => setMatchingDone(true)}
+            />
+          )}
+
+          {tab === 'matching' && matchingDone && (
+            <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-300 px-4 py-2.5 text-sm font-bold text-emerald-800 flex items-center gap-2">
+              <span aria-hidden>🎉</span>
+              ¡Vocabulario dominado! Volvé al audio cuando quieras.
+            </div>
+          )}
+
           {prep.listenFor && prep.listenFor.length > 0 && (
             <div className="mt-3 rounded-lg bg-[#FFF9E6] border border-[#F5D77A] px-3 py-2 text-[12px] text-[#2D1B4E]">
               <span className="font-bold text-[#8A6B10]">👂 Escucha:</span>{' '}
@@ -2341,9 +2424,15 @@ function IELTSListeningPageInner() {
             </div>
           )}
 
-          {/* Vocab reference — collapsible, only for sections with a pre-listening block */}
+          {/* Vocab reference — collapsible, only for sections with a pre-listening block.
+              Hosts the Explorar + Matching tabs so students can re-run the
+              matching warm-up for Parts 2/3/4 (PreListeningPanel only fires
+              once per section and gets skipped entirely on resume). */}
           {activeSection.preListening && (
-            <VocabAccordion prep={activeSection.preListening} />
+            <VocabAccordion
+              prep={activeSection.preListening}
+              sectionNumber={activeSection.number}
+            />
           )}
 
           <CBTPartBanner part={activeSection.number} from={partFromQ} to={partToQ} />
