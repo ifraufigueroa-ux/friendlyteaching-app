@@ -1088,26 +1088,55 @@ function QuestionCard({
             </div>
           )}
 
-          {/* Matching / plan-map-labelling — dropdown, since sibling Qs share
-              the same option bank (shown once above the group in the runner). */}
+          {/* Matching / plan-map-labelling — chip row. Sibling Qs share the
+              same option bank (shown once above the group in the runner), so
+              here we only need the letter buttons A/B/C/… The full option
+              text sits in the bank card — showing it here too would double
+              the width and bury the item being matched. */}
           {(q.type === 'matching' || q.type === 'plan-map-labelling') && (
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm text-[#2D1B4E] flex-1 min-w-[140px]">
+              <span className={`text-sm flex-1 min-w-[140px] transition-colors ${
+                isActive ? 'font-bold text-[#2D1B4E]' : 'font-semibold text-[#2D1B4E]'
+              }`}>
                 {q.type === 'matching' ? q.leftItem : q.labelSpot}
               </span>
-              <select
-                value={typeof answer === 'string' ? answer : ''}
-                onChange={(e) => onAnswer(e.target.value)}
-                onFocus={onFocus}
-                className={`px-3 py-1.5 rounded border-2 bg-white text-sm text-[#2D1B4E] focus:outline-none min-w-[80px] transition-colors ${
-                  isActive ? 'border-[#5A3D7A]' : 'border-gray-400'
+              <div
+                role="radiogroup"
+                aria-label={q.type === 'matching' ? q.leftItem : q.labelSpot}
+                className={`flex items-center gap-1.5 flex-wrap rounded-xl px-1 py-1 transition-all ${
+                  isActive ? 'ring-2 ring-[#5A3D7A]/20' : ''
                 }`}
               >
-                <option value="">— select —</option>
-                {q.options.map((opt) => (
-                  <option key={opt.id} value={opt.id}>{opt.id.toUpperCase()}. {opt.text}</option>
-                ))}
-              </select>
+                {q.options.map((opt) => {
+                  const selected = answer === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => onAnswer(opt.id)}
+                      onFocus={onFocus}
+                      title={opt.text}
+                      className={`relative min-w-[40px] h-9 px-3 rounded-lg border-2 text-[13px] font-black uppercase tabular-nums tracking-wide transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5A3D7A]/40 ${
+                        selected
+                          ? 'border-[#5A3D7A] bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-md -translate-y-0.5'
+                          : 'border-[#E8D5F0] bg-white text-[#5A3D7A] hover:border-[#5A3D7A]/60 hover:bg-[#F0E5FF]/60 hover:-translate-y-0.5 active:translate-y-0'
+                      }`}
+                    >
+                      {opt.id.toUpperCase()}
+                      {selected && (
+                        <span
+                          aria-hidden
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#10B981] text-white text-[9px] font-black flex items-center justify-center shadow-sm"
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -2399,15 +2428,26 @@ function IELTSListeningPageInner() {
               <div key={`g-${g.startIndex}`} className="mb-6">
                 <CBTQuestionsHeading from={groupFrom} to={groupTo} instructions={groupInstructions(g)} />
 
-                {/* Shared option bank for matching / plan-map-labelling. */}
+                {/* Shared option bank for matching / plan-map-labelling.
+                    Chip-style letter tiles pair the bank visually with the
+                    answer chips below, so A2 students can scan "letter →
+                    activity" without re-reading plain-text rows. */}
                 {isMatchGroup && bank.length > 0 && (
-                  <div className="mb-3 rounded-lg bg-[#FDFAFF] border border-[#E8D5F0] px-4 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]/70 mb-1.5">Options</p>
-                    <div className="grid gap-1 text-sm text-[#2D1B4E]">
+                  <div className="mb-3 rounded-2xl bg-gradient-to-br from-[#FDFAFF] via-white to-[#F7EFFF] border border-[#E8D5F0] px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-block w-1 h-3.5 rounded-full bg-gradient-to-b from-[#5A3D7A] to-[#9B7CB8]" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5A3D7A]/80">Options</p>
+                    </div>
+                    <div className="grid gap-1.5 sm:grid-cols-2 text-sm text-[#2D1B4E]">
                       {bank.map((opt) => (
-                        <div key={opt.id} className="flex items-baseline gap-2">
-                          <span className="font-bold text-[#5A3D7A] w-5 shrink-0">{opt.id.toUpperCase()}</span>
-                          <span>{opt.text}</span>
+                        <div
+                          key={opt.id}
+                          className="flex items-center gap-2.5 rounded-lg px-2 py-1 hover:bg-white/70 transition-colors"
+                        >
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white border-2 border-[#E8D5F0] font-black text-[11px] text-[#5A3D7A] shrink-0 shadow-sm tabular-nums">
+                            {opt.id.toUpperCase()}
+                          </span>
+                          <span className="text-[13px] leading-snug text-[#2D1B4E]">{opt.text}</span>
                         </div>
                       ))}
                     </div>

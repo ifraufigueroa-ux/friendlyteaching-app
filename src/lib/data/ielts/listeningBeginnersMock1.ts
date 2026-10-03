@@ -8,9 +8,11 @@
 // Per-section budget:
 //   • ~90-120 seconds of audio per section
 //   • 5 questions per section (20 total, not 40)
-//   • Question types: only form-completion, short-answer, note-completion,
-//     table-completion and simple MCQ. No matching, flow-chart or map
-//     labelling — those overwhelm A2 processing capacity.
+//   • Question types: form-completion, short-answer, note-completion,
+//     table-completion, simple MCQ and a light "matching" group in
+//     Section 3 (3 items, 4-option bank — same shape as the Intermediate
+//     mock but with A2 vocabulary and only 1 distractor). No flow-chart
+//     or map labelling — those overwhelm A2 processing capacity.
 //
 // TTS: cefrLevel:'A2' signals generate-ielts-audios.ts to render at
 // voice_settings.speed = 0.80 con pausas de 0.6s entre turnos — pausado
@@ -344,47 +346,63 @@ const s3Questions: ListeningQuestion[] = [
     cognitiveLoad: 'literal',
     difficulty: 'easy',
   },
+  // Matching group — days ↔ activities. Shared bank of 4 options
+  // (A-D), only 1 distractor, so A2 students aren't swamped. Intro
+  // of the "matching" shape they'll see fully in the Intermediate mock.
   {
     id: 'la1-s3-q13',
     section: 3,
-    type: 'note-completion',
-    prompt: 'Word count for the poster: ____',
-    contextBefore: 'Words:',
-    wordLimit: 2,
-    allowNumbers: true,
-    accepted: ['300', 'three hundred'],
-    audioTimestamp: 60,
-    cognitiveLoad: 'literal',
-    difficulty: 'easy',
-  },
-  {
-    id: 'la1-s3-q14',
-    section: 3,
-    type: 'multiple-choice',
-    prompt: 'When do they need to give the project to the teacher?',
+    type: 'matching',
+    prompt: 'Monday',
+    leftItem: 'Monday',
     options: [
-      { id: 'a', text: 'Saturday' },
-      { id: 'b', text: 'Sunday' },
-      { id: 'c', text: 'Monday' },
+      { id: 'a', text: 'Meet at the library' },
+      { id: 'b', text: 'Play football' },
+      { id: 'c', text: 'Give the poster to the teacher' },
+      { id: 'd', text: 'Go for pizza' },
     ],
     correct: 'c',
     audioTimestamp: 75,
     cognitiveLoad: 'detail',
     difficulty: 'medium',
-    teacherNote: 'Saturday is when they meet to work, Sunday is football training. Monday is the deadline.',
-    distractorRisks: ['a (Saturday is meeting day)', 'b (Sunday is football training)'],
+    teacherNote: '"The teacher wants the poster on Monday" — Monday is the deadline.',
+  },
+  {
+    id: 'la1-s3-q14',
+    section: 3,
+    type: 'matching',
+    prompt: 'Sunday',
+    leftItem: 'Sunday',
+    options: [
+      { id: 'a', text: 'Meet at the library' },
+      { id: 'b', text: 'Play football' },
+      { id: 'c', text: 'Give the poster to the teacher' },
+      { id: 'd', text: 'Go for pizza' },
+    ],
+    correct: 'b',
+    audioTimestamp: 82,
+    cognitiveLoad: 'literal',
+    difficulty: 'easy',
+    teacherNote: 'Peter says "I have football training on Sunday" — direct match.',
   },
   {
     id: 'la1-s3-q15',
     section: 3,
-    type: 'short-answer',
-    prompt: 'Where do they meet on Saturday?',
-    wordLimit: 2,
-    allowNumbers: false,
-    accepted: ['library', 'the library'],
-    audioTimestamp: 95,
-    cognitiveLoad: 'literal',
-    difficulty: 'easy',
+    type: 'matching',
+    prompt: 'Saturday',
+    leftItem: 'Saturday',
+    options: [
+      { id: 'a', text: 'Meet at the library' },
+      { id: 'b', text: 'Play football' },
+      { id: 'c', text: 'Give the poster to the teacher' },
+      { id: 'd', text: 'Go for pizza' },
+    ],
+    correct: 'a',
+    audioTimestamp: 90,
+    cognitiveLoad: 'detail',
+    difficulty: 'medium',
+    teacherNote: '"We can meet on Saturday morning" + "The library. It is quiet." — two short lines carry the match. D (pizza) is the joke at the end — a distractor.',
+    distractorRisks: ['d (pizza is mentioned as a joke after the Saturday plan)'],
   },
 ];
 
@@ -411,9 +429,8 @@ const s3PreListening: PreListeningPrep = {
   ],
   listenFor: [
     'El tema del proyecto.',
-    'Cuántas fotos y cuántas palabras necesita el póster.',
-    'Cuándo tienen que entregar el proyecto (¡ojo con los días — hay dos distractores!).',
-    'Dónde se juntan el sábado.',
+    'Cuántas fotos necesita el póster.',
+    'Qué actividad hace cada día (lunes, domingo, sábado) — hay cuatro opciones y una no se usa.',
   ],
 };
 
@@ -427,7 +444,7 @@ const section3: ListeningSection = {
     { id: 'maria', displayName: 'Maria (student)', accent: 'UK', gender: 'f', suggestedVoice: { voiceId: 'ThT5KcBeYPX3keUQqHPh', name: 'Dorothy', note: 'ElevenLabs · younger UK female' } },
     { id: 'peter', displayName: 'Peter (student)', accent: 'NZ', gender: 'm', suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam',    note: 'ElevenLabs · male voice, distinct from Maria' } },
   ],
-  instructions: 'Questions 11-15. Listen to a conversation between two students. Answer the questions below. Word limits are shown per question.',
+  instructions: 'Questions 11-15. Listen to a conversation between two students. For questions 11-12, write ONE WORD OR A NUMBER. For questions 13-15, match each day with the correct activity. Choose A, B, C or D. One activity is not used.',
   targetDurationSec: 120,
   script: [
     { speakerId: 'maria', text: "Hi Peter. Are you ready for the school project?", approxStartSec: 4 },

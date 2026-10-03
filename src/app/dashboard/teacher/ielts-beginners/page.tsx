@@ -104,7 +104,7 @@ export default function IELTSBeginnersPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
-                <span><strong>Tipos de pregunta simples</strong>: form/note/table-completion, sentence-completion, matching-features con banco visible, short-answer, TFNG y multiple choice de 3 opciones. Sin matching-headings ni YNNG.</span>
+                <span><strong>Tipos de pregunta simples</strong>: form/note/table-completion, sentence-completion, matching-features (Reading) y matching ligero (3 ítems · 4 opciones, con banco visible) en Listening, short-answer, TFNG y multiple choice de 3 opciones. Sin matching-headings ni YNNG.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#10B981] font-bold mt-0.5">✓</span>
