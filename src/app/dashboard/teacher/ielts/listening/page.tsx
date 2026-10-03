@@ -2232,10 +2232,16 @@ function IELTSListeningPageInner() {
     setTimerRunning(true);
     setSavedAt(session.updatedAt?.toDate?.() ?? null);
     setSavingState('saved');
-    // Resuming counts as "already past the pre-listening" — otherwise the
-    // student would see the vocab panel again on every resume, which is
-    // patronising once they've seen the section.
-    setPreListeningDone({ 1: true, 2: true, 3: true, 4: true });
+    // Resume: skip pre-listening only for Parts the student already
+    // moved past — Parts strictly before currentSection. The current
+    // Part and any future ones still trigger the pre-listening panel,
+    // because a student who saved mid-Part-1 may never have seen the
+    // vocab warm-up for Parts 2/3/4 yet, and silently skipping them is
+    // worse than making them click "Ready" once per Part.
+    const resumedSection = session.currentSection ?? 0;
+    const done: Record<number, boolean> = {};
+    for (let n = 1; n <= resumedSection; n++) done[n] = true;
+    setPreListeningDone(done);
   }
 
   async function removeSession(id: string) {
