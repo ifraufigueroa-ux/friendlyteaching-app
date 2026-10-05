@@ -103,21 +103,40 @@ function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
   return new Blob([ab], { type: 'audio/wav' });
 }
 
+// mm:ss formatter for the floating dock readout.
+function fmtClock(t: number): string {
+  if (!Number.isFinite(t) || t < 0) t = 0;
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 function AudioWithSpeed({
-  src, mode, autoPlay, tone = 'dark', onPlayingChange,
+  src, mode, autoPlay, tone = 'dark', onPlayingChange, floatingLabel,
 }: {
   src:              string;
   mode:             ListeningSessionMode;
   autoPlay?:        boolean;
   tone?:            'dark' | 'light';
   onPlayingChange?: (playing: boolean) => void;
+  // When set, a compact floating dock appears while the inline card is
+  // scrolled off-screen. Label is rendered as a chip inside the dock
+  // (e.g. "Part 2 · A visit to the museum") so students stay oriented.
+  floatingLabel?:   string;
 }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef  = useRef<HTMLAudioElement | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
   const [rate, setRate] = useState(1);
 
   const [playableSrc, setPlayableSrc] = useState<string | null>(null);
   const [loadError,   setLoadError]   = useState<string | null>(null);
   const [loading,     setLoading]     = useState(true);
+
+  // Playback telemetry mirrored from the <audio>, consumed by the dock.
+  const [playing,     setPlaying]     = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration,    setDuration]    = useState(0);
+  const [showDock,    setShowDock]    = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +188,59 @@ function AudioWithSpeed({
     if (audioRef.current) audioRef.current.playbackRate = rate;
   }, [rate, playableSrc]);
 
+  // Sync playback time + duration so the floating dock stays accurate.
+  // The <audio> element remains the single source of truth; the dock
+  // just reads these mirrors and calls togglePlay / seek which push
+  // back into audioRef.current.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !playableSrc) return;
+    const onTime = () => setCurrentTime(el.currentTime);
+    const onDur  = () => setDuration(Number.isFinite(el.duration) ? el.duration : 0);
+    el.addEventListener('timeupdate',     onTime);
+    el.addEventListener('loadedmetadata', onDur);
+    el.addEventListener('durationchange', onDur);
+    return () => {
+      el.removeEventListener('timeupdate',     onTime);
+      el.removeEventListener('loadedmetadata', onDur);
+      el.removeEventListener('durationchange', onDur);
+    };
+  }, [playableSrc]);
+
+  // IntersectionObserver on the anchor div so the dock materializes
+  // only once the inline player has scrolled past the sticky header.
+  // rootMargin: '-64px' shrinks the top of the viewport by the header's
+  // 64px (top-16) footprint — the dock appears exactly as the inline
+  // card slides fully behind the header, no overlap window.
+  useEffect(() => {
+    if (!floatingLabel) return;
+    const el = anchorRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        // Only pin while the card is ABOVE the viewport, not below —
+        // keeps the dock hidden on the pre-listening or results screens
+        // where the audio section hasn't been reached yet.
+        setShowDock(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      { root: null, threshold: 0, rootMargin: '-64px 0px 0px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [floatingLabel]);
+
+  const togglePlay = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) el.play().catch(() => {});
+    else el.pause();
+  };
+  const seek = (t: number) => {
+    const el = audioRef.current;
+    if (!el || !Number.isFinite(duration) || duration <= 0) return;
+    el.currentTime = Math.max(0, Math.min(duration, t));
+  };
+
   const showSpeed = mode !== 'exam';
   const pillActive = tone === 'dark'
     ? 'bg-white text-[#5A3D7A]'
@@ -180,43 +252,182 @@ function AudioWithSpeed({
 
   return (
     <>
-      {playableSrc ? (
-        <audio
-          ref={audioRef}
-          src={playableSrc}
-          controls={mode !== 'exam'}
-          controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
-          className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
-          autoPlay={autoPlay}
-          preload="auto"
-          onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
-          onPlay={() => onPlayingChange?.(true)}
-          onPause={() => onPlayingChange?.(false)}
-          onEnded={() => onPlayingChange?.(false)}
+      <div ref={anchorRef}>
+        {playableSrc ? (
+          <audio
+            ref={audioRef}
+            src={playableSrc}
+            controls={mode !== 'exam'}
+            controlsList={mode === 'exam' ? 'nodownload noplaybackrate' : undefined}
+            className={tone === 'dark' ? 'w-full accent-white' : 'w-full'}
+            autoPlay={autoPlay}
+            preload="auto"
+            onLoadedMetadata={(e) => { (e.currentTarget as HTMLAudioElement).playbackRate = rate; }}
+            onPlay={() =>  { setPlaying(true);  onPlayingChange?.(true);  }}
+            onPause={() => { setPlaying(false); onPlayingChange?.(false); }}
+            onEnded={() => { setPlaying(false); onPlayingChange?.(false); }}
+          />
+        ) : (
+          <div className={`flex items-center gap-2 text-xs ${tone === 'dark' ? 'text-white/80' : 'text-[#5A3D7A]'}`}>
+            <span className={`inline-block w-3 h-3 rounded-full border-2 border-t-transparent animate-spin ${tone === 'dark' ? 'border-white/80' : 'border-[#5A3D7A]'}`} />
+            {loading ? 'Preparando audio (decodificando a WAV para habilitar seek)…' : 'Cargando audio…'}
+          </div>
+        )}
+        {loadError && (
+          <p className={`text-[10px] mt-1 ${tone === 'dark' ? 'text-red-200' : 'text-red-500'}`}>
+            No pudimos transcodear el audio ({loadError}). Se reproduce igual, pero el seek puede fallar.
+          </p>
+        )}
+        {showSpeed && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>
+              Velocidad
+            </span>
+            <div className="flex gap-1">
+              {SPEED_OPTIONS.map((opt) => (
+                <button
+                  key={opt.rate}
+                  onClick={() => setRate(opt.rate)}
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums transition-colors ${
+                    rate === opt.rate ? pillActive : pillIdle
+                  }`}
+                  aria-pressed={rate === opt.rate}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {floatingLabel && playableSrc && (
+        <FloatingAudioDock
+          label={floatingLabel}
+          visible={showDock}
+          playing={playing}
+          currentTime={currentTime}
+          duration={duration}
+          mode={mode}
+          rate={rate}
+          onTogglePlay={togglePlay}
+          onSeek={seek}
+          onRateChange={setRate}
         />
-      ) : (
-        <div className={`flex items-center gap-2 text-xs ${tone === 'dark' ? 'text-white/80' : 'text-[#5A3D7A]'}`}>
-          <span className={`inline-block w-3 h-3 rounded-full border-2 border-t-transparent animate-spin ${tone === 'dark' ? 'border-white/80' : 'border-[#5A3D7A]'}`} />
-          {loading ? 'Preparando audio (decodificando a WAV para habilitar seek)…' : 'Cargando audio…'}
-        </div>
       )}
-      {loadError && (
-        <p className={`text-[10px] mt-1 ${tone === 'dark' ? 'text-red-200' : 'text-red-500'}`}>
-          No pudimos transcodear el audio ({loadError}). Se reproduce igual, pero el seek puede fallar.
-        </p>
-      )}
-      {showSpeed && (
-        <div className="flex items-center gap-2 mt-2">
-          <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>
-            Velocidad
+    </>
+  );
+}
+
+// Compact pill that detaches to top-16 once the inline lavender card is
+// scrolled past. Mirrors the <audio> state (playing / currentTime /
+// duration / rate) and sends controls back through props so there's a
+// single source of truth. In exam mode controls are read-only — same
+// contract as the inline native <audio>, which hides controls entirely.
+function FloatingAudioDock({
+  label, visible, playing, currentTime, duration, mode, rate,
+  onTogglePlay, onSeek, onRateChange,
+}: {
+  label:        string;
+  visible:      boolean;
+  playing:      boolean;
+  currentTime:  number;
+  duration:     number;
+  mode:         ListeningSessionMode;
+  rate:         number;
+  onTogglePlay: () => void;
+  onSeek:       (t: number) => void;
+  onRateChange: (r: number) => void;
+}) {
+  const canControl = mode !== 'exam';
+  const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  const handleSeek = (clientX: number) => {
+    if (!canControl || !barRef.current || duration <= 0) return;
+    const rect = barRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    onSeek(ratio * duration);
+  };
+
+  return (
+    <div
+      className={`fixed top-16 left-0 right-0 z-30 flex justify-center px-3 sm:px-4 pointer-events-none transition-all duration-150 ease-out ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 invisible'
+      }`}
+      aria-hidden={!visible}
+    >
+      <div className="pointer-events-auto flex items-center gap-3 w-full max-w-3xl rounded-full border border-[#C8A8DC]/70 bg-[#F0E5FF]/95 shadow-xl ring-1 ring-black/5 backdrop-blur-md pl-1.5 pr-3 sm:pr-4 py-1.5">
+        <button
+          type="button"
+          onClick={onTogglePlay}
+          disabled={!canControl}
+          aria-label={playing ? 'Pausar audio' : 'Reproducir audio'}
+          className="w-9 h-9 rounded-full bg-[#5A3D7A] text-white flex items-center justify-center shrink-0 hover:bg-[#3D2452] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {playing ? (
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+              <rect x="7"    y="5" width="3.5" height="14" rx="1" fill="currentColor" />
+              <rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+              <path d="M8 5v14l11-7-11-7z" fill="currentColor" />
+            </svg>
+          )}
+        </button>
+
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <span className="text-[10px] tabular-nums text-[#5A3D7A] shrink-0 w-8 text-right">
+            {fmtClock(currentTime)}
           </span>
-          <div className="flex gap-1">
+          <div
+            ref={barRef}
+            onClick={(e) => handleSeek(e.clientX)}
+            onKeyDown={(e) => {
+              if (!canControl || duration <= 0) return;
+              if (e.key === 'ArrowLeft')  { e.preventDefault(); onSeek(Math.max(0, currentTime - 5)); }
+              if (e.key === 'ArrowRight') { e.preventDefault(); onSeek(Math.min(duration, currentTime + 5)); }
+            }}
+            role={canControl ? 'slider' : undefined}
+            tabIndex={canControl ? 0 : -1}
+            aria-label={canControl ? 'Seek audio position' : undefined}
+            aria-valuemin={0}
+            aria-valuemax={Math.max(0, Math.round(duration))}
+            aria-valuenow={Math.round(currentTime)}
+            className={`relative flex-1 h-2 rounded-full bg-[#5A3D7A]/15 ${canControl ? 'cursor-pointer group' : 'cursor-default'} focus:outline-none focus:ring-2 focus:ring-[#5A3D7A]/40`}
+          >
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-[#5A3D7A]"
+              style={{ width: `${pct}%` }}
+            />
+            {canControl && (
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-[#5A3D7A] shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ left: `calc(${pct}% - 6px)` }}
+                aria-hidden="true"
+              />
+            )}
+          </div>
+          <span className="text-[10px] tabular-nums text-[#5A3D7A]/70 shrink-0 w-8">
+            {fmtClock(duration)}
+          </span>
+        </div>
+
+        <span className="hidden md:inline-block text-[9px] font-black uppercase tracking-widest text-[#5A3D7A]/80 shrink-0 max-w-[14rem] truncate">
+          {label}
+        </span>
+
+        {canControl && (
+          <div className="hidden sm:flex gap-1 shrink-0">
             {SPEED_OPTIONS.map((opt) => (
               <button
                 key={opt.rate}
-                onClick={() => setRate(opt.rate)}
+                onClick={() => onRateChange(opt.rate)}
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums transition-colors ${
-                  rate === opt.rate ? pillActive : pillIdle
+                  rate === opt.rate
+                    ? 'bg-[#5A3D7A] text-white'
+                    : 'bg-white text-[#5A3D7A] hover:bg-[#E0C8F0]'
                 }`}
                 aria-pressed={rate === opt.rate}
               >
@@ -224,9 +435,9 @@ function AudioWithSpeed({
               </button>
             ))}
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -2376,25 +2587,24 @@ function IELTSListeningPageInner() {
         ) : (
         <>
         <div className="flex-1 w-full max-w-5xl mx-auto px-4 py-4">
-          {/* Compact audio block — lavender, sits under the CBT header.
-              Sticky so it travels with the scroll: students can pause,
-              scrub or change speed from any question without jumping
-              back to the top. CBTHeader is sticky at top-0 with z-40
-              and ~56-60px tall; this sits right below it at top-16 with
-              z-30 so the header always stays on top of this bar.
-              Only the player (loading / ready) states are sticky — the
-              AudioPanel setup card is left in normal flow, since it's a
-              one-time teacher-side action and would otherwise obscure
-              the content below. */}
+          {/* Compact lavender audio card. Sits in normal flow at the top
+              of each Part — AudioWithSpeed renders a floating dock
+              (position: fixed, top-16, z-30) that materializes once this
+              inline card scrolls past the CBT header, so students always
+              have play/pause, scrub and speed within reach without the
+              edge-to-edge sticky bar swallowing the layout.
+              Only the ready player (and loading placeholder) live here —
+              the AudioPanel setup card stays in flow since it's a
+              one-time teacher-side action. */}
           {audiosLoading ? (
-            <div className="sticky top-16 z-30 -mx-4 px-4 pt-2 pb-1 bg-white/95 backdrop-blur-sm mb-4">
+            <div className="mb-4">
               <div className="rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] p-3 flex items-center gap-2 text-xs text-gray-500 shadow-sm">
                 <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
                 Cargando audio…
               </div>
             </div>
           ) : audioUrl ? (
-            <div className="sticky top-16 z-30 -mx-4 px-4 pt-2 pb-1 bg-white/95 backdrop-blur-sm mb-4">
+            <div className="mb-4">
               <div className="rounded-lg bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3 shadow-md ring-1 ring-black/5">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
@@ -2419,6 +2629,7 @@ function IELTSListeningPageInner() {
                   autoPlay={mode === 'exam'}
                   tone="light"
                   onPlayingChange={setAudioPlaying}
+                  floatingLabel={`Part ${activeSection.number} · ${activeSection.title}`}
                 />
                 {mode === 'exam' && (
                   <p className="text-[10px] text-[#5A3D7A]/70 italic mt-1">Exam mode: audio plays once, no pause.</p>
