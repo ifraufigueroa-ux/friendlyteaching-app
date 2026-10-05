@@ -13,7 +13,11 @@ export type RandomTopicCategory =
   | 'Fun'
   | 'Travel'
   | 'Relationships'
-  | 'Gaming';
+  | 'Gaming'
+  | 'Food'
+  | 'Health'
+  | 'Nature'
+  | 'Money';
 
 export interface RandomTopic {
   id:        string;
@@ -25,6 +29,7 @@ export interface RandomTopic {
 
 export const RANDOM_TOPIC_CATEGORIES: RandomTopicCategory[] = [
   'Life', 'Work', 'Culture', 'Tech', 'Society', 'Fun', 'Travel', 'Relationships', 'Gaming',
+  'Food', 'Health', 'Nature', 'Money',
 ];
 
 export interface RandomTopicCategoryMeta {
@@ -44,6 +49,10 @@ export const RANDOM_TOPIC_CATEGORY_META: Record<RandomTopicCategory, RandomTopic
   'Travel':        { icon: '✈️', gradient: 'from-cyan-500 to-teal-500',      chipBg: 'bg-cyan-500',     chipText: 'text-white' },
   'Relationships': { icon: '👥', gradient: 'from-red-500 to-rose-500',       chipBg: 'bg-red-500',      chipText: 'text-white' },
   'Gaming':        { icon: '🎮', gradient: 'from-purple-600 to-pink-600',    chipBg: 'bg-purple-600',   chipText: 'text-white' },
+  'Food':          { icon: '🍜', gradient: 'from-lime-500 to-green-600',     chipBg: 'bg-lime-600',     chipText: 'text-white' },
+  'Health':        { icon: '🧘', gradient: 'from-teal-400 to-emerald-600',   chipBg: 'bg-teal-600',     chipText: 'text-white' },
+  'Nature':        { icon: '🌿', gradient: 'from-green-500 to-emerald-700',  chipBg: 'bg-green-700',    chipText: 'text-white' },
+  'Money':         { icon: '💰', gradient: 'from-yellow-500 to-amber-600',   chipBg: 'bg-amber-600',    chipText: 'text-white' },
 };
 
 export const RANDOM_TOPICS: RandomTopic[] = [
@@ -1077,12 +1086,267 @@ export const RANDOM_TOPICS: RandomTopic[] = [
       'Is there anything you miss about that phase?',
     ],
   },
+  // ── Food & Drink ─────────────────────────────────────────────────────
+  { id: 'food-defend-dish',       category: 'Food', emoji: '🍲', topic: 'A dish you would defend with your life.',
+    followUps: [
+      'What is it, and how did it become THAT dish for you?',
+      'Who makes the best version — and can anyone replicate it?',
+      'Is it something you cook yourself, or only eat when visiting someone?',
+    ] },
+  { id: 'food-weirdest',          category: 'Food', emoji: '🦑', topic: 'The weirdest thing you have ever eaten.',
+    followUps: [
+      'Where were you, and why did you decide to try it?',
+      'How did it actually taste?',
+      'Would you eat it again if someone offered?',
+    ] },
+  { id: 'food-cook-for-others',   category: 'Food', emoji: '👨‍🍳', topic: 'Cooking for other people.',
+    followUps: [
+      'Do you enjoy it, or does it stress you out?',
+      'What is your "safe bet" meal when you have guests?',
+      'What is the biggest disaster that has happened in your kitchen?',
+    ] },
+  { id: 'food-comfort',           category: 'Food', emoji: '🍜', topic: 'Comfort food on a bad day.',
+    followUps: [
+      'What do you reach for when nothing else helps?',
+      'Is it something from childhood, or did you discover it later?',
+      'Do you eat it alone, or do you need company?',
+    ] },
+  { id: 'food-trend-weird',       category: 'Food', emoji: '🌈', topic: 'A food trend you do not understand.',
+    followUps: [
+      'What is it, and when did you first see it?',
+      'Have you tried it, honestly?',
+      'Why do you think it took off?',
+    ] },
+  { id: 'food-breakfast-world',   category: 'Food', emoji: '🥐', topic: 'Breakfast around the world.',
+    followUps: [
+      'What does breakfast look like in your country?',
+      'What foreign breakfast would you steal and adopt forever?',
+      'Sweet or savoury first thing in the morning — pick a side.',
+    ] },
+  { id: 'food-street',            category: 'Food', emoji: '🌮', topic: 'Street food.',
+    followUps: [
+      'The best street food meal you have ever had — where and what?',
+      'Do you trust street food, or are you careful about it?',
+      'Is there a street food you miss from somewhere you used to live or visit?',
+    ] },
+  { id: 'food-restaurant-change', category: 'Food', emoji: '🍽️', topic: 'A restaurant that changed how you think about food.',
+    followUps: [
+      'Where was it, and what did you order?',
+      'What exactly surprised you about the experience?',
+      'Have you been back, or is it better kept as a memory?',
+    ] },
+  { id: 'food-drink-meaning',     category: 'Food', emoji: '🍵', topic: 'A drink that means something to you.',
+    followUps: [
+      'What is it, and when did it enter your life?',
+      'Is it tied to a person, a place, or a specific time?',
+      'Would it be the same if you drank it with other people, or is it personal?',
+    ] },
+  { id: 'food-last-meal',         category: 'Food', emoji: '🍰', topic: 'Your last meal, if you had to choose today.',
+    followUps: [
+      'What is on the plate?',
+      'Who is at the table with you?',
+      'Where would you eat it — and would there be dessert?',
+    ] },
+
+  // ── Health & Mind ────────────────────────────────────────────────────
+  { id: 'health-habit-change',    category: 'Health', emoji: '🌱', topic: 'A habit that changed your life.',
+    followUps: [
+      'What triggered the change — a moment, a person, a scare?',
+      'How long did it take before it stopped feeling like effort?',
+      'What is the next habit on your list?',
+    ] },
+  { id: 'health-sleep',           category: 'Health', emoji: '😴', topic: 'Your relationship with sleep.',
+    followUps: [
+      'Are you a night owl, an early bird, or just tired?',
+      'What ruins your sleep the fastest?',
+      'If you could change one thing about how you sleep, what would it be?',
+    ] },
+  { id: 'health-stress',          category: 'Health', emoji: '🫧', topic: 'How you deal with stress.',
+    followUps: [
+      'What does your stress look like — short fuse, overthinking, shutting down?',
+      'What actually works for you to come down?',
+      'What have you tried that was useless?',
+    ] },
+  { id: 'health-mental-country',  category: 'Health', emoji: '🧠', topic: 'Mental health in your country.',
+    followUps: [
+      'How openly do people talk about it where you live?',
+      'Has that changed in the last ten years?',
+      'What still needs to change?',
+    ] },
+  { id: 'health-exercise',        category: 'Health', emoji: '🏃', topic: 'Exercise and movement.',
+    followUps: [
+      'How does exercise fit into your life right now?',
+      'What kind of movement actually makes you feel good — not just useful?',
+      'Have you ever stuck with a routine for longer than six months?',
+    ] },
+  { id: 'health-burnout',         category: 'Health', emoji: '🔥', topic: 'Burnout — have you been there?',
+    followUps: [
+      'What did burnout look like for you, physically or emotionally?',
+      'What helped you climb out?',
+      'How do you spot the early signs now?',
+    ] },
+  { id: 'health-calm-moment',     category: 'Health', emoji: '🪷', topic: 'A moment of real calm.',
+    followUps: [
+      'Where were you and what were you doing?',
+      'What made that specific moment feel different from the rest of the day?',
+      'How often do you get moments like that now?',
+    ] },
+  { id: 'health-social-mood',     category: 'Health', emoji: '📱', topic: 'Social media and your mood.',
+    followUps: [
+      'Which platform affects you the most — for better or worse?',
+      'Have you ever done a break from it? How was it?',
+      'What would a healthy relationship with it look like for you?',
+    ] },
+  { id: 'health-therapy',         category: 'Health', emoji: '🛋️', topic: 'Therapy — would you go, or have you been?',
+    followUps: [
+      'What is your honest reaction to the idea of therapy?',
+      'What stops people around you from going?',
+      'If you have been, what surprised you about the experience?',
+    ] },
+  { id: 'health-best-advice',     category: 'Health', emoji: '💡', topic: 'The best advice you ever got about your health.',
+    followUps: [
+      'Who gave it to you?',
+      'Why did it click at that moment and not another?',
+      'Do you still follow it, or has it evolved?',
+    ] },
+
+  // ── Nature & Environment ─────────────────────────────────────────────
+  { id: 'nature-place-moves',     category: 'Nature', emoji: '🏔️', topic: 'A place in nature that moves you.',
+    followUps: [
+      'Where is it, and how did you discover it?',
+      'What exactly makes it hit different for you?',
+      'When was the last time you were there?',
+    ] },
+  { id: 'nature-animal-close',    category: 'Nature', emoji: '🦌', topic: 'An animal encounter you remember.',
+    followUps: [
+      'What was the animal and where did it happen?',
+      'How did you react in the moment?',
+      'Did it change how you see that animal?',
+    ] },
+  { id: 'nature-climate-life',    category: 'Nature', emoji: '🌡️', topic: 'Climate change in your everyday life.',
+    followUps: [
+      'What have you actually noticed around you — weather, seasons, prices?',
+      'What do you change in your own routine because of it?',
+      'How hopeful or pessimistic are you, honestly?',
+    ] },
+  { id: 'nature-disaster',        category: 'Nature', emoji: '🌊', topic: 'A natural event you lived through.',
+    followUps: [
+      'What happened, and where were you?',
+      'What is the detail you will never forget?',
+      'How did your community respond?',
+    ] },
+  { id: 'nature-camping',         category: 'Nature', emoji: '⛺', topic: 'Camping — fun, or no thanks?',
+    followUps: [
+      'What is your actual experience with camping?',
+      'What is the most uncomfortable night outdoors you have had?',
+      'If you had to go next weekend, where would you go?',
+    ] },
+  { id: 'nature-pets',            category: 'Nature', emoji: '🐾', topic: 'Pets in your life.',
+    followUps: [
+      'What pets have you had, or wished you had?',
+      'What did they teach you that humans didn\'t?',
+      'If you got a new one tomorrow, what would you choose and why?',
+    ] },
+  { id: 'nature-ocean',           category: 'Nature', emoji: '🌊', topic: 'The ocean.',
+    followUps: [
+      'Do you feel more drawn to it or afraid of it?',
+      'What is your strongest ocean memory?',
+      'How does it feel different from a river or a lake, for you?',
+    ] },
+  { id: 'nature-light-time',      category: 'Nature', emoji: '🌅', topic: 'Sunrise or sunset?',
+    followUps: [
+      'Which one, and why that one?',
+      'Where is the best one you have ever watched?',
+      'When was the last time you really stopped to watch?',
+    ] },
+  { id: 'nature-season-love',     category: 'Nature', emoji: '🍂', topic: 'A season you love.',
+    followUps: [
+      'Which season, and what makes it yours?',
+      'What rituals or small habits come with it for you?',
+      'If you had to live somewhere with only that season, could you?',
+    ] },
+  { id: 'nature-gardening',       category: 'Nature', emoji: '🌱', topic: 'Growing something — plants, herbs, food.',
+    followUps: [
+      'Have you ever kept something alive longer than you expected?',
+      'What is the appeal, or the frustration, of taking care of a plant?',
+      'If you had space, what would you grow?',
+    ] },
+
+  // ── Money & Choices ──────────────────────────────────────────────────
+  { id: 'money-childhood',        category: 'Money', emoji: '🏦', topic: 'Your relationship with money growing up.',
+    followUps: [
+      'How was money talked about in your home — openly, awkwardly, not at all?',
+      'What lesson about money stuck with you from that time?',
+      'How different is your relationship with it today?',
+    ] },
+  { id: 'money-regret-buy',       category: 'Money', emoji: '🫣', topic: 'A big purchase you regret.',
+    followUps: [
+      'What was it, and what did it cost you?',
+      'What were you really hoping it would do for you?',
+      'What would you tell someone about to make the same move?',
+    ] },
+  { id: 'money-worth-extra',      category: 'Money', emoji: '✨', topic: 'Something that is worth paying extra for.',
+    followUps: [
+      'What is it, and when did you figure out it was worth the premium?',
+      'What is the cheap version missing, exactly?',
+      'Is there anything you used to splurge on that you no longer do?',
+    ] },
+  { id: 'money-save-spend',       category: 'Money', emoji: '⚖️', topic: 'Saving vs. spending.',
+    followUps: [
+      'Which side do you lean toward, and has it always been that way?',
+      'What does your partner / family / closest person think about it?',
+      'Has anything made you change teams?',
+    ] },
+  { id: 'money-broke',            category: 'Money', emoji: '🪙', topic: 'A time you were really broke.',
+    followUps: [
+      'What were you living on, and for how long?',
+      'What is one thing that got you through it?',
+      'What did it teach you that you still carry?',
+    ] },
+  { id: 'money-happiness',        category: 'Money', emoji: '🎈', topic: 'Does money buy happiness?',
+    followUps: [
+      'What is your honest answer, and why?',
+      'Where is the line for you — enough vs. too little vs. too much?',
+      'What is the happiest you have felt that cost basically nothing?',
+    ] },
+  { id: 'money-credit',           category: 'Money', emoji: '💳', topic: 'Credit cards and borrowing.',
+    followUps: [
+      'What is your relationship with credit right now?',
+      'Have you ever been in debt that scared you?',
+      'What advice would you give a 20-year-old about it?',
+    ] },
+  { id: 'money-teach-kids',       category: 'Money', emoji: '🧒', topic: 'Teaching kids about money.',
+    followUps: [
+      'What is the first thing a kid should learn about money?',
+      'How was it taught to you — well or badly?',
+      'Should kids see the family\'s real finances, or be protected from them?',
+    ] },
+  { id: 'money-free-love',        category: 'Money', emoji: '🎁', topic: 'A free thing you love.',
+    followUps: [
+      'What is it, and how often do you use it?',
+      'Why do you think more people don\'t take advantage of it?',
+      'Would you still love it the same if you had to pay for it?',
+    ] },
+  { id: 'money-economy-country',  category: 'Money', emoji: '📉', topic: 'The economy where you live.',
+    followUps: [
+      'How does the current situation affect your day-to-day?',
+      'What has become harder, and what has become easier?',
+      'Where do you see things going in the next few years?',
+    ] },
+
 ];
 
-/** Filter the topic bank by category. Passing `null` returns the full bank. */
-export function filterRandomTopics(category: RandomTopicCategory | null): RandomTopic[] {
-  if (!category) return RANDOM_TOPICS;
-  return RANDOM_TOPICS.filter(t => t.category === category);
+/** Filter the topic bank by one or more categories. `null` or an empty set
+ *  returns the full bank — the "All selected" state. */
+export function filterRandomTopics(
+  categories: RandomTopicCategory | ReadonlySet<RandomTopicCategory> | null,
+): RandomTopic[] {
+  if (!categories) return RANDOM_TOPICS;
+  if (typeof categories === 'string') {
+    return RANDOM_TOPICS.filter(t => t.category === categories);
+  }
+  if (categories.size === 0) return RANDOM_TOPICS;
+  return RANDOM_TOPICS.filter(t => categories.has(t.category));
 }
 
 /** Count of topics per category, in declaration order. Useful for chip labels. */

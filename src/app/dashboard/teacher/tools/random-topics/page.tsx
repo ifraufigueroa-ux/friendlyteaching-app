@@ -1,11 +1,11 @@
 // FriendlyTeaching.cl — Random Topic Simulator
-// General-purpose speaking prompt roulette. Category-filterable deck
-// where each card reveals a topic + 3 follow-up questions the teacher
-// can use to steer the conversation. No timer — this is a conversation
-// tool, not an exam simulator.
+// General-purpose speaking prompt roulette. Multi-select category chips
+// plus a per-topic picker modal let the teacher curate exactly which
+// subset of topics the deck draws from. Preferences persist in
+// localStorage so the setup survives reloads.
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
@@ -13,11 +13,15 @@ import {
   RANDOM_TOPICS,
   RANDOM_TOPIC_CATEGORIES,
   RANDOM_TOPIC_CATEGORY_META,
-  filterRandomTopics,
   randomTopicCounts,
   type RandomTopic,
   type RandomTopicCategory,
 } from '@/lib/data/randomTopics';
+
+// localStorage keys. v2 bump because the old key stored a single
+// category string; now we store multi-select state as JSON.
+const LS_CATS   = 'rt-sim:selectedCategories:v2';
+const LS_DISA   = 'rt-sim:disabledTopicIds:v1';
 
 // ── Card view ─────────────────────────────────────────────────────────
 // Face-down: coloured gradient by category, "TOPIC" label + big emoji.
@@ -119,17 +123,57 @@ function shuffleIndices(n: number): number[] {
 // ── Page ──────────────────────────────────────────────────────────────
 
 export default function RandomTopicsPage() {
-  const [activeCategory, setActiveCategory] = useState<RandomTopicCategory | null>(null);
+  // Multi-select de categorías. Set vacío = "todas" (default). Set no
+  // vacío = solo esas categorías. Persistido en localStorage.
+  const [selectedCats, setSelectedCats] = useState<Set<RandomTopicCategory>>(new Set());
+  // Topics individualmente apagados dentro del pool filtrado. Permite
+  // excluir prompts específicos sin tocar toda la categoría.
+  const [disabledIds, setDisabledIds] = useState<Set<string>>(new Set());
+  const [showPicker, setShowPicker] = useState(false);
+
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [practiced, setPracticed] = useState(0);
   const [deckSeed, setDeckSeed] = useState(0);
   const [rollKey, setRollKey] = useState(0); // forces reveal animation on re-roll
 
-  // The current filtered pool. When "All" is active this is the full bank.
-  const pool = useMemo(
-    () => filterRandomTopics(activeCategory),
-    [activeCategory],
-  );
+  // ── Hydrate preferences from localStorage (client-only). ────────────
+  useEffect(() => {
+    try {
+      const rawC = localStorage.getItem(LS_CATS);
+      if (rawC) {
+        const arr = JSON.parse(rawC) as string[];
+        const valid = new Set<RandomTopicCategory>();
+        arr.forEach(s => {
+          if (RANDOM_TOPIC_CATEGORIES.includes(s as RandomTopicCategory)) {
+            valid.add(s as RandomTopicCategory);
+          }
+        });
+        setSelectedCats(valid);
+      }
+      const rawD = localStorage.getItem(LS_DISA);
+      if (rawD) {
+        const arr = JSON.parse(rawD) as string[];
+        setDisabledIds(new Set(arr));
+      }
+    } catch { /* corrupt JSON — ignore */ }
+  }, []);
+
+  // ── Persist on change. ──────────────────────────────────────────────
+  useEffect(() => {
+    try { localStorage.setItem(LS_CATS, JSON.stringify([...selectedCats])); } catch {}
+  }, [selectedCats]);
+  useEffect(() => {
+    try { localStorage.setItem(LS_DISA, JSON.stringify([...disabledIds])); } catch {}
+  }, [disabledIds]);
+
+  // Pool efectivo = topics cuya categoría está seleccionada (o todas si
+  // el set está vacío) Y cuyo id no está en el blacklist por topic.
+  const pool = useMemo(() => {
+    const bySet = selectedCats.size === 0
+      ? RANDOM_TOPICS
+      : RANDOM_TOPICS.filter(t => selectedCats.has(t.category));
+    return bySet.filter(t => !disabledIds.has(t.id));
+  }, [selectedCats, disabledIds]);
 
   // Shuffled indices into `pool` — kept stable while the pool doesn't change
   // so cards don't jump around every time we open a topic.
@@ -141,6 +185,22 @@ export default function RandomTopicsPage() {
   const picked = pickedId ? RANDOM_TOPICS.find(t => t.id === pickedId) ?? null : null;
 
   const counts = useMemo(() => randomTopicCounts(), []);
+
+  function toggleCategory(cat: RandomTopicCategory) {
+    setSelectedCats(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+    backToDeck();
+  }
+  function selectAllCategories() {
+    setSelectedCats(new Set());  // empty = all
+    backToDeck();
+  }
+  function resetAllTopics() {
+    setDisabledIds(new Set());
+  }
 
   function pickCard(topic: RandomTopic) {
     setPickedId(topic.id);
@@ -220,7 +280,7 @@ export default function RandomTopicsPage() {
         <FullscreenButton />
         <TopBar
           title="Random Topic Simulator"
-          subtitle="Ruleta de temas de conversación · 40 topics · follow-ups incluidos"
+          subtitle={`Ruleta de temas de conversación · ${RANDOM_TOPICS.length} topics · follow-ups incluidos`}
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools', href: '/dashboard/teacher/tools' },
@@ -265,31 +325,36 @@ export default function RandomTopicsPage() {
             </p>
           </div>
 
-          {/* ── Category filter chips ─────────────────────────────────── */}
-          <div className="max-w-3xl mx-auto mb-6">
+          {/* ── Category filter chips (multi-select) ──────────────────── */}
+          {/* Set vacío = "All" implícito. Chips individuales toggleables.
+              Un botón al final abre el picker fino por topic. */}
+          <div className="max-w-3xl mx-auto mb-3">
             <div className="flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => { setActiveCategory(null); backToDeck(); }}
+                onClick={selectAllCategories}
                 className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all ${
-                  activeCategory === null
+                  selectedCats.size === 0
                     ? 'bg-[#5A3D7A] text-white border-transparent shadow'
                     : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
                 }`}
               >
-                All · {RANDOM_TOPICS.length}
+                All · {RANDOM_TOPICS.length - disabledIds.size}
               </button>
               {RANDOM_TOPIC_CATEGORIES.map(cat => {
                 const meta = RANDOM_TOPIC_CATEGORY_META[cat];
-                const active = activeCategory === cat;
+                const active = selectedCats.has(cat);
+                // Si no se seleccionaron categorías explícitamente, todas
+                // están "implícitamente activas" — las mostramos neutras.
                 return (
                   <button
                     key={cat}
-                    onClick={() => { setActiveCategory(cat); backToDeck(); }}
+                    onClick={() => toggleCategory(cat)}
                     className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all inline-flex items-center gap-1.5 ${
                       active
                         ? `${meta.chipBg} ${meta.chipText} border-transparent shadow`
                         : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
                     }`}
+                    aria-pressed={active}
                   >
                     <span>{meta.icon}</span>
                     <span>{cat}</span>
@@ -297,6 +362,22 @@ export default function RandomTopicsPage() {
                   </button>
                 );
               })}
+            </div>
+            <div className="flex justify-center gap-3 mt-3 text-[11px] text-[#5A3D7A]/70">
+              <button
+                onClick={() => setShowPicker(true)}
+                className="font-semibold hover:text-[#5A3D7A] underline decoration-dotted"
+              >
+                🎯 Elegir topics ({pool.length} en el mazo)
+              </button>
+              {disabledIds.size > 0 && (
+                <button
+                  onClick={resetAllTopics}
+                  className="font-semibold hover:text-[#5A3D7A] underline decoration-dotted"
+                >
+                  Reactivar los {disabledIds.size} excluidos
+                </button>
+              )}
             </div>
           </div>
 
@@ -379,6 +460,172 @@ export default function RandomTopicsPage() {
             </div>
           )}
 
+        </div>
+      </div>
+
+      {/* ── Topic picker modal ─────────────────────────────────────── */}
+      {showPicker && (
+        <TopicPickerModal
+          disabledIds={disabledIds}
+          onToggleTopic={(id) => {
+            setDisabledIds(prev => {
+              const next = new Set(prev);
+              if (next.has(id)) next.delete(id); else next.add(id);
+              return next;
+            });
+          }}
+          onToggleCategory={(cat, enable) => {
+            setDisabledIds(prev => {
+              const next = new Set(prev);
+              RANDOM_TOPICS.forEach(t => {
+                if (t.category === cat) {
+                  if (enable) next.delete(t.id);
+                  else        next.add(t.id);
+                }
+              });
+              return next;
+            });
+          }}
+          onResetAll={resetAllTopics}
+          onClose={() => { setShowPicker(false); backToDeck(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Topic picker modal ────────────────────────────────────────────────
+// Lista completa de los 130 topics agrupados por categoría, cada uno con
+// un checkbox para incluir/excluir individualmente. Permite también
+// toggle-all por categoría (botón "Todos" / "Ninguno" por sección).
+
+function TopicPickerModal({
+  disabledIds,
+  onToggleTopic,
+  onToggleCategory,
+  onResetAll,
+  onClose,
+}: {
+  disabledIds:      Set<string>;
+  onToggleTopic:    (id: string) => void;
+  onToggleCategory: (cat: RandomTopicCategory, enable: boolean) => void;
+  onResetAll:       () => void;
+  onClose:          () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const grouped = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const g = {} as Record<RandomTopicCategory, RandomTopic[]>;
+    RANDOM_TOPIC_CATEGORIES.forEach(c => { g[c] = []; });
+    for (const t of RANDOM_TOPICS) {
+      if (q && !t.topic.toLowerCase().includes(q)) continue;
+      g[t.category].push(t);
+    }
+    return g;
+  }, [query]);
+  const totalEnabled = RANDOM_TOPICS.length - disabledIds.size;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D1B4E]/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-[#E8D5F0] bg-gradient-to-r from-[#F0E5FF] to-[#FBF8F0] flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-serif text-xl font-bold text-[#2D1B4E]">🎯 Elegir topics</h2>
+            <p className="text-[11px] text-[#5A3D7A]/70 mt-0.5">
+              {totalEnabled} activos · {disabledIds.size} excluidos · {RANDOM_TOPICS.length} totales
+            </p>
+          </div>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar topic…"
+            className="text-xs px-3 py-1.5 rounded-full border border-[#C8A8DC] bg-white/80 text-[#2D1B4E] placeholder:text-[#5A3D7A]/40 focus:outline-none focus:ring-2 focus:ring-[#9B7CB8]/30 w-40"
+          />
+          <button
+            onClick={onResetAll}
+            disabled={disabledIds.size === 0}
+            className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Resetear
+          </button>
+          <button
+            onClick={onClose}
+            className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#5A3D7A] text-white hover:bg-[#2D1B4E]"
+          >
+            Listo
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+          {RANDOM_TOPIC_CATEGORIES.map(cat => {
+            const topics = grouped[cat];
+            if (!topics || topics.length === 0) return null;
+            const meta = RANDOM_TOPIC_CATEGORY_META[cat];
+            const enabledInCat = topics.filter(t => !disabledIds.has(t.id)).length;
+            const allEnabled = enabledInCat === topics.length;
+            return (
+              <section key={cat}>
+                <header className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#5A3D7A] inline-flex items-center gap-2">
+                    <span className={`inline-flex w-6 h-6 rounded-full ${meta.chipBg} ${meta.chipText} items-center justify-center text-[11px]`}>
+                      {meta.icon}
+                    </span>
+                    {cat}
+                    <span className="text-[10px] text-gray-400 font-semibold">
+                      {enabledInCat}/{topics.length}
+                    </span>
+                  </h3>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => onToggleCategory(cat, true)}
+                      disabled={allEnabled}
+                      className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Todos
+                    </button>
+                    <span className="text-gray-300">·</span>
+                    <button
+                      onClick={() => onToggleCategory(cat, false)}
+                      disabled={enabledInCat === 0}
+                      className="text-[10px] font-bold text-rose-600 hover:text-rose-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Ninguno
+                    </button>
+                  </div>
+                </header>
+                <ul className="space-y-1">
+                  {topics.map(t => {
+                    const disabled = disabledIds.has(t.id);
+                    return (
+                      <li key={t.id}>
+                        <label className={`flex items-start gap-2 p-2 rounded-lg hover:bg-[#F0E5FF]/50 cursor-pointer ${disabled ? 'opacity-45' : ''}`}>
+                          <input
+                            type="checkbox"
+                            checked={!disabled}
+                            onChange={() => onToggleTopic(t.id)}
+                            className="mt-1 w-4 h-4 accent-[#5A3D7A]"
+                          />
+                          <span className="text-sm leading-snug flex-1 min-w-0 text-[#2D1B4E]">
+                            <span className="mr-1.5">{t.emoji}</span>
+                            {t.topic}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })}
         </div>
       </div>
     </div>
