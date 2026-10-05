@@ -13,15 +13,27 @@ import {
   RANDOM_TOPICS,
   RANDOM_TOPIC_CATEGORIES,
   RANDOM_TOPIC_CATEGORY_META,
+  CEFR_LEVELS,
   randomTopicCounts,
   type RandomTopic,
   type RandomTopicCategory,
+  type CEFRLevel,
 } from '@/lib/data/randomTopics';
 
 // localStorage keys. v2 bump because the old key stored a single
 // category string; now we store multi-select state as JSON.
 const LS_CATS   = 'rt-sim:selectedCategories:v2';
+const LS_LVLS   = 'rt-sim:selectedLevels:v1';
 const LS_DISA   = 'rt-sim:disabledTopicIds:v1';
+
+// Visual styling per CEFR level — soft pastel chips that still read
+// as "levels" (A2 greenish, B1 blue, B2 amber, C1 purple ladder).
+const LEVEL_META: Record<CEFRLevel, { bg: string; text: string; label: string }> = {
+  'A2': { bg: 'bg-emerald-500', text: 'text-white', label: 'A2 · Básico' },
+  'B1': { bg: 'bg-sky-500',     text: 'text-white', label: 'B1 · Intermedio' },
+  'B2': { bg: 'bg-amber-500',   text: 'text-white', label: 'B2 · Int. Alto' },
+  'C1': { bg: 'bg-violet-600',  text: 'text-white', label: 'C1 · Avanzado' },
+};
 
 // ── Card view ─────────────────────────────────────────────────────────
 // Face-down: coloured gradient by category, "TOPIC" label + big emoji.
@@ -80,7 +92,10 @@ function TopicCard({
             <span>{meta.icon}</span>
             <span>{topic.category}</span>
           </div>
-          <div className="absolute top-4 right-5 text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]/50">Random topic</div>
+          <div className="absolute top-4 right-5 text-[10px] font-bold uppercase tracking-widest inline-flex items-center gap-1.5">
+            <span className="text-[#5A3D7A]/50">Random topic</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-[#5A3D7A]/10 text-[#5A3D7A] text-[9px]">{topic.level}</span>
+          </div>
 
           <div className="flex-1 flex flex-col justify-center mt-4">
             <div className={`${small ? 'text-4xl' : 'text-6xl'} mb-3`}>{topic.emoji}</div>
@@ -126,6 +141,10 @@ export default function RandomTopicsPage() {
   // Multi-select de categorías. Set vacío = "todas" (default). Set no
   // vacío = solo esas categorías. Persistido en localStorage.
   const [selectedCats, setSelectedCats] = useState<Set<RandomTopicCategory>>(new Set());
+  // Mismo pattern para nivel CEFR — segundo eje de filtrado opcional.
+  // Vacío = todos los niveles. Permite preparar mazo A2+B1 para un
+  // estudiante inicial sin tener que tildar topic por topic.
+  const [selectedLevels, setSelectedLevels] = useState<Set<CEFRLevel>>(new Set());
   // Topics individualmente apagados dentro del pool filtrado. Permite
   // excluir prompts específicos sin tocar toda la categoría.
   const [disabledIds, setDisabledIds] = useState<Set<string>>(new Set());
@@ -150,6 +169,15 @@ export default function RandomTopicsPage() {
         });
         setSelectedCats(valid);
       }
+      const rawL = localStorage.getItem(LS_LVLS);
+      if (rawL) {
+        const arr = JSON.parse(rawL) as string[];
+        const valid = new Set<CEFRLevel>();
+        arr.forEach(s => {
+          if (CEFR_LEVELS.includes(s as CEFRLevel)) valid.add(s as CEFRLevel);
+        });
+        setSelectedLevels(valid);
+      }
       const rawD = localStorage.getItem(LS_DISA);
       if (rawD) {
         const arr = JSON.parse(rawD) as string[];
@@ -163,17 +191,21 @@ export default function RandomTopicsPage() {
     try { localStorage.setItem(LS_CATS, JSON.stringify([...selectedCats])); } catch {}
   }, [selectedCats]);
   useEffect(() => {
+    try { localStorage.setItem(LS_LVLS, JSON.stringify([...selectedLevels])); } catch {}
+  }, [selectedLevels]);
+  useEffect(() => {
     try { localStorage.setItem(LS_DISA, JSON.stringify([...disabledIds])); } catch {}
   }, [disabledIds]);
 
   // Pool efectivo = topics cuya categoría está seleccionada (o todas si
-  // el set está vacío) Y cuyo id no está en el blacklist por topic.
+  // el set está vacío) Y cuyo nivel está seleccionado (idem) Y cuyo id
+  // no está en el blacklist por topic.
   const pool = useMemo(() => {
-    const bySet = selectedCats.size === 0
-      ? RANDOM_TOPICS
-      : RANDOM_TOPICS.filter(t => selectedCats.has(t.category));
-    return bySet.filter(t => !disabledIds.has(t.id));
-  }, [selectedCats, disabledIds]);
+    let out = RANDOM_TOPICS;
+    if (selectedCats.size > 0)   out = out.filter(t => selectedCats.has(t.category));
+    if (selectedLevels.size > 0) out = out.filter(t => selectedLevels.has(t.level));
+    return out.filter(t => !disabledIds.has(t.id));
+  }, [selectedCats, selectedLevels, disabledIds]);
 
   // Shuffled indices into `pool` — kept stable while the pool doesn't change
   // so cards don't jump around every time we open a topic.
@@ -198,9 +230,33 @@ export default function RandomTopicsPage() {
     setSelectedCats(new Set());  // empty = all
     backToDeck();
   }
+  function toggleLevel(lvl: CEFRLevel) {
+    setSelectedLevels(prev => {
+      const next = new Set(prev);
+      if (next.has(lvl)) next.delete(lvl); else next.add(lvl);
+      return next;
+    });
+    backToDeck();
+  }
+  function selectAllLevels() {
+    setSelectedLevels(new Set());
+    backToDeck();
+  }
   function resetAllTopics() {
     setDisabledIds(new Set());
   }
+
+  // Count de topics por nivel (respetando el filtro de categoría pero
+  // ignorando el filtro de nivel — así los chips de nivel muestran cuántos
+  // topics añadirían si se activaran).
+  const levelCounts = useMemo(() => {
+    const base = selectedCats.size === 0
+      ? RANDOM_TOPICS
+      : RANDOM_TOPICS.filter(t => selectedCats.has(t.category));
+    const c = { A2: 0, B1: 0, B2: 0, C1: 0 } as Record<CEFRLevel, number>;
+    for (const t of base) c[t.level]++;
+    return c;
+  }, [selectedCats]);
 
   function pickCard(topic: RandomTopic) {
     setPickedId(topic.id);
@@ -378,6 +434,45 @@ export default function RandomTopicsPage() {
                   Reactivar los {disabledIds.size} excluidos
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* ── CEFR level chips (segundo eje de filtrado, opcional) ──── */}
+          <div className="max-w-3xl mx-auto mb-6">
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/50 mr-1">
+                Nivel
+              </span>
+              <button
+                onClick={selectAllLevels}
+                className={`text-xs font-bold px-3 py-1 rounded-full border transition-all ${
+                  selectedLevels.size === 0
+                    ? 'bg-[#5A3D7A] text-white border-transparent shadow'
+                    : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
+                }`}
+              >
+                Todos
+              </button>
+              {CEFR_LEVELS.map(lvl => {
+                const meta = LEVEL_META[lvl];
+                const active = selectedLevels.has(lvl);
+                return (
+                  <button
+                    key={lvl}
+                    onClick={() => toggleLevel(lvl)}
+                    className={`text-xs font-bold px-3 py-1 rounded-full border transition-all inline-flex items-center gap-1.5 ${
+                      active
+                        ? `${meta.bg} ${meta.text} border-transparent shadow`
+                        : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
+                    }`}
+                    aria-pressed={active}
+                    title={meta.label}
+                  >
+                    <span>{lvl}</span>
+                    <span className={active ? 'text-white/80' : 'text-gray-400'}>· {levelCounts[lvl]}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -617,6 +712,9 @@ function TopicPickerModal({
                           <span className="text-sm leading-snug flex-1 min-w-0 text-[#2D1B4E]">
                             <span className="mr-1.5">{t.emoji}</span>
                             {t.topic}
+                          </span>
+                          <span className="shrink-0 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 mt-1">
+                            {t.level}
                           </span>
                         </label>
                       </li>
