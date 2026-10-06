@@ -109,6 +109,15 @@ const INTERNAL_TOOLS = [
     glow:        'shadow-emerald-200/40',
     badge:       'Nuevo',
   },
+  {
+    href:        '/dashboard/teacher/tools/tongue-twisters',
+    icon:        '👅',
+    title:       'Random Tongue Twisters',
+    description: 'Ruleta de trabalenguas para warm-up de pronunciación. Filtros por sonido target (/r-l/, /th/, /s-sh/…), TTS integrado con speed control y contador de "say it 3× fast".',
+    gradient:    'from-[#F472B6] to-[#FB923C]',
+    glow:        'shadow-pink-200/40',
+    badge:       'Nuevo',
+  },
 ];
 
 const EXTERNAL_TOOLS = [
