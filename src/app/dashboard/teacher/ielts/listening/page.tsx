@@ -270,18 +270,18 @@ function AudioWithSpeed({
         ) : (
           <div className={`flex items-center gap-2 text-xs ${tone === 'dark' ? 'text-white/80' : 'text-[#5A3D7A]'}`}>
             <span className={`inline-block w-3 h-3 rounded-full border-2 border-t-transparent animate-spin ${tone === 'dark' ? 'border-white/80' : 'border-[#5A3D7A]'}`} />
-            {loading ? 'Preparando audio (decodificando a WAV para habilitar seek)…' : 'Cargando audio…'}
+            {loading ? 'Preparing audio (decoding to WAV so seek works)…' : 'Loading audio…'}
           </div>
         )}
         {loadError && (
           <p className={`text-[10px] mt-1 ${tone === 'dark' ? 'text-red-200' : 'text-red-500'}`}>
-            No pudimos transcodear el audio ({loadError}). Se reproduce igual, pero el seek puede fallar.
+            We couldn&apos;t transcode the audio ({loadError}). It will still play, but seek may fail.
           </p>
         )}
         {showSpeed && (
           <div className="flex items-center gap-2 mt-2">
             <span className={`text-[10px] font-bold uppercase tracking-widest ${labelColor}`}>
-              Velocidad
+              Speed
             </span>
             <div className="flex gap-1">
               {SPEED_OPTIONS.map((opt) => (
@@ -362,7 +362,7 @@ function FloatingAudioDock({
           type="button"
           onClick={onTogglePlay}
           disabled={!canControl}
-          aria-label={playing ? 'Pausar audio' : 'Reproducir audio'}
+          aria-label={playing ? 'Pause audio' : 'Play audio'}
           className="w-9 h-9 rounded-full bg-[#5A3D7A] text-white flex items-center justify-center shrink-0 hover:bg-[#3D2452] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {playing ? (
@@ -589,7 +589,7 @@ function CBTHeader({
     savingState === 'saving' ? 'Saving…' :
     savingState === 'error'  ? 'Save failed' :
     savingState === 'saved' && savedAt
-      ? `Saved ${savedAt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+      ? `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`
       : null;
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-[#E8D5F0] shadow-sm">
@@ -1438,11 +1438,11 @@ function AudioPanel({
   async function handleFile(file: File) {
     setUploadError(null);
     if (!file.type.startsWith('audio/')) {
-      setUploadError('Debe ser un archivo de audio.');
+      setUploadError('Must be an audio file.');
       return;
     }
     if (file.size > 25 * 1024 * 1024) {
-      setUploadError(`Muy grande (${(file.size / 1024 / 1024).toFixed(1)} MB). Máximo 25 MB.`);
+      setUploadError(`Too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 25 MB.`);
       return;
     }
     setUploading(true);
@@ -1476,13 +1476,13 @@ function AudioPanel({
     });
     const missing = segments.find((s) => !s.voiceId);
     if (missing) {
-      setGenerateError('Algún speaker no tiene voiceId configurado en el mock.');
+      setGenerateError('A speaker is missing a voiceId in the mock config.');
       return;
     }
 
     setGenerating(true);
     try {
-      setGenerateProgress(`Generando con ElevenLabs (${segments.length} líneas · puede tomar 30-60s)…`);
+      setGenerateProgress(`Generating with ElevenLabs (${segments.length} lines · may take 30-60s)…`);
       const res = await fetch('/api/tts/elevenlabs-dialogue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1495,7 +1495,7 @@ function AudioPanel({
       }
       const blob = await res.blob();
 
-      setGenerateProgress('Subiendo a Firebase Storage…');
+      setGenerateProgress('Uploading to Firebase Storage…');
       const path = `audio/ielts-${section.number}-dialogue-${teacherId}-${Date.now()}.mp3`;
       const ref = storageRef(storage, path);
       await uploadBytes(ref, blob, { contentType: 'audio/mpeg' });
@@ -1534,18 +1534,18 @@ function AudioPanel({
   return (
     <div className="bg-white rounded-2xl border-2 border-dashed border-[#C8A8DC] p-4 space-y-3">
       <p className="text-[11px] font-bold text-[#5A3D7A] uppercase tracking-widest">
-        Audio Section {section.number} — sin cargar
+        Audio Section {section.number} — not loaded
       </p>
 
       {/* Primary CTA: one-click generation via ElevenLabs using the pre-mapped voice IDs. */}
       <div className="bg-gradient-to-br from-[#F9F5FF] to-[#F0E5FF] border border-[#C8A8DC] rounded-xl p-3 space-y-2">
         <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">
-          🎙 Vía ElevenLabs (recomendado)
+          🎙 Via ElevenLabs (recommended)
         </p>
         <p className="text-[11px] text-[#5A3D7A]/80 leading-snug">
           {isDialogue
-            ? `Genera el diálogo completo (${section.script.length} líneas · ${section.speakers.length} voces) en un solo click. Cada línea sale con la voz del speaker correspondiente y se stitchean server-side.`
-            : `Genera el audio del monólogo (${section.script.length} líneas · voz ${section.speakers[0]?.suggestedVoice.name}).`}
+            ? `Generate the full dialogue (${section.script.length} lines · ${section.speakers.length} voices) in one click. Each line uses its speaker's voice and the server stitches them together.`
+            : `Generate the monologue audio (${section.script.length} lines · voice ${section.speakers[0]?.suggestedVoice.name}).`}
         </p>
         <button
           onClick={handleGenerateDialogue}
@@ -1553,20 +1553,20 @@ function AudioPanel({
           className="w-full py-2 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-xs font-bold shadow hover:shadow-lg disabled:opacity-50 transition-all"
         >
           {generating
-            ? (generateProgress || 'Generando…')
-            : `🎙 Generar ${isDialogue ? 'diálogo' : 'audio'} con ElevenLabs`}
+            ? (generateProgress || 'Generating…')
+            : `🎙 Generate ${isDialogue ? 'dialogue' : 'audio'} with ElevenLabs`}
         </button>
         {generateError && <p className="text-[10px] text-red-500">{generateError}</p>}
       </div>
 
       {/* Fallback: paste URL or upload from disk. */}
       <div className="space-y-1">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">O alternativamente:</p>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Or alternatively:</p>
         <div className="flex gap-2">
           <input
             value={manualUrl}
             onChange={(e) => setManualUrl(e.target.value)}
-            placeholder="https:// (URL del MP3)"
+            placeholder="https:// (MP3 URL)"
             className="flex-1 min-w-0 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:border-[#9B7CB8]"
           />
           <button
@@ -1574,7 +1574,7 @@ function AudioPanel({
             disabled={!manualUrl.trim()}
             className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] rounded-lg text-xs font-bold disabled:opacity-50"
           >
-            Usar URL
+            Use URL
           </button>
           <input
             ref={fileRef}
@@ -1588,7 +1588,7 @@ function AudioPanel({
             disabled={uploading}
             className="px-3 py-1.5 border border-[#C8A8DC] text-[#5A3D7A] rounded-lg text-xs font-bold hover:bg-[#F0E5FF] disabled:opacity-50"
           >
-            {uploading ? '…' : '📤 Subir'}
+            {uploading ? '…' : '📤 Upload'}
           </button>
         </div>
         {uploadError && <p className="text-[10px] text-red-500 mt-1">{uploadError}</p>}
@@ -1610,11 +1610,11 @@ function AudioPanel({
 // at a glance and give the card family visual variety without extra decoration.
 type PosKey = NonNullable<PreListeningVocabItem['pos']>;
 const POS_META: Record<PosKey, { emoji: string; label: string; chip: string; card: string; strap: string }> = {
-  noun:      { emoji: '📦', label: 'sust.',    chip: 'bg-sky-100 text-sky-800',        card: 'from-sky-50 to-white',        strap: 'bg-sky-400' },
-  verb:      { emoji: '⚡', label: 'verbo',    chip: 'bg-amber-100 text-amber-800',    card: 'from-amber-50 to-white',      strap: 'bg-amber-400' },
-  adjective: { emoji: '🎨', label: 'adj.',     chip: 'bg-violet-100 text-violet-800',  card: 'from-violet-50 to-white',     strap: 'bg-violet-400' },
-  phrase:    { emoji: '💬', label: 'frase',    chip: 'bg-teal-100 text-teal-800',      card: 'from-teal-50 to-white',       strap: 'bg-teal-400' },
-  number:    { emoji: '🔢', label: 'número',   chip: 'bg-rose-100 text-rose-800',      card: 'from-rose-50 to-white',       strap: 'bg-rose-400' },
+  noun:      { emoji: '📦', label: 'noun',  chip: 'bg-sky-100 text-sky-800',        card: 'from-sky-50 to-white',        strap: 'bg-sky-400' },
+  verb:      { emoji: '⚡', label: 'verb',  chip: 'bg-amber-100 text-amber-800',    card: 'from-amber-50 to-white',      strap: 'bg-amber-400' },
+  adjective: { emoji: '🎨', label: 'adj.',  chip: 'bg-violet-100 text-violet-800',  card: 'from-violet-50 to-white',     strap: 'bg-violet-400' },
+  phrase:    { emoji: '💬', label: 'phrase',chip: 'bg-teal-100 text-teal-800',      card: 'from-teal-50 to-white',       strap: 'bg-teal-400' },
+  number:    { emoji: '🔢', label: 'number',chip: 'bg-rose-100 text-rose-800',      card: 'from-rose-50 to-white',       strap: 'bg-rose-400' },
 };
 const POS_DEFAULT = { emoji: '·', label: '', chip: 'bg-gray-100 text-gray-700', card: 'from-white to-white', strap: 'bg-gray-300' };
 function posMeta(pos?: PreListeningVocabItem['pos']) {
@@ -1797,7 +1797,7 @@ function PreListeningPanel({
   partToQ:   number;
   onReady:   () => void;
 }) {
-  const [tab, setTab] = useState<'explorar' | 'matching'>('explorar');
+  const [tab, setTab] = useState<'explore' | 'matching'>('explore');
   const [matchingDone, setMatchingDone] = useState(false);
 
   return (
@@ -1805,10 +1805,7 @@ function PreListeningPanel({
       <div className="rounded-2xl border border-[#C8A8DC]/60 bg-gradient-to-br from-[#FDFAFF] to-[#F0E5FF] p-6 shadow-sm">
         <div className="flex items-baseline justify-between gap-3 mb-2">
           <span className="text-[10px] font-black uppercase tracking-[0.28em] text-[#5A3D7A]">
-            Part {sectionNumber} · Preparación · Questions {partFromQ}–{partToQ}
-          </span>
-          <span className="text-[10px] font-black text-[#10B981] uppercase tracking-widest">
-            Scaffold A2
+            Part {sectionNumber} · Preparation · Questions {partFromQ}–{partToQ}
           </span>
         </div>
 
@@ -1819,20 +1816,20 @@ function PreListeningPanel({
           {prep.scenarioPreview}
         </p>
 
-        {/* Tabs · Explorar / Matching */}
+        {/* Tabs · Explore / Matching */}
         <div className="mt-5">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="inline-flex rounded-xl bg-white border border-[#E8D5F0] p-1 shadow-sm">
               <button
                 type="button"
-                onClick={() => setTab('explorar')}
+                onClick={() => setTab('explore')}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
-                  tab === 'explorar'
+                  tab === 'explore'
                     ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
                     : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
                 }`}
               >
-                🔑 Explorar
+                🔑 Explore
               </button>
               <button
                 type="button"
@@ -1847,11 +1844,11 @@ function PreListeningPanel({
               </button>
             </div>
             <span className="text-[10px] font-bold text-[#5A3D7A]/70 tabular-nums">
-              {prep.vocabulary.length} palabras
+              {prep.vocabulary.length} words
             </span>
           </div>
 
-          {tab === 'explorar' ? (
+          {tab === 'explore' ? (
             <VocabCards items={prep.vocabulary} />
           ) : (
             <MatchingActivity
@@ -1863,7 +1860,7 @@ function PreListeningPanel({
           {tab === 'matching' && matchingDone && (
             <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-300 px-4 py-2.5 text-sm font-bold text-emerald-800 flex items-center gap-2">
               <span aria-hidden>🎉</span>
-              ¡Vocabulario dominado! Estás listo para el audio.
+              Vocabulary mastered! You&apos;re ready for the audio.
             </div>
           )}
         </div>
@@ -1872,7 +1869,7 @@ function PreListeningPanel({
         {prep.listenFor && prep.listenFor.length > 0 && (
           <div className="mt-5 rounded-xl bg-[#FFF9E6] border border-[#F5D77A] px-4 py-3">
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#8A6B10] mb-1.5">
-              👂 Escucha especialmente
+              👂 Listen for
             </p>
             <ul className="space-y-1 text-sm text-[#2D1B4E]">
               {prep.listenFor.map((tip, i) => (
@@ -1891,18 +1888,18 @@ function PreListeningPanel({
             onClick={onReady}
             className="flex-1 rounded-xl bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white font-bold text-sm py-3 px-4 shadow-md hover:shadow-lg transition-shadow"
           >
-            Estoy listo — empezar el audio →
+            I&apos;m ready — start the audio →
           </button>
           <button
             type="button"
             onClick={onReady}
             className="rounded-xl border border-[#C8A8DC] bg-white text-[#5A3D7A] font-semibold text-xs py-2.5 px-4 hover:bg-[#FDFAFF]"
           >
-            Ya conozco estas palabras
+            I already know these words
           </button>
         </div>
         <p className="text-[11px] text-[#5A3D7A]/60 italic text-center mt-3">
-          El audio arranca cuando toques el botón. Tómate tu tiempo.
+          The audio starts when you tap the button. Take your time.
         </p>
       </div>
     </section>
@@ -1930,7 +1927,7 @@ function VocabAccordion({
   sectionNumber: 1 | 2 | 3 | 4;
 }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab]   = useState<'explorar' | 'matching'>('explorar');
+  const [tab, setTab]   = useState<'explore' | 'matching'>('explore');
   const [matchingDone, setMatchingDone] = useState(false);
 
   // Reset per-section state when the Part changes. Keeps the accordion
@@ -1938,7 +1935,7 @@ function VocabAccordion({
   // visual focus.
   useEffect(() => {
     setOpen(false);
-    setTab('explorar');
+    setTab('explore');
     setMatchingDone(false);
   }, [sectionNumber]);
 
@@ -1952,33 +1949,33 @@ function VocabAccordion({
       >
         <span className="flex items-center gap-2 text-sm font-bold text-[#2D1B4E]">
           <span aria-hidden>🔑</span>
-          Vocabulario clave
+          Key vocabulary
           <span className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-widest tabular-nums">
-            {prep.vocabulary.length} palabras
+            {prep.vocabulary.length} words
           </span>
           <span className="hidden sm:inline text-[10px] font-black text-[#10B981] uppercase tracking-widest">
-            · 🎯 Matching dispo
+            · 🎯 Matching available
           </span>
         </span>
         <span className={`text-[#5A3D7A] transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden>▶</span>
       </button>
       {open && (
         <div className="px-4 pb-4 pt-1 border-t border-[#E8D5F0]/70">
-          {/* Tabs · Explorar / Matching — mirrors the PreListeningPanel so
+          {/* Tabs · Explore / Matching — mirrors the PreListeningPanel so
               students see the same shape whether this is their first
               time with the vocab or a mid-test warm-up. */}
           <div className="mt-2 flex items-center justify-between gap-3 mb-3">
             <div className="inline-flex rounded-xl bg-white border border-[#E8D5F0] p-1 shadow-sm">
               <button
                 type="button"
-                onClick={() => setTab('explorar')}
+                onClick={() => setTab('explore')}
                 className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors ${
-                  tab === 'explorar'
+                  tab === 'explore'
                     ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm'
                     : 'text-[#5A3D7A] hover:bg-[#FDFAFF]'
                 }`}
               >
-                🔑 Explorar
+                🔑 Explore
               </button>
               <button
                 type="button"
@@ -1997,7 +1994,7 @@ function VocabAccordion({
             </span>
           </div>
 
-          {tab === 'explorar' ? (
+          {tab === 'explore' ? (
             <VocabCards items={prep.vocabulary} />
           ) : (
             // key=sectionNumber forces a fresh MatchingActivity instance
@@ -2014,13 +2011,13 @@ function VocabAccordion({
           {tab === 'matching' && matchingDone && (
             <div className="mt-3 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-300 px-4 py-2.5 text-sm font-bold text-emerald-800 flex items-center gap-2">
               <span aria-hidden>🎉</span>
-              ¡Vocabulario dominado! Volvé al audio cuando quieras.
+              Vocabulary mastered! Back to the audio whenever you want.
             </div>
           )}
 
           {prep.listenFor && prep.listenFor.length > 0 && (
             <div className="mt-3 rounded-lg bg-[#FFF9E6] border border-[#F5D77A] px-3 py-2 text-[12px] text-[#2D1B4E]">
-              <span className="font-bold text-[#8A6B10]">👂 Escucha:</span>{' '}
+              <span className="font-bold text-[#8A6B10]">👂 Listen for:</span>{' '}
               {prep.listenFor.join(' · ')}
             </div>
           )}
@@ -2191,7 +2188,7 @@ function ResultsView({ mock, result, onReset }: { mock: ListeningMock; result: G
           onClick={onReset}
           className="px-6 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow hover:shadow-lg active:scale-95"
         >
-          ↻ Reintentar en Practice Mode
+          ↻ Retry in Practice Mode
         </button>
       </div>
 
@@ -2426,7 +2423,7 @@ function IELTSListeningPageInner() {
       startMock();
     } catch (err) {
       console.error('[ielts-listening] create session:', err);
-      alert('No se pudo crear la sesión. Reintentá.');
+      alert('Couldn\'t create the session. Please try again.');
     }
   }
 
@@ -2456,13 +2453,13 @@ function IELTSListeningPageInner() {
   }
 
   async function removeSession(id: string) {
-    if (!confirm('¿Borrar esta sesión guardada? No se puede deshacer.')) return;
+    if (!confirm('Delete this saved session? This can\'t be undone.')) return;
     try {
       await deletePracticeSession(id);
       setSavedSessions((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
       console.error('[ielts-listening] delete session:', err);
-      alert('No se pudo borrar la sesión.');
+      alert('Couldn\'t delete the session.');
     }
   }
 
@@ -2564,10 +2561,10 @@ function IELTSListeningPageInner() {
           savedAt={mode === 'practice' && sessionId ? savedAt : undefined}
           onMenu={() => {
             if (mode === 'practice' && sessionId) {
-              if (confirm('¿Guardar progreso y salir? Podés retomar la sesión desde el landing.')) {
+              if (confirm('Save progress and exit? You can resume the session from the landing page.')) {
                 saveAndExit();
               }
-            } else if (confirm('¿Salir del test? Se pierde el progreso actual.')) {
+            } else if (confirm('Exit the test? Current progress will be lost.')) {
               setPhase('landing');
               setTimerRunning(false);
             }
@@ -2600,7 +2597,7 @@ function IELTSListeningPageInner() {
             <div className="mb-4">
               <div className="rounded-lg border border-[#E8D5F0] bg-[#FDFAFF] p-3 flex items-center gap-2 text-xs text-gray-500 shadow-sm">
                 <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
-                Cargando audio…
+                Loading audio…
               </div>
             </div>
           ) : audioUrl ? (
@@ -2613,13 +2610,13 @@ function IELTSListeningPageInner() {
                   {mode !== 'exam' && (
                     <button
                       onClick={() => {
-                        if (confirm('¿Borrar este audio y generar uno nuevo? Consume tokens de ElevenLabs otra vez.')) {
+                        if (confirm('Delete this audio and generate a new one? This will spend ElevenLabs tokens again.')) {
                           clearAudioBinding(activeSection.number);
                         }
                       }}
                       className="text-[10px] font-semibold text-[#5A3D7A]/70 hover:text-[#5A3D7A] underline"
                     >
-                      🔄 Regenerar
+                      🔄 Regenerate
                     </button>
                   )}
                 </div>
@@ -2822,7 +2819,7 @@ function IELTSListeningPageInner() {
                 onClick={() => setTimerRunning((r) => !r)}
                 className="text-[11px] font-semibold text-[#5A3D7A] hover:text-[#2D1B4E] underline"
               >
-                {timerRunning ? `❚❚ Pausar timer (${fmt(timeLeft)})` : `▶ Reanudar (${fmt(timeLeft)})`}
+                {timerRunning ? `❚❚ Pause timer (${fmt(timeLeft)})` : `▶ Resume (${fmt(timeLeft)})`}
               </button>
             </div>
           )}
@@ -2874,7 +2871,7 @@ function IELTSListeningPageInner() {
         <FullscreenButton />
         <TopBar
           title="IELTS Listening Mocks"
-          subtitle={`${mock.sections.length} secciones · 40 preguntas · ~30 min de audio`}
+          subtitle={`${mock.sections.length} sections · 40 questions · ~30 min of audio`}
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools', href: '/dashboard/teacher/tools' },
@@ -2975,11 +2972,11 @@ function IELTSListeningPageInner() {
                       type="text"
                       value={studentNameInput}
                       onChange={(e) => setStudentNameInput(e.target.value)}
-                      placeholder="Nombre del estudiante"
+                      placeholder="Student name"
                       className="w-full px-4 py-2.5 rounded-xl border-2 border-[#E8D5F0] bg-[#FDFAFF] text-sm text-[#2D1B4E] focus:outline-none focus:border-[#5A3D7A] focus:bg-white transition-colors"
                     />
                     <p className="text-[11px] text-gray-500 mt-1.5">
-                      Se guarda el progreso automáticamente. Podés retomar la sesión desde acá cuando quieras.
+                      Progress is saved automatically. You can resume the session from here anytime.
                     </p>
                   </div>
 
@@ -2991,15 +2988,15 @@ function IELTSListeningPageInner() {
                     {loadingSessions ? (
                       <p className="text-xs text-gray-500 flex items-center gap-2 py-3">
                         <span className="inline-block w-3 h-3 rounded-full border-2 border-[#C8A8DC] border-t-transparent animate-spin" />
-                        Cargando sesiones…
+                        Loading sessions…
                       </p>
                     ) : sessionsError ? (
                       <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                        <p className="font-semibold">No se pudo cargar el listado</p>
+                        <p className="font-semibold">Couldn&apos;t load the list</p>
                         <p className="mt-1 font-mono break-all">{sessionsError}</p>
                       </div>
                     ) : savedSessions.length === 0 ? (
-                      <p className="text-xs text-gray-400 italic py-2">No hay sesiones guardadas para este mock.</p>
+                      <p className="text-xs text-gray-400 italic py-2">No saved sessions for this mock yet.</p>
                     ) : (
                       <ul className="space-y-1.5 max-h-64 overflow-y-auto">
                         {savedSessions.map((s) => {
@@ -3009,14 +3006,14 @@ function IELTSListeningPageInner() {
                           }).length;
                           const updated = s.updatedAt?.toDate?.() ?? null;
                           const updatedLabel = updated
-                            ? updated.toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            ? updated.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                             : '—';
                           return (
                             <li key={s.id} className="flex items-center gap-2 border border-[#E8D5F0] rounded-xl px-3 py-2 bg-[#FDFAFF]">
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-[#2D1B4E] truncate">{s.studentName}</p>
                                 <p className="text-[10px] text-gray-500 font-mono">
-                                  {answered}/40 answered · Part {s.currentSection + 1} · guardado {updatedLabel}
+                                  {answered}/40 answered · Part {s.currentSection + 1} · saved {updatedLabel}
                                 </p>
                               </div>
                               <button
@@ -3027,7 +3024,7 @@ function IELTSListeningPageInner() {
                               </button>
                               <button
                                 onClick={() => s.id && removeSession(s.id)}
-                                title="Borrar sesión"
+                                title="Delete session"
                                 aria-label="Delete session"
                                 className="text-gray-400 hover:text-red-500 text-sm px-1"
                               >
@@ -3063,7 +3060,7 @@ function IELTSListeningPageInner() {
               </div>
 
               <p className="text-center text-[10px] text-gray-400">
-                💡 Tip: Genera los audios en ElevenLabs con los scripts que se despliegan en cada sección. Súbelos aquí para reutilizarlos.
+                💡 Tip: Generate the audio in ElevenLabs using the scripts shown in each section. Upload them here to reuse them later.
               </p>
             </div>
           )}
