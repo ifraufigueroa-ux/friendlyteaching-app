@@ -494,10 +494,13 @@ export default function IELTSSpeakingMocksPage() {
   const [p2Phase, setP2Phase]     = useState<Part2Phase>('idle');
   const [p2Time, setP2Time]       = useState(0);
   const [cardsPracticed, setCardsPracticed] = useState(0);
-  // Cinco cartas sacadas de la baraja, boca abajo, para que el alumno
-  // elija una. null = todavía no sacó cartas; array vacío no aparece
-  // porque siempre reseteamos a null al devolver al mazo o al elegir.
+  // Five cards dealt from the deck, face-down, for the student to pick
+  // one. null = no draw yet; empty arrays never render because we always
+  // reset to null on return-to-deck / pick.
   const [drawnFive, setDrawnFive] = useState<number[] | null>(null);
+  // Bumped on every draw so the deal-in CSS animation re-runs even when
+  // the deck size happens to produce the same card indices in a row.
+  const [drawKey, setDrawKey] = useState(0);
   // Track which cards the student has already worked through so they don't
   // reappear in the deck. Persisted per (teacher, student) so a returning
   // student picks up where they left off. "Free practice" (no student
@@ -695,6 +698,7 @@ export default function IELTSSpeakingMocksPage() {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     setDrawnFive(shuffled.slice(0, Math.min(5, shuffled.length)));
+    setDrawKey(k => k + 1);
   }
   function returnDrawnToDeck() {
     if (p2Phase !== 'idle') return;
@@ -813,14 +817,14 @@ export default function IELTSSpeakingMocksPage() {
                   Speaking · {activeMock.title.replace('IELTS GT · ', '')}
                 </p>
                 <p className="text-[11px] text-gray-500 truncate">
-                  {activeMock.speaking.part1.map(t => t.name).join(' → ')} · cue &ldquo;{activeMock.speaking.cueCard.topic.replace(/\.$/, '')}&rdquo; · {activeMock.speaking.part3.length} preguntas P3
+                  {activeMock.speaking.part1.map(t => t.name).join(' → ')} · cue &ldquo;{activeMock.speaking.cueCard.topic.replace(/\.$/, '')}&rdquo; · {activeMock.speaking.part3.length} P3 questions
                 </p>
               </div>
               <button
                 onClick={loadCurrentMock}
                 className="text-xs font-black px-3 py-1.5 rounded-full bg-[#E8B547] text-[#2D1B4E] hover:bg-[#F0C25A] active:scale-95 transition-all shrink-0"
               >
-                ⭐ Cargar {activeMock.title.replace('IELTS GT · ', '')}
+                ⭐ Load {activeMock.title.replace('IELTS GT · ', '')}
               </button>
             </div>
             {IELTS_MOCKS.length > 1 && (
@@ -1051,6 +1055,20 @@ export default function IELTSSpeakingMocksPage() {
         {/* ── Part 2 (existing cue cards) ─────────────────────────── */}
         {part === 2 && p2Phase === 'idle' && (
           <div className="space-y-6">
+            <style>{`
+              @keyframes cueCardDealIn {
+                0%   { opacity: 0; transform: translate(260px, -40px) rotate(55deg) scale(0.55); }
+                55%  { opacity: 1; transform: translate(-6px,  6px) rotate(-6deg)  scale(1.03); }
+                100% { opacity: 1; transform: translate(0, 0)        rotate(0)      scale(1);    }
+              }
+              @keyframes cueDeckBump {
+                0%   { transform: translate(0, 0) scale(1); }
+                25%  { transform: translate(-4px, 2px) scale(0.97); }
+                60%  { transform: translate(2px, -2px) scale(1.02); }
+                100% { transform: translate(0, 0) scale(1); }
+              }
+            `}</style>
+
             <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-5 space-y-2 text-[#1B2C3F]">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Section 02 · Long turn</p>
@@ -1066,17 +1084,17 @@ export default function IELTSSpeakingMocksPage() {
             <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Progreso del alumno</p>
+                  <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Student progress</p>
                   <p className="text-sm text-[#2D1B4E] truncate">
                     {studentHydrating ? (
-                      <span className="text-gray-400">Cargando…</span>
+                      <span className="text-gray-400">Loading…</span>
                     ) : activeStudent ? (
                       <>
                         <strong>{activeStudent}</strong>
-                        <span className="text-gray-500 font-normal"> · {practicedIds.size} de {IELTS_CUE_CARDS.length} practicadas</span>
+                        <span className="text-gray-500 font-normal"> · {practicedIds.size} of {IELTS_CUE_CARDS.length} practiced</span>
                       </>
                     ) : (
-                      <span className="text-gray-500">Práctica libre <span className="text-gray-400">· no se guarda progreso</span></span>
+                      <span className="text-gray-500">Free practice <span className="text-gray-400">· progress not saved</span></span>
                     )}
                   </p>
                 </div>
@@ -1084,7 +1102,7 @@ export default function IELTSSpeakingMocksPage() {
                   onClick={() => setStudentPickerOpen((v) => !v)}
                   className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0C8F0] active:scale-95 transition-all"
                 >
-                  {activeStudent ? 'Cambiar' : 'Elegir alumno'}
+                  {activeStudent ? 'Change' : 'Pick student'}
                 </button>
               </div>
 
@@ -1093,7 +1111,7 @@ export default function IELTSSpeakingMocksPage() {
                   {/* Existing students */}
                   {studentList.length > 0 && (
                     <div className="pt-2">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Alumnos guardados</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Saved students</p>
                       <div className="flex flex-wrap gap-1.5">
                         {studentList.map((s) => {
                           const isActive = s.studentName.toLowerCase() === activeStudent.toLowerCase();
@@ -1121,13 +1139,13 @@ export default function IELTSSpeakingMocksPage() {
 
                   {/* New student */}
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Nuevo alumno</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">New student</p>
                     <div className="flex gap-2">
                       <input
                         value={newStudentInput}
                         onChange={(e) => setNewStudentInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') addNewStudent(); }}
-                        placeholder="Nombre del alumno"
+                        placeholder="Student name"
                         className="flex-1 min-w-0 px-3 py-1.5 border border-[#E8D5F0] rounded-lg text-sm focus:outline-none focus:border-[#9B7CB8]"
                       />
                       <button
@@ -1135,11 +1153,11 @@ export default function IELTSSpeakingMocksPage() {
                         disabled={!newStudentInput.trim() || !teacherId}
                         className="px-3 py-1.5 bg-[#5A3D7A] hover:bg-[#4A3062] text-white rounded-lg text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                       >
-                        + Agregar
+                        + Add
                       </button>
                     </div>
                     {!teacherId && (
-                      <p className="text-[10px] text-red-500 mt-1">Iniciá sesión para guardar progreso.</p>
+                      <p className="text-[10px] text-red-500 mt-1">Sign in to save progress.</p>
                     )}
                   </div>
 
@@ -1149,19 +1167,19 @@ export default function IELTSSpeakingMocksPage() {
                       onClick={clearStudent}
                       className="text-[11px] font-semibold text-gray-400 hover:text-gray-600"
                     >
-                      Volver a práctica libre
+                      Back to free practice
                     </button>
                   )}
                 </div>
               )}
             </div>
 
-            {/* ── Pila de cartas contestadas (arriba, cara arriba) ────── */}
+            {/* ── Answered pile (top, face-up) ────────────────────────── */}
             {practicedIds.size > 0 && (
               <div className="w-full">
                 <div className="flex items-baseline justify-between gap-2 mb-2 px-1">
                   <div className="flex items-baseline gap-2">
-                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Cartas contestadas</p>
+                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Answered cards</p>
                     <span className="text-xs text-gray-500 tabular-nums">{practicedIds.size} / {IELTS_CUE_CARDS.length}</span>
                   </div>
                 </div>
@@ -1178,7 +1196,7 @@ export default function IELTSSpeakingMocksPage() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] font-bold uppercase tracking-widest text-[#5A3D7A]/50">IELTS P2</span>
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600">✓ Contestada</span>
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600">✓ Done</span>
                         </div>
                         <h3 className="font-serif text-sm font-bold text-[#2D1B4E] mt-2 mb-2 leading-tight">
                           {card.topic}
@@ -1202,23 +1220,27 @@ export default function IELTSSpeakingMocksPage() {
               </div>
             )}
 
-            {/* ── Área central + baraja a la derecha ─────────────────── */}
+            {/* ── Center area + deck on the right ────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_17rem] gap-6">
-              {/* Centro: 5 cartas sacadas o estado inicial */}
+              {/* Center: dealt cards or empty state */}
               <div className="min-h-[22rem] flex flex-col items-center justify-center gap-4">
                 {drawnFive && drawnFive.length > 0 ? (
                   <>
                     <div className="text-center">
-                      <p className="text-[#5A3D7A] font-serif font-bold text-xl">Elegí una carta</p>
+                      <p className="text-[#5A3D7A] font-serif font-bold text-xl">Pick a card</p>
                       <p className="text-gray-500 text-sm mt-1">
-                        Hacé clic en cualquiera de las {drawnFive.length} cartas boca abajo.
+                        Tap any of the {drawnFive.length} face-down cards.
                       </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-3 pt-2">
+                    <div className="flex flex-wrap justify-center gap-3 pt-2" key={`deal-${drawKey}`}>
                       {drawnFive.map((cardIdx, pos) => (
                         <div
-                          key={`${cardIdx}-${pos}`}
-                          style={{ transform: `rotate(${(pos - (drawnFive.length - 1) / 2) * 4}deg)` }}
+                          key={`${drawKey}-${cardIdx}-${pos}`}
+                          style={{
+                            transform: `rotate(${(pos - (drawnFive!.length - 1) / 2) * 4}deg)`,
+                            animation: `cueCardDealIn 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both`,
+                            animationDelay: `${pos * 110}ms`,
+                          }}
                           className="transition-transform"
                         >
                           <CueCardView
@@ -1233,27 +1255,27 @@ export default function IELTSSpeakingMocksPage() {
                     </div>
                     <div className="flex gap-2 justify-center pt-2 flex-wrap">
                       <button onClick={pickRandom} className="px-4 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-xs font-bold shadow active:scale-95">
-                        🎲 Elegir una al azar
+                        🎲 Pick a random one
                       </button>
                       <button onClick={returnDrawnToDeck} className="px-4 py-2 bg-white border-2 border-[#E8D5F0] text-[#5A3D7A] rounded-full text-xs font-bold hover:bg-[#F9F5FF] active:scale-95">
-                        ↩ Devolver al mazo
+                        ↩ Return to deck
                       </button>
                     </div>
                   </>
                 ) : availableDeck.length > 0 ? (
                   <div className="text-center space-y-3 py-10 max-w-sm">
                     <div className="text-6xl mb-2">🎴</div>
-                    <p className="text-[#5A3D7A] font-serif font-bold text-xl">La baraja está lista</p>
+                    <p className="text-[#5A3D7A] font-serif font-bold text-xl">The deck is ready</p>
                     <p className="text-gray-500 text-sm">
-                      Apretá <strong className="text-[#5A3D7A]">Sacar 5 cartas</strong> en la baraja de la derecha para empezar el long turn.
+                      Hit <strong className="text-[#5A3D7A]">Draw 5 Cards</strong> on the deck to the right to start the long turn.
                     </p>
                   </div>
                 ) : (
                   <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-6 text-center space-y-4">
                     <div className="text-5xl">🎉</div>
-                    <p className="text-[#5A3D7A] font-serif font-bold text-lg">Deck completo</p>
+                    <p className="text-[#5A3D7A] font-serif font-bold text-lg">Deck complete</p>
                     <p className="text-sm text-gray-500">
-                      Recorriste las {IELTS_CUE_CARDS.length} cue cards del banco. Reseteá el deck para arrancar otra vuelta.
+                      You&apos;ve gone through all {IELTS_CUE_CARDS.length} cue cards in the bank. Reset the deck to start another round.
                     </p>
                     <button
                       onClick={resetPracticedDeck}
@@ -1265,26 +1287,30 @@ export default function IELTSSpeakingMocksPage() {
                 )}
               </div>
 
-              {/* Derecha: baraja apilada boca abajo + acciones */}
+              {/* Right: stacked face-down deck + actions */}
               <aside className="lg:sticky lg:top-6 lg:self-start">
                 <div className="bg-white rounded-2xl shadow-md shadow-[#C8A8DC]/20 border border-[#E8D5F0] p-5 space-y-4">
                   <div className="text-center">
-                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Baraja</p>
+                    <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em]">Deck</p>
                     <p className="text-xs text-gray-500 mt-0.5 tabular-nums">
-                      {availableDeck.length} de {IELTS_CUE_CARDS.length} disponibles
+                      {availableDeck.length} of {IELTS_CUE_CARDS.length} available
                     </p>
                   </div>
 
-                  <div className="relative w-44 h-64 mx-auto">
+                  <div
+                    className="relative w-44 h-64 mx-auto"
+                    key={`deck-${drawKey}`}
+                    style={drawKey > 0 ? { animation: 'cueDeckBump 420ms ease-out both' } : undefined}
+                  >
                     {availableDeck.length === 0 ? (
                       <div className="absolute inset-0 rounded-2xl border-2 border-dashed border-[#E8D5F0] flex items-center justify-center text-gray-400 text-xs text-center p-3">
-                        Mazo vacío.<br/>Reseteá para empezar de nuevo.
+                        Deck empty.<br/>Reset to start over.
                       </div>
                     ) : (
                       availableDeck
                         .slice(0, Math.min(4, availableDeck.length))
                         .map((cardIdx, i, arr) => {
-                          // depth 0 = carta de arriba (visible al frente).
+                          // depth 0 = top card (front of the stack).
                           const depth = i;
                           const topCard = depth === 0;
                           return (
@@ -1315,7 +1341,7 @@ export default function IELTSSpeakingMocksPage() {
                       disabled={availableDeck.length === 0 || drawnFive != null}
                       className="w-full px-4 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
                     >
-                      🎴 Sacar {Math.min(5, availableDeck.length)} cartas
+                      🎴 Draw {Math.min(5, availableDeck.length)} Cards
                     </button>
                     <div className="flex gap-2">
                       <button
@@ -1507,13 +1533,13 @@ export default function IELTSSpeakingMocksPage() {
                   {p3MockQueue ? (
                     <>
                       <span className="text-[11px] font-bold text-[#5A3D7A] bg-[#F0E5FF] px-2.5 py-1.5 rounded-full">
-                        Mock 1 · pregunta {p3MockIdx + 1}/{p3MockQueue.length}
+                        Mock 1 · question {p3MockIdx + 1}/{p3MockQueue.length}
                       </span>
                       <button
                         onClick={nextP3MockQuestion}
                         className="px-4 py-2 bg-[#5A3D7A] hover:bg-[#4A3062] text-white rounded-full text-sm font-bold active:scale-95"
                       >
-                        {p3MockIdx + 1 >= p3MockQueue.length ? 'Terminar Mock 1' : '→ Siguiente pregunta'}
+                        {p3MockIdx + 1 >= p3MockQueue.length ? 'Finish Mock 1' : '→ Next question'}
                       </button>
                     </>
                   ) : (
