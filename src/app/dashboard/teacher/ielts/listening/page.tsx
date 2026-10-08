@@ -352,7 +352,7 @@ function FloatingAudioDock({
 
   return (
     <div
-      className={`fixed top-16 left-0 right-0 z-30 flex justify-center px-3 sm:px-4 pointer-events-none transition-all duration-150 ease-out ${
+      className={`fixed top-20 left-0 right-0 z-30 flex justify-center px-3 sm:px-4 pointer-events-none transition-all duration-150 ease-out ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 invisible'
       }`}
       aria-hidden={!visible}

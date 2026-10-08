@@ -99,8 +99,8 @@ const s1Questions: ListeningQuestion[] = [
 ];
 
 const s1PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Llamando a la biblioteca',
-  scenarioPreview: 'Un estudiante llama a la biblioteca de la ciudad para pedir una tarjeta de socio. La bibliotecaria le pide sus datos personales y le pregunta qué día va a visitar la biblioteca.',
+  headline: 'Before listening · Calling the library',
+  scenarioPreview: 'A student calls the city library to ask for a membership card. The librarian takes his personal details and asks which day he\'s going to visit the library.',
   vocabulary: [
     { word: 'library card',   pos: 'noun',   translation: 'tarjeta de la biblioteca',    example: 'I want a new library card, please.', soundsLike: 'LAI-brer-i card',
       definition: 'a card you use to borrow books from a library' },
@@ -260,8 +260,8 @@ const s2Questions: ListeningQuestion[] = [
 ];
 
 const s2PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Bienvenida en la escuela',
-  scenarioPreview: 'Una asistente de la escuela le da la bienvenida a los estudiantes nuevos del curso de inglés Beginner. Explica el horario de clase, dónde está el aula y menciona un examen para la semana siguiente.',
+  headline: 'Before listening · School welcome',
+  scenarioPreview: 'A school assistant welcomes the new students in the Beginner English course. She explains the class schedule, where the classroom is, and mentions a test for the following week.',
   vocabulary: [
     { word: 'welcome',        pos: 'verb',      translation: 'dar la bienvenida',      example: 'Welcome to Sunrise School.',
       definition: 'to greet someone in a friendly way when they arrive' },
@@ -389,8 +389,8 @@ const s3Questions: ListeningQuestion[] = [
 ];
 
 const s3PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Planificando un proyecto escolar',
-  scenarioPreview: 'Dos compañeros de clase, Maria y Peter, planifican un proyecto para la escuela sobre su comida favorita. Deciden cuántas fotos y palabras necesitan, y cuándo se van a juntar a trabajar.',
+  headline: 'Before listening · Planning a school project',
+  scenarioPreview: 'Two classmates, Maria and Peter, plan a school project about their favourite food. They decide how many pictures and words they need, and when they\'re going to meet up to work on it.',
   vocabulary: [
     { word: 'project',        pos: 'noun',      translation: 'proyecto (tarea escolar)', example: 'Are you ready for the school project?',
       definition: 'a piece of work students do over time, often in a group' },
@@ -527,8 +527,8 @@ const s4Questions: ListeningQuestion[] = [
 ];
 
 const s4PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Hábitos saludables por la mañana',
-  scenarioPreview: 'Una profesora da una charla corta sobre tres hábitos saludables para empezar el día: agua, un buen desayuno y ejercicio ligero. También menciona cuántas horas de sueño necesitan los adultos y los niños.',
+  headline: 'Before listening · Healthy morning habits',
+  scenarioPreview: 'A teacher gives a short talk on three healthy habits to start the day: water, a good breakfast, and light exercise. She also mentions how many hours of sleep adults and children need.',
   vocabulary: [
     { word: 'habit',          pos: 'noun',      translation: 'hábito, costumbre',          example: 'Healthy morning habits.', soundsLike: 'HA-bit',
       definition: 'something you do regularly, often without thinking' },

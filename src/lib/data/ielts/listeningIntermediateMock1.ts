@@ -167,8 +167,8 @@ const s1Questions: ListeningQuestion[] = [
 ];
 
 const s1PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Inscripción al Weekend Wellness Program',
-  scenarioPreview: 'Un cliente llama al centro comunitario para inscribirse al programa de wellness de fin de semana. La recepcionista pide sus datos, le ofrece distintos paquetes y le confirma qué actividad se hace cada día. Después acuerdan la forma de pago.',
+  headline: 'Before listening · Signing up for the Weekend Wellness Program',
+  scenarioPreview: 'A customer calls the community centre to sign up for the weekend wellness program. The receptionist takes his personal details, walks him through the different packages, confirms which activity runs each day, and they agree on the payment method.',
   vocabulary: [
     { word: 'sign up (for)',    pos: 'phrase',    translation: 'inscribirse (a)',            example: 'I want to sign up for the weekend program.',
       definition: 'to give your name to join a group, class or service' },
@@ -400,8 +400,8 @@ const s2Questions: ListeningQuestion[] = [
 ];
 
 const s2PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Tour por el jardín comunitario',
-  scenarioPreview: 'Una guía voluntaria del jardín comunitario Rosemary da un tour a nuevos miembros. Explica la historia del jardín, la cuota, las reglas y qué llevar el primer día.',
+  headline: 'Before listening · Community garden tour',
+  scenarioPreview: 'A volunteer guide at the Rosemary Community Garden gives a tour to new members. She explains the garden\'s history, the membership fee, the rules, and what to bring on the first day.',
   vocabulary: [
     { word: 'plot',             pos: 'noun',   translation: 'parcela (de tierra)',                example: 'Each plot is 3 metres by 3 metres.',
       definition: 'a small piece of ground used for growing things' },
@@ -598,8 +598,8 @@ const s3Questions: ListeningQuestion[] = [
 ];
 
 const s3PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Diseño de un proyecto de investigación',
-  scenarioPreview: 'Un tutor universitario y dos estudiantes (Alex y Priya) discuten cómo dividir las tareas de un proyecto de investigación sobre por qué los jóvenes evitan las noticias. Deciden quién hace las entrevistas, la encuesta y el análisis, y acuerdan tamaños de muestra y fechas.',
+  headline: 'Before listening · Designing a research project',
+  scenarioPreview: 'A university tutor and two students (Alex and Priya) discuss how to split up the tasks of a research project on why young people are avoiding the news. They decide who runs the interviews, the survey and the analysis, and agree on sample sizes and deadlines.',
   vocabulary: [
     { word: 'research project', pos: 'noun',   translation: 'proyecto de investigación',           example: 'The research project is about news avoidance.',
       definition: 'a study done to answer a question or discover new information' },
@@ -796,8 +796,8 @@ const s4Questions: ListeningQuestion[] = [
 ];
 
 const s4PreListening: PreListeningPrep = {
-  headline: 'Antes de escuchar · Árboles urbanos y enfriamiento de ciudades',
-  scenarioPreview: 'Una investigadora universitaria da una charla corta sobre por qué los árboles son claves para enfriar las ciudades. Cubre los dos mecanismos científicos, cuánto vive cada especie, la amenaza más grande cuando son jóvenes, y un plan municipal de plantación.',
+  headline: 'Before listening · Urban trees and city cooling',
+  scenarioPreview: 'A university researcher gives a short talk on why trees are key to cooling cities. She covers the two scientific mechanisms, how long each species lives, the biggest threat when they\'re young, and a municipal planting plan.',
   vocabulary: [
     { word: 'urban',           pos: 'adjective', translation: 'urbano/a (de ciudad)',            example: 'Urban trees do much more than look pretty.',
       definition: 'related to a city or town, not the countryside' },
