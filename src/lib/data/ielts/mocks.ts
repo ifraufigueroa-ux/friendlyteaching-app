@@ -13,6 +13,7 @@ import { ieltsMock1 } from './mock-1';
 import { ieltsMock2 } from './mock-2';
 import { ieltsMock3 } from './mock-3';
 import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
+import { listeningBeginnersMock2 } from './listeningBeginnersMock2';
 import { listeningIntermediateMock1 } from './listeningIntermediateMock1';
 import { listeningUpperIntermediateMock1 } from './listeningUpperIntermediateMock1';
 import { listeningAdvancedMock1 } from './listeningAdvancedMock1';
@@ -49,6 +50,7 @@ export const READING_MOCKS:   ReadingMock[]   = IELTS_MOCKS.map(m => m.reading);
 // dedicada de /ielts-beginners los consume directamente.
 export const BEGINNERS_LISTENING_MOCKS: ListeningMock[] = [
   listeningBeginnersMock1,
+  listeningBeginnersMock2,
 ];
 
 export const BEGINNERS_READING_MOCKS: ReadingMock[] = [
