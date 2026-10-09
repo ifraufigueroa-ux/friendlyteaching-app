@@ -122,7 +122,7 @@ const s1Questions: ListeningQuestion[] = [
     allowNumbers: true,
     accepted: ['12'],
     audioTimestamp: 128,
-    cognitiveLoad: 'inference',
+    cognitiveLoad: 'inferential',
     difficulty: 'hard',
     teacherNote: 'Full price is 20 pounds, student discount is 40% off = 12 pounds. Receptionist says the final price out loud, so no maths needed, but the number is said after the other two.',
     distractorRisks: ['20 (full price)', '8 (the discount amount)'],
