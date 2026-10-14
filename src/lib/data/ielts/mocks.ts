@@ -14,9 +14,20 @@ import { ieltsMock2 } from './mock-2';
 import { ieltsMock3 } from './mock-3';
 import { listeningBeginnersMock1 } from './listeningBeginnersMock1';
 import { listeningBeginnersMock2 } from './listeningBeginnersMock2';
+import { listeningBeginnersMock3 } from './listeningBeginnersMock3';
+import { listeningBeginnersMock4 } from './listeningBeginnersMock4';
 import { listeningIntermediateMock1 } from './listeningIntermediateMock1';
+import { listeningIntermediateMock2 } from './listeningIntermediateMock2';
+import { listeningIntermediateMock3 } from './listeningIntermediateMock3';
+import { listeningIntermediateMock4 } from './listeningIntermediateMock4';
 import { listeningUpperIntermediateMock1 } from './listeningUpperIntermediateMock1';
+import { listeningUpperIntermediateMock2 } from './listeningUpperIntermediateMock2';
+import { listeningUpperIntermediateMock3 } from './listeningUpperIntermediateMock3';
+import { listeningUpperIntermediateMock4 } from './listeningUpperIntermediateMock4';
 import { listeningAdvancedMock1 } from './listeningAdvancedMock1';
+import { listeningAdvancedMock2 } from './listeningAdvancedMock2';
+import { listeningAdvancedMock3 } from './listeningAdvancedMock3';
+import { listeningAdvancedMock4 } from './listeningAdvancedMock4';
 import { readingBeginnersMock1 } from './reading/gtBeginnersMock1';
 import type { IELTSMock } from './mock-1';
 import type { ListeningMock } from '@/types/ielts';
@@ -51,6 +62,8 @@ export const READING_MOCKS:   ReadingMock[]   = IELTS_MOCKS.map(m => m.reading);
 export const BEGINNERS_LISTENING_MOCKS: ListeningMock[] = [
   listeningBeginnersMock1,
   listeningBeginnersMock2,
+  listeningBeginnersMock3,
+  listeningBeginnersMock4,
 ];
 
 export const BEGINNERS_READING_MOCKS: ReadingMock[] = [
@@ -62,6 +75,9 @@ export const BEGINNERS_READING_MOCKS: ReadingMock[] = [
 // siguientes. La landing dedicada de /ielts-intermediate los consume.
 export const INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
   listeningIntermediateMock1,
+  listeningIntermediateMock2,
+  listeningIntermediateMock3,
+  listeningIntermediateMock4,
 ];
 
 // Upper-Intermediate product — volumen y velocidad del examen real (40 Q,
@@ -69,6 +85,9 @@ export const INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
 // Intermediate y los mocks Full IELTS (B2-C1).
 export const UPPER_INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
   listeningUpperIntermediateMock1,
+  listeningUpperIntermediateMock2,
+  listeningUpperIntermediateMock3,
+  listeningUpperIntermediateMock4,
 ];
 
 // Advanced product — nivel máximo antes de Full IELTS. C1 con densidad
@@ -76,6 +95,9 @@ export const UPPER_INTERMEDIATE_LISTENING_MOCKS: ListeningMock[] = [
 // mayormente inferenciales.
 export const ADVANCED_LISTENING_MOCKS: ListeningMock[] = [
   listeningAdvancedMock1,
+  listeningAdvancedMock2,
+  listeningAdvancedMock3,
+  listeningAdvancedMock4,
 ];
 
 // Todos los listening mocks conocidos. Usar para lookup por id (URL
