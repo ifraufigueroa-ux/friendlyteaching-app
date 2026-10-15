@@ -11,6 +11,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { usePlacementSessions } from '@/hooks/usePlacementSessions';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkChatUnread } from '@/hooks/useCoworkChatUnread';
+import { useCoworkChatSound } from '@/hooks/useCoworkChatSound';
 import { useNewLeadsCount } from '@/hooks/useNewLeadsCount';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -87,6 +88,10 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
   // los desmonta al cambiar de rol.
   const { unreadCount: coworkAnnUnread } = useCoworkAnnouncements(role === 'teacher' ? uid : '');
   const coworkChatUnread = useCoworkChatUnread(role === 'teacher' ? uid : '');
+  // Chime + title-blink al llegar un mensaje de otra persona. Montado aqui
+  // porque el Sidebar vive en todo el shell del dashboard, asi suena el
+  // aviso aunque el profe no este en /cowork.
+  useCoworkChatSound(role === 'teacher' ? uid : '');
   const newLeads = useNewLeadsCount(role === 'teacher');
 
   return useMemo(() => {
