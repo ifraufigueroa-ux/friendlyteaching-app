@@ -1,6 +1,15 @@
 // FriendlyTeaching.cl — Slide Editor Page (3-panel layout)
 'use client';
 import { use, useEffect, useRef, useCallback, useState } from 'react';
+import {
+  Frown,
+  Settings,
+  Save,
+  Check,
+  BarChart3,
+  Lightbulb,
+  Inbox,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc, updateDoc, serverTimestamp, type DocumentSnapshot, type DocumentData } from 'firebase/firestore';
@@ -144,7 +153,7 @@ export default function EditLessonPage({ params }: PageProps) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm mx-4">
-          <div className="text-4xl mb-3">😕</div>
+          <Frown className="w-10 h-10 text-[#C8A8DC] mx-auto mb-3" strokeWidth={2.25} />
           <h2 className="font-bold text-[#5A3D7A] mb-2">Error al cargar</h2>
           <p className="text-gray-400 text-sm mb-4">{error}</p>
           <Link
@@ -181,7 +190,7 @@ export default function EditLessonPage({ params }: PageProps) {
             onClick={() => setShowMeta((v) => !v)}
             className="text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-500 hover:bg-[#F0E5FF] hover:text-[#5A3D7A] transition-colors flex-shrink-0"
           >
-            ⚙️ Meta
+            <span className="inline-flex items-center gap-1"><Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> Meta</span>
           </button>
         </div>
 
@@ -191,15 +200,15 @@ export default function EditLessonPage({ params }: PageProps) {
             <p className="text-xs text-red-500 font-medium max-w-xs truncate">{error}</p>
           )}
           {isSaving ? (
-            <span className="text-xs text-[#9B7CB8] font-semibold animate-pulse">💾 Guardando…</span>
+            <span className="text-xs text-[#9B7CB8] font-semibold animate-pulse inline-flex items-center gap-1"><Save className="w-3.5 h-3.5" strokeWidth={2.25} /> Guardando…</span>
           ) : isDirty ? (
             <span className="text-xs text-amber-500 font-semibold">● Cambios sin guardar · Ctrl+S</span>
           ) : (
-            <span className="text-xs text-green-500 font-semibold">✓ Guardado</span>
+            <span className="text-xs text-green-500 font-semibold inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Guardado</span>
           )}
           {lesson?.isPublished && (
-            <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">
-              ✓ Publicada
+            <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <Check className="w-3 h-3" strokeWidth={2.5} /> Publicada
             </span>
           )}
           <button
@@ -207,7 +216,7 @@ export default function EditLessonPage({ params }: PageProps) {
             disabled={!isDirty || isSaving}
             className="px-4 py-1.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            {isSaving ? 'Guardando...' : '💾 Guardar'}
+            {isSaving ? 'Guardando...' : <span className="inline-flex items-center gap-1.5"><Save className="w-3.5 h-3.5" strokeWidth={2.25} /> Guardar</span>}
           </button>
         </div>
       </div>
@@ -253,7 +262,7 @@ export default function EditLessonPage({ params }: PageProps) {
 
           {/* ── Presentation Mode ── */}
           <div className="w-full border-t border-[#E0D5FF] pt-3 mt-1">
-            <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-2">📊 Presentación externa</p>
+            <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-2 inline-flex items-center gap-1"><BarChart3 className="w-3 h-3" strokeWidth={2.5} /> Presentación externa</p>
             <div className="flex flex-wrap gap-4 items-start">
               <label className="flex items-center gap-2 cursor-pointer select-none self-center">
                 <input
@@ -280,7 +289,7 @@ export default function EditLessonPage({ params }: PageProps) {
                     />
                   </div>
                   <p className="text-[10px] text-gray-400 leading-relaxed">
-                    💡 <strong>Google Slides:</strong> Archivo → Publicar en web → Insertar → copiar URL del src del iframe.&nbsp;
+                    <Lightbulb className="w-3 h-3 inline mr-0.5 align-[-0.1em]" strokeWidth={2.25} /> <strong>Google Slides:</strong> Archivo → Publicar en web → Insertar → copiar URL del src del iframe.&nbsp;
                     <strong>Canva:</strong> Compartir → Presentar e insertar → copiar URL del embed.&nbsp;
                     <strong>OneDrive PPT:</strong> Insertar → Código de inserción → copiar src del iframe.
                   </p>
@@ -314,7 +323,7 @@ export default function EditLessonPage({ params }: PageProps) {
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
                   <div className="text-center">
-                    <p className="text-4xl mb-2">📭</p>
+                    <Inbox className="w-10 h-10 text-gray-300 mx-auto mb-2" strokeWidth={2.25} />
                     <p className="text-sm">Sin slide seleccionada</p>
                   </div>
                 </div>

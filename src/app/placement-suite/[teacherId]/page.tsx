@@ -1066,7 +1066,7 @@ function ResultsScreen({
                 return (
                   <div key={cid} className="flex items-center gap-3 p-2.5 rounded-xl border"
                     style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
-                    <span className="text-xl">{meta.icon}</span>
+                    <meta.Icon className="w-5 h-5 text-[#5A3D7A]" strokeWidth={2.25} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold" style={{ color: B.purple }}>{meta.label}</p>
                       <p className="text-[10px]" style={{ color: B.purpleMed }}>
@@ -2243,8 +2243,8 @@ export default function PlacementSuitePage() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#5A3D7A]">
                   Componente en progreso
                 </p>
-                <p className="text-base font-bold text-[#2D1B4E] mt-1">
-                  {meta.icon} {meta.label}
+                <p className="text-base font-bold text-[#2D1B4E] mt-1 inline-flex items-center gap-2">
+                  <meta.Icon className="w-4 h-4" strokeWidth={2.25} /> {meta.label}
                 </p>
                 {answered > 0 && (
                   <p className="text-xs text-gray-600 mt-1">
@@ -2380,7 +2380,7 @@ export default function PlacementSuitePage() {
                 return (
                   <div key={cid} className="flex items-center gap-3 p-3 rounded-xl border" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
                     <div className="w-8 h-8 rounded-full text-white font-black text-sm flex items-center justify-center" style={{ background: B.purple }}>{i + 1}</div>
-                    <span className="text-xl">{meta.icon}</span>
+                    <meta.Icon className="w-5 h-5 text-[#5A3D7A]" strokeWidth={2.25} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold" style={{ color: B.purple }}>{meta.label}</p>
                       <p className="text-[11px] text-gray-500 leading-tight">{meta.description}</p>
@@ -2423,7 +2423,7 @@ export default function PlacementSuitePage() {
           <div className="mt-6 rounded-2xl p-4 border" style={{ borderColor: B.lavenderDark, background: '#FDFAFF' }}>
             <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: B.purple }}>Sigue</p>
             <div className="mt-2 flex items-center justify-center gap-3">
-              <span className="text-2xl">{nextMeta.icon}</span>
+              <nextMeta.Icon className="w-6 h-6 text-[#5A3D7A]" strokeWidth={2.25} />
               <div className="text-left">
                 <p className="text-sm font-bold" style={{ color: B.purple }}>{nextMeta.label}</p>
                 <p className="text-[11px] text-gray-500">{nextMeta.description}</p>

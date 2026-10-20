@@ -12,20 +12,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Sun, Calendar, FolderKanban, Users, type LucideIcon } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import TodayTab       from '@/components/planner/TodayTab';
 import WeekTab        from '@/components/planner/WeekTab';
 import LessonKanbanTab from '@/components/planner/LessonKanbanTab';
 import ByStudentTab   from '@/components/planner/ByStudentTab';
 
-const TABS = [
-  { id: 'hoy',      label: 'Hoy',           icon: '☀️',  subtitle: 'Clases de hoy'          },
-  { id: 'semana',   label: 'Semana',        icon: '📅', subtitle: 'Agenda semanal'         },
-  { id: 'kanban',   label: 'Kanban',        icon: '🗂️', subtitle: 'Preparación de material' },
-  { id: 'estudiante', label: 'Por estudiante', icon: '👥', subtitle: 'Clases por alumno'  },
-] as const;
+const TABS: Array<{ id: 'hoy' | 'semana' | 'kanban' | 'estudiante'; label: string; Icon: LucideIcon; subtitle: string }> = [
+  { id: 'hoy',        label: 'Hoy',            Icon: Sun,          subtitle: 'Clases de hoy'          },
+  { id: 'semana',     label: 'Semana',         Icon: Calendar,     subtitle: 'Agenda semanal'         },
+  { id: 'kanban',     label: 'Kanban',         Icon: FolderKanban, subtitle: 'Preparación de material' },
+  { id: 'estudiante', label: 'Por estudiante', Icon: Users,        subtitle: 'Clases por alumno'  },
+];
 
-type TabId = typeof TABS[number]['id'];
+type TabId = (typeof TABS)[number]['id'];
 
 export default function PlannerPage() {
   // Read UID straight from Firebase Auth — the zustand store lags on hydration
@@ -78,7 +79,7 @@ export default function PlannerPage() {
   return (
     <div className="flex flex-col min-h-full bg-[#FFFCF7]">
       <TopBar
-        title="🗂️ Planner"
+        title="Planner"
         subtitle={currentMeta.subtitle}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
@@ -92,6 +93,7 @@ export default function PlannerPage() {
           <div className="inline-flex bg-white rounded-2xl border border-[#F0E5FF] shadow-sm p-1 gap-1">
             {TABS.map(tab => {
               const active = tab.id === activeTab;
+              const Icon = tab.Icon;
               return (
                 <button
                   key={tab.id}
@@ -102,7 +104,7 @@ export default function PlannerPage() {
                       : 'text-gray-500 hover:text-[#5A3D7A] hover:bg-[#F0E5FF]'
                   }`}
                 >
-                  <span className="text-sm">{tab.icon}</span>
+                  <Icon className="w-4 h-4" strokeWidth={2.25} />
                   <span>{tab.label}</span>
                 </button>
               );

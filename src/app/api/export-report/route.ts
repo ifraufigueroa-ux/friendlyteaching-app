@@ -748,9 +748,6 @@ function generateWritingFeedbackHTML(data: WritingFeedbackReportData, logoUrl: s
 function componentLabel(cid: ComponentId): string {
   return COMPONENT_META[cid]?.label ?? cid;
 }
-function componentIcon(cid: ComponentId): string {
-  return COMPONENT_META[cid]?.icon ?? '❓';
-}
 
 function suiteWeakAreaLabel(topic: string): string {
   return (TOPIC_LABELS[topic] as string)
@@ -780,7 +777,6 @@ function generatePlacementSuiteHTML(data: PlacementSuiteReportData, logoUrl: str
     <tr>
       <td style="padding:12px;vertical-align:middle;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">${componentIcon(cid)}</span>
           <div>
             <p style="font-size:13px;font-weight:700;color:#1F2937;margin:0;">${componentLabel(cid)}</p>
             <p style="font-size:10px;color:#9B7CB8;margin:2px 0 0;">${answered} question${answered !== 1 ? 's' : ''} · ${pct}% accuracy</p>
@@ -836,7 +832,6 @@ function generatePlacementSuiteHTML(data: PlacementSuiteReportData, logoUrl: str
     return `
     <div style="margin-bottom:24px;page-break-inside:avoid;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <span style="font-size:22px;">${componentIcon(cid)}</span>
         <div style="flex:1;">
           <p style="font-size:14px;font-weight:800;color:#5A3D7A;margin:0;">${componentLabel(cid)}</p>
           <p style="font-size:10px;color:#9B7CB8;margin:2px 0 0;">
@@ -985,7 +980,6 @@ function generateTOEFLHTML(data: TOEFLReportData, logoUrl: string): string {
     <tr>
       <td style="padding:14px;vertical-align:middle;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:22px;">${meta[s].icon}</span>
           <div>
             <p style="font-size:14px;font-weight:700;color:#1F2937;margin:0;">${meta[s].label}</p>
             ${sc?.raw !== undefined && sc.outOf !== undefined

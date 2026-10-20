@@ -3,6 +3,25 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Timestamp } from 'firebase/firestore';
+import {
+  GraduationCap,
+  BookOpen,
+  Link2,
+  Inbox,
+  User,
+  Calendar,
+  Clock,
+  Check,
+  Pencil,
+  X,
+  Puzzle,
+  CheckCircle2,
+  ClipboardList,
+  Bot,
+  BarChart3,
+  FileText,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useTeacherHomework, createHomework, updateHomeworkFeedback, deleteHomework } from '@/hooks/useHomework';
 import { useStudents } from '@/hooks/useStudents';
@@ -13,10 +32,10 @@ import TopBar from '@/components/layout/TopBar';
 import type { Homework, Slide, HomeworkExternalPlatform } from '@/types/firebase';
 
 // Metadatos de plataformas externas — icono + color de badge.
-const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; icon: string; badge: string }> = {
-  off2class: { label: 'Off2Class',    icon: '🎓', badge: 'bg-orange-100 text-orange-700' },
-  ellii:     { label: 'Ellii',        icon: '📗', badge: 'bg-emerald-100 text-emerald-700' },
-  other:     { label: 'Material propio', icon: '🔗', badge: 'bg-purple-100 text-[#5A3D7A]' },
+const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; Icon: LucideIcon; badge: string }> = {
+  off2class: { label: 'Off2Class',       Icon: GraduationCap, badge: 'bg-orange-100 text-orange-700' },
+  ellii:     { label: 'Ellii',           Icon: BookOpen,      badge: 'bg-emerald-100 text-emerald-700' },
+  other:     { label: 'Material propio', Icon: Link2,         badge: 'bg-purple-100 text-[#5A3D7A]' },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -131,7 +150,7 @@ export default function TeacherHomeworkPage() {
   return (
     <div className="min-h-screen p-6">
       <TopBar
-        title="📝 Tareas"
+        title="Tareas"
         subtitle="Asigna y revisa las tareas de tus estudiantes"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -184,7 +203,7 @@ export default function TeacherHomeworkPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-          <p className="text-4xl mb-3">📭</p>
+          <Inbox className="w-10 h-10 text-gray-300 mx-auto mb-3" strokeWidth={2.25} />
           <p className="text-gray-500 text-sm">No hay tareas{filterStatus !== 'all' ? ` con estado "${filterStatus}"` : ''}.</p>
           <button onClick={() => setShowForm(true)} className="mt-4 text-sm font-semibold text-[#9B7CB8] underline">
             Crear primera tarea
@@ -201,34 +220,35 @@ export default function TeacherHomeworkPage() {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.color}`}>{s.label}</span>
                     {hw.externalUrl && (() => {
                       const cfg = EXTERNAL_PLATFORMS[hw.externalPlatform ?? 'other'];
+                      const Icon = cfg.Icon;
                       return (
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>
-                          {cfg.icon} {cfg.label}
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${cfg.badge}`}>
+                          <Icon className="w-3 h-3" strokeWidth={2.5} /> {cfg.label}
                         </span>
                       );
                     })()}
                     <p className="text-sm font-bold text-[#5A3D7A] truncate">{hw.title}</p>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    👤 {studentName(hw.assignedToStudentId)}
-                    {hw.lessonId && <span> · 📚 {lessonTitle(hw.lessonId)}</span>}
-                    {' · '} 📅 Vence: {formatDate(hw.dueDate)}
+                  <p className="text-xs text-gray-400 mt-1 inline-flex items-center gap-1 flex-wrap">
+                    <User className="w-3 h-3" strokeWidth={2.5} /> {studentName(hw.assignedToStudentId)}
+                    {hw.lessonId && <span className="inline-flex items-center gap-1"> · <BookOpen className="w-3 h-3" strokeWidth={2.5} /> {lessonTitle(hw.lessonId)}</span>}
+                    <span className="inline-flex items-center gap-1"> · <Calendar className="w-3 h-3" strokeWidth={2.5} /> Vence: {formatDate(hw.dueDate)}</span>
                   </p>
                   {hw.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{hw.description}</p>}
                   {hw.status === 'submitted' && hw.submittedAt && (
-                    <p className="text-xs text-amber-600 mt-1 font-medium">⏰ Entregada: {formatDate(hw.submittedAt)}</p>
+                    <p className="text-xs text-amber-600 mt-1 font-medium inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> Entregada: {formatDate(hw.submittedAt)}</p>
                   )}
                   {hw.status === 'reviewed' && (
-                    <p className="text-xs text-green-600 mt-1">✓ Feedback enviado{hw.score !== undefined ? ` · Nota: ${hw.score}` : ''}</p>
+                    <p className="text-xs text-green-600 mt-1 inline-flex items-center gap-1"><Check className="w-3 h-3" strokeWidth={2.5} /> Feedback enviado{hw.score !== undefined ? ` · Nota: ${hw.score}` : ''}</p>
                   )}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   {hw.status === 'submitted' && (
                     <button
                       onClick={() => { setFeedbackHw(hw); setFeedbackText(hw.feedback ?? ''); setFeedbackScore(String(hw.score ?? '')); aiReset(); }}
-                      className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-xs font-semibold transition-colors"
+                      className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1"
                     >
-                      ✍️ Revisar
+                      <Pencil className="w-3 h-3" strokeWidth={2.5} /> Revisar
                     </button>
                   )}
                   <button
@@ -239,9 +259,9 @@ export default function TeacherHomeworkPage() {
                   </button>
                   <button
                     onClick={() => { if (confirm('¿Eliminar esta tarea?')) deleteHomework(hw.id); }}
-                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-lg text-xs font-semibold transition-colors inline-flex items-center justify-center"
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5" strokeWidth={2.5} />
                   </button>
                 </div>
               </div>
@@ -265,7 +285,7 @@ export default function TeacherHomeworkPage() {
                   taskMode === 'internal' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-[#5A3D7A]'
                 }`}
               >
-                🧩 Con slides
+                <span className="inline-flex items-center gap-1.5"><Puzzle className="w-3.5 h-3.5" strokeWidth={2.25} /> Con slides</span>
               </button>
               <button
                 type="button"
@@ -274,7 +294,7 @@ export default function TeacherHomeworkPage() {
                   taskMode === 'external' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-[#5A3D7A]'
                 }`}
               >
-                🔗 Link externo
+                <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Link externo</span>
               </button>
             </div>
 
@@ -306,7 +326,7 @@ export default function TeacherHomeworkPage() {
                                 : 'bg-white border-gray-200 text-gray-500 hover:border-[#C8A8DC]'
                             }`}
                           >
-                            <span className="block text-base mb-0.5">{cfg.icon}</span>
+                            {(() => { const Icon = cfg.Icon; return <Icon className="w-5 h-5 mx-auto mb-0.5" strokeWidth={2.25} />; })()}
                             {cfg.label}
                           </button>
                         );
@@ -364,10 +384,10 @@ export default function TeacherHomeworkPage() {
                             : 'bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0CCFF]'
                         }`}
                       >
-                        {importedSlides.length > 0 ? `✅ ${importedSlides.length} slides importados` : `📋 Importar ${postCount} slides post-clase`}
+                        {importedSlides.length > 0 ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {importedSlides.length} slides importados</span> : <span className="inline-flex items-center gap-1"><ClipboardList className="w-3.5 h-3.5" strokeWidth={2.5} /> Importar {postCount} slides post-clase</span>}
                       </button>
                       {importedSlides.length > 0 && (
-                        <button type="button" onClick={() => setImportedSlides([])} className="text-xs text-gray-400 hover:text-red-400">✕</button>
+                        <button type="button" onClick={() => setImportedSlides([])} className="text-xs text-gray-400 hover:text-red-400 inline-flex items-center justify-center"><X className="w-3.5 h-3.5" strokeWidth={2.5} /></button>
                       )}
                     </div>
                   ) : null;
@@ -429,9 +449,9 @@ export default function TeacherHomeworkPage() {
                           setFeedbackText(aiResult.feedback + (aiResult.grammarErrors?.length ? '\n\nErrores: ' + aiResult.grammarErrors.join('; ') : ''));
                           setFeedbackScore(String(aiResult.score7));
                         }}
-                        className="mt-2 w-full py-2 bg-[#F0E5FF] text-[#5A3D7A] rounded-xl text-xs font-bold hover:bg-[#E0D5FF] transition-colors"
+                        className="mt-2 w-full py-2 bg-[#F0E5FF] text-[#5A3D7A] rounded-xl text-xs font-bold hover:bg-[#E0D5FF] transition-colors inline-flex items-center justify-center gap-1.5"
                       >
-                        📋 Usar feedback de IA como base
+                        <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.25} /> Usar feedback de IA como base
                       </button>
                     </div>
                   ) : (
@@ -452,7 +472,7 @@ export default function TeacherHomeworkPage() {
                           Analizando con IA...
                         </>
                       ) : (
-                        <>🤖 Corregir con IA</>
+                        <><Bot className="w-4 h-4" strokeWidth={2.25} /> Corregir con IA</>
                       )}
                     </button>
                   )}
@@ -491,13 +511,13 @@ export default function TeacherHomeworkPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-3">
               <h2 className="text-lg font-bold text-[#5A3D7A] flex-1 pr-3">{selectedHw.title}</h2>
-              <button onClick={() => setSelectedHw(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setSelectedHw(null)} className="text-gray-400 hover:text-gray-600 inline-flex items-center justify-center"><X className="w-4 h-4" strokeWidth={2.25} /></button>
             </div>
             <div className="space-y-2 text-sm text-gray-600">
-              <p>👤 <strong>Estudiante:</strong> {studentName(selectedHw.assignedToStudentId)}</p>
-              {selectedHw.lessonId && <p>📚 <strong>Lección:</strong> {lessonTitle(selectedHw.lessonId)}</p>}
-              <p>📅 <strong>Vence:</strong> {formatDate(selectedHw.dueDate)}</p>
-              <p>📊 <strong>Estado:</strong> {STATUS_LABELS[selectedHw.status]?.label}</p>
+              <p className="inline-flex items-center gap-1"><User className="w-3.5 h-3.5" strokeWidth={2.25} /> <strong>Estudiante:</strong> {studentName(selectedHw.assignedToStudentId)}</p>
+              {selectedHw.lessonId && <p className="inline-flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} /> <strong>Lección:</strong> {lessonTitle(selectedHw.lessonId)}</p>}
+              <p className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> <strong>Vence:</strong> {formatDate(selectedHw.dueDate)}</p>
+              <p className="inline-flex items-center gap-1"><BarChart3 className="w-3.5 h-3.5" strokeWidth={2.25} /> <strong>Estado:</strong> {STATUS_LABELS[selectedHw.status]?.label}</p>
               {selectedHw.description && <p className="text-gray-500">{selectedHw.description}</p>}
               {selectedHw.feedback && (
                 <div className="bg-green-50 rounded-xl p-3 mt-2">

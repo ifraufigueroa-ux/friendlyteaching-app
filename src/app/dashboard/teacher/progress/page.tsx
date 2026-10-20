@@ -1,6 +1,14 @@
 // FriendlyTeaching.cl — Teacher Progress Overview
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import {
+  CheckCircle2,
+  Hourglass,
+  Users,
+  Star,
+  Inbox,
+  XCircle,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
@@ -58,7 +66,7 @@ export default function TeacherProgressPage() {
   return (
     <div className="min-h-screen p-6">
       <TopBar
-        title="📊 Progreso de estudiantes"
+        title="Progreso de estudiantes"
         subtitle="Visualiza el avance de todos tus estudiantes en las lecciones"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -68,14 +76,14 @@ export default function TeacherProgressPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Lecciones completadas', value: completed.length, icon: '✅', color: 'text-green-600' },
-          { label: 'En progreso', value: inProgress.length, icon: '⏳', color: 'text-amber-600' },
-          { label: 'Estudiantes activos', value: byStudent.length, icon: '👥', color: 'text-[#5A3D7A]' },
-          { label: 'Nota promedio', value: avgScore !== null ? avgScore : '—', icon: '⭐', color: 'text-blue-600' },
-        ].map(s => (
+        {([
+          { label: 'Lecciones completadas', value: completed.length, icon: <CheckCircle2 className="w-6 h-6" strokeWidth={2.25} />, color: 'text-green-600' },
+          { label: 'En progreso',           value: inProgress.length, icon: <Hourglass className="w-6 h-6" strokeWidth={2.25} />,   color: 'text-amber-600' },
+          { label: 'Estudiantes activos',   value: byStudent.length,  icon: <Users className="w-6 h-6" strokeWidth={2.25} />,       color: 'text-[#5A3D7A]' },
+          { label: 'Nota promedio',         value: avgScore !== null ? avgScore : '—', icon: <Star className="w-6 h-6" strokeWidth={2.25} />, color: 'text-blue-600' },
+        ] as { label: string; value: number | string; icon: ReactNode; color: string }[]).map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-            <p className="text-2xl mb-0.5">{s.icon}</p>
+            <div className={`flex justify-center mb-0.5 ${s.color}`}>{s.icon}</div>
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
             <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{s.label}</p>
           </div>
@@ -88,7 +96,7 @@ export default function TeacherProgressPage() {
         </div>
       ) : progress.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-          <p className="text-4xl mb-3">📭</p>
+          <Inbox className="w-10 h-10 text-gray-300 mx-auto mb-3" strokeWidth={2.25} />
           <p className="text-gray-500 text-sm">Aún no hay registro de progreso.</p>
           <p className="text-xs text-gray-400 mt-1">El progreso se registra automáticamente cuando los estudiantes usan el classroom.</p>
         </div>
@@ -122,7 +130,7 @@ export default function TeacherProgressPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-[#5A3D7A] truncate">{student.fullName}</p>
-                          <p className="text-xs text-gray-400">{comp}/{total} lecciones · {avg !== null ? `⭐ ${avg}` : 'sin nota'}</p>
+                          <p className="text-xs text-gray-400 inline-flex items-center gap-1">{comp}/{total} lecciones · {avg !== null ? <><Star className="w-3 h-3" strokeWidth={2.25} /> {avg}</> : 'sin nota'}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="text-sm font-bold text-[#9B7CB8]">{pct}%</span>
@@ -149,8 +157,8 @@ export default function TeacherProgressPage() {
                               const slidePct = totalSlides > 0 ? Math.round((slidesDone / totalSlides) * 100) : null;
                               return (
                                 <div key={p.id} className="flex items-center gap-2 py-1">
-                                  <span className="text-sm flex-shrink-0">
-                                    {p.status === 'completed' ? '✅' : p.status === 'in_progress' ? '⏳' : '❌'}
+                                  <span className="flex-shrink-0">
+                                    {p.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-green-600" strokeWidth={2.25} /> : p.status === 'in_progress' ? <Hourglass className="w-4 h-4 text-amber-600" strokeWidth={2.25} /> : <XCircle className="w-4 h-4 text-red-500" strokeWidth={2.25} />}
                                   </span>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold text-[#5A3D7A] truncate">{lesson?.title ?? p.lessonId}</p>
@@ -158,7 +166,7 @@ export default function TeacherProgressPage() {
                                       {lesson?.code && `${lesson.code} · `}
                                       {formatDate(p.startedAt)}
                                       {p.duration ? ` · ${formatDuration(p.duration)}` : ''}
-                                      {p.overallScore ? ` · ⭐${p.overallScore}` : ''}
+                                      {p.overallScore ? ` · ${p.overallScore}/7` : ''}
                                       {slidePct !== null && p.status !== 'completed' ? ` · ${slidePct}% slides` : ''}
                                     </p>
                                   </div>
@@ -189,15 +197,15 @@ export default function TeacherProgressPage() {
             <div className="space-y-2">
               {progress.slice(0, 15).map(p => (
                 <div key={p.id} className="bg-white rounded-2xl p-3 shadow-sm flex items-center gap-3">
-                  <span className="text-xl">
-                    {p.status === 'completed' ? '✅' : p.status === 'in_progress' ? '⏳' : '❌'}
+                  <span>
+                    {p.status === 'completed' ? <CheckCircle2 className="w-5 h-5 text-green-600" strokeWidth={2.25} /> : p.status === 'in_progress' ? <Hourglass className="w-5 h-5 text-amber-600" strokeWidth={2.25} /> : <XCircle className="w-5 h-5 text-red-500" strokeWidth={2.25} />}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-[#5A3D7A] truncate">{lessonTitle(p.lessonId)}</p>
                     <p className="text-[10px] text-gray-400">
                       {studentName(p.studentId)} · {formatDate(p.startedAt)}
                       {p.duration ? ` · ${formatDuration(p.duration)}` : ''}
-                      {p.overallScore ? ` · ⭐${p.overallScore}` : ''}
+                      {p.overallScore ? ` · ${p.overallScore}/7` : ''}
                     </p>
                   </div>
                   {p.status !== 'completed' && (

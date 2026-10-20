@@ -1,6 +1,20 @@
 // FriendlyTeaching.cl — Students Management Page (rebuilt)
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type ReactNode } from 'react';
+import {
+  Check,
+  Link2,
+  Smartphone,
+  AlertTriangle,
+  BookOpen,
+  Trash2,
+  Eye,
+  EyeOff,
+  Users,
+  CheckCircle2,
+  XCircle,
+  BarChart3,
+} from 'lucide-react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent, archiveStudentEverywhere } from '@/hooks/useStudents';
@@ -120,7 +134,7 @@ function ApproveModal({
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${LEVEL_COLORS[l]}`}>{l}</span>
                 {LEVEL_DESC[l]}
               </span>
-              {level === l && <span className="text-[#9B7CB8]">✓</span>}
+              {level === l && <Check className="w-4 h-4 text-[#9B7CB8]" strokeWidth={2.5} />}
             </button>
           ))}
         </div>
@@ -246,7 +260,7 @@ function EditStudentModal({
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              {t === 'info' ? 'Información' : t === 'schedule' ? 'Horario' : t === 'level' ? 'Nivel' : '🔗 Links'}
+              {t === 'info' ? 'Información' : t === 'schedule' ? 'Horario' : t === 'level' ? 'Nivel' : <span className="inline-flex items-center gap-1"><Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Links</span>}
             </button>
           ))}
         </div>
@@ -378,8 +392,8 @@ function EditStudentModal({
                       ))}
                   </div>
                   {linkedCount > 0 ? (
-                    <p className="text-xs text-green-700 font-semibold">
-                      ✓ {linkedCount} reserva{linkedCount !== 1 ? 's' : ''} vinculada{linkedCount !== 1 ? 's' : ''} correctamente.
+                    <p className="text-xs text-green-700 font-semibold inline-flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedCount} reserva{linkedCount !== 1 ? 's' : ''} vinculada{linkedCount !== 1 ? 's' : ''} correctamente.
                     </p>
                   ) : (
                     <button
@@ -419,7 +433,7 @@ function EditStudentModal({
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${LEVEL_COLORS[l]}`}>{l}</span>
                     {LEVEL_DESC[l]}
                   </span>
-                  {level === l && <span className="text-[#9B7CB8]">✓</span>}
+                  {level === l && <Check className="w-4 h-4 text-[#9B7CB8]" strokeWidth={2.5} />}
                 </button>
               ))}
             </div>
@@ -479,7 +493,7 @@ function PendingCard({
             <div className="min-w-0">
               <p className="font-semibold text-gray-800 text-sm truncate">{student.fullName}</p>
               <p className="text-xs text-gray-400 truncate">{student.email}</p>
-              {student.phone && <p className="text-xs text-gray-400">📱 {student.phone}</p>}
+              {student.phone && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><Smartphone className="w-3 h-3" strokeWidth={2.5} /> {student.phone}</p>}
             </div>
           </div>
           <span className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
@@ -552,7 +566,7 @@ function StudentRow({
         name: student.fullName,
       });
       if (res.bookingsCancelled > 0) {
-        alert(`✓ ${student.fullName} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+        alert(`${student.fullName} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
       }
     } catch (e) {
       alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
@@ -616,8 +630,8 @@ function StudentRow({
                     {formatSlot(s)}
                   </span>
                 ))}
-              <span className="px-2 py-0.5 bg-amber-50 text-amber-500 text-xs rounded-full border border-amber-200 whitespace-nowrap">
-                ⚠ Sin vincular
+              <span className="px-2 py-0.5 bg-amber-50 text-amber-500 text-xs rounded-full border border-amber-200 whitespace-nowrap inline-flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" strokeWidth={2.5} /> Sin vincular
               </span>
             </>
           ) : (
@@ -643,10 +657,10 @@ function StudentRow({
           )}
           <button
             onClick={() => setShowAssign(true)}
-            className="px-3 py-1.5 bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] rounded-full text-xs font-bold transition-colors"
+            className="px-3 py-1.5 bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1"
             title="Asignar material (FT o externo)"
           >
-            📚 Asignar
+            <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Asignar
           </button>
           <button
             onClick={() => setShowEdit(true)}
@@ -665,10 +679,10 @@ function StudentRow({
           <button
             onClick={handleArchive}
             disabled={archiving}
-            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40"
+            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
             title="Mover a papelera"
           >
-            🗑
+            <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
           </button>
         </div>
       </div>
@@ -731,7 +745,7 @@ function ScheduleOnlyRow({
     setArchiving(true);
     try {
       const res = await archiveStudentEverywhere({ teacherId, name });
-      alert(`✓ ${name} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+      alert(`${name} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
     } catch (e) {
       alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
@@ -772,10 +786,10 @@ function ScheduleOnlyRow({
         <button
           onClick={handleArchive}
           disabled={archiving}
-          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40"
+          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
           title="Archivar y cancelar clases del horario"
         >
-          🗑
+          <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
         </button>
       </div>
     </div>
@@ -784,13 +798,13 @@ function ScheduleOnlyRow({
 
 // ─── Stat chip (mirrors the one from the class-history page) ────────────────
 function StatChip({ icon, label, value, sub, color }: {
-  icon: string; label: string; value: number | string; sub?: string; color: string;
+  icon: ReactNode; label: string; value: number | string; sub?: string; color: string;
 }) {
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-        style={{ background: `${color}33` }}
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: `${color}33`, color }}
       >
         {icon}
       </div>
@@ -912,7 +926,7 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
                 className="px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-500 hover:bg-gray-50"
                 title={showPwd ? 'Ocultar' : 'Mostrar'}
               >
-                {showPwd ? '🙈' : '👁'}
+                {showPwd ? <EyeOff className="w-4 h-4" strokeWidth={2.25} /> : <Eye className="w-4 h-4" strokeWidth={2.25} />}
               </button>
               <button
                 type="button"
@@ -1074,7 +1088,7 @@ export default function StudentsPage() {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 shadow-sm text-center max-w-md">
-          <p className="text-4xl mb-3">⚠️</p>
+          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3" strokeWidth={2.25} />
           <p className="text-red-600 font-semibold mb-2">Error al cargar</p>
           <p className="text-sm text-gray-500 mb-4">{error}</p>
           <button
@@ -1112,9 +1126,9 @@ export default function StudentsPage() {
               href="/book"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
             >
-              🔗 Página de reserva
+              <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Página de reserva
             </a>
           </div>
         }
@@ -1125,28 +1139,28 @@ export default function StudentsPage() {
       {/* Stats bar — total roster + attendance from the last 30 days */}
       <div className="max-w-5xl mx-auto mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatChip
-          icon="👥"
+          icon={<Users className="w-5 h-5" strokeWidth={2.25} />}
           label="Estudiantes activos"
           value={totalActive}
           sub={`${activeRegistered.length} registrados${scheduleOnlyNames.length ? ` · ${scheduleOnlyNames.length} en horario` : ''}`}
           color="#C8A8DC"
         />
         <StatChip
-          icon="✅"
+          icon={<CheckCircle2 className="w-5 h-5" strokeWidth={2.25} />}
           label="Realizadas"
           value={attendanceStats.attended}
           sub="últimos 30 días"
-          color="#A8E6A1"
+          color="#5EAE55"
         />
         <StatChip
-          icon="❌"
+          icon={<XCircle className="w-5 h-5" strokeWidth={2.25} />}
           label="Ausencias"
           value={attendanceStats.absent}
           sub="últimos 30 días"
-          color="#FFAAAA"
+          color="#D04545"
         />
         <StatChip
-          icon="📊"
+          icon={<BarChart3 className="w-5 h-5" strokeWidth={2.25} />}
           label="% asistencia"
           value={attendanceStats.total > 0 ? `${attendanceStats.pct}%` : '—'}
           sub={attendanceStats.total > 0 ? `${attendanceStats.total} clases` : 'sin datos aún'}
@@ -1169,7 +1183,7 @@ export default function StudentsPage() {
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-800 text-sm">{req.studentName}</p>
                       <p className="text-xs text-gray-400">{req.studentEmail}</p>
-                      {req.studentPhone && <p className="text-xs text-gray-400">📱 {req.studentPhone}</p>}
+                      {req.studentPhone && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><Smartphone className="w-3 h-3" strokeWidth={2.5} /> {req.studentPhone}</p>}
                       <p className="text-xs text-blue-600 font-semibold mt-1">
                         {DAY_FULL[req.requestedDow]} · {req.requestedHour}:00
                         {req.isRecurring ? ' · Recurrente' : ''}
@@ -1237,7 +1251,7 @@ export default function StudentsPage() {
 
           {activeRegistered.length === 0 && scheduleOnlyNames.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-              <p className="text-4xl mb-3">👥</p>
+              <Users className="w-10 h-10 text-[#C8A8DC] mx-auto mb-3" strokeWidth={2.25} />
               <p className="text-gray-500 text-sm">No tienes estudiantes activos en el horario aún.</p>
               <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">
                 Agenda una clase recurrente en el <strong>Planner</strong> o crea la cuenta desde aquí. Los estudiantes aparecerán en esta lista automáticamente.
@@ -1305,7 +1319,7 @@ export default function StudentsPage() {
               onClick={() => setShowArchived((v) => !v)}
               className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider transition-colors"
             >
-              <span>🗑 Papelera ({archivedStudents.length})</span>
+              <span className="inline-flex items-center gap-1.5"><Trash2 className="w-4 h-4" strokeWidth={2.25} /> Papelera ({archivedStudents.length})</span>
               <span className="text-xs">{showArchived ? '▲' : '▼'}</span>
             </button>
 

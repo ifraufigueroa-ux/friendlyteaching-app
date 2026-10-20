@@ -9,6 +9,7 @@
 // `/placement/[teacherId]` route) stays untouched. This is a superset.
 
 import { Timestamp } from 'firebase/firestore';
+import { BookOpen, MessageCircle, BookMarked, Headphones, PenTool, Mic, type LucideIcon } from 'lucide-react';
 import type { LessonLevel } from './firebase';
 import type {
   PlacementAnswer, SectionScore, WeakArea, LearningProgram,
@@ -27,7 +28,7 @@ export type ComponentId =
 export interface ComponentMeta {
   id:          ComponentId;
   label:       string;
-  icon:        string;
+  Icon:        LucideIcon;
   description: string;
   estimatedMin: number;       // rough time estimate for a full run
   available:   boolean;       // false = ships in a later phase
@@ -35,12 +36,12 @@ export interface ComponentMeta {
 }
 
 export const COMPONENT_META: Record<ComponentId, ComponentMeta> = {
-  grammar:    { id: 'grammar',    label: 'Grammar',    icon: '📘', description: 'Multiple choice, CEFR A0-C1, auto-stop tras 6 errores seguidos.', estimatedMin: 20, available: true, skill: 'grammar' },
-  vocabulary: { id: 'vocabulary', label: 'Vocabulary', icon: '💬', description: 'Sinónimos, colocaciones, phrasal verbs y word formation.',        estimatedMin: 12, available: true, skill: 'vocabulary' },
-  reading:    { id: 'reading',    label: 'Reading',    icon: '📖', description: 'Pasajes cortos con comprensión, dificultad progresiva.',           estimatedMin: 20, available: true, skill: 'reading' },
-  listening:  { id: 'listening',  label: 'Listening',  icon: '🎧', description: 'Clips A1-C1 con MCQ. Adaptativo por clip, arranca cercano al nivel de Grammar.', estimatedMin: 12, available: true, skill: 'listening' },
-  writing:    { id: 'writing',    label: 'Writing',    icon: '✍️', description: 'Un prompt calibrado al nivel de Grammar. AI grader devuelve CEFR.', estimatedMin: 12, available: true, skill: 'writing' },
-  speaking:   { id: 'speaking',   label: 'Speaking',   icon: '🎤', description: '3 preguntas guiadas grabadas. Whisper + Claude → CEFR.',            estimatedMin: 6,  available: true, skill: 'speaking' },
+  grammar:    { id: 'grammar',    label: 'Grammar',    Icon: BookOpen,     description: 'Multiple choice, CEFR A0-C1, auto-stop tras 6 errores seguidos.', estimatedMin: 20, available: true, skill: 'grammar' },
+  vocabulary: { id: 'vocabulary', label: 'Vocabulary', Icon: MessageCircle, description: 'Sinónimos, colocaciones, phrasal verbs y word formation.',       estimatedMin: 12, available: true, skill: 'vocabulary' },
+  reading:    { id: 'reading',    label: 'Reading',    Icon: BookMarked,   description: 'Pasajes cortos con comprensión, dificultad progresiva.',           estimatedMin: 20, available: true, skill: 'reading' },
+  listening:  { id: 'listening',  label: 'Listening',  Icon: Headphones,   description: 'Clips A1-C1 con MCQ. Adaptativo por clip, arranca cercano al nivel de Grammar.', estimatedMin: 12, available: true, skill: 'listening' },
+  writing:    { id: 'writing',    label: 'Writing',    Icon: PenTool,      description: 'Un prompt calibrado al nivel de Grammar. AI grader devuelve CEFR.', estimatedMin: 12, available: true, skill: 'writing' },
+  speaking:   { id: 'speaking',   label: 'Speaking',   Icon: Mic,          description: '3 preguntas guiadas grabadas. Whisper + Claude → CEFR.',            estimatedMin: 6,  available: true, skill: 'speaking' },
 };
 
 // ── Budgets (per-component question caps) ──────────────────────────────────

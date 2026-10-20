@@ -1,8 +1,23 @@
 // FriendlyTeaching.cl — Teacher Dashboard Overview
 'use client';
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import {
+  AlertTriangle,
+  Hourglass,
+  Users,
+  BookOpen,
+  FileText,
+  Star,
+  Calendar,
+  Pin,
+  CheckCircle2,
+  XCircle,
+  PartyPopper,
+  ClipboardList,
+  Target,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
 import { useTeacherHomework } from '@/hooks/useHomework';
@@ -40,12 +55,12 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 function StatCard({ icon, label, value, sub, color = '#C8A8DC', href }: {
-  icon: string; label: string; value: number | string; sub?: string;
+  icon: ReactNode; label: string; value: number | string; sub?: string;
   color?: string; href?: string;
 }) {
   const inner = (
     <div className="glass-card rounded-2xl p-4 stat-glow hover-lift flex items-center gap-4">
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-purple-sm" style={{ background: `${color}22` }}>
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-purple-sm" style={{ background: `${color}22`, color }}>
         {icon}
       </div>
       <div className="min-w-0">
@@ -488,14 +503,14 @@ export default function TeacherDashboardPage() {
     <div className="flex flex-col h-full">
       <TopBar
         title="Panel Principal"
-        subtitle={`Hola, ${firstName} 👋 — ${today.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+        subtitle={`Hola, ${firstName} — ${today.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}`}
       />
       <div className="flex-1 p-6 overflow-auto space-y-6 bg-mesh">
 
         {/* ── Alert: class registration failure ────────────────── */}
         {recordError && (
           <div className="bg-red-50/90 backdrop-blur-sm border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3 shadow-glass">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" strokeWidth={2.25} />
             <div className="flex-1">
               <p className="font-bold text-red-800 text-sm">Registro con problemas</p>
               <p className="text-xs text-red-600 leading-relaxed">{recordError}</p>
@@ -514,7 +529,7 @@ export default function TeacherDashboardPage() {
         {pendingStudents > 0 && (
           <Link href="/dashboard/teacher/students" className="block">
             <div className="bg-amber-50/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl px-4 py-3 flex items-center gap-3 hover:bg-amber-100/80 transition-all shadow-glass hover-lift">
-              <span className="text-2xl">⏳</span>
+              <Hourglass className="w-6 h-6 text-amber-500 flex-shrink-0" strokeWidth={2.25} />
               <div>
                 <p className="font-bold text-amber-800 text-sm">
                   {pendingStudents} estudiante{pendingStudents > 1 ? 's' : ''} esperando aprobación
@@ -528,10 +543,10 @@ export default function TeacherDashboardPage() {
 
         {/* ── Stats grid ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon="👥" label="Estudiantes activos" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pendiente${pendingStudents > 1 ? 's' : ''}` : 'Semanalmente'} color="#C8A8DC" href="/dashboard/teacher/students" />
-          <StatCard icon="📚" label="Lecciones publicadas" value={publishedLessons} sub={`de ${lessons.length} total`} color="#A8E6A1" href="/dashboard/teacher/lessons" />
-          <StatCard icon="📝" label="Tareas por revisar" value={pendingHomework} sub={pendingHomework > 0 ? 'Requieren atención' : 'Todo al día'} color="#FFE8A8" href="/dashboard/teacher/homework" />
-          <StatCard icon="⭐" label="Puntuación promedio" value={avgScore ?? '—'} sub={avgScore ? 'escala 1–7' : 'Sin datos aún'} color="#FFC0CB" href="/dashboard/teacher/progress" />
+          <StatCard icon={<Users className="w-6 h-6" strokeWidth={2.25} />} label="Estudiantes activos" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pendiente${pendingStudents > 1 ? 's' : ''}` : 'Semanalmente'} color="#C8A8DC" href="/dashboard/teacher/students" />
+          <StatCard icon={<BookOpen className="w-6 h-6" strokeWidth={2.25} />} label="Lecciones publicadas" value={publishedLessons} sub={`de ${lessons.length} total`} color="#5EAE55" href="/dashboard/teacher/lessons" />
+          <StatCard icon={<FileText className="w-6 h-6" strokeWidth={2.25} />} label="Tareas por revisar" value={pendingHomework} sub={pendingHomework > 0 ? 'Requieren atención' : 'Todo al día'} color="#C8A035" href="/dashboard/teacher/homework" />
+          <StatCard icon={<Star className="w-6 h-6" strokeWidth={2.25} />} label="Puntuación promedio" value={avgScore ?? '—'} sub={avgScore ? 'escala 1–7' : 'Sin datos aún'} color="#E07896" href="/dashboard/teacher/progress" />
         </div>
 
         {/* ── Next class + Today's schedule ───────────────────── */}
@@ -540,7 +555,7 @@ export default function TeacherDashboardPage() {
           <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-5 text-white flex flex-col shadow-glass-lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider">📅 Clases de hoy</p>
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Clases de hoy</p>
               {carouselClasses.length > 0 && (
                 <span className="text-xs text-white/50 font-medium">{carouselSafeIdx + 1} / {carouselClasses.length}</span>
               )}
@@ -586,13 +601,13 @@ export default function TeacherDashboardPage() {
                           {carouselCurrent.isRecurring ? '↻ Recurrente' : '• Una vez'}
                         </p>
                         {carouselCurrent.topic && (
-                          <p className="text-white/85 text-xs mt-1 truncate font-medium">
-                            📌 {carouselCurrent.topic}
+                          <p className="text-white/85 text-xs mt-1 truncate font-medium inline-flex items-center gap-1">
+                            <Pin className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {carouselCurrent.topic}
                           </p>
                         )}
                         {carouselCurrent.lessonId && (() => {
                           const l = lessons.find(x => x.id === carouselCurrent.lessonId);
-                          return l ? <p className="text-white/60 text-xs mt-1 truncate">📚 {l.code} · {l.title}</p> : null;
+                          return l ? <p className="text-white/60 text-xs mt-1 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {l.code} · {l.title}</p> : null;
                         })()}
                       </div>
                       {/* Prev / Next arrows */}
@@ -618,14 +633,14 @@ export default function TeacherDashboardPage() {
                       onClick={() => handleRecord(carouselCurrent, true)}
                       className="flex-1 py-2 bg-green-400/25 hover:bg-green-400/40 text-white rounded-full text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
-                      {recordingKey ? '…' : '✅'} Se tomó
+                      {recordingKey ? '…' : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} />} Se tomó
                     </button>
                     <button
                       disabled={!!recordingKey || carouselExiting}
                       onClick={() => handleRecord(carouselCurrent, false)}
                       className="flex-1 py-2 bg-red-400/25 hover:bg-red-400/40 text-white rounded-full text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
-                      {recordingKey ? '…' : '❌'} No se tomó
+                      {recordingKey ? '…' : <XCircle className="w-3.5 h-3.5" strokeWidth={2.5} />} No se tomó
                     </button>
                     {carouselCurrent.lessonId && (
                       <Link
@@ -675,9 +690,9 @@ export default function TeacherDashboardPage() {
 
             {/* Stats footer — today only */}
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-4 text-xs text-white/50">
-              <span>✅ {todayCompletedCount} completadas</span>
-              <span>📅 {todayBookings.length} pendientes</span>
-              <span>🎯 {todayTotalClasses} hoy</span>
+              <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayCompletedCount} completadas</span>
+              <span className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayBookings.length} pendientes</span>
+              <span className="inline-flex items-center gap-1"><Target className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayTotalClasses} hoy</span>
             </div>
           </div>
 
@@ -720,7 +735,7 @@ export default function TeacherDashboardPage() {
                         </p>
                         {b.lessonId && (() => {
                           const l = lessons.find(x => x.id === b.lessonId);
-                          return <p className="text-[10px] text-gray-500 truncate">📚 {l ? `${l.code} · ${l.title}` : 'Lección asignada'}</p>;
+                          return <p className="text-[10px] text-gray-500 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {l ? `${l.code} · ${l.title}` : 'Lección asignada'}</p>;
                         })()}
                       </div>
                       {isCompleted ? (
@@ -730,7 +745,7 @@ export default function TeacherDashboardPage() {
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-600'
                           }`}>
-                            {attended ? '✓ Asistió' : '✗ No asistió'}
+                            {attended ? 'Asistió' : 'No asistió'}
                           </span>
                           <button
                             onClick={() => handleReopen(b)}
@@ -770,8 +785,8 @@ export default function TeacherDashboardPage() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-6">
-                <p className="text-3xl mb-1">🎉</p>
+              <div className="text-center py-6 flex flex-col items-center gap-1">
+                <PartyPopper className="w-7 h-7 text-[#C8A8DC]" strokeWidth={2.25} />
                 <p className="text-sm text-gray-500">Sin clases hoy</p>
               </div>
             )}
@@ -782,7 +797,7 @@ export default function TeacherDashboardPage() {
         {toReview.length > 0 && (
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-gray-700 text-sm">📝 Tareas entregadas — pendientes de revisión</p>
+              <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><FileText className="w-4 h-4" strokeWidth={2.25} /> Tareas entregadas — pendientes de revisión</p>
               <Link href="/dashboard/teacher/homework" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Ver todas →</Link>
             </div>
             <div className="space-y-2">
@@ -791,7 +806,7 @@ export default function TeacherDashboardPage() {
                 const submittedDate = toDate(hw.submittedAt);
                 return (
                   <div key={hw.id} className="flex items-center gap-3 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl">
-                    <span className="text-xl">📋</span>
+                    <ClipboardList className="w-5 h-5 text-amber-600 flex-shrink-0" strokeWidth={2.25} />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-gray-800 truncate">{hw.title}</p>
                       <p className="text-[11px] text-gray-500">{student?.fullName ?? hw.assignedToStudentId}</p>
@@ -819,7 +834,7 @@ export default function TeacherDashboardPage() {
                 onClick={() => { setStudentsOpen(o => !o); if (studentsOpen) setExpandedStudent(null); }}
                 className="flex items-center gap-2 font-bold text-gray-700 text-sm hover:text-[#5A3D7A] transition-colors"
               >
-                👥 Mis estudiantes
+                <Users className="w-4 h-4" strokeWidth={2.25} /> Mis estudiantes
                 <span className={`text-xs text-[#9B7CB8] transition-transform duration-200 ${studentsOpen ? 'rotate-180' : ''}`}>▾</span>
               </button>
               <Link href="/dashboard/teacher/students" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Gestionar →</Link>
@@ -908,8 +923,8 @@ export default function TeacherDashboardPage() {
           className="w-full flex items-center justify-between glass-card rounded-2xl px-5 py-4 hover:border-[#C8A8DC]/40 hover-lift group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#F0E5FF] flex items-center justify-center text-xl flex-shrink-0">
-              📋
+            <div className="w-10 h-10 rounded-2xl bg-[#F0E5FF] flex items-center justify-center text-[#5A3D7A] flex-shrink-0">
+              <ClipboardList className="w-5 h-5" strokeWidth={2.25} />
             </div>
             <div className="text-left">
               <p className="text-sm font-bold text-gray-800">Historial de clases</p>
@@ -922,7 +937,7 @@ export default function TeacherDashboardPage() {
         {/* ── Weekly schedule ── */}
         <div className="glass-card no-hover-lift rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="font-bold text-gray-700 text-sm">📅 Horario Semanal</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Calendar className="w-4 h-4" strokeWidth={2.25} /> Horario Semanal</p>
           </div>
           <div className="px-20 sm:px-24 pb-4">
             <SchedulingGrid />

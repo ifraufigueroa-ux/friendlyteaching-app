@@ -3,6 +3,27 @@
 
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
+import {
+  Download,
+  GraduationCap,
+  ClipboardList,
+  BarChart3,
+  Calendar,
+  Check,
+  Sparkles,
+  User,
+  Hourglass,
+  Zap,
+  BookOpen,
+  MessageCircle,
+  BookMarked,
+  Link2,
+  Eye,
+  CheckCircle2,
+  Ruler,
+  Trash2,
+  HelpCircle,
+} from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -245,7 +266,7 @@ function SessionModal({
                   disabled={downloading}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-90 disabled:opacity-50"
                   style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                  {downloading ? '…' : '⬇ PDF ▾'}
+                  {downloading ? '…' : <span className="inline-flex items-center gap-1"><Download className="w-3.5 h-3.5" strokeWidth={2.25} /> PDF ▾</span>}
                 </button>
                 {showPdfMenu && !downloading && (
                   <div
@@ -255,14 +276,14 @@ function SessionModal({
                       onClick={() => handleDownloadPdf('student')}
                       className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-purple-50 transition-colors"
                       style={{ color: B.purple }}>
-                      🎓 Student PDF
+                      <span className="inline-flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" strokeWidth={2.25} /> Student PDF</span>
                     </button>
                     <div style={{ borderTop: '1px solid #F0E5FF' }} />
                     <button
                       onClick={() => handleDownloadPdf('teacher')}
                       className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-purple-50 transition-colors"
                       style={{ color: B.purple }}>
-                      📋 Teacher PDF
+                      <span className="inline-flex items-center gap-1.5"><ClipboardList className="w-3.5 h-3.5" strokeWidth={2.25} /> Teacher PDF</span>
                     </button>
                   </div>
                 )}
@@ -297,7 +318,7 @@ function SessionModal({
                 borderBottomColor: tab === t ? B.purple : 'transparent',
                 color: tab === t ? B.purple : B.purpleMed,
               }}>
-              {t === 'results' ? '📊 Test Results' : '📅 Learning Program'}
+              {t === 'results' ? <span className="inline-flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" strokeWidth={2.25} /> Test Results</span> : <span className="inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> Learning Program</span>}
             </button>
           ))}
         </div>
@@ -355,7 +376,7 @@ function SessionModal({
                 <h3 className="text-sm font-bold mb-3" style={{ color: B.purple }}>Link to a pending student</h3>
                 {session.linkedStudentId ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium" style={{ color: '#15803D' }}>✓ Linked</span>
+                    <span className="text-sm font-medium inline-flex items-center gap-1" style={{ color: '#15803D' }}><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Linked</span>
                     <span className="text-xs" style={{ color: B.purpleMed }}>({session.linkedStudentId})</span>
                   </div>
                 ) : (
@@ -440,7 +461,7 @@ function SessionModal({
                 </>
               ) : (
                 <div className="text-center py-12" style={{ color: B.purpleMed }}>
-                  <p className="text-4xl mb-3">📋</p>
+                  <ClipboardList className="w-10 h-10 text-[#C8A8DC] mx-auto mb-3" strokeWidth={2.25} />
                   <p className="text-sm mb-4">Learning program not generated yet.</p>
                   {canGenerateProgram ? (
                     <>
@@ -449,7 +470,7 @@ function SessionModal({
                         disabled={generatingProgram}
                         className="text-white text-sm px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-40"
                         style={{ background: B.purple }}>
-                        {generatingProgram ? 'Generando…' : '✨ Generar programa'}
+                        {generatingProgram ? 'Generando…' : <span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" strokeWidth={2.25} /> Generar programa</span>}
                       </button>
                       {generateError && (
                         <p className="text-xs mt-3" style={{ color: '#DC2626' }}>{generateError}</p>
@@ -560,7 +581,7 @@ function SuiteSessionModal({
                 </p>
                 <span className="inline-block text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full mt-1"
                   style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                  {session.mode === 'teacher-led' ? '👤 Live' : '🎓 Self'} · {session.components.length} componente{session.components.length !== 1 ? 's' : ''}
+                  <span className="inline-flex items-center gap-1">{session.mode === 'teacher-led' ? <><User className="w-3 h-3" strokeWidth={2.5} /> Live</> : <><GraduationCap className="w-3 h-3" strokeWidth={2.5} /> Self</>} · {session.components.length} componente{session.components.length !== 1 ? 's' : ''}</span>
                 </span>
               </div>
             </div>
@@ -616,10 +637,11 @@ function SuiteSessionModal({
                     const answered = res?.totalAnswered ?? 0;
                     const correct = res?.totalCorrect ?? 0;
                     const pct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+                    const MetaIcon = meta.Icon;
                     return (
                       <div key={cid} className="flex items-center gap-3 p-2.5 rounded-xl border"
                         style={{ borderColor: B.lavenderDark, background: B.bg }}>
-                        <span className="text-xl">{meta.icon}</span>
+                        <MetaIcon className="w-5 h-5" strokeWidth={2.25} style={{ color: B.purple }} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold" style={{ color: B.purple }}>{meta.label}</p>
                           <p className="text-[10px]" style={{ color: B.purpleMed }}>
@@ -643,10 +665,11 @@ function SuiteSessionModal({
                 const meta = COMPONENT_META[cid];
                 const visible = res.sectionScores.filter(s => s.total > 0);
                 if (visible.length === 0) return null;
+                const SectionIcon = meta.Icon;
                 return (
                   <div key={`sec-${cid}`}>
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
-                      {meta.icon} {meta.label} · desglose por nivel
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2 inline-flex items-center gap-1.5" style={{ color: B.purple }}>
+                      <SectionIcon className="w-3 h-3" strokeWidth={2.5} /> {meta.label} · desglose por nivel
                     </p>
                     <div className="space-y-1.5">
                       {visible.map((s) => (
@@ -701,7 +724,7 @@ function SuiteSessionModal({
               className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ background: B.purple }}
             >
-              {downloading ? '⏳ Generando…' : '⬇ Descargar PDF completo'}
+              {downloading ? <span className="inline-flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.25} /> Generando…</span> : <span className="inline-flex items-center gap-1.5"><Download className="w-3.5 h-3.5" strokeWidth={2.25} /> Descargar PDF completo</span>}
             </button>
             <button
               onClick={onClose}
@@ -775,7 +798,7 @@ function SuiteConfigForm({
             presetId === 'custom' ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-dashed border-gray-300 bg-white hover:border-[#C8A8DC]'
           }`}
         >
-          <p className="text-sm font-bold text-[#5A3D7A]">✨ Custom</p>
+          <p className="text-sm font-bold text-[#5A3D7A] inline-flex items-center gap-1.5"><Sparkles className="w-4 h-4" strokeWidth={2.25} /> Custom</p>
           <p className="text-[10px] text-gray-500 mt-0.5">Elegí exactamente qué evaluar.</p>
         </button>
       </div>
@@ -788,6 +811,7 @@ function SuiteConfigForm({
         {Object.values(COMPONENT_META).map((meta) => {
           const active = components.includes(meta.id);
           const disabled = !meta.available;
+          const MetaIcon = meta.Icon;
           return (
             <button
               key={meta.id}
@@ -801,8 +825,8 @@ function SuiteConfigForm({
             >
               <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[11px] font-bold shrink-0 ${
                 active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300'
-              }`}>{active ? '✓' : ''}</span>
-              <span className="text-lg shrink-0">{meta.icon}</span>
+              }`}>{active ? <Check className="w-3 h-3" strokeWidth={2.5} /> : null}</span>
+              <MetaIcon className="w-5 h-5 shrink-0 text-[#5A3D7A]" strokeWidth={2.25} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
@@ -844,13 +868,13 @@ function SuiteConfigForm({
                         : 'bg-white text-[#5A3D7A] border border-[#E8D5F0]'
                     }`}
                   >
-                    {m === 'adaptive' ? '⚡ Adaptativo' : '📋 Lineal'}
+                    {m === 'adaptive' ? <span className="inline-flex items-center gap-1"><Zap className="w-3 h-3" strokeWidth={2.5} /> Adaptativo</span> : <span className="inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Lineal</span>}
                   </button>
                 ))}
               </div>
 
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-[#2D1B4E]">📘 Grammar</label>
+                <label className="text-xs font-semibold text-[#2D1B4E] inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} /> Grammar</label>
                 <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">
                   {budgets.grammar} Q
                 </span>
@@ -868,7 +892,7 @@ function SuiteConfigForm({
           {components.includes('vocabulary') && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-[#2D1B4E]">💬 Vocabulary</label>
+                <label className="text-xs font-semibold text-[#2D1B4E] inline-flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5" strokeWidth={2.25} /> Vocabulary</label>
                 <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.vocabulary} Q</span>
               </div>
               <input type="range" min={5} max={40} step={5} value={budgets.vocabulary}
@@ -884,7 +908,7 @@ function SuiteConfigForm({
           {components.includes('reading') && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-[#2D1B4E]">📖 Reading</label>
+                <label className="text-xs font-semibold text-[#2D1B4E] inline-flex items-center gap-1.5"><BookMarked className="w-3.5 h-3.5" strokeWidth={2.25} /> Reading</label>
                 <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} pasaje{budgets.reading !== 1 ? 's' : ''}</span>
               </div>
               <input type="range" min={1} max={6} step={1} value={budgets.reading}
@@ -1038,7 +1062,7 @@ function PersonalizeLinkModal({
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base font-bold text-white">🔗 Personalizar link para compartir</p>
+              <p className="text-base font-bold text-white inline-flex items-center gap-1.5"><Link2 className="w-4 h-4" strokeWidth={2.25} /> Personalizar link para compartir</p>
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
                 Configurá qué componentes incluir. El estudiante ingresa sus datos al abrir.
               </p>
@@ -1069,7 +1093,7 @@ function PersonalizeLinkModal({
                 className="text-xs font-bold px-4 py-2 rounded-xl transition-all hover:opacity-80 disabled:opacity-40"
                 style={{ background: copied ? '#DCFCE7' : B.purple, color: copied ? '#15803D' : 'white' }}
               >
-                {copied ? '✓ Copiado' : 'Copy'}
+                {copied ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Copiado</span> : 'Copy'}
               </button>
             </div>
           </div>
@@ -1084,7 +1108,7 @@ function PersonalizeLinkModal({
               className="flex-1 py-2.5 rounded-xl text-sm font-bold border-2 disabled:opacity-40 transition-opacity hover:opacity-90"
               style={{ background: 'white', color: B.purple, borderColor: B.purple }}
             >
-              👁 Preview
+              <span className="inline-flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" strokeWidth={2.25} /> Preview</span>
             </button>
           </div>
         </div>
@@ -1165,7 +1189,7 @@ function AssignTestModal({
         <div className="p-6">
           {done ? (
             <div className="text-center py-4">
-              <p className="text-3xl mb-2">✅</p>
+              <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" strokeWidth={2.25} />
               <p className="font-semibold text-[#5A3D7A]">Test asignado a {selected?.fullName}</p>
               <p className="text-xs text-gray-400 mt-1">
                 {components.length} componente{components.length !== 1 ? 's' : ''} · ~{estimateMinutes(components, budgets)} min
@@ -1317,7 +1341,7 @@ export default function PlacementDashboardPage() {
             disabled={!uid}
             className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white"
             style={{ background: B.purpleMed }}>
-            🔗 Personalizar link
+            <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Personalizar link</span>
           </button>
           <button
             onClick={() => uid && setShowLive(true)}
@@ -1344,19 +1368,22 @@ export default function PlacementDashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total tests',  value: sessions.length,  icon: '📋' },
-          { label: 'Completed',    value: completed,          icon: '✅' },
-          { label: 'Pending link', value: unlinked,           icon: '🔗' },
-          { label: 'This month',   value: thisMonth,          icon: '📅' },
-        ].map((stat) => (
-          <div key={stat.label} className="rounded-2xl p-4" style={{ background: 'white', border: `1px solid ${B.lavenderDark}`, boxShadow: '0 2px 12px -2px rgba(200,168,220,0.15)' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">{stat.icon}</span>
-              <p className="text-2xl font-black" style={{ color: B.purple }}>{stat.value}</p>
+          { label: 'Total tests',  value: sessions.length, Icon: ClipboardList },
+          { label: 'Completed',    value: completed,       Icon: CheckCircle2 },
+          { label: 'Pending link', value: unlinked,        Icon: Link2 },
+          { label: 'This month',   value: thisMonth,       Icon: Calendar },
+        ].map((stat) => {
+          const StatIcon = stat.Icon;
+          return (
+            <div key={stat.label} className="rounded-2xl p-4" style={{ background: 'white', border: `1px solid ${B.lavenderDark}`, boxShadow: '0 2px 12px -2px rgba(200,168,220,0.15)' }}>
+              <div className="flex items-center gap-2 mb-1" style={{ color: B.purple }}>
+                <StatIcon className="w-5 h-5" strokeWidth={2.25} />
+                <p className="text-2xl font-black">{stat.value}</p>
+              </div>
+              <p className="text-xs" style={{ color: B.purpleMed }}>{stat.label}</p>
             </div>
-            <p className="text-xs" style={{ color: B.purpleMed }}>{stat.label}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Pending assignments */}
@@ -1382,14 +1409,14 @@ export default function PlacementDashboardPage() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
                     style={{ background: a.status === 'completed' ? '#DCFCE7' : B.lavenderDark, color: a.status === 'completed' ? '#15803D' : B.purple }}>
-                    {a.status === 'completed' ? '✓ Completado' : '⏳ Pendiente'}
+                    {a.status === 'completed' ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Completado</span> : <span className="inline-flex items-center gap-1"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.5} /> Pendiente</span>}
                   </span>
                   <button
                     onClick={() => deletePlacementAssignment(a.id)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors hover:bg-red-50 hover:text-red-500"
                     style={{ color: B.purpleMed }}
                     title="Eliminar asignación">
-                    🗑️
+                    <Trash2 className="w-4 h-4" strokeWidth={2.25} />
                   </button>
                 </div>
               </div>
@@ -1419,7 +1446,7 @@ export default function PlacementDashboardPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: B.lavender }}>
-            <span className="text-3xl">📐</span>
+            <Ruler className="w-8 h-8" strokeWidth={2.25} />
           </div>
           <p className="text-lg font-bold mb-1" style={{ color: B.purple }}>No placement tests yet</p>
           <p className="text-sm mb-4" style={{ color: B.purpleMed }}>Share your link with prospective students to get started.</p>
@@ -1470,7 +1497,7 @@ export default function PlacementDashboardPage() {
                     </td>
                     <td className="px-4 py-3">
                       {session.linkedStudentId
-                        ? <span className="text-xs font-semibold" style={{ color: '#15803D' }}>✓ Linked</span>
+                        ? <span className="text-xs font-semibold inline-flex items-center gap-1" style={{ color: '#15803D' }}><Check className="w-3 h-3" strokeWidth={2.5} /> Linked</span>
                         : <span className="text-xs" style={{ color: B.purpleLight }}>—</span>}
                     </td>
                     <td className="px-4 py-3">
@@ -1525,14 +1552,17 @@ export default function PlacementDashboardPage() {
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         {s.components.map((c) => (
-                          <span key={c} className="text-sm" title={COMPONENT_META[c]?.label ?? c}>
-                            {COMPONENT_META[c]?.icon ?? '❓'}
-                          </span>
+                          {(() => {
+                            const CMeta = COMPONENT_META[c];
+                            if (!CMeta) return <HelpCircle key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
+                            const CIcon = CMeta.Icon;
+                            return <CIcon key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
+                          })()}
                         ))}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[11px] font-semibold" style={{ color: B.purpleMed }}>
-                      {s.mode === 'teacher-led' ? '👤 Live' : '🎓 Self'}
+                      {s.mode === 'teacher-led' ? <span className="inline-flex items-center gap-1"><User className="w-3 h-3" strokeWidth={2.5} /> Live</span> : <span className="inline-flex items-center gap-1"><GraduationCap className="w-3 h-3" strokeWidth={2.5} /> Self</span>}
                     </td>
                     <td className="px-4 py-3">
                       {s.overallLevel

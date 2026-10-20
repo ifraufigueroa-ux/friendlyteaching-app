@@ -3,6 +3,24 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  Folder,
+  Image as ImageIcon,
+  BookOpen,
+  Film,
+  Clock,
+  CheckCircle2,
+  Square,
+  Eye,
+  Copy,
+  Trash2,
+  FileText,
+  Pencil,
+  Bot,
+  Palette,
+  Search,
+  Sparkles,
+} from 'lucide-react';
 import { useLessons, useCourses, toggleLessonPublished, deleteLesson, duplicateLesson, createLesson, createLessonFromAI, createCourse, updateCourse, uploadCourseCover, deleteCourse, reorderCourses } from '@/hooks/useLessons';
 import { useAuthStore } from '@/store/authStore';
 import { auth } from '@/lib/firebase/config';
@@ -56,7 +74,7 @@ function NewCourseModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#5A3D7A]">📁 Nuevo curso</h2>
+          <h2 className="font-bold text-[#5A3D7A] inline-flex items-center gap-1.5"><Folder className="w-4 h-4" strokeWidth={2.25} /> Nuevo curso</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <form onSubmit={handleCreate} className="p-5 space-y-4">
@@ -69,7 +87,7 @@ function NewCourseModal({ onClose }: { onClose: () => void }) {
               <div className={`w-full h-32 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${coverPreview ? 'border-transparent' : 'border-gray-200 hover:border-[#C8A8DC]'}`}>
                 {coverPreview
                   ? <img src={coverPreview} alt="cover" className="w-full h-full object-cover rounded-xl" />
-                  : <div className="text-center text-gray-400 text-xs"><p className="text-2xl mb-1">🖼️</p><p>Subir imagen</p></div>
+                  : <div className="text-center text-gray-400 text-xs flex flex-col items-center gap-1"><ImageIcon className="w-6 h-6" strokeWidth={2} /><p>Subir imagen</p></div>
                 }
               </div>
               <input type="file" accept="image/*" onChange={handleCoverChange} className="sr-only" />
@@ -97,7 +115,7 @@ function NewCourseModal({ onClose }: { onClose: () => void }) {
             <label className="block text-xs font-semibold text-gray-600 mb-1">Ícono (emoji opcional)</label>
             <input
               value={form.icon} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
-              placeholder="ej. 🌟"
+              placeholder="ej. Básico"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
             />
           </div>
@@ -117,7 +135,7 @@ function NewCourseModal({ onClose }: { onClose: () => void }) {
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 py-2.5 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
-              {saving ? 'Creando…' : '📁 Crear curso'}
+              {saving ? 'Creando…' : <span className="inline-flex items-center gap-1.5"><Folder className="w-4 h-4" strokeWidth={2.25} /> Crear curso</span>}
             </button>
           </div>
         </form>
@@ -156,7 +174,7 @@ function NewLessonModal({ teacherId, onClose }: { teacherId: string; onClose: ()
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h2 className="font-bold text-[#5A3D7A]">📚 Nuevo contenido en blanco</h2>
+          <h2 className="font-bold text-[#5A3D7A] inline-flex items-center gap-1.5"><BookOpen className="w-4 h-4" strokeWidth={2.25} /> Nuevo contenido en blanco</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <form onSubmit={handleCreate} className="p-5 space-y-4">
@@ -204,12 +222,12 @@ function NewLessonModal({ teacherId, onClose }: { teacherId: string; onClose: ()
 
 // Metadata visual por tipo de fuente. Docs viejos sin source caen en
 // 'manual' por default (asumimos que se hicieron con el editor interno).
-const SOURCE_META: Record<string, { icon: string; label: string; badgeClass: string }> = {
-  manual:         { icon: '✏️',  label: 'Manual (editor interno)',    badgeClass: 'bg-gray-100 text-gray-600' },
-  'ai-generated': { icon: '🤖',  label: 'Generada con IA',            badgeClass: 'bg-violet-100 text-violet-700' },
-  canva:          { icon: '🎨',  label: 'Presentación externa (Canva/Slides/PPTX)', badgeClass: 'bg-purple-100 text-purple-700' },
-  html:           { icon: '📄',  label: 'HTML inline',                 badgeClass: 'bg-blue-100 text-blue-700' },
-  'html-hosted':  { icon: '📄',  label: 'HTML hospedado (Storage)',    badgeClass: 'bg-blue-100 text-blue-700' },
+const SOURCE_META: Record<string, { Icon: typeof Pencil; label: string; badgeClass: string }> = {
+  manual:         { Icon: Pencil,   label: 'Manual (editor interno)',    badgeClass: 'bg-gray-100 text-gray-600' },
+  'ai-generated': { Icon: Bot,      label: 'Generada con IA',            badgeClass: 'bg-violet-100 text-violet-700' },
+  canva:          { Icon: Palette,  label: 'Presentación externa (Canva/Slides/PPTX)', badgeClass: 'bg-purple-100 text-purple-700' },
+  html:           { Icon: FileText, label: 'HTML inline',                 badgeClass: 'bg-blue-100 text-blue-700' },
+  'html-hosted':  { Icon: FileText, label: 'HTML hospedado (Storage)',    badgeClass: 'bg-blue-100 text-blue-700' },
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -279,9 +297,10 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
             {(() => {
               const source = lesson.source ?? 'manual';
               const meta = SOURCE_META[source];
+              const SourceIcon = meta.Icon;
               return (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${meta.badgeClass}`} title={meta.label}>
-                  {meta.icon}
+                <span className={`inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-md ${meta.badgeClass}`} title={meta.label}>
+                  <SourceIcon className="w-3 h-3" strokeWidth={2.5} />
                 </span>
               );
             })()}
@@ -292,8 +311,8 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
         </div>
 
         <div className="flex items-center gap-3 mb-3 text-xs text-gray-400">
-          <span>🎞️ {lesson.slides?.length ?? 0} slides</span>
-          {lesson.duration && <span>⏱ {lesson.duration}min</span>}
+          <span className="inline-flex items-center gap-1"><Film className="w-3 h-3" strokeWidth={2.5} /> {lesson.slides?.length ?? 0} slides</span>
+          {lesson.duration && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> {lesson.duration}min</span>}
         </div>
 
         {/* Publish toggle */}
@@ -309,9 +328,9 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           {toggling ? (
             <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
           ) : lesson.isPublished ? (
-            <>✅ Publicada — clic para despublicar</>
+            <><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Publicada — clic para despublicar</>
           ) : (
-            <>⬜ No publicada — clic para publicar</>
+            <><Square className="w-3.5 h-3.5" strokeWidth={2.5} /> No publicada — clic para publicar</>
           )}
         </button>
 
@@ -319,7 +338,7 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           href={`/classroom/${lesson.id}?preview=student`}
           className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold mb-2 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
         >
-          👁 Vista previa del estudiante
+          <Eye className="w-3.5 h-3.5" strokeWidth={2.5} /> Vista previa del estudiante
         </Link>
 
         <div className="flex gap-2">
@@ -333,16 +352,16 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
             onClick={handleDuplicate}
             disabled={duplicating}
             title="Duplicar lección"
-            className="px-3 py-2 border border-[#C8A8DC] text-[#9B7CB8] hover:bg-[#F0E5FF] rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+            className="px-3 py-2 border border-[#C8A8DC] text-[#9B7CB8] hover:bg-[#F0E5FF] rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center"
           >
-            {duplicating ? '…' : '📋'}
+            {duplicating ? '…' : <Copy className="w-3.5 h-3.5" strokeWidth={2.25} />}
           </button>
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="px-3 py-2 border border-red-200 text-red-400 hover:bg-red-50 rounded-xl text-xs font-semibold transition-colors"
+              className="px-3 py-2 border border-red-200 text-red-400 hover:bg-red-50 rounded-xl text-xs font-semibold transition-colors inline-flex items-center justify-center"
             >
-              🗑
+              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
             </button>
           ) : (
             <button
@@ -440,7 +459,7 @@ function CourseCard({ course, isSelected, isDragging, onClick, onCoverChange, on
         className={`absolute top-2 left-2 z-20 transition-all opacity-0 group-hover:opacity-100 rounded-full text-[10px] font-bold px-2 py-1 backdrop-blur-sm disabled:opacity-50
           ${confirmDelete ? 'bg-red-500 text-white opacity-100' : 'bg-black/40 text-white hover:bg-red-500'}`}
       >
-        {deleting ? '…' : confirmDelete ? '¿Eliminar?' : '🗑'}
+        {deleting ? '…' : confirmDelete ? '¿Eliminar?' : <Trash2 className="w-3 h-3" strokeWidth={2.25} />}
       </button>
       {confirmDelete && !deleting && (
         <button
@@ -459,7 +478,7 @@ function CourseCard({ course, isSelected, isDragging, onClick, onCoverChange, on
         <div className="bg-black/40 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-black/70 transition-colors">
           {uploading
             ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin block" />
-            : <span className="text-xs">🖼️</span>
+            : <ImageIcon className="w-3.5 h-3.5" strokeWidth={2.25} />
           }
         </div>
         <input type="file" accept="image/*" onChange={handleFile} className="sr-only" disabled={uploading} />
@@ -561,7 +580,7 @@ export default function LessonsLibraryPage() {
 
         {/* ── Global search bar ────────────────────────────────── */}
         <div className="relative mb-6">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">🔍</span>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" strokeWidth={2.25} />
           <input
             type="search"
             value={globalSearch}
@@ -613,7 +632,7 @@ export default function LessonsLibraryPage() {
         {!globalSearch.trim() && courses.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-gray-700 text-sm">📁 Cursos</p>
+              <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Folder className="w-4 h-4" strokeWidth={2.25} /> Cursos</p>
               <button
                 onClick={() => setShowNewCourse(true)}
                 className="text-xs text-[#9B7CB8] font-semibold hover:underline"
@@ -674,7 +693,7 @@ export default function LessonsLibraryPage() {
 
         <div ref={lessonsRef} className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-gray-700 text-sm">📚 Contenido</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><BookOpen className="w-4 h-4" strokeWidth={2.25} /> Contenido</p>
             {(() => {
               const c = courses.find(x => x.id === selectedCourse);
               return c ? (
@@ -693,27 +712,27 @@ export default function LessonsLibraryPage() {
           <div className="sm:order-last flex gap-2 flex-shrink-0">
             <button
               onClick={() => setShowNewCourse(true)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
             >
-              📁 Crear curso
+              <Folder className="w-4 h-4" strokeWidth={2.25} /> Crear curso
             </button>
             <button
               onClick={() => setShowAIWizard(true)}
-              className="px-4 py-2 bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] text-white hover:opacity-90 rounded-xl text-sm font-semibold transition-all whitespace-nowrap"
+              className="px-4 py-2 bg-gradient-to-r from-[#C8A8DC] to-[#9B7CB8] text-white hover:opacity-90 rounded-xl text-sm font-semibold transition-all whitespace-nowrap inline-flex items-center gap-1.5"
             >
-              🤖 Generar con IA
+              <Sparkles className="w-4 h-4" strokeWidth={2.25} /> Generar con IA
             </button>
             <button
               onClick={() => setShowFromPresentation(true)}
-              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
             >
-              🎨 Desde Canva
+              <Palette className="w-4 h-4" strokeWidth={2.25} /> Desde Canva
             </button>
             <button
               onClick={() => setShowUploadHtml(true)}
-              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
             >
-              📄 Desde HTML
+              <FileText className="w-4 h-4" strokeWidth={2.25} /> Desde HTML
             </button>
             <button
               onClick={() => setShowNewLesson(true)}
@@ -777,7 +796,7 @@ export default function LessonsLibraryPage() {
           <LessonsGridSkeleton />
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
-            <p className="text-4xl mb-3">📚</p>
+            <BookOpen className="w-10 h-10 text-[#C8A8DC] mx-auto mb-3" strokeWidth={2.25} />
             <p className="font-semibold text-gray-700">No hay contenido {filter !== 'all' ? 'con este filtro' : 'todavía'}</p>
             <p className="text-sm text-gray-500 mt-1">Crea una lección nueva o usa la herramienta de importación</p>
             <button
