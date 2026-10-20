@@ -4,6 +4,7 @@
 'use client';
 import { use } from 'react';
 import Link from 'next/link';
+import { Tv, Lock } from 'lucide-react';
 import PresentationProjector from '@/components/classroom/PresentationProjector';
 import { useStudentLiveSession } from '@/hooks/useLiveSession';
 
@@ -30,7 +31,7 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm px-6">
-          <div className="text-5xl mb-4">📺</div>
+          <div className="mb-4 flex justify-center"><Tv className="w-12 h-12 text-gray-400" strokeWidth={2} /></div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">
             {session ? 'La clase ha terminado' : 'Clase no disponible'}
           </h2>
@@ -55,7 +56,7 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm px-6">
-          <div className="text-5xl mb-4">🔒</div>
+          <div className="mb-4 flex justify-center"><Lock className="w-12 h-12 text-gray-400" strokeWidth={2} /></div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Acceso restringido</h2>
           <p className="text-gray-500 text-sm mb-6">
             No estás invitado a esta clase en vivo. Contacta a tu profesor.

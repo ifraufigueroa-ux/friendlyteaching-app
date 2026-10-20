@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Check, Clock, Pause, Sprout, GraduationCap, Timer, Star, BookOpen, type LucideIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentProgress } from '@/hooks/useProgress';
 import { usePublishedLessons } from '@/hooks/useLessons';
@@ -20,10 +21,10 @@ function formatDuration(mins?: number) {
   return `${Math.floor(mins / 60)}h ${mins % 60}min`;
 }
 
-const STATUS_CONFIG = {
-  completed:   { label: 'Completada', icon: '✅', color: 'text-green-600 bg-green-50' },
-  in_progress: { label: 'En progreso', icon: '⏳', color: 'text-amber-600 bg-amber-50' },
-  abandoned:   { label: 'Abandonada', icon: '⏸️', color: 'text-gray-400 bg-gray-50' },
+const STATUS_CONFIG: Record<string, { label: string; Icon: LucideIcon; color: string }> = {
+  completed:   { label: 'Completada', Icon: Check, color: 'text-green-600 bg-green-50' },
+  in_progress: { label: 'En progreso', Icon: Clock, color: 'text-amber-600 bg-amber-50' },
+  abandoned:   { label: 'Abandonada', Icon: Pause, color: 'text-gray-400 bg-gray-50' },
 };
 
 export default function StudentProgressPage() {
@@ -62,13 +63,13 @@ export default function StudentProgressPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Lecciones completadas', value: uniqueLessons, icon: '🎓', color: 'text-[#5A3D7A]' },
-          { label: 'Tiempo total', value: totalMinutes > 0 ? formatDuration(totalMinutes) : '—', icon: '⏱️', color: 'text-blue-600' },
-          { label: 'Nota promedio', value: avgScore ?? '—', icon: '⭐', color: 'text-amber-600' },
-          { label: 'Sesiones totales', value: progress.length, icon: '📚', color: 'text-green-600' },
+          { label: 'Lecciones completadas', value: uniqueLessons, Icon: GraduationCap, color: 'text-[#5A3D7A]' },
+          { label: 'Tiempo total', value: totalMinutes > 0 ? formatDuration(totalMinutes) : '—', Icon: Timer, color: 'text-blue-600' },
+          { label: 'Nota promedio', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
+          { label: 'Sesiones totales', value: progress.length, Icon: BookOpen, color: 'text-green-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-            <p className="text-2xl mb-0.5">{s.icon}</p>
+            <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-6 h-6" strokeWidth={2.25} /></div>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
             <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{s.label}</p>
           </div>
@@ -81,7 +82,7 @@ export default function StudentProgressPage() {
         </div>
       ) : progress.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-          <p className="text-4xl mb-3">🌱</p>
+          <div className="mb-3 flex justify-center text-green-500"><Sprout className="w-10 h-10" strokeWidth={2} /></div>
           <p className="text-gray-500 text-sm">Aún no has completado ninguna lección.</p>
           <p className="text-xs text-gray-400 mt-1">Tu progreso aparecerá aquí después de tus clases.</p>
           <Link
@@ -105,12 +106,14 @@ export default function StudentProgressPage() {
                   const best = lp.filter(p => p.overallScore).sort((a, b) => (b.overallScore ?? 0) - (a.overallScore ?? 0))[0];
                   return (
                     <div key={lessonId} className="flex items-center gap-3">
-                      <span className="text-lg flex-shrink-0">{isComp ? '✅' : '⏳'}</span>
+                      <span className={`flex-shrink-0 ${isComp ? 'text-green-600' : 'text-amber-600'}`}>
+                        {isComp ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Clock className="w-5 h-5" strokeWidth={2.25} />}
+                      </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-[#5A3D7A] truncate">{lesson?.title ?? lessonId}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 inline-flex items-center gap-1">
                           {lesson?.code} · {lesson?.level}
-                          {best?.overallScore ? ` · ⭐ ${best.overallScore}` : ''}
+                          {best?.overallScore ? <> · <Star className="w-3 h-3 text-amber-500" strokeWidth={2.25} /> {best.overallScore}</> : null}
                         </p>
                       </div>
                       {lesson && (
@@ -137,13 +140,15 @@ export default function StudentProgressPage() {
                 const lesson = lessons.find(l => l.id === p.lessonId);
                 return (
                   <div key={p.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                    <span className="text-lg">{cfg.icon}</span>
+                    <span className={cfg.color.split(' ').find(c => c.startsWith('text-')) ?? ''}>
+                      <cfg.Icon className="w-5 h-5" strokeWidth={2.25} />
+                    </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#5A3D7A] truncate">{lesson?.title ?? p.lessonId}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-400 inline-flex items-center gap-1">
                         {formatDate(p.startedAt)}
                         {p.duration ? ` · ${formatDuration(p.duration)}` : ''}
-                        {p.overallScore ? ` · ⭐ ${p.overallScore}` : ''}
+                        {p.overallScore ? <> · <Star className="w-3 h-3 text-amber-500" strokeWidth={2.25} /> {p.overallScore}</> : null}
                       </p>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.color} flex-shrink-0`}>

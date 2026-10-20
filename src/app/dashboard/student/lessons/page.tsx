@@ -11,8 +11,9 @@
 //   4. musicLessons idem
 //   5. textLessons idem
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentAssignments } from '@/hooks/useStudentAssignments';
 import { useStudentMovieLessons } from '@/hooks/useMovieLessons';
@@ -44,7 +45,7 @@ interface UnifiedCard {
   level?: LessonLevel | string;
   href: string;         // internal href for FT cards
   externalUrl?: string; // for external cards (open in new tab)
-  badgeIcon: string;
+  badgeIcon: ReactNode;
   badgeLabel: string;
   progressPct?: number; // 0-100 for in-progress
   isCompleted?: boolean;
@@ -58,7 +59,7 @@ interface CardShellProps {
   title: string;
   code?: string;
   level?: string;
-  badgeIcon: string;
+  badgeIcon: ReactNode;
   badgeLabel: string;
   isStarted?: boolean;
   isCompleted?: boolean;
@@ -101,7 +102,12 @@ function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabe
             externalUrl ? 'bg-sky-100 text-sky-700' :
             'bg-[#F0E5FF] text-[#5A3D7A]'
           }`}>
-            {isCompleted ? '✅ Completada' : isStarted ? '⏳ En progreso' : externalUrl ? '🔗 Externa' : '📖 Nueva'}
+            <span className="inline-flex items-center gap-1 justify-center">
+              {isCompleted ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Completada</>
+                : isStarted ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> En progreso</>
+                : externalUrl ? <><Link2 className="w-2.5 h-2.5" strokeWidth={2.25} /> Externa</>
+                : <><BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} /> Nueva</>}
+            </span>
           </span>
           <span className="block w-full text-center px-2 py-1.5 bg-[#C8A8DC] group-hover:bg-[#9B7CB8] text-white rounded-xl text-[10px] font-bold transition-colors">
             {externalUrl ? 'Abrir ↗' : isCompleted ? 'Repasar' : isStarted ? 'Continuar' : 'Abrir'}
@@ -167,7 +173,7 @@ export default function StudentLessonsPage() {
         level: a.level,
         href: isFT ? `/classroom/${a.refId}` : '',
         externalUrl: isFT ? undefined : a.externalUrl,
-        badgeIcon: isFT ? '📖' : (material?.icon || '🔗'),
+        badgeIcon: isFT ? <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} /> : (material?.icon ? <span>{material.icon}</span> : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />),
         badgeLabel: isFT ? 'FT Librería' : (material?.label || 'Link externo'),
         isCompleted: a.status === 'completed' || (isFT && a.refId ? completedLessonIds.has(a.refId) : false),
         isStarted: isFT && a.refId ? startedLessonIds.has(a.refId) : false,
@@ -183,7 +189,7 @@ export default function StudentLessonsPage() {
         title: (l.clip?.title || l.title || 'Clip lesson'),
         level: l.level,
         href: `/dashboard/student/lessons/movie/${l.id}`,
-        badgeIcon: '🎬',
+        badgeIcon: <Clapperboard className="w-2.5 h-2.5" strokeWidth={2.25} />,
         badgeLabel: 'Friendlyflix',
         isCompleted: false,
         isStarted: false,
@@ -199,7 +205,7 @@ export default function StudentLessonsPage() {
         title: (l.song?.title || l.title || 'Canción'),
         level: l.level,
         href: `/dashboard/student/music/${l.id}`,
-        badgeIcon: '🎵',
+        badgeIcon: <Music className="w-2.5 h-2.5" strokeWidth={2.25} />,
         badgeLabel: 'Friendlyrics',
         isCompleted: false,
         isStarted: false,
@@ -215,7 +221,7 @@ export default function StudentLessonsPage() {
         title: l.title || 'Lectura',
         level: l.level,
         href: `/dashboard/student/texts/${l.id}`,
-        badgeIcon: '📖',
+        badgeIcon: <BookMarked className="w-2.5 h-2.5" strokeWidth={2.25} />,
         badgeLabel: 'FriendlyTales',
         isCompleted: false,
         isStarted: false,
@@ -247,7 +253,7 @@ export default function StudentLessonsPage() {
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-lg font-extrabold text-[#5A3D7A]">📚 Mis lecciones</h1>
+          <h1 className="text-lg font-extrabold text-[#5A3D7A] inline-flex items-center gap-2"><BookOpen className="w-5 h-5" strokeWidth={2.25} /> Mis lecciones</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             Todo el material que tu profe te ha asignado — FriendlyTeaching + externo.
           </p>
@@ -317,13 +323,13 @@ export default function StudentLessonsPage() {
         </div>
       ) : cards.length === 0 ? (
         <div className="glass-card rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-3">📭</p>
+          <div className="mb-3 flex justify-center text-[#9B7CB8]"><Inbox className="w-10 h-10" strokeWidth={2} /></div>
           <p className="text-[#5A3D7A] font-bold">Aún no tienes material asignado</p>
           <p className="text-gray-500 text-sm mt-1">Tu profesor puede asignarte lecciones de FriendlyTeaching o material externo (Off2Class, Drive, YouTube, etc.).</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card rounded-2xl p-6 text-center">
-          <p className="text-2xl mb-2">🔍</p>
+          <div className="mb-2 flex justify-center text-gray-400"><Search className="w-6 h-6" strokeWidth={2.25} /></div>
           <p className="text-gray-500 text-sm">No hay lecciones que coincidan.</p>
           <button onClick={() => { setSearch(''); setLevelFilter(''); setKindFilter('all'); }}
             className="mt-2 text-xs font-semibold text-[#9B7CB8] underline">

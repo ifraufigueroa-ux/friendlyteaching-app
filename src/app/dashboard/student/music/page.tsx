@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Music } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentMusicLessons } from '@/hooks/useMusicLessons';
 import TopBar from '@/components/layout/TopBar';
@@ -23,7 +24,7 @@ export default function StudentMusicPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F9F5FF] to-[#F0E8FF]">
-      <TopBar title="🎵 Friendlyrics®" />
+      <TopBar title="Friendlyrics®" />
       <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
         <p className="text-sm text-gray-500 mb-5">Aprende inglés a través de la música — completa los ejercicios de cada canción.</p>
 
@@ -33,7 +34,7 @@ export default function StudentMusicPage() {
           </div>
         ) : lessons.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-5xl mb-3">🎵</p>
+            <div className="mb-3 flex justify-center"><Music className="w-12 h-12" strokeWidth={2} /></div>
             <p className="font-medium text-gray-500">No music lessons yet</p>
             <p className="text-sm mt-1">Tu profe asignará canciones aquí pronto.</p>
           </div>
@@ -58,7 +59,7 @@ function MusicCard({ lesson }: { lesson: MusicLesson }) {
       <div className="relative w-full aspect-square overflow-hidden bg-[#F0E5FF]">
         {lesson.song.albumArt
           ? <Image src={lesson.song.albumArt} alt={lesson.song.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="absolute inset-0 flex items-center justify-center text-4xl">🎵</div>
+          : <div className="absolute inset-0 flex items-center justify-center text-[#9B7CB8]"><Music className="w-10 h-10" strokeWidth={2} /></div>
         }
         <div className="absolute top-2 right-2 bg-[#5A3D7A]/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
           {lesson.level}

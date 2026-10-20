@@ -10,6 +10,7 @@ import {
   query, where, onSnapshot,
   type QuerySnapshot, type DocumentData, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import { Lock, Check, Calendar, Clock, Repeat, Pin, X, Inbox, Send } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
 import type { Booking } from '@/types/firebase';
@@ -172,7 +173,7 @@ export default function StudentBookPage() {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm">
-          <p className="text-4xl mb-4">🔒</p>
+          <div className="mb-4 flex justify-center text-gray-400"><Lock className="w-10 h-10" strokeWidth={2} /></div>
           <h2 className="text-lg font-bold text-[#5A3D7A] mb-2">Sin profesor asignado</h2>
           <p className="text-sm text-gray-500 mb-4">
             Aún no tienes un profesor asignado. Una vez que tu cuenta sea aprobada podrás solicitar clases.
@@ -192,7 +193,7 @@ export default function StudentBookPage() {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-sm">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-4xl mx-auto mb-4">✅</div>
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"><Check className="w-8 h-8 text-green-600" strokeWidth={2.5} /></div>
           <h2 className="text-xl font-extrabold text-[#5A3D7A] mb-2">¡Solicitud enviada!</h2>
           <p className="text-sm text-gray-500 mb-1">
             Has solicitado el horario del{' '}
@@ -241,7 +242,7 @@ export default function StudentBookPage() {
             ← Mi horario
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-[#5A3D7A]">📅 Solicitar clase</h1>
+        <h1 className="text-2xl font-bold text-[#5A3D7A] inline-flex items-center gap-2"><Calendar className="w-6 h-6" strokeWidth={2.25} /> Solicitar clase</h1>
         <p className="text-sm text-gray-500 mt-0.5">
           Elige un horario disponible y tu profesor confirmará la solicitud.
         </p>
@@ -318,7 +319,7 @@ export default function StudentBookPage() {
                             className="rounded-xl h-10 bg-gray-100 border border-gray-200 flex items-center justify-center"
                             title="Ocupado"
                           >
-                            <span className="text-gray-300 text-sm select-none">🔒</span>
+                            <Lock className="w-3.5 h-3.5 text-gray-300 select-none" strokeWidth={2} />
                           </div>
                         );
                       }
@@ -331,8 +332,8 @@ export default function StudentBookPage() {
                             className="rounded-xl h-10 bg-amber-50 border-2 border-amber-300 flex items-center justify-center"
                             title={`Solicitud ${req.status === 'approved' ? 'aprobada' : 'pendiente'}`}
                           >
-                            <span className="text-amber-500 text-[10px] font-bold select-none">
-                              {req.status === 'approved' ? '✅' : '⏳'}
+                            <span className="text-amber-500 select-none">
+                              {req.status === 'approved' ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : <Clock className="w-3.5 h-3.5" strokeWidth={2.25} />}
                             </span>
                           </div>
                         );
@@ -350,7 +351,7 @@ export default function StudentBookPage() {
                           }`}
                           title={`${DAY_NAMES[d]} ${h}:00`}
                         >
-                          {isSel ? '✓' : '+'}
+                          {isSel ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : '+'}
                         </button>
                       );
                     })}
@@ -382,16 +383,20 @@ export default function StudentBookPage() {
                         <p className="text-xs font-semibold text-gray-700">
                           {DAY_NAMES[r.requestedDow]} · {r.requestedHour}:00 – {r.requestedHour + 1}:00
                         </p>
-                        <p className="text-[10px] text-gray-400">
-                          {r.isRecurring ? '🔁 Semanal' : '📌 Una vez'}
+                        <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
+                          {r.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Semanal</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> Una vez</>}
                         </p>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 inline-flex items-center gap-1 ${
                         r.status === 'pending'  ? 'bg-amber-50 text-amber-600' :
                         r.status === 'approved' ? 'bg-green-50 text-green-600' :
                         'bg-red-50 text-red-500'
                       }`}>
-                        {r.status === 'pending' ? '⏳ Pendiente' : r.status === 'approved' ? '✅ Aprobada' : '✗ Rechazada'}
+                        {r.status === 'pending'
+                          ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> Pendiente</>
+                          : r.status === 'approved'
+                          ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Aprobada</>
+                          : <><X className="w-2.5 h-2.5" strokeWidth={2.5} /> Rechazada</>}
                       </span>
                     </div>
                   ))}
@@ -407,7 +412,7 @@ export default function StudentBookPage() {
 
                 {/* Selected slot summary */}
                 <div className="bg-[#F0E5FF] rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
-                  <span className="text-xl">📅</span>
+                  <Calendar className="w-5 h-5 text-[#5A3D7A]" strokeWidth={2.25} />
                   <div>
                     <p className="text-sm font-bold text-[#5A3D7A]">
                       {DAY_NAMES[selected.dow]} · {selected.hour}:00 – {selected.hour + 1}:00
@@ -430,7 +435,7 @@ export default function StudentBookPage() {
                           : 'bg-gray-100 text-gray-500 hover:bg-[#F0E5FF]'
                       }`}
                     >
-                      🔁 Semanal
+                      <span className="inline-flex items-center gap-1"><Repeat className="w-3 h-3" strokeWidth={2.25} /> Semanal</span>
                     </button>
                     <button
                       onClick={() => setIsRecurring(false)}
@@ -440,7 +445,7 @@ export default function StudentBookPage() {
                           : 'bg-gray-100 text-gray-500 hover:bg-[#F0E5FF]'
                       }`}
                     >
-                      📌 Una sola vez
+                      <span className="inline-flex items-center gap-1"><Pin className="w-3 h-3" strokeWidth={2.25} /> Una sola vez</span>
                     </button>
                   </div>
                 </div>
@@ -482,7 +487,7 @@ export default function StudentBookPage() {
                     disabled={submitting}
                     className="flex-1 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-2xl text-sm font-bold disabled:opacity-50 transition-colors"
                   >
-                    {submitting ? 'Enviando...' : '✉️ Enviar solicitud'}
+                    {submitting ? 'Enviando...' : <span className="inline-flex items-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.25} /> Enviar solicitud</span>}
                   </button>
                 </div>
               </div>
@@ -493,7 +498,7 @@ export default function StudentBookPage() {
           {!loading && activeDays.length === 0 && (
             <div className="px-6 pb-8">
               <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-                <p className="text-3xl mb-3">📭</p>
+                <div className="mb-3 flex justify-center text-gray-400"><Inbox className="w-8 h-8" strokeWidth={2} /></div>
                 <p className="text-sm text-gray-500">El horario de tu profesor aún no está configurado.</p>
                 <p className="text-xs text-gray-400 mt-1">
                   Puedes enviar tu preferencia de horario y tu profesor lo confirmará.

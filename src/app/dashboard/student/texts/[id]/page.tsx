@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, type DocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
+import { BookMarked, PartyPopper, Maximize2, Minimize2, ArrowLeft, ArrowRight } from 'lucide-react';
 import SlideRenderer from '@/components/classroom/SlideRenderer';
 import TopBar from '@/components/layout/TopBar';
 import type { TextLesson, Slide } from '@/types/firebase';
@@ -49,7 +50,7 @@ export default function TextLessonPlayerPage() {
   if (loading) {
     return (
       <div className="theme-friendly-tales flex flex-col min-h-screen">
-        <TopBar title="📖 FriendlyTales®" />
+        <TopBar title="FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-10 h-10 border-4 border-[#9B72B8]/30 border-t-[#F9F0A8] rounded-full animate-spin" />
         </div>
@@ -60,10 +61,10 @@ export default function TextLessonPlayerPage() {
   if (!lesson) {
     return (
       <div className="theme-friendly-tales flex flex-col min-h-screen">
-        <TopBar title="📖 FriendlyTales®" />
+        <TopBar title="FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center text-[#A69BB8]">
           <div className="text-center">
-            <p className="text-4xl mb-2">📖</p>
+            <div className="mb-2 flex justify-center"><BookMarked className="w-10 h-10" strokeWidth={2} /></div>
             <p>Lección no encontrada.</p>
             <button onClick={() => router.back()} className="mt-3 text-sm text-[#F9F0A8] underline">Volver</button>
           </div>
@@ -79,10 +80,10 @@ export default function TextLessonPlayerPage() {
   if (completed) {
     return (
       <div className="theme-friendly-tales flex flex-col min-h-screen">
-        <TopBar title="📖 FriendlyTales®" />
+        <TopBar title="FriendlyTales®" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="ft-glass-card p-8 max-w-sm w-full text-center">
-            <p className="text-3xl mb-2">🎉</p>
+            <div className="mb-2 flex justify-center"><PartyPopper className="w-8 h-8 text-[#F9F0A8]" strokeWidth={2} /></div>
             <h2 className="text-xl font-bold ft-title-gold mb-1">¡Lección completada!</h2>
             <p className="text-[#A69BB8] text-sm mb-1">{lesson.text?.title ?? lesson.title}</p>
             <p className="text-[#A69BB8]/70 text-xs mb-6">— {lesson.text?.source ?? ''}</p>
@@ -103,7 +104,7 @@ export default function TextLessonPlayerPage() {
       ref={playerRef}
       className="theme-friendly-tales flex flex-col h-screen overflow-hidden"
     >
-      {!isFullscreen && <TopBar title={`📖 ${lesson.text?.title ?? lesson.title}`} />}
+      {!isFullscreen && <TopBar title={lesson.text?.title ?? lesson.title} />}
 
       <div className="w-full h-1.5 bg-[rgba(30,20,50,0.6)] flex-shrink-0">
         <div
@@ -119,9 +120,9 @@ export default function TextLessonPlayerPage() {
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
-            className="px-2 py-0.5 rounded-md border border-[#9B72B8]/40 text-[#F8F5FC] hover:bg-white/10 transition-colors text-[11px] font-semibold"
+            className="px-2 py-0.5 rounded-md border border-[#9B72B8]/40 text-[#F8F5FC] hover:bg-white/10 transition-colors text-[11px] font-semibold inline-flex items-center gap-1"
           >
-            {isFullscreen ? '⊠ Salir' : '⛶ Full'}
+            {isFullscreen ? <><Minimize2 className="w-3 h-3" strokeWidth={2.5} /> Salir</> : <><Maximize2 className="w-3 h-3" strokeWidth={2.5} /> Full</>}
           </button>
         </div>
       </div>
@@ -142,18 +143,18 @@ export default function TextLessonPlayerPage() {
         <button
           onClick={() => setCurrentSlide(v => Math.max(0, v - 1))}
           disabled={currentSlide === 0}
-          className="flex-1 py-2 rounded-xl text-sm font-medium border border-[#9B72B8]/40 text-[#A69BB8] hover:bg-white/5 hover:text-[#F8F5FC] disabled:opacity-30 transition-all"
+          className="flex-1 py-2 rounded-xl text-sm font-medium border border-[#9B72B8]/40 text-[#A69BB8] hover:bg-white/5 hover:text-[#F8F5FC] disabled:opacity-30 transition-all inline-flex items-center justify-center gap-1.5"
         >
-          ← Back
+          <ArrowLeft className="w-4 h-4" strokeWidth={2.25} /> Back
         </button>
         <button
           onClick={() => {
             if (isLast) setCompleted(true);
             else setCurrentSlide(v => v + 1);
           }}
-          className="flex-1 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-[#EC008C] to-[#A70066] text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(236,0,140,0.35)]"
+          className="flex-1 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-[#EC008C] to-[#A70066] text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(236,0,140,0.35)] inline-flex items-center justify-center gap-1.5"
         >
-          {isLast ? '🎉 Finish' : 'Next →'}
+          {isLast ? <><PartyPopper className="w-4 h-4" strokeWidth={2.25} /> Finish</> : <>Next <ArrowRight className="w-4 h-4" strokeWidth={2.25} /></>}
         </button>
       </div>
     </div>

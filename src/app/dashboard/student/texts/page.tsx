@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { BookMarked } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentTextLessons } from '@/hooks/useTextLessons';
 import TopBar from '@/components/layout/TopBar';
@@ -33,7 +34,7 @@ export default function StudentTextsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F5F9FC] to-[#EEF3F8]">
-      <TopBar title="📖 FriendlyTales®" />
+      <TopBar title="FriendlyTales®" />
       <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
         <p className="text-sm text-gray-500 mb-5">
           Aprende inglés a través de textos — completa los ejercicios de cada lectura.
@@ -45,7 +46,7 @@ export default function StudentTextsPage() {
           </div>
         ) : lessons.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-5xl mb-3">📖</p>
+            <div className="mb-3 flex justify-center"><BookMarked className="w-12 h-12" strokeWidth={2} /></div>
             <p className="font-medium text-gray-500">No text lessons yet</p>
             <p className="text-sm mt-1">Tu profe te asignará lecturas aquí pronto.</p>
           </div>
@@ -71,7 +72,7 @@ function TextCard({ lesson }: { lesson: TextLesson }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover} alt={lesson.text?.title ?? ''} className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/70">📖</div>
+          <div className="absolute inset-0 flex items-center justify-center text-white/70"><BookMarked className="w-10 h-10" strokeWidth={2} /></div>
         )}
         <div className="absolute top-2 right-2 bg-[#1B2C3F]/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
           {lesson.level}

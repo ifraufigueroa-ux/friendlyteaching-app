@@ -2,6 +2,7 @@
 'use client';
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { Clock, Mail, Tv, ClipboardList, Flame, BookOpen, Calendar, Repeat, Pin, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentProgress } from '@/hooks/useProgress';
 import { useStudentHomework } from '@/hooks/useHomework';
@@ -93,15 +94,15 @@ export default function StudentDashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--gradient-hero)' }}>
         <div className="glass-card rounded-2xl p-8 text-center max-w-md w-full shadow-glass-lg">
-          <div className="text-5xl mb-4">⏳</div>
+          <div className="mb-4 flex justify-center text-[#5A3D7A]"><Clock className="w-12 h-12" strokeWidth={2} /></div>
           <h2 className="text-xl font-bold text-[#5A3D7A] mb-2">Cuenta pendiente de aprobación</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
             Tu cuenta está siendo revisada por el profesor. Una vez aprobada, tendrás acceso
             a todas las lecciones, horarios y materiales.
           </p>
           <div className="mt-6 bg-[#F0E5FF] rounded-xl p-4">
-            <p className="text-xs text-[#5A3D7A] font-medium">
-              📧 Recibirás un correo cuando tu cuenta sea aprobada.
+            <p className="text-xs text-[#5A3D7A] font-medium inline-flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5" strokeWidth={2.25} /> Recibirás un correo cuando tu cuenta sea aprobada.
             </p>
           </div>
         </div>
@@ -121,7 +122,7 @@ export default function StudentDashboardPage() {
         >
           <span className="w-3 h-3 rounded-full bg-white animate-pulse flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">📺 Clase en vivo activa</p>
+            <p className="text-sm font-bold inline-flex items-center gap-1.5"><Tv className="w-4 h-4" strokeWidth={2.25} /> Clase en vivo activa</p>
             <p className="text-xs text-red-200 truncate">{session.lessonTitle}</p>
           </div>
           <span className="text-xs font-bold bg-white/20 px-3 py-1 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0">
@@ -141,7 +142,7 @@ export default function StudentDashboardPage() {
             className="flex items-center gap-3 mb-4 px-4 py-3.5 rounded-xl text-white shadow-lg hover:opacity-90 transition-opacity group"
             style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}
           >
-            <span className="text-2xl flex-shrink-0">📋</span>
+            <span className="flex-shrink-0"><ClipboardList className="w-6 h-6" strokeWidth={2.25} /></span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold">
                 {isSuite ? 'Placement test completo asignado' : 'Test de nivel asignado'}
@@ -173,7 +174,7 @@ export default function StudentDashboardPage() {
               ) : null}
               <div>
                 <p className="text-sm font-bold text-[#5A3D7A]">
-                  Hola, {firstName} 👋
+                  Hola, {firstName}
                 </p>
                 <p className="text-xs text-gray-400">Tu portal de aprendizaje</p>
               </div>
@@ -181,7 +182,7 @@ export default function StudentDashboardPage() {
             {/* Racha inline */}
             {gam && (
               <div className="flex items-center gap-1.5 bg-orange-50 px-3 py-1.5 rounded-xl flex-shrink-0">
-                <span className="text-base">🔥</span>
+                <Flame className="w-4 h-4 text-orange-500" strokeWidth={2.25} />
                 <div className="text-right">
                   <p className="text-sm font-bold text-orange-600 leading-none">{gam.currentStreak}</p>
                   <p className="text-[9px] text-orange-400 leading-none mt-0.5">días</p>
@@ -212,11 +213,11 @@ export default function StudentDashboardPage() {
                 {nextBooking.lessonId && (() => {
                   const l = lessons.find(x => x.id === nextBooking.lessonId);
                   return l ? (
-                    <p className="text-xs text-gray-500 mt-1 truncate">📚 {l.code} · {l.title}</p>
+                    <p className="text-xs text-gray-500 mt-1 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.25} /> {l.code} · {l.title}</p>
                   ) : null;
                 })()}
-                <p className="text-[10px] text-gray-400 mt-1">
-                  {nextBooking.isRecurring ? '🔁 Recurrente' : '📌 Clase única'}
+                <p className="text-[10px] text-gray-400 mt-1 inline-flex items-center gap-1">
+                  {nextBooking.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Recurrente</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> Clase única</>}
                 </p>
               </div>
               {nextBooking.lessonId && (
@@ -230,7 +231,7 @@ export default function StudentDashboardPage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-2">
-              <span className="text-2xl mb-1">📅</span>
+              <Calendar className="w-6 h-6 mb-1 text-[#9B7CB8]" strokeWidth={2.25} />
               <p className="text-xs text-gray-400">Sin clases agendadas</p>
               <Link href="/dashboard/student/schedule" className="mt-2 text-xs font-semibold text-[#9B7CB8] hover:underline">
                 Ver horario →
@@ -270,7 +271,7 @@ export default function StudentDashboardPage() {
       {(skillScores || studentLevel) && (
         <div className="glass-card rounded-2xl overflow-hidden mb-3">
           <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-            <p className="font-bold text-gray-700 text-sm">📈 Mi progreso de inglés</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} /> Mi progreso de inglés</p>
             <Link href="/dashboard/student/progress" className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
               Ver detalle →
             </Link>
