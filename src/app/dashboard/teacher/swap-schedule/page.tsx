@@ -11,6 +11,7 @@ import {
   type QueryDocumentSnapshot, type DocumentData,
 } from 'firebase/firestore';
 import TopBar from '@/components/layout/TopBar';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const TARGET = [
   { name: 'Joselin',   dow: 2, newHour: 20 },
@@ -102,7 +103,7 @@ export default function SwapSchedulePage() {
         const batch = writeBatch(db);
         toCancel.forEach((d: QueryDocumentSnapshot<DocumentData>) => {
           const data = d.data();
-          lines.push(`❌ Cancelado: ${data.studentName} ${DOW[data.dayOfWeek]} ${data.hour}:00`);
+          lines.push(`Cancelado: ${data.studentName} ${DOW[data.dayOfWeek]} ${data.hour}:00`);
           batch.update(d.ref, {
             status: 'cancelled',
             cancellationReason: 'Cambio de horario',
@@ -141,7 +142,7 @@ export default function SwapSchedulePage() {
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'America/Santiago',
           createdAt: serverTimestamp(),
         });
-        lines.push(`✅ Creado: ${t.name} ${DOW[t.dow]} ${t.newHour}:00`);
+        lines.push(`Creado: ${t.name} ${DOW[t.dow]} ${t.newHour}:00`);
       }
 
       setLog(lines);
@@ -156,7 +157,7 @@ export default function SwapSchedulePage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="🔄 Cambio de Horario"
+        title="Cambio de Horario"
         subtitle="Joselin → 20:00 · Guillermo → 19:00 (Martes y Jueves)"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
@@ -167,7 +168,7 @@ export default function SwapSchedulePage() {
         <div className="max-w-xl mx-auto space-y-4">
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800">
-            <p className="font-bold mb-1">⚠️ Utilidad de un solo uso</p>
+            <p className="font-bold mb-1 inline-flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" strokeWidth={2.25} /> Utilidad de un solo uso</p>
             <p>Cancela los turnos actuales de Joselin y Guillermo (Martes y Jueves) desde esta semana en adelante y crea los nuevos horarios:</p>
             <ul className="mt-2 space-y-0.5 list-disc list-inside">
               <li>Joselin → Martes 20:00 y Jueves 20:00</li>
@@ -217,7 +218,7 @@ export default function SwapSchedulePage() {
                 <p className="font-bold mb-2">Se crearán desde esta semana:</p>
                 <ul className="space-y-0.5">
                   {TARGET.map((t, i) => (
-                    <li key={i}>✅ {t.name} — {DOW[t.dow]} {t.newHour}:00</li>
+                    <li key={i} className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {t.name} — {DOW[t.dow]} {t.newHour}:00</li>
                   ))}
                 </ul>
               </div>
@@ -249,7 +250,7 @@ export default function SwapSchedulePage() {
           {status === 'done' && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-                <p className="font-bold text-green-700 mb-3">✅ Cambio completado</p>
+                <p className="font-bold text-green-700 mb-3 inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" strokeWidth={2.5} /> Cambio completado</p>
                 <ul className="space-y-1">
                   {log.map((l, i) => <li key={i} className="text-sm text-gray-700">{l}</li>)}
                 </ul>

@@ -2,14 +2,27 @@
 // FriendlyTeaching.cl — Teacher Help: Tutoriales
 import { useState } from 'react';
 import Image from 'next/image';
+import {
+  Link2,
+  Calendar,
+  Hand,
+  Package,
+  Star,
+  CheckCircle2,
+  Settings,
+  Lightbulb,
+  Check,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 
 // ── Tutorial data ───────────────────────────────────────────────────
 
-const TUTORIALS: { id: string; icon: string; title: string; description: string; Content: React.ComponentType }[] = [
+const TUTORIALS: { id: string; Icon: LucideIcon; title: string; description: string; Content: React.ComponentType }[] = [
   {
     id: 'fusionar-nombres',
-    icon: '🔗',
+    Icon: Link2,
     title: 'Cómo fusionar nombres duplicados',
     description: 'Unifica en un solo nombre a los estudiantes que aparecen escritos de forma distinta en tu horario.',
     Content: FusionarNombresTutorial,
@@ -49,8 +62,8 @@ export default function TeacherHelpPage() {
 
           {/* Accordion list */}
           <div className="space-y-3">
-            {TUTORIALS.map(({ id, icon, title, description, Content }) => (
-              <TutorialAccordion key={id} tutorial={{ icon, title, description, Content }} />
+            {TUTORIALS.map(({ id, Icon, title, description, Content }) => (
+              <TutorialAccordion key={id} tutorial={{ Icon, title, description, Content }} />
             ))}
           </div>
 
@@ -70,9 +83,10 @@ export default function TeacherHelpPage() {
 function TutorialAccordion({
   tutorial,
 }: {
-  tutorial: { icon: string; title: string; description: string; Content: React.ComponentType };
+  tutorial: { Icon: LucideIcon; title: string; description: string; Content: React.ComponentType };
 }) {
   const [open, setOpen] = useState(false);
+  const { Icon, Content } = tutorial;
 
   return (
     <div className={`rounded-2xl border-2 transition-all duration-300 overflow-hidden bg-white
@@ -83,9 +97,9 @@ function TutorialAccordion({
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-4 px-5 py-4 text-left group"
       >
-        <span className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all
-          ${open ? 'bg-[#5A3D7A] text-white shadow-sm' : 'bg-[#F0E5FF] group-hover:bg-[#5A3D7A] group-hover:text-white'}`}>
-          {tutorial.icon}
+        <span className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
+          ${open ? 'bg-[#5A3D7A] text-white shadow-sm' : 'bg-[#F0E5FF] text-[#5A3D7A] group-hover:bg-[#5A3D7A] group-hover:text-white'}`}>
+          <Icon className="w-5 h-5" strokeWidth={2.25} />
         </span>
 
         <div className="flex-1 min-w-0">
@@ -108,7 +122,7 @@ function TutorialAccordion({
       <div className={`transition-all duration-500 ease-in-out ${open ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
         {open && (
           <div className="border-t border-[#F0E5FF] px-5 py-6 space-y-5">
-            <tutorial.Content />
+            <Content />
           </div>
         )}
       </div>
@@ -121,20 +135,20 @@ function TutorialAccordion({
 function FusionarNombresTutorial() {
   return (
     <div className="space-y-4">
-      <StepCard number={1} emoji="📅" title="Ve a tu Horario Semanal" color="purple">
+      <StepCard number={1} Icon={Calendar} title="Ve a tu Horario Semanal" color="purple">
         <p>En el menú lateral izquierdo, haz clic en <Strong>Horario</Strong>.</p>
-        <MockNavItem icon="📅" label="Horario" />
+        <MockNavItem Icon={Calendar} label="Horario" />
       </StepCard>
 
-      <StepCard number={2} emoji="🔗" title='Haz clic en "Fusionar nombres"' color="violet">
-        <p>En la parte superior del horario verás el botón <Strong>🔗 Fusionar nombres</Strong>.</p>
+      <StepCard number={2} Icon={Link2} title='Haz clic en "Fusionar nombres"' color="violet">
+        <p>En la parte superior del horario verás el botón <Strong><Link2 className="inline w-3.5 h-3.5" /> Fusionar nombres</Strong>.</p>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <MockButton>🔗 Fusionar nombres</MockButton>
-          <MockButton muted>⚙️ Disponibilidad</MockButton>
+          <MockButton><Link2 className="inline w-3.5 h-3.5 mr-1" /> Fusionar nombres</MockButton>
+          <MockButton muted><Settings className="inline w-3.5 h-3.5 mr-1" /> Disponibilidad</MockButton>
         </div>
       </StepCard>
 
-      <StepCard number={3} emoji="👈" title="Selecciona los nombres duplicados" color="pink">
+      <StepCard number={3} Icon={Hand} title="Selecciona los nombres duplicados" color="pink">
         <p>Toca los nombres de la columna izquierda que son la misma persona — se pondrán en azul.</p>
         <div className="space-y-1.5 mt-2">
           <NameChip name="Mila Mo" selected />
@@ -144,16 +158,16 @@ function FusionarNombresTutorial() {
         <Tip>Puedes seleccionar 2 o más antes de agrupar.</Tip>
       </StepCard>
 
-      <StepCard number={4} emoji="📦" title='Haz clic en "Agrupar"' color="purple">
-        <p>Aparecerá el botón <Strong>🔗 Agrupar X nombres</Strong>. Repite para cada par de duplicados.</p>
+      <StepCard number={4} Icon={Package} title='Haz clic en "Agrupar"' color="purple">
+        <p>Aparecerá el botón <Strong><Link2 className="inline w-3.5 h-3.5" /> Agrupar X nombres</Strong>. Repite para cada par de duplicados.</p>
         <div className="flex justify-center mt-2">
-          <div className="bg-[#5A3D7A] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md">
-            🔗 Agrupar 2 nombres
+          <div className="bg-[#5A3D7A] text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md inline-flex items-center gap-1.5">
+            <Link2 className="w-4 h-4" strokeWidth={2.25} /> Agrupar 2 nombres
           </div>
         </div>
       </StepCard>
 
-      <StepCard number={5} emoji="⭐" title="Elige cuál nombre conservar" color="violet">
+      <StepCard number={5} Icon={Star} title="Elige cuál nombre conservar" color="violet">
         <p>En la columna derecha, toca el nombre que quieres <Strong>conservar</Strong>.</p>
         <div className="space-y-1.5 mt-2">
           <CanonicalChip name="Mila Mo" isCanonical />
@@ -162,21 +176,21 @@ function FusionarNombresTutorial() {
         <Tip>Por defecto se elige el nombre más largo (con apellido completo).</Tip>
       </StepCard>
 
-      <StepCard number={6} emoji="🔗" title="Fusionar todo" color="pink">
+      <StepCard number={6} Icon={Link2} title="Fusionar todo" color="pink">
         <p>
-          Haz clic en <Strong>🔗 Fusionar</Strong>. Se actualizarán las clases del horario
+          Haz clic en <Strong><Link2 className="inline w-3.5 h-3.5" /> Fusionar</Strong>. Se actualizarán las clases del horario
           y el historial completo sin pérdida de datos.
         </p>
         <div className="bg-[#F9F5FF] border border-[#E8DAFF] rounded-2xl p-3 mt-2 space-y-1.5 text-sm text-gray-600">
-          <p>✅ Clases del <Strong>horario</Strong> actualizadas</p>
-          <p>✅ <Strong>Historial</Strong> unificado</p>
+          <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.25} /> Clases del <Strong>horario</Strong> actualizadas</p>
+          <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.25} /> <Strong>Historial</Strong> unificado</p>
         </div>
       </StepCard>
 
-      <StepCard number={7} emoji="✅" title="¡Listo!" color="green">
+      <StepCard number={7} Icon={CheckCircle2} title="¡Listo!" color="green">
         <p>Cierra la ventana y el horario mostrará los nombres unificados.</p>
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center mt-2">
-          <p className="text-2xl mb-1">✅</p>
+          <CheckCircle2 className="w-6 h-6 mx-auto mb-1 text-green-500" strokeWidth={2.25} />
           <p className="font-bold text-gray-800 text-sm">Registros actualizados</p>
         </div>
       </StepCard>
@@ -197,11 +211,11 @@ function FusionarNombresTutorial() {
             ['Mila Mo',        'Mila Mogollón'],
           ].map(([v, c]) => (
             <div key={v} className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 text-xs">
-              <span className="text-red-400 font-mono">✗</span>
+              <X className="w-3.5 h-3.5 text-red-400 flex-shrink-0" strokeWidth={2.5} />
               <span className="text-gray-400 flex-1">{v}</span>
               <span className="text-[#9B7CB8]">→</span>
               <span className="font-semibold text-[#5A3D7A] flex-1 text-right">{c}</span>
-              <span className="text-green-500 font-mono">✓</span>
+              <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" strokeWidth={2.5} />
             </div>
           ))}
         </div>
@@ -212,16 +226,16 @@ function FusionarNombresTutorial() {
 
 // ── Shared micro-components ─────────────────────────────────────────
 
-function StepCard({ number, emoji, title, color, children }: {
-  number: number; emoji: string; title: string;
+function StepCard({ number, Icon, title, color, children }: {
+  number: number; Icon: LucideIcon; title: string;
   color: 'purple' | 'violet' | 'pink' | 'green';
   children: React.ReactNode;
 }) {
   const p = {
-    purple: { ring: 'border-[#C8A8DC]', num: 'bg-[#5A3D7A] text-white', bg: 'bg-[#F9F5FF]' },
-    violet: { ring: 'border-[#B89FD8]', num: 'bg-[#7B5EA7] text-white', bg: 'bg-[#F4EEFF]' },
-    pink:   { ring: 'border-[#E8A8D0]', num: 'bg-[#C0609A] text-white', bg: 'bg-[#FFF0F8]' },
-    green:  { ring: 'border-[#86C8A0]', num: 'bg-[#3D9A65] text-white', bg: 'bg-[#F0FFF6]' },
+    purple: { ring: 'border-[#C8A8DC]', num: 'bg-[#5A3D7A] text-white', bg: 'bg-[#F9F5FF]', icon: 'text-[#5A3D7A]' },
+    violet: { ring: 'border-[#B89FD8]', num: 'bg-[#7B5EA7] text-white', bg: 'bg-[#F4EEFF]', icon: 'text-[#7B5EA7]' },
+    pink:   { ring: 'border-[#E8A8D0]', num: 'bg-[#C0609A] text-white', bg: 'bg-[#FFF0F8]', icon: 'text-[#C0609A]' },
+    green:  { ring: 'border-[#86C8A0]', num: 'bg-[#3D9A65] text-white', bg: 'bg-[#F0FFF6]', icon: 'text-[#3D9A65]' },
   }[color];
   return (
     <div className={`rounded-2xl border-2 ${p.ring} ${p.bg} px-4 py-4 space-y-2`}>
@@ -229,7 +243,7 @@ function StepCard({ number, emoji, title, color, children }: {
         <div className={`w-7 h-7 rounded-full ${p.num} flex items-center justify-center text-xs font-extrabold flex-shrink-0 shadow-sm`}>
           {number}
         </div>
-        <span className="text-lg">{emoji}</span>
+        <Icon className={`w-5 h-5 ${p.icon}`} strokeWidth={2.25} />
         <h3 className="font-bold text-[#3D1F6B] text-sm">{title}</h3>
       </div>
       <div className="text-sm text-gray-600 space-y-2 leading-relaxed pl-10">
@@ -246,16 +260,18 @@ function Strong({ children }: { children: React.ReactNode }) {
 function Tip({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2 bg-white/70 border border-[#E8DAFF] rounded-xl px-3 py-2 mt-1 text-xs text-[#7B5EA7]">
-      <span className="flex-shrink-0 mt-0.5">💡</span>
+      <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" strokeWidth={2.25} />
       <span>{children}</span>
     </div>
   );
 }
 
-function MockNavItem({ icon, label }: { icon: string; label: string }) {
+function MockNavItem({ Icon, label }: { Icon: LucideIcon; label: string }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#F0E5FF] w-fit mt-2">
-      <span className="w-6 h-6 rounded-lg bg-[#5A3D7A] text-white flex items-center justify-center text-xs">{icon}</span>
+      <span className="w-6 h-6 rounded-lg bg-[#5A3D7A] text-white flex items-center justify-center">
+        <Icon className="w-3.5 h-3.5" strokeWidth={2.25} />
+      </span>
       <span className="text-sm font-semibold text-[#3D1F6B]">{label}</span>
     </div>
   );
@@ -263,7 +279,7 @@ function MockNavItem({ icon, label }: { icon: string; label: string }) {
 
 function MockButton({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
   return (
-    <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${muted ? 'bg-gray-100 text-gray-500' : 'bg-[#F0E5FF] text-[#5A3D7A]'}`}>
+    <span className={`text-sm font-semibold px-3 py-1.5 rounded-full inline-flex items-center ${muted ? 'bg-gray-100 text-gray-500' : 'bg-[#F0E5FF] text-[#5A3D7A]'}`}>
       {children}
     </span>
   );
@@ -274,8 +290,8 @@ function NameChip({ name, selected }: { name: string; selected?: boolean }) {
     <div className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm border-2
       ${selected ? 'bg-[#5A3D7A] border-[#5A3D7A] text-white font-semibold' : 'bg-white border-[#E0D5FF] text-gray-500'}`}>
       <span>{name}</span>
-      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${selected ? 'bg-white/20' : 'bg-gray-100 text-gray-400'}`}>
-        {selected ? '✓ seleccionado' : 'toca para seleccionar'}
+      <span className={`text-[10px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-1 ${selected ? 'bg-white/20' : 'bg-gray-100 text-gray-400'}`}>
+        {selected ? <><Check className="w-3 h-3" strokeWidth={2.5} /> seleccionado</> : 'toca para seleccionar'}
       </span>
     </div>
   );

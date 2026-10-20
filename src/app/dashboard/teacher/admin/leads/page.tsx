@@ -10,6 +10,7 @@ import {
   type QueryDocumentSnapshot, type FirestoreError,
 } from 'firebase/firestore';
 import TopBar from '@/components/layout/TopBar';
+import { Lock, MailX, Mail, MessageSquare } from 'lucide-react';
 
 const ALLOWED_EMAILS = ['ifraufigueroa@gmail.com', 'aranxa.brunam@gmail.com'];
 
@@ -124,7 +125,7 @@ export default function LeadsPage() {
         <TopBar title="Leads" subtitle="Solicitudes de evaluación gratuita" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md text-center space-y-3">
-            <p className="text-4xl">🔒</p>
+            <Lock className="w-10 h-10 mx-auto text-gray-400" strokeWidth={2.25} />
             <p className="font-bold text-gray-700">Acceso restringido</p>
             <p className="text-sm text-gray-500">Esta sección solo está disponible para Ignacio y Aranxa.</p>
           </div>
@@ -183,7 +184,7 @@ export default function LeadsPage() {
 
         {!loading && filtered.length === 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center space-y-2">
-            <p className="text-4xl">📭</p>
+            <MailX className="w-10 h-10 mx-auto text-gray-400" strokeWidth={2.25} />
             <p className="font-bold text-gray-700">Sin leads {filter !== 'all' && `en "${STATUS_META[filter].label}"`}</p>
             <p className="text-sm text-gray-400">
               Las nuevas solicitudes del formulario de la landing aparecerán aquí en tiempo real.
@@ -213,8 +214,8 @@ export default function LeadsPage() {
                         {meta.label}
                       </span>
                       {!lead.emailSent && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-100" title={lead.emailError ?? ''}>
-                          ✉ no enviado
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-100 inline-flex items-center gap-1" title={lead.emailError ?? ''}>
+                          <MailX className="w-3 h-3" strokeWidth={2.5} /> no enviado
                         </span>
                       )}
                       {lead.plan && (
@@ -263,17 +264,17 @@ export default function LeadsPage() {
                           href={`https://wa.me/${wapp}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white transition-colors"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white transition-colors inline-flex items-center gap-1.5"
                         >
-                          💬 WhatsApp
+                          <MessageSquare className="w-3.5 h-3.5" strokeWidth={2.5} /> WhatsApp
                         </a>
                       )}
                       {lead.email && (
                         <a
                           href={`mailto:${lead.email}?subject=${encodeURIComponent('FriendlyTeaching — Evaluación gratuita')}`}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-white transition-colors"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-white transition-colors inline-flex items-center gap-1.5"
                         >
-                          ✉ Responder email
+                          <Mail className="w-3.5 h-3.5" strokeWidth={2.5} /> Responder email
                         </a>
                       )}
                     </div>

@@ -41,7 +41,7 @@ export default function DashboardPage() {
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
         <p className="text-[#9B7CB8] font-semibold">
-          {profile ? `Bienvenido, ${profile.fullName?.split(' ')[0] ?? profile.email?.split('@')[0] ?? ''} 👋` : 'Redirigiendo...'}
+          {profile ? `Bienvenido, ${profile.fullName?.split(' ')[0] ?? profile.email?.split('@')[0] ?? ''}` : 'Redirigiendo...'}
         </p>
       </div>
     </div>

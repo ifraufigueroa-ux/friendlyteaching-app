@@ -7,6 +7,7 @@ import { seedTeacherSchedule } from '@/hooks/useBookings';
 import { auth, db } from '@/lib/firebase/config';
 import { collection, query, where, getDocs, writeBatch, serverTimestamp, Timestamp, type QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import TopBar from '@/components/layout/TopBar';
+import { CalendarDays, AlertTriangle, Mic, PartyPopper, XCircle, Shuffle, Trash2, CheckCircle2 } from 'lucide-react';
 
 // ── Type ─────────────────────────────────────────────────────────────────────
 type SlotDef = { dow: number; hour: number; minute?: number; name: string; isRecurring: boolean; bookingType?: 'class' | 'interview' };
@@ -266,7 +267,7 @@ export default function SeedSchedulePage() {
         />
         <div className="flex-1 p-6 flex items-center justify-center">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center space-y-4">
-            <p className="text-4xl">🗓️</p>
+            <CalendarDays className="w-10 h-10 mx-auto text-gray-400" strokeWidth={2.25} />
             <p className="font-bold text-gray-700 text-lg">Horario no configurado</p>
             <p className="text-sm text-gray-500">
               El horario de <strong>{teacherName}</strong> aún no ha sido cargado en el sistema.
@@ -293,7 +294,7 @@ export default function SeedSchedulePage() {
 
         {/* ── Info banner ── */}
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex gap-3">
-          <span className="text-2xl flex-shrink-0">⚠️</span>
+          <AlertTriangle className="w-6 h-6 flex-shrink-0 text-amber-600" strokeWidth={2.25} />
           <div>
             <p className="font-bold text-amber-800 text-sm">Esta operación es irreversible</p>
             <p className="text-xs text-amber-700 mt-0.5">
@@ -311,7 +312,7 @@ export default function SeedSchedulePage() {
             <div className="flex gap-3 text-xs text-gray-500">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#C8A8DC] inline-block"/>↻ Recurrente</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#FFB8D9] inline-block"/>• Única vez</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#FFB347] inline-block"/>🎙 Entrevista</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#FFB347] inline-block"/><Mic className="w-3 h-3" strokeWidth={2.5} /> Entrevista</span>
             </div>
           </div>
           <table className="w-full text-xs border-collapse">
@@ -398,7 +399,7 @@ export default function SeedSchedulePage() {
 
           {status === 'done' && result && (
             <div className="text-center space-y-3">
-              <p className="text-4xl">🎉</p>
+              <PartyPopper className="w-10 h-10 mx-auto text-[#5A3D7A]" strokeWidth={2.25} />
               <p className="font-bold text-[#5A3D7A] text-lg">¡Horario registrado exitosamente!</p>
               <div className="flex justify-center gap-6 text-sm">
                 <div className="text-center">
@@ -421,7 +422,7 @@ export default function SeedSchedulePage() {
 
           {status === 'error' && (
             <div className="text-center space-y-3">
-              <p className="text-4xl">❌</p>
+              <XCircle className="w-10 h-10 mx-auto text-red-500" strokeWidth={2.25} />
               <p className="font-bold text-red-600 text-sm">Error al registrar el horario</p>
               <p className="text-xs text-red-500 bg-red-50 rounded-xl px-4 py-2">{error}</p>
               <button
@@ -437,7 +438,7 @@ export default function SeedSchedulePage() {
         {/* ── Name merge tool ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
           <div>
-            <p className="font-bold text-gray-700 text-sm">🔀 Unificar nombres duplicados</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Shuffle className="w-4 h-4" strokeWidth={2.25} /> Unificar nombres duplicados</p>
             <p className="text-xs text-gray-400 mt-0.5">
               Detecta nombres cortos que son prefijos de nombres completos (ej. &ldquo;Magdalena&rdquo; → &ldquo;Magdalena Barrios&rdquo;)
               y actualiza todos los bookings para usar el nombre completo.
@@ -501,7 +502,7 @@ export default function SeedSchedulePage() {
 
           {mergeStatus === 'done' && (
             <div className="text-center space-y-1">
-              <p className="text-2xl">✅</p>
+              <CheckCircle2 className="w-6 h-6 mx-auto text-green-600" strokeWidth={2.25} />
               <p className="text-sm font-bold text-gray-700">{mergeCount} booking{mergeCount !== 1 ? 's' : ''} actualizados.</p>
               <button onClick={() => { setMergeStatus('idle'); setMergePairs([]); }}
                 className="text-xs text-gray-400 underline">Cerrar</button>
@@ -520,7 +521,7 @@ export default function SeedSchedulePage() {
         {/* ── History cleanup ── */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
           <div>
-            <p className="font-bold text-gray-700 text-sm">🗑️ Limpiar historial antiguo</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Trash2 className="w-4 h-4" strokeWidth={2.25} /> Limpiar historial antiguo</p>
             <p className="text-xs text-gray-400 mt-0.5">
               Elimina todos los registros de <code>classHistory</code> con fecha anterior a hoy.
             </p>
@@ -562,7 +563,7 @@ export default function SeedSchedulePage() {
 
           {cleanupStatus === 'done' && (
             <div className="text-center space-y-1">
-              <p className="text-2xl">✅</p>
+              <CheckCircle2 className="w-6 h-6 mx-auto text-green-600" strokeWidth={2.25} />
               <p className="text-sm font-bold text-gray-700">
                 {cleanupCount === 0 ? 'No había registros anteriores a hoy.' : `${cleanupCount} registros eliminados.`}
               </p>

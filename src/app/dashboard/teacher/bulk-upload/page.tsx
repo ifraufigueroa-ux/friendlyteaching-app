@@ -19,6 +19,7 @@ import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
 import TopBar from '@/components/layout/TopBar';
 import type { Lesson, Course, LessonLevel } from '@/types/firebase';
+import { Download, Upload, FolderOpen, CheckCircle2, Hourglass, Check, X, Ban } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export default function BulkUploadPage() {
         return;
       }
       if (valid.length < arr.length) {
-        setParseError(`⚠️ ${arr.length - valid.length} ítem(s) ignorados por falta de code, title o slides.`);
+        setParseError(`${arr.length - valid.length} ítem(s) ignorados por falta de code, title o slides.`);
       }
       setParsed(valid);
     } catch (e) {
@@ -237,7 +238,7 @@ export default function BulkUploadPage() {
   return (
     <div className="min-h-screen p-6">
       <TopBar
-        title="📥 Carga masiva de lecciones"
+        title="Carga masiva de lecciones"
         subtitle="Importa lecciones desde un archivo .json directamente a Firestore"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -256,7 +257,7 @@ export default function BulkUploadPage() {
             onClick={() => fileInputRef.current?.click()}
             className="border-2 border-dashed border-[#C8A8DC] rounded-2xl p-6 text-center cursor-pointer hover:bg-[#F9F5FF] transition-colors"
           >
-            <p className="text-3xl mb-2">📂</p>
+            <FolderOpen className="w-10 h-10 mx-auto mb-2 text-[#5A3D7A]" strokeWidth={2.25} />
             <p className="text-sm font-semibold text-[#5A3D7A]">Arrastra un archivo .json aquí</p>
             <p className="text-xs text-gray-400 mt-1">o haz clic para seleccionar</p>
             <input
@@ -292,8 +293,8 @@ export default function BulkUploadPage() {
           {/* Options */}
           {parsed.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
-              <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-                ✅ {parsed.length} lección(es) válidas detectadas
+              <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider inline-flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {parsed.length} lección(es) válidas detectadas
               </p>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -307,9 +308,11 @@ export default function BulkUploadPage() {
               <button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="w-full py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
               >
-                {uploading ? '⏳ Subiendo...' : `📤 Subir ${parsed.length} lección(es) a Firestore`}
+                {uploading
+                  ? <><Hourglass className="w-4 h-4" strokeWidth={2.25} /> Subiendo...</>
+                  : <><Upload className="w-4 h-4" strokeWidth={2.25} /> Subir {parsed.length} lección(es) a Firestore</>}
               </button>
             </div>
           )}
@@ -325,9 +328,9 @@ export default function BulkUploadPage() {
                 a.href = url; a.download = 'ejemplo_leccion.json'; a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] underline"
+              className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] underline inline-flex items-center gap-1.5"
             >
-              ⬇ Descargar ejemplo (ejemplo_leccion.json)
+              <Download className="w-3.5 h-3.5" strokeWidth={2.5} /> Descargar ejemplo (ejemplo_leccion.json)
             </button>
           </div>
         </div>
@@ -363,8 +366,8 @@ export default function BulkUploadPage() {
                         {l.level} · {l.slides?.length ?? 0} slides · {l.duration ?? '?'} min
                       </p>
                     </div>
-                    <span className="text-[10px] bg-white rounded-full px-2 py-0.5 text-gray-400 border border-gray-100 flex-shrink-0">
-                      {l.isPublished ? '✓ pub' : 'draft'}
+                    <span className="text-[10px] bg-white rounded-full px-2 py-0.5 text-gray-400 border border-gray-100 flex-shrink-0 inline-flex items-center gap-1">
+                      {l.isPublished ? <><Check className="w-3 h-3" strokeWidth={2.5} /> pub</> : 'draft'}
                     </span>
                   </div>
                 ))}
@@ -378,9 +381,9 @@ export default function BulkUploadPage() {
               <div className="flex items-center gap-3 mb-3">
                 <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">Resultado</p>
                 <div className="flex gap-2 text-xs">
-                  {okCount > 0 && <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">✓ {okCount} ok</span>}
-                  {errCount > 0 && <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full">✗ {errCount} error</span>}
-                  {skipCount > 0 && <span className="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">⊘ {skipCount} omitidas</span>}
+                  {okCount > 0 && <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"><Check className="w-3 h-3" strokeWidth={2.5} /> {okCount} ok</span>}
+                  {errCount > 0 && <span className="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"><X className="w-3 h-3" strokeWidth={2.5} /> {errCount} error</span>}
+                  {skipCount > 0 && <span className="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"><Ban className="w-3 h-3" strokeWidth={2.5} /> {skipCount} omitidas</span>}
                 </div>
               </div>
               <div className="space-y-1.5 max-h-72 overflow-y-auto">
@@ -393,7 +396,11 @@ export default function BulkUploadPage() {
                     }`}
                   >
                     <span className="flex-shrink-0 font-bold">
-                      {r.status === 'ok' ? '✓' : r.status === 'error' ? '✗' : '⊘'}
+                      {r.status === 'ok'
+                        ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        : r.status === 'error'
+                        ? <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        : <Ban className="w-3.5 h-3.5" strokeWidth={2.5} />}
                     </span>
                     <div className="min-w-0">
                       <span className="font-mono text-[10px] text-gray-500">{r.code}</span>

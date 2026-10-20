@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { FTUser } from '@/types/firebase';
+import { Eye } from 'lucide-react';
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 9); // 9–21
@@ -110,7 +111,7 @@ function MonitorContent() {
       {/* Monitor banner */}
       <div className="bg-[#5A3D7A] text-white px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-lg">👁️</span>
+          <Eye className="w-5 h-5" strokeWidth={2.25} />
           <div>
             <p className="text-xs opacity-70 font-medium">Monitoreando</p>
             <p className="font-bold">{teacherName}</p>

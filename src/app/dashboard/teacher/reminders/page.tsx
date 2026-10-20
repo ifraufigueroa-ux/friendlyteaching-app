@@ -2,6 +2,7 @@
 // Send email + WhatsApp reminders to students before their upcoming classes.
 'use client';
 import { useState, useMemo } from 'react';
+import { MessageCircle, Mail, Check, Lightbulb, PartyPopper, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
 import { useBookings } from '@/hooks/useBookings';
@@ -24,7 +25,7 @@ function buildWhatsAppMsg(
     ? `en 1 hora (${hour}:00)`
     : `mañana ${day} a las ${hour}:00`;
   return encodeURIComponent(
-    `¡Hola ${studentName}! 👋 Te recuerdo que tenemos clase de inglés ${when}. ¡Nos vemos! 🎓\n— ${teacherName}`
+    `¡Hola ${studentName}! Te recuerdo que tenemos clase de inglés ${when}. ¡Nos vemos!\n— ${teacherName}`
   );
 }
 
@@ -101,8 +102,8 @@ function ReminderRow({
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          {phone && <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">📱 WhatsApp</span>}
-          {email && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">📧 Email</span>}
+          {phone && <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" strokeWidth={2.5} /> WhatsApp</span>}
+          {email && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</span>}
           {!phone && !email && <span className="text-[10px] text-gray-400 italic">Sin contacto</span>}
         </div>
       </div>
@@ -118,22 +119,22 @@ function ReminderRow({
                 href={wa24}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#075E54] rounded-lg text-[10px] font-bold text-center transition-colors"
+                className="flex-1 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#075E54] rounded-lg text-[10px] font-bold text-center transition-colors inline-flex items-center justify-center gap-1"
               >
-                📱 WhatsApp
+                <MessageCircle className="w-3 h-3" strokeWidth={2.5} /> WhatsApp
               </a>
             )}
             {email && (
               <button
                 onClick={() => sendEmail(24)}
                 disabled={sending24 || !!sent['email-24']}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors inline-flex items-center justify-center gap-1 ${
                   sent['email-24']
                     ? 'bg-green-100 text-green-700'
                     : 'bg-blue-50 hover:bg-blue-100 text-blue-700 disabled:opacity-50'
                 }`}
               >
-                {sent['email-24'] ? '✓ Enviado' : sending24 ? '...' : '📧 Email'}
+                {sent['email-24'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Enviado</> : sending24 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
               </button>
             )}
           </div>
@@ -148,22 +149,22 @@ function ReminderRow({
                 href={wa1}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#075E54] rounded-lg text-[10px] font-bold text-center transition-colors"
+                className="flex-1 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#075E54] rounded-lg text-[10px] font-bold text-center transition-colors inline-flex items-center justify-center gap-1"
               >
-                📱 WhatsApp
+                <MessageCircle className="w-3 h-3" strokeWidth={2.5} /> WhatsApp
               </a>
             )}
             {email && (
               <button
                 onClick={() => sendEmail(1)}
                 disabled={sending1 || !!sent['email-1']}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-colors inline-flex items-center justify-center gap-1 ${
                   sent['email-1']
                     ? 'bg-green-100 text-green-700'
                     : 'bg-blue-50 hover:bg-blue-100 text-blue-700 disabled:opacity-50'
                 }`}
               >
-                {sent['email-1'] ? '✓ Enviado' : sending1 ? '...' : '📧 Email'}
+                {sent['email-1'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Enviado</> : sending1 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
               </button>
             )}
           </div>
@@ -227,7 +228,7 @@ export default function RemindersPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="🔔 Recordatorios"
+        title="Recordatorios"
         subtitle="Envía recordatorios de clase por WhatsApp o email"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
@@ -239,7 +240,7 @@ export default function RemindersPage() {
 
         {/* Info banner */}
         <div className="bg-[#F0E5FF] border border-[#C8A8DC] rounded-2xl px-4 py-3 flex items-start gap-3">
-          <span className="text-2xl flex-shrink-0">💡</span>
+          <Lightbulb className="w-5 h-5 flex-shrink-0 text-[#5A3D7A] mt-0.5" strokeWidth={2.25} />
           <div className="text-xs text-[#5A3D7A]">
             <p className="font-bold mb-1">Recordatorios manuales</p>
             <p className="text-[#7A5A9A]">
@@ -276,7 +277,7 @@ export default function RemindersPage() {
         {/* Class list */}
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-4xl mb-3">🎉</p>
+            <PartyPopper className="w-10 h-10 mx-auto mb-3 text-[#C8A8DC]" strokeWidth={2} />
             <p className="text-gray-500 text-sm">No hay más clases esta semana.</p>
           </div>
         ) : (
@@ -309,7 +310,7 @@ export default function RemindersPage() {
           if (missing.length === 0) return null;
           return (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <p className="text-xs font-bold text-amber-700 mb-1">⚠️ Estudiantes sin datos de contacto</p>
+              <p className="text-xs font-bold text-amber-700 mb-1 inline-flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /> Estudiantes sin datos de contacto</p>
               <p className="text-xs text-amber-600">
                 {missing.map(e => e.name).join(', ')} — pídeles que actualicen su perfil.
               </p>

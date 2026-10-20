@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { createBooking } from '@/hooks/useBookings';
 import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
+import { ClipboardList, AlertTriangle, Rocket, PartyPopper } from 'lucide-react';
 
 // ── Schedule from image ──────────────────────────────────────────
 // dow: 1=Lun 2=Mar 3=Mié 4=Jue 5=Vie 6=Sáb
@@ -113,8 +114,8 @@ export default function SeedSchedulePage() {
 
           {/* Preview table */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <p className="font-bold text-[#5A3D7A] mb-4">
-              📋 {SCHEDULE.length} clases a importar
+            <p className="font-bold text-[#5A3D7A] mb-4 inline-flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" strokeWidth={2.25} /> {SCHEDULE.length} clases a importar
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -149,15 +150,15 @@ export default function SeedSchedulePage() {
           {status === 'idle' && (
             <div className="space-y-3">
               {!profile?.uid && (
-                <p className="text-amber-600 text-sm bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-center">
-                  ⚠️ Cargando perfil... si el botón no responde, recarga la página.
+                <p className="text-amber-600 text-sm bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-center inline-flex items-center justify-center gap-2">
+                  <AlertTriangle className="w-4 h-4" strokeWidth={2.25} /> Cargando perfil... si el botón no responde, recarga la página.
                 </p>
               )}
               <button
                 onClick={handleImport}
-                className="w-full py-4 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white font-extrabold text-base rounded-2xl shadow-md transition-all hover:-translate-y-0.5"
+                className="w-full py-4 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white font-extrabold text-base rounded-2xl shadow-md transition-all hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
               >
-                🚀 Importar Horario Ahora
+                <Rocket className="w-5 h-5" strokeWidth={2.25} /> Importar Horario Ahora
               </button>
             </div>
           )}
@@ -177,7 +178,7 @@ export default function SeedSchedulePage() {
 
           {status === 'done' && (
             <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
-              <p className="text-4xl mb-2">🎉</p>
+              <PartyPopper className="w-10 h-10 mx-auto mb-2 text-green-600" strokeWidth={2.25} />
               <p className="font-bold text-green-700 text-lg">¡Horario importado exitosamente!</p>
               <p className="text-green-600 text-sm mt-1 mb-4">
                 {SCHEDULE.length} clases cargadas. Las recurrentes se repiten por 8 semanas.

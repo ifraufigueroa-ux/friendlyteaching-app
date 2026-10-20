@@ -9,6 +9,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
 import type { Booking } from '@/types/firebase';
+import { Search, Trash2, Check } from 'lucide-react';
 
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -117,22 +118,22 @@ export default function CleanupPage() {
           <button
             onClick={() => runCleanup(true)}
             disabled={loading || !teacherId}
-            className="px-5 py-2.5 rounded-xl border-2 border-[#5A3D7A] text-[#5A3D7A] font-semibold text-sm hover:bg-[#F0E5FF] transition-colors disabled:opacity-40"
+            className="px-5 py-2.5 rounded-xl border-2 border-[#5A3D7A] text-[#5A3D7A] font-semibold text-sm hover:bg-[#F0E5FF] transition-colors disabled:opacity-40 inline-flex items-center gap-2"
           >
-            {loading ? 'Analizando...' : '🔍 Analizar (sin borrar)'}
+            {loading ? 'Analizando...' : <><Search className="w-4 h-4" strokeWidth={2.25} /> Analizar (sin borrar)</>}
           </button>
           <button
             onClick={() => runCleanup(false)}
             disabled={loading || !teacherId}
-            className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm transition-colors disabled:opacity-40"
+            className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm transition-colors disabled:opacity-40 inline-flex items-center gap-2"
           >
-            {loading ? 'Limpiando...' : '🗑 Limpiar ahora'}
+            {loading ? 'Limpiando...' : <><Trash2 className="w-4 h-4" strokeWidth={2.25} /> Limpiar ahora</>}
           </button>
         </div>
 
         {done && results.length === 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-green-700 font-medium">
-            ✓ No se encontraron datos basura. Todo limpio.
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-green-700 font-medium inline-flex items-center gap-2">
+            <Check className="w-4 h-4" strokeWidth={2.5} /> No se encontraron datos basura. Todo limpio.
           </div>
         )}
 

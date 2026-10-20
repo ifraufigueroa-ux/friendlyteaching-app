@@ -16,6 +16,7 @@ import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkPresence } from '@/hooks/useCoworkPresence';
 import type { CoworkAnnouncement, CoworkMessage, CoworkPresence } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
+import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -158,7 +159,7 @@ function AnnouncementCard({
       <div className="flex items-start justify-between gap-2 mb-1">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            {ann.pinned && <span className="text-xs">📌</span>}
+            {ann.pinned && <Pin className="w-3 h-3 text-amber-600" strokeWidth={2.5} />}
             <h4 className="text-sm font-bold text-[#3D1F6B] truncate">{ann.title}</h4>
             {!isRead && <span className="w-2 h-2 rounded-full bg-[#7B5EA7] flex-shrink-0" />}
           </div>
@@ -172,7 +173,7 @@ function AnnouncementCard({
             title={ann.pinned ? 'Desanclar' : 'Anclar'}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#F0E5FF] text-sm"
           >
-            {ann.pinned ? '📌' : '📍'}
+            {ann.pinned ? <Pin className="w-4 h-4" strokeWidth={2.25} /> : <PinOff className="w-4 h-4" strokeWidth={2.25} />}
           </button>
           {isOwner && (
             <button
@@ -180,7 +181,7 @@ function AnnouncementCard({
               title="Eliminar"
               className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 text-sm"
             >
-              🗑️
+              <Trash2 className="w-4 h-4" strokeWidth={2.25} />
             </button>
           )}
         </div>
@@ -270,8 +271,8 @@ function MessageRow({
 
           {isMine && !isDeleted && !editing && (
             <div className="absolute -top-2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white rounded-full shadow-md px-1 py-0.5 border border-gray-100">
-              <button onClick={() => setEditing(true)} className="w-6 h-6 flex items-center justify-center text-xs hover:bg-gray-100 rounded-full" title="Editar">✏️</button>
-              <button onClick={() => { if (confirm('¿Eliminar mensaje?')) onDelete(msg.id); }} className="w-6 h-6 flex items-center justify-center text-xs hover:bg-red-50 rounded-full" title="Eliminar">🗑️</button>
+              <button onClick={() => setEditing(true)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-500" title="Editar"><Pencil className="w-3 h-3" strokeWidth={2.25} /></button>
+              <button onClick={() => { if (confirm('¿Eliminar mensaje?')) onDelete(msg.id); }} className="w-6 h-6 flex items-center justify-center hover:bg-red-50 rounded-full text-red-500" title="Eliminar"><Trash2 className="w-3 h-3" strokeWidth={2.25} /></button>
             </div>
           )}
         </div>
@@ -405,7 +406,7 @@ export default function CoworkPage() {
         <aside className="glass-card rounded-2xl p-4 flex flex-col min-h-0 overflow-hidden">
           <div className="flex items-center justify-between mb-3 flex-shrink-0">
             <div>
-              <h3 className="text-sm font-extrabold text-[#3D1F6B]">📌 Tablón</h3>
+              <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><Pin className="w-4 h-4" strokeWidth={2.25} /> Tablón</h3>
               <p className="text-[10px] text-gray-500">
                 {unreadCount > 0 ? `${unreadCount} sin leer` : 'Todo al día'}
               </p>
@@ -448,7 +449,7 @@ export default function CoworkPage() {
             ))}
             {pinned.length === 0 && recent.length === 0 && !composing && (
               <div className="text-center py-10 text-gray-400 text-xs">
-                <p className="text-2xl mb-2">🪴</p>
+                <Sprout className="w-6 h-6 mx-auto mb-2 text-gray-300" strokeWidth={2} />
                 <p>Sin avisos aún.</p>
                 <p className="mt-1">Publica el primero para tu equipo.</p>
               </div>
@@ -459,14 +460,14 @@ export default function CoworkPage() {
         {/* ── Chat ─────────────────────────────────────── */}
         <section className="glass-card rounded-2xl flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0">
-            <h3 className="text-sm font-extrabold text-[#3D1F6B]">💬 Chat del equipo</h3>
+            <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><MessageSquare className="w-4 h-4" strokeWidth={2.25} /> Chat del equipo</h3>
             <p className="text-[10px] text-gray-500">Mensajes visibles para todos los profesores</p>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {messages.length === 0 && (
               <div className="text-center py-20 text-gray-400 text-sm">
-                <p className="text-3xl mb-2">👋</p>
+                <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
                 <p>Aún no hay mensajes.</p>
                 <p className="mt-1">Rompe el hielo con un saludo al equipo.</p>
               </div>
@@ -543,7 +544,7 @@ export default function CoworkPage() {
         {/* ── Presencia ────────────────────────────────── */}
         <aside className="glass-card rounded-2xl p-3 flex flex-col min-h-0 overflow-hidden">
           <div className="px-2 py-1 mb-2">
-            <h3 className="text-sm font-extrabold text-[#3D1F6B]">👥 Equipo</h3>
+            <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><Users className="w-4 h-4" strokeWidth={2.25} /> Equipo</h3>
             <p className="text-[10px] text-gray-500">
               {onlineNow.length} en línea · {presences.length} en total
             </p>
