@@ -1,6 +1,20 @@
 // FriendlyTeaching.cl — Class History Page
 'use client';
 import { useMemo, useState } from 'react';
+import {
+  Sparkles,
+  Smile,
+  Frown,
+  ClipboardList,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Inbox,
+  BookOpen,
+  MessageSquare,
+  Target,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useClassHistory } from '@/hooks/useClassHistory';
 import { auth } from '@/lib/firebase/config';
@@ -8,7 +22,7 @@ import TopBar from '@/components/layout/TopBar';
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
 const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MOOD_ICON: Record<string, string> = { great: '🌟', good: '😊', regular: '😕' };
+const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
 const MOOD_LABEL: Record<string, string> = { great: 'Excelente', good: 'Buena', regular: 'Regular' };
 
 type Range = '7' | '30' | '90' | 'all';
@@ -101,11 +115,11 @@ export default function ClassHistoryPage() {
 
         {/* ── Stats row ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatChip icon="📋" label="Total clases" value={stats.total} color="#C8A8DC" />
-          <StatChip icon="✅" label="Realizadas" value={stats.attended} color="#A8E6A1" />
-          <StatChip icon="❌" label="Ausencias" value={stats.absent} color="#FFAAAA" />
+          <StatChip Icon={ClipboardList} label="Total clases" value={stats.total} color="#C8A8DC" />
+          <StatChip Icon={CheckCircle2} label="Realizadas" value={stats.attended} color="#A8E6A1" />
+          <StatChip Icon={XCircle} label="Ausencias" value={stats.absent} color="#FFAAAA" />
           <StatChip
-            icon="📝"
+            Icon={FileText}
             label="Con notas"
             value={stats.withNotes}
             sub={stats.total > 0 ? `${Math.round((stats.withNotes / stats.total) * 100)}%` : '—'}
@@ -138,13 +152,13 @@ export default function ClassHistoryPage() {
               <button
                 key={f}
                 onClick={() => setAttendFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1 ${
                   attendFilter === f
                     ? 'bg-[#5A3D7A] text-white'
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {f === 'all' ? 'Todas' : f === 'attended' ? '✅ Realizadas' : '❌ Ausencias'}
+                {f === 'all' ? 'Todas' : f === 'attended' ? <><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Realizadas</> : <><XCircle className="w-3 h-3" strokeWidth={2.5} /> Ausencias</>}
               </button>
             ))}
           </div>
@@ -171,7 +185,7 @@ export default function ClassHistoryPage() {
           <div className="text-center py-16 text-gray-400 text-sm">Cargando historial…</div>
         ) : grouped.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-3xl mb-2">📭</p>
+            <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
             <p className="text-gray-500 text-sm">No hay clases registradas para este filtro.</p>
           </div>
         ) : (
@@ -189,6 +203,7 @@ export default function ClassHistoryPage() {
                       entry.notes.covered || entry.notes.performance ||
                       entry.notes.nextClass || entry.notes.homework || entry.notes.mood
                     );
+                    const MoodIcon = entry.notes?.mood ? MOOD_ICON[entry.notes.mood] : null;
 
                     return (
                       <div key={entry.id}>
@@ -197,8 +212,10 @@ export default function ClassHistoryPage() {
                           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                         >
                           {/* Attendance dot */}
-                          <span className="text-xl flex-shrink-0">
-                            {entry.attended ? '✅' : '❌'}
+                          <span className="flex-shrink-0">
+                            {entry.attended
+                              ? <CheckCircle2 className="w-5 h-5 text-green-500" strokeWidth={2.25} />
+                              : <XCircle className="w-5 h-5 text-red-400" strokeWidth={2.25} />}
                           </span>
 
                           {/* Date & time */}
@@ -212,9 +229,15 @@ export default function ClassHistoryPage() {
                           {/* Student */}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-800 truncate">{entry.studentName}</p>
-                            <p className="text-[11px] text-gray-400">
+                            <p className="text-[11px] text-gray-400 inline-flex items-center gap-1">
                               {entry.isRecurring ? '↻ Recurrente' : '• Una vez'}
-                              {entry.notes?.mood ? ` · ${MOOD_ICON[entry.notes.mood]} ${MOOD_LABEL[entry.notes.mood]}` : ''}
+                              {entry.notes?.mood && MoodIcon ? (
+                                <>
+                                  <span className="mx-1">·</span>
+                                  <MoodIcon className="w-3 h-3" strokeWidth={2.5} />
+                                  <span>{MOOD_LABEL[entry.notes.mood]}</span>
+                                </>
+                              ) : null}
                             </p>
                           </div>
 
@@ -244,20 +267,20 @@ export default function ClassHistoryPage() {
                         {isExpanded && hasNotes && (
                           <div className="px-14 pb-4 pt-1 bg-[#FAFAFA] border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-3">
                             {entry.notes?.covered && (
-                              <NoteField icon="📚" label="Temas cubiertos" value={entry.notes.covered} />
+                              <NoteField Icon={BookOpen} label="Temas cubiertos" value={entry.notes.covered} />
                             )}
                             {entry.notes?.performance && (
-                              <NoteField icon="💬" label="Desempeño" value={entry.notes.performance} />
+                              <NoteField Icon={MessageSquare} label="Desempeño" value={entry.notes.performance} />
                             )}
                             {entry.notes?.nextClass && (
-                              <NoteField icon="🎯" label="Próxima clase" value={entry.notes.nextClass} />
+                              <NoteField Icon={Target} label="Próxima clase" value={entry.notes.nextClass} />
                             )}
                             {entry.notes?.homework && (
-                              <NoteField icon="📋" label="Tarea asignada" value={entry.notes.homework} />
+                              <NoteField Icon={ClipboardList} label="Tarea asignada" value={entry.notes.homework} />
                             )}
-                            {entry.notes?.mood && (
+                            {entry.notes?.mood && MoodIcon && (
                               <NoteField
-                                icon={MOOD_ICON[entry.notes.mood]}
+                                Icon={MoodIcon}
                                 label="Estado de la clase"
                                 value={MOOD_LABEL[entry.notes.mood]}
                               />
@@ -284,16 +307,16 @@ export default function ClassHistoryPage() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function StatChip({ icon, label, value, sub, color }: {
-  icon: string; label: string; value: number; sub?: string; color: string;
+function StatChip({ Icon, label, value, sub, color }: {
+  Icon: LucideIcon; label: string; value: number; sub?: string; color: string;
 }) {
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ background: `${color}33` }}
       >
-        {icon}
+        <Icon className="w-5 h-5 text-gray-700" strokeWidth={2.25} />
       </div>
       <div>
         <p className="text-2xl font-extrabold text-gray-800 leading-none">{value}</p>
@@ -304,11 +327,11 @@ function StatChip({ icon, label, value, sub, color }: {
   );
 }
 
-function NoteField({ icon, label, value }: { icon: string; label: string; value: string }) {
+function NoteField({ Icon, label, value }: { Icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-3">
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-        {icon} {label}
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
+        <Icon className="w-3 h-3" strokeWidth={2.5} /> {label}
       </p>
       <p className="text-xs text-gray-700 leading-relaxed">{value}</p>
     </div>

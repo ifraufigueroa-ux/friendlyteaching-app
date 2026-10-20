@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { AlertTriangle, GraduationCap } from 'lucide-react';
 import { db, auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
 import { getUserProfile } from '@/lib/firebase/auth';
 import TopBar from '@/components/layout/TopBar';
 import type { LessonLevel } from '@/types/firebase';
+
+type Msg = { text: string; kind: 'ok' | 'err' } | null;
 
 const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
 
@@ -36,11 +39,11 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState('');
+  const [saveMsg, setSaveMsg] = useState<Msg>(null);
 
   // ── Teacher code repair state ──────────────────────────
   const [teacherCode, setTeacherCode] = useState('');
-  const [repairMsg, setRepairMsg] = useState('');
+  const [repairMsg, setRepairMsg] = useState<Msg>(null);
   const [repairing, setRepairing] = useState(false);
 
   // ── Password change state ──────────────────────────────
@@ -66,7 +69,7 @@ export default function ProfilePage() {
     const uid = auth.currentUser?.uid ?? profile?.uid;
     if (!uid) return;
     setSaving(true);
-    setSaveMsg('');
+    setSaveMsg(null);
     try {
       const patch: Record<string, unknown> = {
         fullName: fullName.trim(),
@@ -77,12 +80,12 @@ export default function ProfilePage() {
         patch['teacherData.bio'] = bio.trim() || null;
       }
       await updateDoc(doc(db, 'users', uid), patch);
-      setSaveMsg('✅ Perfil actualizado');
-      setTimeout(() => setSaveMsg(''), 3000);
+      setSaveMsg({ text: 'Perfil actualizado', kind: 'ok' });
+      setTimeout(() => setSaveMsg(null), 3000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[profile] save failed:', err);
-      setSaveMsg(`❌ Error al guardar: ${msg}`);
+      setSaveMsg({ text: `Error al guardar: ${msg}`, kind: 'err' });
     } finally {
       setSaving(false);
     }
@@ -92,11 +95,11 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!profile) return;
     if (teacherCode !== TEACHER_CODE) {
-      setRepairMsg('❌ Código de profesor incorrecto.');
+      setRepairMsg({ text: 'Código de profesor incorrecto.', kind: 'err' });
       return;
     }
     setRepairing(true);
-    setRepairMsg('');
+    setRepairMsg(null);
     try {
       await updateDoc(doc(db, 'users', profile.uid), {
         role: 'teacher',
@@ -105,9 +108,9 @@ export default function ProfilePage() {
       });
       const refreshed = await getUserProfile(profile.uid);
       useAuthStore.getState().setProfile(refreshed);
-      setRepairMsg('✅ Rol actualizado a Profesor. Recarga la página.');
+      setRepairMsg({ text: 'Rol actualizado a Profesor. Recarga la página.', kind: 'ok' });
     } catch {
-      setRepairMsg('❌ No se pudo actualizar el rol. Contacta soporte.');
+      setRepairMsg({ text: 'No se pudo actualizar el rol. Contacta soporte.', kind: 'err' });
     } finally {
       setRepairing(false);
     }
@@ -138,7 +141,7 @@ export default function ProfilePage() {
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      setPwMsg('✅ Contraseña actualizada');
+      setPwMsg('Contraseña actualizada');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -170,7 +173,7 @@ export default function ProfilePage() {
       />
         <div className="flex-1 p-6 overflow-auto max-w-2xl mx-auto w-full">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-5">
-            <h2 className="font-bold text-red-800 mb-1">⚠️ Perfil no encontrado</h2>
+            <h2 className="font-bold text-red-800 mb-1 inline-flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" strokeWidth={2.5} /> Perfil no encontrado</h2>
             <p className="text-sm text-red-700 mb-4">
               Tu cuenta de Firebase existe ({firebaseUser?.email}) pero no hay un perfil guardado en la base de datos.
               Ingresa el código de profesor para crear tu perfil automáticamente.
@@ -181,11 +184,11 @@ export default function ProfilePage() {
                 if (!firebaseUser) return;
                 const input = (e.currentTarget.elements.namedItem('code') as HTMLInputElement).value;
                 if (input !== TEACHER_CODE) {
-                  setRepairMsg('❌ Código incorrecto.');
+                  setRepairMsg({ text: 'Código incorrecto.', kind: 'err' });
                   return;
                 }
                 setRepairing(true);
-                setRepairMsg('');
+                setRepairMsg(null);
                 try {
                   const newProfile = {
                     uid: firebaseUser.uid,
@@ -202,10 +205,10 @@ export default function ProfilePage() {
                   await setDoc(doc(db, 'users', firebaseUser.uid), newProfile, { merge: true });
                   const refreshed = await getUserProfile(firebaseUser.uid);
                   useAuthStore.getState().setProfile(refreshed);
-                  setRepairMsg('✅ Perfil creado como Profesor. Recarga la página.');
+                  setRepairMsg({ text: 'Perfil creado como Profesor. Recarga la página.', kind: 'ok' });
                 } catch (err) {
                   console.error('Profile creation failed:', err);
-                  setRepairMsg('❌ Error al crear perfil. Revisa la consola del navegador.');
+                  setRepairMsg({ text: 'Error al crear perfil. Revisa la consola del navegador.', kind: 'err' });
                 } finally {
                   setRepairing(false);
                 }
@@ -227,8 +230,8 @@ export default function ProfilePage() {
               </button>
             </form>
             {repairMsg && (
-              <p className={`text-xs mt-2 px-3 py-2 rounded-lg ${repairMsg.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {repairMsg}
+              <p className={`text-xs mt-2 px-3 py-2 rounded-lg ${repairMsg.kind === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {repairMsg.text}
               </p>
             )}
           </div>
@@ -263,8 +266,8 @@ export default function ProfilePage() {
             <p className="text-xl font-extrabold leading-tight">{profile.fullName}</p>
             <p className="text-sm text-white/70 mt-0.5">{profile.email}</p>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-semibold">
-                {role === 'teacher' ? '👨‍🏫 Profesor' : '🎓 Estudiante'}
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1">
+                <GraduationCap className="w-3.5 h-3.5" strokeWidth={2.25} /> {role === 'teacher' ? 'Profesor' : 'Estudiante'}
               </span>
               {level && (
                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${LEVEL_COLORS[level] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -335,8 +338,8 @@ export default function ProfilePage() {
             )}
 
             {saveMsg && (
-              <p className={`text-sm px-3 py-2 rounded-lg ${saveMsg.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-                {saveMsg}
+              <p className={`text-sm px-3 py-2 rounded-lg ${saveMsg.kind === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                {saveMsg.text}
               </p>
             )}
 
@@ -372,8 +375,8 @@ export default function ProfilePage() {
               </button>
             </form>
             {repairMsg && (
-              <p className={`text-xs mt-2 px-3 py-2 rounded-lg ${repairMsg.startsWith('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-                {repairMsg}
+              <p className={`text-xs mt-2 px-3 py-2 rounded-lg ${repairMsg.kind === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                {repairMsg.text}
               </p>
             )}
           </div>

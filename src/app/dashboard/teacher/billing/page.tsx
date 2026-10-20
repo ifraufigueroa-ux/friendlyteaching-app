@@ -1,6 +1,27 @@
 // FriendlyTeaching.cl — Billing & Payments Page
 'use client';
 import { useState, useMemo } from 'react';
+import {
+  Landmark,
+  Banknote,
+  FileText,
+  CheckCircle2,
+  Hourglass,
+  Circle,
+  BookOpen,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  Calendar,
+  MessageSquare,
+  ClipboardList,
+  Target,
+  Sparkles,
+  Smile,
+  Frown,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
 import { usePayments } from '@/hooks/usePayments';
@@ -23,11 +44,22 @@ const CURRENCY_SYMBOL: Record<PaymentCurrency, string> = {
   EUR: '€',
 };
 
-const METHOD_LABELS: Record<PaymentMethod, string> = {
-  transfer: '🏦 Transferencia',
-  cash: '💵 Efectivo',
-  other: '📝 Otro',
+const METHOD_META: Record<PaymentMethod, { Icon: LucideIcon; label: string }> = {
+  transfer: { Icon: Landmark,  label: 'Transferencia' },
+  cash:     { Icon: Banknote,  label: 'Efectivo' },
+  other:    { Icon: FileText,  label: 'Otro' },
 };
+
+function MethodLabel({ method }: { method: PaymentMethod }) {
+  const meta = METHOD_META[method];
+  if (!meta) return null;
+  const Icon = meta.Icon;
+  return (
+    <span className="inline-flex items-center gap-1">
+      <Icon className="w-3.5 h-3.5" strokeWidth={2.25} /> {meta.label}
+    </span>
+  );
+}
 
 const MONTH_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -100,7 +132,7 @@ function PaidModal({
                   : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'
               }`}
             >
-              {METHOD_LABELS[m]}
+              <MethodLabel method={m} />
             </button>
           ))}
         </div>
@@ -119,8 +151,8 @@ function PaidModal({
         {plan && (
           <>
             <div className="border-t border-gray-100 my-4" />
-            <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">
-              📚 Nuevo período del plan
+            <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider mb-3 inline-flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Nuevo período del plan
             </p>
 
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
@@ -152,8 +184,8 @@ function PaidModal({
             Cancelar
           </button>
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors">
-            {saving ? 'Guardando...' : '✅ Confirmar pago'}
+            className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5">
+            {saving ? 'Guardando...' : <><CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Confirmar pago</>}
           </button>
         </div>
       </div>
@@ -256,7 +288,7 @@ function ExportInvoiceButton({
       disabled={exporting}
       className="w-full mt-2 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-xl text-[10px] font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
     >
-      {exporting ? 'Generando...' : '📄 Exportar factura'}
+      {exporting ? 'Generando...' : <><FileText className="w-3.5 h-3.5" strokeWidth={2.25} /> Exportar factura</>}
     </button>
   );
 }
@@ -297,9 +329,9 @@ function UnifiedStudentCard({
   const status = payment?.status;
 
   const STATUS_CONFIG = {
-    paid:    { label: 'Pagado',    icon: '✅', bg: 'bg-green-50',  border: 'border-green-200',  badge: 'bg-green-100 text-green-700' },
-    pending: { label: 'Pendiente', icon: '⏳', bg: 'bg-amber-50',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700' },
-    overdue: { label: 'Atrasado',  icon: '🔴', bg: 'bg-red-50',    border: 'border-red-200',    badge: 'bg-red-100 text-red-700' },
+    paid:    { label: 'Pagado',    Icon: CheckCircle2, iconColor: '', bg: 'bg-green-50',  border: 'border-green-200',  badge: 'bg-green-100 text-green-700' },
+    pending: { label: 'Pendiente', Icon: Hourglass,    iconColor: '', bg: 'bg-amber-50',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700' },
+    overdue: { label: 'Atrasado',  Icon: Circle,       iconColor: 'fill-red-500 text-red-500', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
   } as const;
 
   const cfg = status ? STATUS_CONFIG[status] : null;
@@ -338,8 +370,8 @@ function UnifiedStudentCard({
             </div>
           </div>
           {cfg && (
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.badge}`}>
-              {cfg.icon} {cfg.label}
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-1 ${cfg.badge}`}>
+              <cfg.Icon className={`w-3.5 h-3.5 ${cfg.iconColor}`} strokeWidth={2.25} /> {cfg.label}
             </span>
           )}
         </div>
@@ -351,12 +383,12 @@ function UnifiedStudentCard({
             className="text-sm font-bold text-gray-700 hover:text-[#5A3D7A] transition-colors"
           >
             {monthlyRate > 0 ? formatCLP(monthlyRate) : '$ Sin definir'}
-            <span className="text-[10px] text-gray-400 ml-1 font-normal">/mes ✏️</span>
+            <span className="text-[10px] text-gray-400 ml-1 font-normal inline-flex items-center gap-0.5">/mes <Pencil className="w-2.5 h-2.5" strokeWidth={2.5} /></span>
           </button>
           {payment?.paidAt?.toDate && (
             <p className="text-[10px] text-gray-400 mt-0.5">
               Pagó: {payment.paidAt.toDate().toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
-              {payment.method && ` · ${METHOD_LABELS[payment.method]}`}
+              {payment.method && (<> · <MethodLabel method={payment.method} /></>)}
             </p>
           )}
         </div>
@@ -365,8 +397,8 @@ function UnifiedStudentCard({
         {plan && (
           <div className={`rounded-xl p-3 mb-3 ${isComplete ? 'bg-green-100/50' : 'bg-black/[0.03]'}`}>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-semibold text-gray-500 truncate min-w-0">
-                📚 {plan.planName || 'Plan de clases'}
+              <p className="text-[11px] font-semibold text-gray-500 truncate min-w-0 inline-flex items-center gap-1">
+                <BookOpen className="w-3 h-3" strokeWidth={2.5} /> {plan.planName || 'Plan de clases'}
               </p>
               <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -376,17 +408,17 @@ function UnifiedStudentCard({
                 </span>
                 <button
                   onClick={() => onEditPlan(plan)}
-                  className="w-6 h-6 rounded-lg bg-white hover:bg-[#F0E5FF] text-gray-400 hover:text-[#5A3D7A] flex items-center justify-center text-[10px] transition-colors shadow-sm"
+                  className="w-6 h-6 rounded-lg bg-white hover:bg-[#F0E5FF] text-gray-400 hover:text-[#5A3D7A] flex items-center justify-center transition-colors shadow-sm"
                 >
-                  ✏️
+                  <Pencil className="w-3 h-3" strokeWidth={2.5} />
                 </button>
                 {confirmDeletePlan ? (
                   <>
-                    <button onClick={() => onDeletePlan(plan.id)} className="w-6 h-6 rounded-lg bg-red-500 text-white flex items-center justify-center text-[10px] font-bold transition-colors">✓</button>
-                    <button onClick={() => setConfirmDeletePlan(false)} className="w-6 h-6 rounded-lg bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] transition-colors">✗</button>
+                    <button onClick={() => onDeletePlan(plan.id)} className="w-6 h-6 rounded-lg bg-red-500 text-white flex items-center justify-center transition-colors"><Check className="w-3 h-3" strokeWidth={3} /></button>
+                    <button onClick={() => setConfirmDeletePlan(false)} className="w-6 h-6 rounded-lg bg-gray-200 text-gray-600 flex items-center justify-center transition-colors"><X className="w-3 h-3" strokeWidth={2.5} /></button>
                   </>
                 ) : (
-                  <button onClick={() => setConfirmDeletePlan(true)} className="w-6 h-6 rounded-lg bg-white hover:bg-red-50 text-gray-300 hover:text-red-400 flex items-center justify-center text-[10px] transition-colors shadow-sm">🗑️</button>
+                  <button onClick={() => setConfirmDeletePlan(true)} className="w-6 h-6 rounded-lg bg-white hover:bg-red-50 text-gray-300 hover:text-red-400 flex items-center justify-center transition-colors shadow-sm"><Trash2 className="w-3 h-3" strokeWidth={2.5} /></button>
                 )}
               </div>
             </div>
@@ -427,16 +459,16 @@ function UnifiedStudentCard({
             <>
               <button
                 onClick={() => setShowPaidModal(true)}
-                className="flex-1 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl text-xs font-bold transition-colors"
+                className="flex-1 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5"
               >
-                ✅ Paid
+                <CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Paid
               </button>
               {payment && status !== 'overdue' && (
                 <button
                   onClick={onMarkOverdue}
-                  className="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors"
+                  className="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors"
                 >
-                  🔴
+                  <Circle className="w-4 h-4 fill-red-500 text-red-500" strokeWidth={0} />
                 </button>
               )}
             </>
@@ -739,7 +771,7 @@ function EditPlanModal({
 // ─── Class detail popup (shown when clicking an auto-counted dot) ─────────────
 
 const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MOOD_EMOJI: Record<string, string> = { great: '🌟', good: '😊', regular: '😕' };
+const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
 
 function ClassDetailPopup({
   entry,
@@ -771,36 +803,39 @@ function ClassDetailPopup({
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg font-bold w-6 h-6 flex items-center justify-center">×</button>
         </div>
 
-        <p className="text-sm font-semibold text-gray-700 mb-3">📅 {dateStr}</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3 inline-flex items-center gap-1.5"><Calendar className="w-4 h-4" strokeWidth={2.25} /> {dateStr}</p>
 
         {entry.notes ? (
           <div className="space-y-2 text-sm">
-            {entry.notes.mood && (
-              <p className="text-gray-600">
-                {MOOD_EMOJI[entry.notes.mood]} Clase {entry.notes.mood === 'great' ? 'excelente' : entry.notes.mood === 'good' ? 'bien' : 'regular'}
-              </p>
-            )}
+            {entry.notes.mood && (() => {
+              const MoodIcon = MOOD_ICON[entry.notes.mood];
+              return (
+                <p className="text-gray-600 inline-flex items-center gap-1.5">
+                  <MoodIcon className="w-4 h-4" strokeWidth={2.25} /> Clase {entry.notes.mood === 'great' ? 'excelente' : entry.notes.mood === 'good' ? 'bien' : 'regular'}
+                </p>
+              );
+            })()}
             {entry.notes.covered && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5">📚 Temas</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Temas</p>
                 <p className="text-gray-700 text-sm leading-snug">{entry.notes.covered}</p>
               </div>
             )}
             {entry.notes.performance && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5">💬 Desempeño</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Desempeño</p>
                 <p className="text-gray-600 text-sm leading-snug">{entry.notes.performance}</p>
               </div>
             )}
             {entry.notes.homework && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5">📋 Tarea</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Tarea</p>
                 <p className="text-gray-600 text-sm">{entry.notes.homework}</p>
               </div>
             )}
             {entry.notes.nextClass && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5">🎯 Próxima clase</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Próxima clase</p>
                 <p className="text-gray-600 text-sm">{entry.notes.nextClass}</p>
               </div>
             )}
@@ -876,17 +911,17 @@ function ManualPlanRow({
             }`}>
               {effectiveCount}/{plan.totalClasses}
             </span>
-            <button onClick={() => onEdit(plan)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-[#F0E5FF] text-gray-500 hover:text-[#5A3D7A] flex items-center justify-center text-xs transition-colors">
-              ✏️
+            <button onClick={() => onEdit(plan)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-[#F0E5FF] text-gray-500 hover:text-[#5A3D7A] flex items-center justify-center transition-colors">
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} />
             </button>
             {confirmDelete ? (
               <>
-                <button onClick={() => onDelete(plan.id)} className="w-7 h-7 rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center justify-center text-xs transition-colors font-bold">✓</button>
-                <button onClick={() => setConfirmDelete(false)} className="w-7 h-7 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center text-xs transition-colors">✗</button>
+                <button onClick={() => onDelete(plan.id)} className="w-7 h-7 rounded-lg bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors"><Check className="w-3.5 h-3.5" strokeWidth={3} /></button>
+                <button onClick={() => setConfirmDelete(false)} className="w-7 h-7 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-colors"><X className="w-3.5 h-3.5" strokeWidth={2.5} /></button>
               </>
             ) : (
-              <button onClick={() => setConfirmDelete(true)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center text-xs transition-colors">
-                🗑️
+              <button onClick={() => setConfirmDelete(true)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={2.5} />
               </button>
             )}
           </div>
@@ -923,8 +958,8 @@ function ManualPlanRow({
         </div>
 
         {autoCount > 0 && (
-          <p className="text-[10px] text-gray-400 mb-2">
-            🟢 {autoCount} registrada{autoCount !== 1 ? 's' : ''} — click en un punto para ver detalles
+          <p className="text-[10px] text-gray-400 mb-2 inline-flex items-center gap-1">
+            <Circle className="w-2.5 h-2.5 fill-green-500 text-green-500" strokeWidth={0} /> {autoCount} registrada{autoCount !== 1 ? 's' : ''} — click en un punto para ver detalles
             {manualCount > autoCount ? ` · +${manualCount - autoCount} manual` : ''}
           </p>
         )}
@@ -1039,7 +1074,7 @@ export default function BillingPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="💳 Facturación"
+        title="Facturación"
         subtitle="Seguimiento de pagos mensuales por estudiante"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
@@ -1069,8 +1104,8 @@ export default function BillingPage() {
         {/* Plans section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-              📚 Planes de clases
+            <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider inline-flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Planes de clases
             </p>
             <button
               onClick={() => setShowAddPlan(true)}
@@ -1094,7 +1129,7 @@ export default function BillingPage() {
             </div>
           ) : plans.length === 0 ? (
             <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
-              <p className="text-3xl mb-2">📚</p>
+              <BookOpen className="w-8 h-8 mx-auto mb-2 text-[#C8A8DC]" strokeWidth={2} />
               <p className="text-gray-500 text-sm">Sin planes de clases aún.</p>
               <p className="text-xs text-gray-400 mt-1">Presiona &ldquo;+ Plan&rdquo; para crear uno.</p>
             </div>
