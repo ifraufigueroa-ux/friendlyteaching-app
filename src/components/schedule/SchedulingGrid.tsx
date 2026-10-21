@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — SchedulingGrid
 'use client';
 import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import { Link2, Settings } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { useBookings, completeBooking } from '@/hooks/useBookings';
@@ -22,7 +23,7 @@ const NameNormalizerModal = React.lazy(() => import('./NameNormalizerModal'));
 const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 // Base visible hours — can be extended dynamically by :30 slots from bookings
-const BASE_HOURS = Array.from({ length: 13 }, (_, i) => i + 9); // 9–21
+const BASE_HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8–21
 
 // Slot key including minute so 9:00 and 9:30 are distinct
 function slotKey(dow: number, hour: number, minute: number): string {
@@ -237,7 +238,7 @@ export default function SchedulingGrid() {
   }, [bookings, bookingsLoading, currentWeekStart, teacherUid, isFrau]);
 
   // Compute the time slots to display:
-  // Start with base :00 hours (9–21), then inject any :30 slots from bookings.
+  // Start with base :00 hours (8–21), then inject any :30 slots from bookings.
   const timeSlots = useMemo(() => {
     // Base :00 slots
     const slots: { hour: number; minute: number }[] = BASE_HOURS.map((h) => ({ hour: h, minute: 0 }));
@@ -271,13 +272,13 @@ export default function SchedulingGrid() {
             title="Fusionar nombres duplicados o con tildes diferentes"
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-full transition-colors"
           >
-            🔗 Fusionar nombres
+            <Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Fusionar nombres
           </button>
           <button
             onClick={() => setShowAvailability(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-full transition-colors"
           >
-            ⚙️ Disponibilidad
+            <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> Disponibilidad
           </button>
         </div>
       </div>

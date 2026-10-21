@@ -17,7 +17,7 @@ import type { FTUser } from '@/types/firebase';
 import { Eye } from 'lucide-react';
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 9); // 9–21
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8–21
 
 function slotKey(dow: number, hour: number): string {
   return `${dow}-${hour}`;
