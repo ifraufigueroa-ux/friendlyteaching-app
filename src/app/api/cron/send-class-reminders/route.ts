@@ -27,11 +27,13 @@ export const dynamic = 'force-dynamic';
 
 const TEACHER_TZ = 'America/Santiago';
 const LESSON_LENGTH_MIN = 45; // "10:00 – 10:45-ish"
-// Window around the 15-min target. With a cron that fires every 5 min a
-// 10-min span (10..20 min ahead) catches every booking exactly once —
-// reminderSentAt then prevents duplicates if two ticks overlap it.
-const WINDOW_MIN_START = 10;
-const WINDOW_MIN_END = 20;
+// The scheduler fires at :45 every hour (GitHub Actions, cron `45 * * * *`).
+// Classes are on :00, so the ideal fire-to-class gap is exactly 15 min.
+// GitHub Actions can be a few minutes early or late, though, so we accept
+// any booking starting in the next 30 min and let reminderSentAt dedup
+// anything a retry might catch twice.
+const WINDOW_MIN_START = 0;
+const WINDOW_MIN_END = 30;
 
 const EN_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const EN_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',

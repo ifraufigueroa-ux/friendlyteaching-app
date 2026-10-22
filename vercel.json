@@ -3,12 +3,6 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "regions": ["gru1"],
-  "crons": [
-    {
-      "path": "/api/cron/send-class-reminders",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/manifest.json",

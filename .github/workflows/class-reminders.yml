@@ -1,0 +1,43 @@
+# Hits /api/cron/send-class-reminders every hour at :45 so the Vercel route
+# can email the Google Meet access link ~15 min before each :00 class.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   CRON_SECRET       — same value as the Vercel env var of the same name.
+#                        The route rejects anything without this bearer.
+#   APP_URL           — base URL (e.g. https://friendlyteaching.cl). Can be a
+#                        variable (vars.APP_URL) instead of a secret if you
+#                        prefer, since it isn't sensitive — but keeping it in
+#                        secrets is fine too.
+#
+# To run it ad-hoc (test, catch-up after an outage), use the
+# "Run workflow" button on the Actions tab — the workflow_dispatch trigger
+# is enabled below.
+
+name: Class access-link reminders
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC; this runs at :45 of every hour regardless
+    # of timezone, which is what we want — the Vercel route itself handles
+    # the America/Santiago conversion when matching booking times.
+    - cron: '45 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call reminder endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$APP_URL" ]; then
+            echo "::error::CRON_SECRET or APP_URL secret missing"
+            exit 1
+          fi
+          # -f fails on 4xx/5xx so the workflow turns red when something's wrong.
+          # --max-time keeps us from blocking the runner forever on a hung route.
+          curl -fsS --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/send-class-reminders"
