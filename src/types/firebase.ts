@@ -83,6 +83,9 @@ export interface Booking {
   cancelledAt?: Timestamp;
   completedAt?: Timestamp;
   updatedAt?: Timestamp;
+  // Set by /api/cron/send-class-reminders after the 15-min access-link
+  // email goes out, so the cron never resends for the same booking doc.
+  reminderSentAt?: Timestamp;
 }
 
 // ─── Horario semanal ──────────────────────────────────────────

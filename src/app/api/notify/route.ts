@@ -6,8 +6,13 @@ import { adminDb } from '@/lib/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 interface NotifyBody {
-  type: 'student_approved' | 'student_registered' | 'student_activated' | 'student_invited' | 'homework_reviewed' | 'class_reminder' | 'evaluation_request';
+  type: 'student_approved' | 'student_registered' | 'student_activated' | 'student_invited' | 'homework_reviewed' | 'class_reminder' | 'class_access_link' | 'evaluation_request';
   to: string;
+  // Optional envelope overrides — mostly used by class_access_link so the
+  // cron can BCC a records inbox and route replies to the teacher's Gmail.
+  bcc?: string | string[];
+  replyTo?: string;
+  fromOverride?: string;
   studentName?: string;
   teacherName?: string;
   homeworkTitle?: string;
@@ -18,6 +23,12 @@ interface NotifyBody {
   classDay?: string;
   classHour?: number;
   hoursUntil?: number;
+  // class_access_link fields
+  classDate?: string;        // formatted "October 22nd, 2026"
+  classDayEn?: string;       // English day name, e.g. "Thursday"
+  classTimeRange?: string;   // "10:00 – 10:45-ish"
+  meetLink?: string;         // Google Meet URL
+  teacherSignature?: string; // e.g. "Ignacio Frau Figueroa\nEFL Teacher - Translator"
   // evaluation_request fields
   studentEmail?: string;
   telefono?: string;
@@ -151,6 +162,32 @@ function buildEmail(body: NotifyBody): { subject: string; html: string } {
         `,
       };
 
+    case 'class_access_link': {
+      // Matches Ignacio's existing manual Gmail format — plain-text feel,
+      // no branded styling. Students have been getting this exact shape by
+      // hand for months, so keep it unchanged on purpose.
+      const firstName = (body.studentName ?? 'student').split(/\s+/)[0];
+      const dateStr = body.classDate ?? '';
+      const dayEn = body.classDayEn ?? '';
+      const timeRange = body.classTimeRange ?? '';
+      const link = body.meetLink ?? '';
+      const sigLines = (body.teacherSignature ?? 'Ignacio Frau Figueroa\nEFL Teacher - Translator').split('\n');
+      const sigHtml = sigLines.map((l) => `<div>${l}</div>`).join('');
+      return {
+        subject: `Access link. ${dateStr}.`,
+        html: `
+          <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.5;max-width:560px;">
+            <p>Dear ${firstName},</p>
+            <p>I have attached the corresponding link to access today's lesson in this email.</p>
+            <p>Time: ${timeRange}${dayEn ? ` (${dayEn})` : ''}</p>
+            <p><a href="${link}" style="color:#1a73e8;text-decoration:underline;">${link}</a></p>
+            <p>See you in a while!</p>
+            <div style="color:#777;margin-top:16px;">${sigHtml}</div>
+          </div>
+        `,
+      };
+    }
+
     case 'class_reminder': {
       const hours = body.hoursUntil ?? 24;
       const when = hours === 1 ? 'en 1 hora' : `mañana ${body.classDay ?? ''}`;
@@ -258,22 +295,28 @@ export async function POST(req: NextRequest) {
     // NOTE: using onboarding@resend.dev because friendlyteaching.cl is not yet
     // verified as a sending domain in Resend. Switch to noreply@friendlyteaching.cl
     // once the domain DNS is verified at resend.com/domains.
-    const fromAddress = process.env.RESEND_FROM ?? 'FriendlyTeaching <onboarding@resend.dev>';
+    const fromAddress = body.fromOverride ?? process.env.RESEND_FROM ?? 'FriendlyTeaching <onboarding@resend.dev>';
+    const resendPayload: Record<string, unknown> = {
+      from: fromAddress,
+      to: [body.to],
+      subject,
+      html,
+    };
+    if (body.bcc) {
+      resendPayload.bcc = Array.isArray(body.bcc) ? body.bcc : [body.bcc];
+    }
+    if (body.replyTo) {
+      resendPayload.reply_to = body.replyTo;
+    } else if (body.type === 'evaluation_request' && body.studentEmail) {
+      resendPayload.reply_to = body.studentEmail;
+    }
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: [body.to],
-        subject,
-        html,
-        ...(body.type === 'evaluation_request' && body.studentEmail
-          ? { reply_to: body.studentEmail }
-          : {}),
-      }),
+      body: JSON.stringify(resendPayload),
     });
 
     if (!res.ok) {
