@@ -1551,14 +1551,12 @@ export default function PlacementDashboardPage() {
                     <td className="px-4 py-3 text-xs" style={{ color: B.purpleMed }}>{formatDate(s.createdAt)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        {s.components.map((c) => (
-                          {(() => {
-                            const CMeta = COMPONENT_META[c];
-                            if (!CMeta) return <HelpCircle key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
-                            const CIcon = CMeta.Icon;
-                            return <CIcon key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
-                          })()}
-                        ))}
+                        {s.components.map((c) => {
+                          const CMeta = COMPONENT_META[c];
+                          if (!CMeta) return <HelpCircle key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
+                          const CIcon = CMeta.Icon;
+                          return <CIcon key={c} className="w-3.5 h-3.5" strokeWidth={2.25} />;
+                        })}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[11px] font-semibold" style={{ color: B.purpleMed }}>

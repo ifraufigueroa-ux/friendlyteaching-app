@@ -178,6 +178,7 @@ export default function StudentHomeworkPage() {
 
             const isExternal = !!hw.externalUrl;
             const platform = isExternal ? EXTERNAL_PLATFORMS[hw.externalPlatform ?? 'other'] : null;
+            const PlatformIcon = platform?.Icon;
             const canAct = hw.status === 'assigned' || hw.status === 'pending';
 
             return (
@@ -223,7 +224,7 @@ export default function StudentHomeworkPage() {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-sm font-bold transition-colors text-center inline-flex items-center justify-center gap-1.5"
                       >
-                        <platform!.Icon className="w-3.5 h-3.5" strokeWidth={2.25} /> Abrir
+                        {PlatformIcon && <PlatformIcon className="w-3.5 h-3.5" strokeWidth={2.25} />} Abrir
                       </a>
                     )}
                     {canAct && (
