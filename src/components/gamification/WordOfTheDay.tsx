@@ -2,6 +2,19 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  BookMarked,
+  BookOpen,
+  Medal,
+  PenTool,
+  FileText,
+  Flame,
+  Lightbulb,
+  Eye,
+  CheckCircle2,
+  Send,
+  type LucideIcon,
+} from 'lucide-react';
 import { useWordOfDay } from '@/hooks/useWordOfDay';
 import { XP_REWARDS } from '@/types/firebase';
 
@@ -57,7 +70,7 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
     );
   }
 
-  const streakEmoji = wordStreak >= 30 ? '🏅' : wordStreak >= 14 ? '✍️' : wordStreak >= 7 ? '📝' : wordStreak >= 3 ? '🔥' : '📖';
+  const StreakIcon: LucideIcon = wordStreak >= 30 ? Medal : wordStreak >= 14 ? PenTool : wordStreak >= 7 ? FileText : wordStreak >= 3 ? Flame : BookMarked;
 
   return (
     <div className="card-interactive rounded-2xl overflow-hidden">
@@ -68,14 +81,14 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
         {/* Title row */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-lg">📖</span>
+            <BookOpen className="w-4 h-4 text-[#9B7CB8]" strokeWidth={2.25} />
             <span className="text-xs font-bold text-[#9B7CB8] uppercase tracking-widest">
               Palabra del Día
             </span>
           </div>
           {/* Streak badge */}
           <div className="flex items-center gap-1.5 bg-[#F0E5FF] px-2.5 py-1 rounded-full">
-            <span className="text-sm">{streakEmoji}</span>
+            <StreakIcon className="w-3.5 h-3.5 text-[#5A3D7A]" strokeWidth={2.25} />
             <span className="text-xs font-bold text-[#5A3D7A]">
               {wordStreak} día{wordStreak !== 1 ? 's' : ''}
             </span>
@@ -125,7 +138,7 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
                 </div>
                 {wordOfDay.tip && (
                   <div className="flex items-start gap-2 bg-white/60 rounded-lg p-2.5">
-                    <span className="text-sm flex-shrink-0">💡</span>
+                    <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[#C8A8DC]" strokeWidth={2.25} />
                     <p className="text-xs text-[#5A3D7A] leading-relaxed">{wordOfDay.tip}</p>
                   </div>
                 )}
@@ -133,8 +146,8 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
               </div>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#9B7CB8] font-medium">
-                  👀 Toca para ver significado, ejemplo y tip
+                <span className="text-sm text-[#9B7CB8] font-medium inline-flex items-center gap-1.5">
+                  <Eye className="w-4 h-4" strokeWidth={2.25} /> Toca para ver significado, ejemplo y tip
                 </span>
                 <span className="text-[#C8A8DC] text-lg group-hover:translate-y-0.5 transition-transform">▼</span>
               </div>
@@ -145,7 +158,7 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
         {/* Submission area */}
         {hasSubmittedToday || justSubmitted ? (
           <div className="bg-green-50 border border-green-200/60 rounded-xl p-4 text-center">
-            <p className="text-2xl mb-1">✅</p>
+            <CheckCircle2 className="w-7 h-7 mx-auto mb-1 text-green-500" strokeWidth={2.25} />
             <p className="text-sm font-bold text-green-700">
               {justSubmitted ? '¡Ejemplo enviado!' : '¡Ya completaste hoy!'}
             </p>
@@ -205,7 +218,7 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
                   Enviando...
                 </span>
               ) : (
-                'Enviar ejemplo 📝'
+                <span className="inline-flex items-center justify-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.5} /> Enviar ejemplo</span>
               )}
             </button>
           </div>

@@ -1,28 +1,70 @@
 // FriendlyTeaching.cl — Gamification engine
 // Badge definitions, XP calculations, streak logic, level thresholds.
 
+import {
+  Target,
+  Flame,
+  Star,
+  Gem,
+  Calendar,
+  Trophy,
+  Crown,
+  FileText,
+  Bird,
+  BookOpen,
+  Pencil,
+  Rocket,
+  Sparkles,
+  BookMarked,
+  PenTool,
+  Medal,
+  type LucideIcon,
+} from 'lucide-react';
 import type { Badge, BadgeId, StudentGamification } from '@/types/firebase';
 
 // ── Badge Catalog ─────────────────────────────────────────────
+// The `icon` field is a short string key kept for Firestore storage; the UI
+// renders a Lucide component looked up from BADGE_ICONS by badge id.
 
 export const BADGE_CATALOG: Record<BadgeId, Omit<Badge, 'unlockedAt'>> = {
-  first_lesson:      { id: 'first_lesson',      name: 'Primer Paso',       description: 'Completa tu primera lección',               icon: '🎯', xpReward: 20 },
-  five_lessons:      { id: 'five_lessons',       name: 'En Racha',          description: 'Completa 5 lecciones',                      icon: '🔥', xpReward: 50 },
-  ten_lessons:       { id: 'ten_lessons',        name: 'Dedicado',          description: 'Completa 10 lecciones',                     icon: '⭐', xpReward: 100 },
-  perfect_score:     { id: 'perfect_score',      name: 'Perfección',        description: 'Obtén 100% en una tarea',                   icon: '💎', xpReward: 30 },
-  streak_3:          { id: 'streak_3',           name: 'Consistente',       description: 'Racha de estudio de 3 días',                icon: '📅', xpReward: 15 },
-  streak_7:          { id: 'streak_7',           name: 'Semana Completa',   description: 'Racha de estudio de 7 días',                icon: '🏆', xpReward: 40 },
-  streak_30:         { id: 'streak_30',          name: 'Imparable',         description: 'Racha de estudio de 30 días',               icon: '👑', xpReward: 150 },
-  homework_hero:     { id: 'homework_hero',      name: 'Héroe de Tareas',   description: 'Envía 10 tareas a tiempo',                  icon: '📝', xpReward: 60 },
-  early_bird:        { id: 'early_bird',         name: 'Madrugador',        description: 'Envía tarea antes del plazo 5 veces',       icon: '🐦', xpReward: 40 },
-  vocabulary_master: { id: 'vocabulary_master',   name: 'Vocabulario Pro',   description: 'Completa 5 slides de vocabulario',          icon: '📚', xpReward: 35 },
-  grammar_guru:      { id: 'grammar_guru',        name: 'Gurú Gramático',   description: 'Completa 5 slides de gramática',            icon: '✏️', xpReward: 35 },
-  level_up:          { id: 'level_up',            name: 'Subida de Nivel',  description: 'Sube de nivel por primera vez',              icon: '🚀', xpReward: 25 },
-  all_skills:        { id: 'all_skills',          name: 'Completo',         description: 'Puntaje 4+ en todas las habilidades',       icon: '🌟', xpReward: 100 },
-  word_first:        { id: 'word_first',          name: 'Primer Ejemplo',   description: 'Escribe tu primer ejemplo de Palabra del Día', icon: '📖', xpReward: 15 },
-  word_streak_7:     { id: 'word_streak_7',       name: 'Vocabulario Semanal', description: 'Racha de 7 días de Palabra del Día',      icon: '📝', xpReward: 40 },
-  word_streak_14:    { id: 'word_streak_14',      name: 'Escritor Dedicado', description: 'Racha de 14 días de Palabra del Día',       icon: '✍️', xpReward: 75 },
-  word_streak_30:    { id: 'word_streak_30',      name: 'Maestro de Palabras', description: 'Racha de 30 días de Palabra del Día',     icon: '🏅', xpReward: 150 },
+  first_lesson:      { id: 'first_lesson',       name: 'Primer Paso',         description: 'Completa tu primera lección',                   icon: 'target',     xpReward: 20 },
+  five_lessons:      { id: 'five_lessons',       name: 'En Racha',            description: 'Completa 5 lecciones',                          icon: 'flame',      xpReward: 50 },
+  ten_lessons:       { id: 'ten_lessons',        name: 'Dedicado',            description: 'Completa 10 lecciones',                         icon: 'star',       xpReward: 100 },
+  perfect_score:     { id: 'perfect_score',      name: 'Perfección',          description: 'Obtén 100% en una tarea',                       icon: 'gem',        xpReward: 30 },
+  streak_3:          { id: 'streak_3',           name: 'Consistente',         description: 'Racha de estudio de 3 días',                    icon: 'calendar',   xpReward: 15 },
+  streak_7:          { id: 'streak_7',           name: 'Semana Completa',     description: 'Racha de estudio de 7 días',                    icon: 'trophy',     xpReward: 40 },
+  streak_30:         { id: 'streak_30',          name: 'Imparable',           description: 'Racha de estudio de 30 días',                   icon: 'crown',      xpReward: 150 },
+  homework_hero:     { id: 'homework_hero',      name: 'Héroe de Tareas',     description: 'Envía 10 tareas a tiempo',                      icon: 'notes',      xpReward: 60 },
+  early_bird:        { id: 'early_bird',         name: 'Madrugador',          description: 'Envía tarea antes del plazo 5 veces',           icon: 'bird',       xpReward: 40 },
+  vocabulary_master: { id: 'vocabulary_master',  name: 'Vocabulario Pro',     description: 'Completa 5 slides de vocabulario',              icon: 'book-open',  xpReward: 35 },
+  grammar_guru:      { id: 'grammar_guru',       name: 'Gurú Gramático',      description: 'Completa 5 slides de gramática',                icon: 'pencil',     xpReward: 35 },
+  level_up:          { id: 'level_up',           name: 'Subida de Nivel',     description: 'Sube de nivel por primera vez',                 icon: 'rocket',     xpReward: 25 },
+  all_skills:        { id: 'all_skills',         name: 'Completo',            description: 'Puntaje 4+ en todas las habilidades',           icon: 'sparkles',   xpReward: 100 },
+  word_first:        { id: 'word_first',         name: 'Primer Ejemplo',      description: 'Escribe tu primer ejemplo de Palabra del Día',  icon: 'book-mark',  xpReward: 15 },
+  word_streak_7:     { id: 'word_streak_7',      name: 'Vocabulario Semanal', description: 'Racha de 7 días de Palabra del Día',            icon: 'notes',      xpReward: 40 },
+  word_streak_14:    { id: 'word_streak_14',     name: 'Escritor Dedicado',   description: 'Racha de 14 días de Palabra del Día',           icon: 'pen-tool',   xpReward: 75 },
+  word_streak_30:    { id: 'word_streak_30',     name: 'Maestro de Palabras', description: 'Racha de 30 días de Palabra del Día',           icon: 'medal',      xpReward: 150 },
+};
+
+// Lucide icon component for each badge — used by UI; keep in lockstep with BADGE_CATALOG.
+export const BADGE_ICONS: Record<BadgeId, LucideIcon> = {
+  first_lesson:      Target,
+  five_lessons:      Flame,
+  ten_lessons:       Star,
+  perfect_score:     Gem,
+  streak_3:          Calendar,
+  streak_7:          Trophy,
+  streak_30:         Crown,
+  homework_hero:     FileText,
+  early_bird:        Bird,
+  vocabulary_master: BookOpen,
+  grammar_guru:      Pencil,
+  level_up:          Rocket,
+  all_skills:        Sparkles,
+  word_first:        BookMarked,
+  word_streak_7:     FileText,
+  word_streak_14:    PenTool,
+  word_streak_30:    Medal,
 };
 
 // ── Level Thresholds ──────────────────────────────────────────

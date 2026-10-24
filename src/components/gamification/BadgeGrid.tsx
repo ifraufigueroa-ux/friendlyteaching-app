@@ -1,7 +1,7 @@
 // FriendlyTeaching.cl — Badge Grid (earned + locked badges)
 'use client';
 import type { BadgeId } from '@/types/firebase';
-import { BADGE_CATALOG } from '@/lib/utils/gamification';
+import { BADGE_CATALOG, BADGE_ICONS } from '@/lib/utils/gamification';
 
 interface Props {
   earnedBadges: BadgeId[];
@@ -19,15 +19,18 @@ export default function BadgeGrid({ earnedBadges, compact }: Props) {
     if (earnedList.length === 0) return null;
     return (
       <div className="flex flex-wrap gap-1.5">
-        {earnedList.map((badge) => (
-          <span
-            key={badge.id}
-            title={`${badge.name}: ${badge.description}`}
-            className="text-lg cursor-default hover:scale-125 transition-transform"
-          >
-            {badge.icon}
-          </span>
-        ))}
+        {earnedList.map((badge) => {
+          const Icon = BADGE_ICONS[badge.id];
+          return (
+            <span
+              key={badge.id}
+              title={`${badge.name}: ${badge.description}`}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F0E5FF] text-[#5A3D7A] cursor-default hover:scale-125 transition-transform"
+            >
+              <Icon className="w-3.5 h-3.5" strokeWidth={2.25} />
+            </span>
+          );
+        })}
       </div>
     );
   }
@@ -38,6 +41,7 @@ export default function BadgeGrid({ earnedBadges, compact }: Props) {
       <div className="grid grid-cols-4 gap-3">
         {ALL_BADGES.map((badge) => {
           const isEarned = earned.has(badge.id);
+          const Icon = BADGE_ICONS[badge.id];
           return (
             <div
               key={badge.id}
@@ -48,7 +52,9 @@ export default function BadgeGrid({ earnedBadges, compact }: Props) {
               }`}
               title={badge.description}
             >
-              <span className="text-2xl mb-1">{badge.icon}</span>
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${isEarned ? 'bg-[#5A3D7A] text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Icon className="w-4 h-4" strokeWidth={2.25} />
+              </span>
               <p className="text-[10px] font-semibold text-gray-700 leading-tight">{badge.name}</p>
               {isEarned && (
                 <p className="text-[9px] text-[#9B7CB8] font-bold mt-0.5">+{badge.xpReward} XP</p>

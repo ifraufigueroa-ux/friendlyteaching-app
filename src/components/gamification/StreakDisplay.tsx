@@ -1,5 +1,6 @@
 // FriendlyTeaching.cl — Streak & Weekly Activity Display
 'use client';
+import { Flame, Crown, Trophy, Calendar } from 'lucide-react';
 
 interface Props {
   currentStreak: number;
@@ -16,7 +17,7 @@ export default function StreakDisplay({ currentStreak, longestStreak, weeklyXp, 
   if (compact) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-lg">🔥</span>
+        <Flame className="w-5 h-5 text-orange-500" strokeWidth={2.25} />
         <span className="text-sm font-bold text-[#5A3D7A]">{currentStreak} días</span>
       </div>
     );
@@ -26,15 +27,19 @@ export default function StreakDisplay({ currentStreak, longestStreak, weeklyXp, 
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E0D5FF]">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🔥</span>
+          <Flame className="w-6 h-6 text-orange-500" strokeWidth={2.25} />
           <div>
             <p className="text-sm font-bold text-[#5A3D7A]">Racha: {currentStreak} días</p>
             <p className="text-xs text-gray-400">Máxima: {longestStreak} días</p>
           </div>
         </div>
         {currentStreak >= 3 && (
-          <span className="px-2 py-1 bg-orange-50 text-orange-500 rounded-lg text-xs font-bold">
-            {currentStreak >= 30 ? '👑 Imparable' : currentStreak >= 7 ? '🏆 Semana' : '📅 Racha'}
+          <span className="px-2 py-1 bg-orange-50 text-orange-500 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+            {currentStreak >= 30
+              ? <><Crown className="w-3 h-3" strokeWidth={2.5} /> Imparable</>
+              : currentStreak >= 7
+                ? <><Trophy className="w-3 h-3" strokeWidth={2.5} /> Semana</>
+                : <><Calendar className="w-3 h-3" strokeWidth={2.5} /> Racha</>}
           </span>
         )}
       </div>

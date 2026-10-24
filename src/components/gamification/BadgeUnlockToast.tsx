@@ -1,8 +1,9 @@
 // FriendlyTeaching.cl — Badge Unlock Toast (animated notification)
 'use client';
 import { useEffect, useState } from 'react';
+import { PartyPopper } from 'lucide-react';
 import type { BadgeId } from '@/types/firebase';
-import { BADGE_CATALOG } from '@/lib/utils/gamification';
+import { BADGE_CATALOG, BADGE_ICONS } from '@/lib/utils/gamification';
 
 interface Props {
   badgeIds: BadgeId[];
@@ -33,7 +34,7 @@ export default function BadgeUnlockToast({ badgeIds, onDismiss }: Props) {
     >
       <div className="bg-white rounded-2xl shadow-2xl border-2 border-[#C8A8DC] p-4 max-w-xs">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl animate-bounce">🎉</span>
+          <PartyPopper className="w-5 h-5 animate-bounce text-[#C8A8DC]" strokeWidth={2.25} />
           <p className="text-sm font-bold text-[#5A3D7A]">
             {badgeIds.length === 1 ? '¡Nueva insignia!' : `¡${badgeIds.length} nuevas insignias!`}
           </p>
@@ -41,9 +42,12 @@ export default function BadgeUnlockToast({ badgeIds, onDismiss }: Props) {
         <div className="space-y-2">
           {badgeIds.map((id) => {
             const badge = BADGE_CATALOG[id];
+            const Icon = BADGE_ICONS[id];
             return (
               <div key={id} className="flex items-center gap-2 bg-[#F0E5FF] rounded-xl px-3 py-2">
-                <span className="text-2xl">{badge.icon}</span>
+                <span className="w-7 h-7 rounded-full bg-[#5A3D7A] text-white flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4" strokeWidth={2.25} />
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-[#5A3D7A]">{badge.name}</p>
                   <p className="text-[10px] text-gray-500 truncate">{badge.description}</p>

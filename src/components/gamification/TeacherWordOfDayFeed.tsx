@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — Feed de "Palabra del día" para el profe
 'use client';
 import { useMemo } from 'react';
+import { Inbox, BookOpen } from 'lucide-react';
 import { useTeacherWordSubmissions } from '@/hooks/useTeacherWordSubmissions';
 import type { FTUser } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
@@ -32,7 +33,7 @@ export default function TeacherWordOfDayFeed({ students, max = 15, showEmpty = f
     if (!showEmpty) return null;
     return (
       <div className="glass-card rounded-2xl p-8 text-center">
-        <p className="text-3xl mb-3">📭</p>
+        <Inbox className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={2} />
         <p className="text-sm text-gray-500">
           Aún no hay respuestas de la palabra del día.
         </p>
@@ -46,7 +47,7 @@ export default function TeacherWordOfDayFeed({ students, max = 15, showEmpty = f
   return (
     <div className="glass-card rounded-2xl p-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="font-bold text-gray-700 text-sm">📖 Palabra del día — respuestas recientes</p>
+        <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><BookOpen className="w-4 h-4" strokeWidth={2.25} /> Palabra del día — respuestas recientes</p>
         <span className="text-xs text-gray-400">{submissions.length}</span>
       </div>
       <div className="space-y-2">
