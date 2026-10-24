@@ -200,6 +200,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Random Topic Simulator progress ─────────────────────────
+    // Doc per student tracking which cue cards have been practiced.
+    // Teacher drives practice during the class, so the teacher needs
+    // write access in addition to the student.
+    match /randomTopicProgress/{studentId} {
+      allow read:   if isOwner(studentId) || isTeacher();
+      allow create: if isOwner(studentId) || isTeacher();
+      allow update: if isOwner(studentId) || isTeacher();
+      allow delete: if false;
+    }
+
     // ── Word of the Day Submissions ───────────────────────────
     // Students submit daily examples; teachers can review all.
     match /wordOfDaySubmissions/{subId} {

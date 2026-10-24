@@ -9,6 +9,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
+import { useStudents } from '@/hooks/useStudents';
+import { useRandomTopicProgress } from '@/hooks/useRandomTopicProgress';
 import {
   RANDOM_TOPICS,
   RANDOM_TOPIC_CATEGORIES,
@@ -20,8 +22,11 @@ import {
 
 // localStorage keys. v2 bump because the old key stored a single
 // category string; now we store multi-select state as JSON.
-const LS_CATS   = 'rt-sim:selectedCategories:v2';
-const LS_DISA   = 'rt-sim:disabledTopicIds:v1';
+const LS_CATS    = 'rt-sim:selectedCategories:v2';
+const LS_DISA    = 'rt-sim:disabledTopicIds:v1';
+// Remember the last student the teacher practiced with so coming
+// back to the page doesn't ask for a selection again.
+const LS_STUDENT = 'rt-sim:lastStudentId:v1';
 
 // ── Card view ─────────────────────────────────────────────────────────
 // Face-down: coloured gradient by category, "TOPIC" label + big emoji.
@@ -138,6 +143,21 @@ export default function RandomTopicsPage() {
   const [deckSeed, setDeckSeed] = useState(0);
   const [rollKey, setRollKey] = useState(0); // forces reveal animation on re-roll
 
+  // Student the teacher is practicing with. The hook subscribes to that
+  // student's practicedIds doc; `sessionActive` gates the deck so the
+  // teacher must explicitly start/resume before practicing counts.
+  const { students } = useStudents();
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [sessionActive, setSessionActive] = useState(false);
+  const { practicedIds, exists: progressExists, loading: progressLoading, markPracticed, resetProgress } =
+    useRandomTopicProgress(studentId);
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  const activeStudent = useMemo(
+    () => students.find(s => s.uid === studentId) ?? null,
+    [students, studentId],
+  );
+
   // ── Hydrate preferences from localStorage (client-only). ────────────
   useEffect(() => {
     try {
@@ -157,8 +177,17 @@ export default function RandomTopicsPage() {
         const arr = JSON.parse(rawD) as string[];
         setDisabledIds(new Set(arr));
       }
+      const rawS = localStorage.getItem(LS_STUDENT);
+      if (rawS) setStudentId(rawS);
     } catch { /* corrupt JSON — ignore */ }
   }, []);
+
+  useEffect(() => {
+    try {
+      if (studentId) localStorage.setItem(LS_STUDENT, studentId);
+      else           localStorage.removeItem(LS_STUDENT);
+    } catch {}
+  }, [studentId]);
 
   // ── Persist on change. ──────────────────────────────────────────────
   useEffect(() => {
@@ -170,11 +199,20 @@ export default function RandomTopicsPage() {
 
   // Pool efectivo = topics cuya categoría está seleccionada (o todas si
   // el set está vacío) Y cuyo id no está en el blacklist por topic.
-  const pool = useMemo(() => {
+  // Pool base = qué topics están en el mazo visualmente (incluye los ya
+  // practicados en gris para contexto). Pool activo = restantes para
+  // sortear durante una sesión; cuando la sesión está activa descarta
+  // los practicedIds del estudiante.
+  const basePool = useMemo(() => {
     let out = RANDOM_TOPICS;
     if (selectedCats.size > 0) out = out.filter(t => selectedCats.has(t.category));
     return out.filter(t => !disabledIds.has(t.id));
   }, [selectedCats, disabledIds]);
+
+  const pool = useMemo(() => {
+    if (!sessionActive) return basePool;
+    return basePool.filter(t => !practicedIds.has(t.id));
+  }, [basePool, sessionActive, practicedIds]);
 
   // Shuffled indices into `pool` — kept stable while the pool doesn't change
   // so cards don't jump around every time we open a topic.
@@ -223,14 +261,44 @@ export default function RandomTopicsPage() {
 
   function markDoneAndDraw() {
     setPracticed(n => n + 1);
-    // Auto-draw the next random card from the same filtered pool.
-    if (pool.length <= 1) {
+    // Persist the practiced topic for the current student (fire-and-forget;
+    // the subscription will reflect the write, which also removes it from
+    // the pool). No-op when there's no student selected.
+    if (picked && sessionActive && studentId) {
+      void markPracticed(picked.id);
+    }
+    // After exclusion the pool shrinks by one, so if that leaves zero we
+    // go back to the deck so the "deck complete" banner surfaces instead
+    // of trying to draw from an empty set.
+    const remaining = picked ? pool.filter(t => t.id !== picked.id) : pool;
+    if (remaining.length === 0) {
       backToDeck();
       return;
     }
-    const candidates = picked ? pool.filter(t => t.id !== picked.id) : pool;
-    const next = candidates[Math.floor(Math.random() * candidates.length)];
+    const next = remaining[Math.floor(Math.random() * remaining.length)];
     pickCard(next);
+  }
+
+  async function startNewSession() {
+    if (!studentId) return;
+    await resetProgress();
+    setPracticed(0);
+    setSessionActive(true);
+    setConfirmReset(false);
+    backToDeck();
+  }
+
+  function resumeSession() {
+    if (!studentId) return;
+    setPracticed(0);
+    setSessionActive(true);
+    backToDeck();
+  }
+
+  function endSession() {
+    setSessionActive(false);
+    setPracticed(0);
+    backToDeck();
   }
 
   return (
@@ -303,9 +371,32 @@ export default function RandomTopicsPage() {
             </div>
           }
           actions={
-            <span className="text-xs text-gray-500 hidden sm:inline">
-              Practicados: <strong className="text-[#5A3D7A]">{practiced}</strong>
-            </span>
+            <div className="flex items-center gap-3">
+              <select
+                value={studentId ?? ''}
+                onChange={(e) => {
+                  const next = e.target.value || null;
+                  setStudentId(next);
+                  // Switching student always ends the current session so
+                  // the teacher explicitly decides new vs. resume for the
+                  // new one.
+                  setSessionActive(false);
+                  setPracticed(0);
+                  backToDeck();
+                }}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#C8A8DC] bg-white text-[#5A3D7A] focus:outline-none focus:ring-2 focus:ring-[#9B7CB8]/30"
+              >
+                <option value="">Elegir estudiante…</option>
+                {students.map(s => (
+                  <option key={s.uid} value={s.uid}>
+                    {s.fullName || s.email}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-gray-500 hidden sm:inline">
+                Practicados: <strong className="text-[#5A3D7A]">{practiced}</strong>
+              </span>
+            </div>
           }
         />
 
@@ -384,8 +475,121 @@ export default function RandomTopicsPage() {
 
           <div className="mb-6" />
 
+          {/* ── Session bar ───────────────────────────────────────────── */}
+          {/* Gates the deck: the teacher must pick a student and start
+              or resume a session before the deck becomes interactive.
+              This is also where "¡mazo completo!" surfaces. */}
+          {!sessionActive ? (
+            <div className="max-w-xl mx-auto mb-6">
+              {!studentId ? (
+                <div className="text-center bg-white/80 backdrop-blur rounded-2xl border border-[#E8D5F0] px-6 py-5 shadow-sm">
+                  <p className="text-sm text-[#5A3D7A]/80 mb-2">
+                    Elegí un estudiante arriba para empezar.
+                  </p>
+                  <p className="text-[11px] text-[#5A3D7A]/60">
+                    Guardamos qué cue cards ya respondió, así no se repiten en próximas clases.
+                  </p>
+                </div>
+              ) : progressLoading ? (
+                <div className="text-center text-[#5A3D7A]/60 text-xs py-6">
+                  Cargando progreso de {activeStudent?.fullName ?? '…'}…
+                </div>
+              ) : (
+                <div className="bg-white/90 backdrop-blur rounded-2xl border border-[#E8D5F0] px-6 py-5 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5A3D7A]/60 mb-1 text-center">
+                    Sesión
+                  </p>
+                  <p className="text-sm text-[#2D1B4E] mb-4 text-center">
+                    <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
+                    {progressExists && practicedIds.size > 0 && (
+                      <> · ya practicó <strong>{practicedIds.size}</strong> cue card{practicedIds.size === 1 ? '' : 's'}</>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {practicedIds.size > 0 && (
+                      <button
+                        onClick={resumeSession}
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
+                      >
+                        ▶ Resume
+                      </button>
+                    )}
+                    {!confirmReset ? (
+                      <button
+                        onClick={() => (practicedIds.size > 0 ? setConfirmReset(true) : startNewSession())}
+                        className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                          practicedIds.size > 0
+                            ? 'bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF]'
+                            : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5'
+                        }`}
+                      >
+                        + New Session
+                      </button>
+                    ) : (
+                      <div className="flex gap-2 items-center bg-rose-50 border border-rose-200 rounded-full pl-4 pr-1 py-1">
+                        <span className="text-xs text-rose-700 font-semibold">
+                          ¿Resetear las {practicedIds.size} practicadas?
+                        </span>
+                        <button
+                          onClick={startNewSession}
+                          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold"
+                        >
+                          Sí, resetear
+                        </button>
+                        <button
+                          onClick={() => setConfirmReset(false)}
+                          className="px-3 py-1.5 text-rose-700 hover:bg-rose-100 rounded-full text-xs font-bold"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="max-w-xl mx-auto mb-6 flex items-center justify-between gap-3 bg-[#F0E5FF]/70 border border-[#C8A8DC]/60 rounded-full px-4 py-2">
+              <span className="text-xs text-[#5A3D7A]">
+                Sesión con <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
+                {' · '}
+                <strong>{pool.length}</strong> restantes
+                {' · '}
+                <strong>{practicedIds.size}</strong> ya hechas
+              </span>
+              <button
+                onClick={endSession}
+                className="text-[11px] font-bold text-[#5A3D7A] hover:underline"
+              >
+                Terminar sesión
+              </button>
+            </div>
+          )}
+
+          {/* ── Deck complete banner ──────────────────────────────────── */}
+          {sessionActive && pool.length === 0 && basePool.length > 0 && (
+            <div className="max-w-xl mx-auto mb-6 bg-emerald-50 border-2 border-emerald-200 rounded-2xl px-6 py-5 text-center">
+              <p className="text-sm font-bold text-emerald-900 mb-1">
+                🎉 ¡Mazo completo!
+              </p>
+              <p className="text-xs text-emerald-700 mb-3">
+                {activeStudent?.fullName ?? 'El estudiante'} practicó las {practicedIds.size} cue cards del mazo. Podés resetear el ciclo para volver a empezar.
+              </p>
+              <button
+                onClick={startNewSession}
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-sm font-bold active:scale-95"
+              >
+                Resetear ciclo
+              </button>
+            </div>
+          )}
+
           {/* ── Deck vs. picked card ──────────────────────────────────── */}
-          {!picked ? (
+          {/* Deck is hidden when a student is selected but no session is
+              active yet, so the teacher commits to New vs. Resume before
+              any card gets drawn (and potentially marked). Without a
+              student, the deck runs free (no persistence). */}
+          {studentId && !sessionActive ? null : !picked ? (
             <div className="space-y-6">
               <div className="flex justify-center gap-3">
                 <button
