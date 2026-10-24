@@ -2,6 +2,7 @@
 // Lets the teacher quickly set which hours are blocked across all days
 'use client';
 import { useState, useEffect } from 'react';
+import { Ban, CheckCircle2, Clock, Calendar } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { useSchedule, setBulkAvailability } from '@/hooks/useSchedule';
@@ -158,7 +159,7 @@ export default function AvailabilityModal({ onClose }: Props) {
                             }`}
                             title={isBlocked ? 'Bloqueado — clic para disponibilizar' : 'Disponible — clic para bloquear'}
                           >
-                            {isBlocked ? '🚫' : ''}
+                            {isBlocked ? <Ban className="w-3.5 h-3.5 mx-auto" strokeWidth={2.5} /> : null}
                           </button>
                         </td>
                       );
@@ -175,9 +176,9 @@ export default function AvailabilityModal({ onClose }: Props) {
           <p className="text-xs text-gray-400 w-full">Presets rápidos:</p>
           <button
             onClick={() => setBlocked(new Set())}
-            className="px-3 py-1.5 bg-[#A8E6A1] text-[#2D6E2A] rounded-full text-xs font-semibold hover:bg-[#8DD67E]"
+            className="px-3 py-1.5 bg-[#A8E6A1] text-[#2D6E2A] rounded-full text-xs font-semibold hover:bg-[#8DD67E] inline-flex items-center gap-1.5"
           >
-            ✅ Todo disponible
+            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Todo disponible
           </button>
           <button
             onClick={() => {
@@ -185,9 +186,9 @@ export default function AvailabilityModal({ onClose }: Props) {
               DAYS.forEach((d) => HOURS.forEach((h) => all.add(`${d}-${h}`)));
               setBlocked(all);
             }}
-            className="px-3 py-1.5 bg-[#D9D9D9] text-gray-600 rounded-full text-xs font-semibold hover:bg-gray-300"
+            className="px-3 py-1.5 bg-[#D9D9D9] text-gray-600 rounded-full text-xs font-semibold hover:bg-gray-300 inline-flex items-center gap-1.5"
           >
-            🚫 Todo bloqueado
+            <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Todo bloqueado
           </button>
           <button
             onClick={() => {
@@ -198,9 +199,9 @@ export default function AvailabilityModal({ onClose }: Props) {
               });
               setBlocked(s);
             }}
-            className="px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-full text-xs font-semibold hover:bg-[#E0CCFF]"
+            className="px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-full text-xs font-semibold hover:bg-[#E0CCFF] inline-flex items-center gap-1.5"
           >
-            ⏰ Bloquear mañanas y noches
+            <Clock className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear mañanas y noches
           </button>
           <button
             onClick={() => {
@@ -209,9 +210,9 @@ export default function AvailabilityModal({ onClose }: Props) {
               HOURS.forEach((h) => s.add(`6-${h}`));
               setBlocked(s);
             }}
-            className="px-3 py-1.5 bg-[#FFF5C8] text-[#7A5E00] rounded-full text-xs font-semibold hover:bg-[#FFE8A8]"
+            className="px-3 py-1.5 bg-[#FFF5C8] text-[#7A5E00] rounded-full text-xs font-semibold hover:bg-[#FFE8A8] inline-flex items-center gap-1.5"
           >
-            📅 Bloquear sábado
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear sábado
           </button>
         </div>
 
@@ -227,7 +228,9 @@ export default function AvailabilityModal({ onClose }: Props) {
               saved ? 'bg-[#A8E6A1] text-[#2D6E2A]' : 'bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white'
             }`}
           >
-            {saved ? '✅ Guardado' : saving ? 'Guardando...' : 'Guardar disponibilidad'}
+            {saved
+              ? <span className="inline-flex items-center justify-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Guardado</span>
+              : saving ? 'Guardando...' : 'Guardar disponibilidad'}
           </button>
         </div>
       </div>

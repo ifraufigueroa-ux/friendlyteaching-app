@@ -2,12 +2,29 @@
 'use client';
 import { useMemo, useState, useEffect } from 'react';
 import { doc, deleteDoc } from 'firebase/firestore';
+import {
+  ClipboardList,
+  X,
+  CheckCircle2,
+  XCircle,
+  Inbox,
+  RotateCw,
+  FileText,
+  Trash2,
+  BookOpen,
+  MessageSquare,
+  Target,
+  Sparkles,
+  Smile,
+  Frown,
+  type LucideIcon,
+} from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { useClassHistory } from '@/hooks/useClassHistory';
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
 const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MOOD_ICON: Record<string, string> = { great: '🌟', good: '😊', regular: '😕' };
+const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
 const MOOD_LABEL: Record<string, string> = { great: 'Excelente', good: 'Buena', regular: 'Regular' };
 
 type Range = '7' | '30' | '90' | 'all';
@@ -117,14 +134,14 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">📋 Historial de clases</h2>
+            <h2 className="text-lg font-bold text-gray-800 inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" strokeWidth={2.25} /> Historial de clases</h2>
             <p className="text-xs text-gray-400 mt-0.5">{history.length} registros en total</p>
           </div>
           <button
             onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors text-lg"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -184,7 +201,11 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                   attendFilter === f ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {f === 'all' ? 'Todas' : f === 'attended' ? '✅ Realizadas' : '❌ Ausencias'}
+                {f === 'all'
+                  ? 'Todas'
+                  : f === 'attended'
+                    ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Realizadas</span>
+                    : <span className="inline-flex items-center gap-1"><XCircle className="w-3 h-3" strokeWidth={2.5} /> Ausencias</span>}
               </button>
             ))}
           </div>
@@ -226,7 +247,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
             <div className="text-center py-12 text-gray-400 text-sm">Cargando historial…</div>
           ) : grouped.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-3xl mb-2">📭</p>
+              <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
               <p className="text-gray-500 text-sm">Sin registros para este filtro.</p>
             </div>
           ) : (
@@ -251,7 +272,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                             onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white rounded-2xl transition-colors text-left pr-10"
                           >
-                            <span className="text-lg flex-shrink-0">{entry.attended ? '✅' : '❌'}</span>
+                            <span className="flex-shrink-0">{entry.attended ? <CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.5} /> : <XCircle className="w-4 h-4 text-red-500" strokeWidth={2.5} />}</span>
 
                             <div className="w-20 flex-shrink-0">
                               <p className="text-xs font-bold text-gray-700">
@@ -262,9 +283,12 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
 
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-gray-800 truncate">{entry.studentName}</p>
-                              <p className="text-[10px] text-gray-400">
-                                {entry.isRecurring ? '↻ Recurrente' : '• Una vez'}
-                                {entry.notes?.mood ? ` · ${MOOD_ICON[entry.notes.mood]}` : ''}
+                              <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
+                                {entry.isRecurring ? <><RotateCw className="w-2.5 h-2.5" strokeWidth={2.5} /> Recurrente</> : '• Una vez'}
+                                {entry.notes?.mood && (() => {
+                                  const Mood = MOOD_ICON[entry.notes.mood];
+                                  return Mood ? <> · <Mood className="w-2.5 h-2.5" strokeWidth={2.5} /></> : null;
+                                })()}
                               </p>
                             </div>
 
@@ -276,8 +300,8 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {hasNotes && (
-                                <span className="text-[10px] text-[#9B7CB8] font-semibold bg-[#F0E5FF] px-1.5 py-0.5 rounded-full">
-                                  📝
+                                <span className="text-[#9B7CB8] font-semibold bg-[#F0E5FF] px-1.5 py-0.5 rounded-full inline-flex items-center">
+                                  <FileText className="w-2.5 h-2.5" strokeWidth={2.5} />
                                 </span>
                               )}
                               <span className={`text-gray-400 text-sm transition-transform inline-block ${isExpanded ? 'rotate-180' : ''}`}>
@@ -293,7 +317,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                             title="Eliminar este registro"
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 transition-colors disabled:opacity-40 opacity-0 group-hover:opacity-100"
                           >
-                            {deletingId === entry.id ? '…' : '🗑'}
+                            {deletingId === entry.id ? '…' : <Trash2 className="w-3 h-3" strokeWidth={2.5} />}
                           </button>
 
                           {isExpanded && (
@@ -301,22 +325,25 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                               {hasNotes ? (
                                 <div className="grid grid-cols-1 gap-2">
                                   {entry.notes?.covered && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700">📚 Temas:</span> {entry.notes.covered}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Temas:</span> {entry.notes.covered}</p>
                                   )}
                                   {entry.notes?.performance && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700">💬 Desempeño:</span> {entry.notes.performance}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Desempeño:</span> {entry.notes.performance}</p>
                                   )}
                                   {entry.notes?.nextClass && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700">🎯 Próxima clase:</span> {entry.notes.nextClass}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Próxima clase:</span> {entry.notes.nextClass}</p>
                                   )}
                                   {entry.notes?.homework && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700">📋 Tarea:</span> {entry.notes.homework}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Tarea:</span> {entry.notes.homework}</p>
                                   )}
-                                  {entry.notes?.mood && (
-                                    <p className="text-xs text-gray-600">
-                                      <span className="font-semibold text-gray-700">{MOOD_ICON[entry.notes.mood]} Estado:</span> {MOOD_LABEL[entry.notes.mood]}
-                                    </p>
-                                  )}
+                                  {entry.notes?.mood && (() => {
+                                    const Mood = MOOD_ICON[entry.notes.mood];
+                                    return (
+                                      <p className="text-xs text-gray-600">
+                                        <span className="font-semibold text-gray-700 inline-flex items-center gap-1">{Mood && <Mood className="w-3 h-3" strokeWidth={2.5} />} Estado:</span> {MOOD_LABEL[entry.notes.mood]}
+                                      </p>
+                                    );
+                                  })()}
                                 </div>
                               ) : (
                                 <p className="text-xs text-gray-400 italic">Sin notas para esta clase.</p>

@@ -2,6 +2,7 @@
 // Carrusel de clases del día con botones "Se tomó" / "No se tomó" y deshacer
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { PartyPopper, Calendar, Clock, Pin, FileText, ArrowUpRight, CheckCircle2, XCircle } from 'lucide-react';
 import { completeBooking, updateBooking } from '@/hooks/useBookings';
 import { detectMaterialType } from '@/components/planner/bookingUtils';
 import type { Booking } from '@/types/firebase';
@@ -66,7 +67,7 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
     return (
       <div className="mb-3 space-y-2">
         <div className="flex items-center gap-2.5 bg-[#E8F5E9] border border-[#A8E6A1] rounded-2xl px-4 py-3">
-          <span className="text-xl">🎉</span>
+          <PartyPopper className="w-5 h-5 text-[#2E7D4F]" strokeWidth={2.25} />
           <p className="text-sm font-semibold text-[#2D6E2A]">¡Al día con las clases de hoy!</p>
         </div>
         {lastAction && (
@@ -126,8 +127,8 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
     <div className="mb-3 bg-[#FAF5FF] border border-[#E8D8F5] rounded-2xl p-3">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-          📅 Clases de hoy
+        <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider inline-flex items-center gap-1.5">
+          <Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Clases de hoy
         </p>
         <span className="text-xs text-[#9B7CB8] font-medium">{safeIdx + 1} / {total}</span>
       </div>
@@ -153,7 +154,7 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
           <div className="min-w-0">
             <p className="text-sm font-bold text-[#5A3D7A] truncate">{current.studentName}</p>
             <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
-              <span className="text-xs text-[#9B7CB8]">🕐 {current.hour}:00</span>
+              <span className="text-xs text-[#9B7CB8] inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> {current.hour}:00</span>
               {current.isRecurring && (
                 <span className="text-[10px] bg-[#F0E5FF] text-[#5A3D7A] px-1.5 py-0.5 rounded-full font-medium">
                   ↻ Recurrente
@@ -161,12 +162,12 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
               )}
             </div>
             {current.topic && (
-              <p className="text-xs text-[#5A3D7A]/80 mt-1 truncate font-medium">
-                📌 {current.topic}
+              <p className="text-xs text-[#5A3D7A]/80 mt-1 truncate font-medium inline-flex items-center gap-1">
+                <Pin className="w-3 h-3" strokeWidth={2.5} /> {current.topic}
               </p>
             )}
             {current.notes && !current.topic && (
-              <p className="text-xs text-gray-400 mt-0.5 truncate">📝 {current.notes}</p>
+              <p className="text-xs text-gray-400 mt-0.5 truncate inline-flex items-center gap-1"><FileText className="w-3 h-3" strokeWidth={2.5} /> {current.notes}</p>
             )}
           </div>
 
@@ -177,6 +178,7 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
                 Ellii / Drive / etc. without leaving the dashboard. */}
             {current.materialUrl && (() => {
               const material = detectMaterialType(current.materialUrl);
+              const MaterialIcon = material.Icon;
               return (
                 <a
                   href={current.materialUrl}
@@ -186,9 +188,9 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] text-[11px] font-bold border border-[#D9C2EE] transition-colors"
                   title={current.materialUrl}
                 >
-                  <span>{material.icon}</span>
+                  {MaterialIcon && <MaterialIcon className="w-3 h-3" strokeWidth={2.5} />}
                   <span>{material.label}</span>
-                  <span className="opacity-60">↗</span>
+                  <ArrowUpRight className="w-3 h-3 opacity-60" strokeWidth={2.25} />
                 </a>
               );
             })()}
@@ -215,16 +217,16 @@ export default function TodayCarousel({ bookings, todayDow }: Props) {
         <button
           onClick={() => handleMark('attended')}
           disabled={loading || exiting}
-          className="flex-1 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex-1 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
         >
-          ✅ Se tomó
+          <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Se tomó
         </button>
         <button
           onClick={() => handleMark('absent')}
           disabled={loading || exiting}
-          className="flex-1 py-2 bg-[#FFD9D9] hover:bg-[#FFB8B8] text-red-600 rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
+          className="flex-1 py-2 bg-[#FFD9D9] hover:bg-[#FFB8B8] text-red-600 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
         >
-          ❌ No se tomó
+          <XCircle className="w-3.5 h-3.5" strokeWidth={2.5} /> No se tomó
         </button>
       </div>
 

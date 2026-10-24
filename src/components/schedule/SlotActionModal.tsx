@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — SlotActionModal
 'use client';
 import { useState, useEffect } from 'react';
+import { CheckCircle2, Clock, XCircle, Check, Pencil, Ban, BookOpen, Link2, RotateCw, X, Undo2, ArrowUpDown } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import {
@@ -494,16 +495,16 @@ export default function SlotActionModal() {
         <p className="text-xs text-gray-500 mb-1.5">Asistencia</p>
         <div className="grid grid-cols-3 gap-1.5">
           {([
-            { val: 'attended', label: '✅ Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
-            { val: 'late',     label: '⏰ Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
-            { val: 'absent',   label: '❌ Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
-          ] as const).map(({ val, label, active, inactive }) => (
+            { val: 'attended', Icon: CheckCircle2, label: 'Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
+            { val: 'late',     Icon: Clock,        label: 'Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
+            { val: 'absent',   Icon: XCircle,      label: 'Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
+          ] as const).map(({ val, Icon, label, active, inactive }) => (
             <button
               key={val}
               onClick={() => setCompleteAttendance(completeAttendance === val ? '' : val)}
-              className={`py-2 rounded-full text-xs font-semibold transition-colors ${completeAttendance === val ? active : inactive}`}
+              className={`py-2 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${completeAttendance === val ? active : inactive}`}
             >
-              {label}
+              <Icon className="w-3.5 h-3.5" strokeWidth={2.5} /> {label}
             </button>
           ))}
         </div>
@@ -516,7 +517,7 @@ export default function SlotActionModal() {
       <div className="flex gap-2">
         <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
         <button onClick={handleComplete} disabled={loading || !completeAttendance} className="flex-1 px-3 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50">
-          {loading ? 'Guardando…' : '✓ Confirmar'}
+          {loading ? 'Guardando…' : <span className="inline-flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar</span>}
         </button>
       </div>
     </div>
@@ -539,11 +540,11 @@ export default function SlotActionModal() {
         {/* AVAILABLE */}
         {slotType === 'available' && (
           <div className="space-y-3">
-            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold transition-colors">
-              ✏️ Registrar Estudiante
+            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Registrar Estudiante
             </button>
-            <button onClick={handleBlock} disabled={loading} className="w-full px-4 py-3 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
-              🚫 Bloquear Horario
+            <button onClick={handleBlock} disabled={loading} className="w-full px-4 py-3 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+              <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear Horario
             </button>
           </div>
         )}
@@ -552,11 +553,11 @@ export default function SlotActionModal() {
         {slotType === 'blocked' && (
           <div className="space-y-3">
             <p className="text-center text-sm text-gray-500">Este horario está bloqueado</p>
-            <button onClick={handleUnblock} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50">
-              ✅ Desbloquear Horario
+            <button onClick={handleUnblock} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Desbloquear Horario
             </button>
-            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold">
-              ✏️ Registrar Estudiante
+            <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold inline-flex items-center justify-center gap-1.5">
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Registrar Estudiante
             </button>
           </div>
         )}
@@ -567,21 +568,21 @@ export default function SlotActionModal() {
             {/* Student info card */}
             <div className="bg-[#F0E5FF] rounded-xl p-3 space-y-1">
               <p className="font-bold text-[#5A3D7A] text-sm">{booking.studentName}</p>
-              <p className="text-xs text-[#9B7CB8]">
-                {booking.isRecurring ? '↻ Recurrente' : '• Una vez'}
+              <p className="text-xs text-[#9B7CB8] inline-flex items-center gap-1">
+                {booking.isRecurring ? <><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurrente</> : '• Una vez'}
                 {booking.notes && <span className="ml-2 text-gray-500">· {booking.notes}</span>}
               </p>
               {linkedStudent && (
                 <p className="text-xs text-[#5A3D7A] flex items-center gap-1">
-                  🔗 <strong>{linkedStudent.fullName}</strong>
+                  <Link2 className="w-3 h-3" strokeWidth={2.5} /> <strong>{linkedStudent.fullName}</strong>
                   {linkedStudent.studentData?.level && (
                     <span className="px-1.5 py-0.5 bg-[#C8A8DC] text-white rounded text-[10px]">{linkedStudent.studentData.level}</span>
                   )}
                 </p>
               )}
               {assignedLesson && (
-                <p className="text-xs text-[#2D6E2A]">
-                  📚 <strong>{assignedLesson.code} · {assignedLesson.title}</strong>
+                <p className="text-xs text-[#2D6E2A] inline-flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" strokeWidth={2.5} /> <strong>{assignedLesson.code} · {assignedLesson.title}</strong>
                 </p>
               )}
             </div>
@@ -600,7 +601,7 @@ export default function SlotActionModal() {
                 {/* Completed badge */}
                 {booking.status === 'completed' && (
                   <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                    <span className="text-base">✅</span>
+                    <CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.5} />
                     <div>
                       <p className="text-xs font-bold text-gray-600">Clase registrada</p>
                       {booking.attendance && (
@@ -622,39 +623,39 @@ export default function SlotActionModal() {
                         } finally { setLoading(false); }
                       }}
                       disabled={loading}
-                      className="ml-auto text-xs text-[#9B7CB8] hover:text-[#5A3D7A] font-semibold underline disabled:opacity-50"
+                      className="ml-auto text-xs text-[#9B7CB8] hover:text-[#5A3D7A] font-semibold underline disabled:opacity-50 inline-flex items-center gap-1"
                     >
-                      ↩ Reabrir
+                      <Undo2 className="w-3 h-3" strokeWidth={2.5} /> Reabrir
                     </button>
                   </div>
                 )}
 
                 {/* 2×2 secondary actions */}
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => setSubPanel('rename')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors">
-                    ✏️ Renombrar
+                  <button onClick={() => setSubPanel('rename')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Renombrar
                   </button>
-                  <button onClick={() => setSubPanel('move')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors">
-                    ↕ Mover
+                  <button onClick={() => setSubPanel('move')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+                    <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={2.5} /> Mover
                   </button>
-                  <button onClick={() => setSubPanel('lesson')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors">
-                    📚 {assignedLesson ? 'Cambiar lección' : 'Asignar lección'}
+                  <button onClick={() => setSubPanel('lesson')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> {assignedLesson ? 'Cambiar lección' : 'Asignar lección'}
                   </button>
-                  <button onClick={() => setSubPanel('student')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors">
-                    🔗 {linkedStudent ? 'Cambiar alumno' : 'Vincular alumno'}
+                  <button onClick={() => setSubPanel('student')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+                    <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedStudent ? 'Cambiar alumno' : 'Vincular alumno'}
                   </button>
                 </div>
 
                 {/* Primary action — only show if not already completed */}
                 {booking.status !== 'completed' && (
-                  <button onClick={handleOpenCompleteNotes} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors disabled:opacity-50">
-                    ✅ Marcar como Completada
+                  <button onClick={handleOpenCompleteNotes} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Marcar como Completada
                   </button>
                 )}
 
                 {/* Danger action */}
-                <button onClick={() => setSubPanel('cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 transition-colors">
-                  {booking.isRecurring ? '✗ Cancelar / Eliminar clases' : '✗ Eliminar clase'}
+                <button onClick={() => setSubPanel('cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 transition-colors inline-flex items-center justify-center gap-1.5">
+                  <X className="w-3.5 h-3.5" strokeWidth={2.5} /> {booking.isRecurring ? 'Cancelar / Eliminar clases' : 'Eliminar clase'}
                 </button>
               </>
             )}
@@ -678,12 +679,12 @@ export default function SlotActionModal() {
                   if (id) { await confirmBooking(id); await useScheduleStore.getState().waitForDataRefresh(); closeSlotAction(); }
                 } finally { setLoading(false); }
               }}
-              className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
             >
-              ✅ Confirmar Clase
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar Clase
             </button>
-            <button onClick={() => setSubPanel(subPanel === 'cancel' ? 'none' : 'cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50">
-              ✗ Rechazar
+            <button onClick={() => setSubPanel(subPanel === 'cancel' ? 'none' : 'cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 inline-flex items-center justify-center gap-1.5">
+              <X className="w-3.5 h-3.5" strokeWidth={2.5} /> Rechazar
             </button>
             {subPanel === 'cancel' && (
               <div className="space-y-2">

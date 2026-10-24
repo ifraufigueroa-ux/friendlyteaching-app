@@ -3,12 +3,27 @@
 // Guided post-class notes template. Called after recording a class session.
 
 import { useState } from 'react';
+import {
+  Sparkles,
+  Smile,
+  Frown,
+  FileText,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  BookOpen,
+  MessageSquare,
+  ClipboardList,
+  Target,
+  Save,
+  type LucideIcon,
+} from 'lucide-react';
 import type { ClassNotes, ClassMood } from '@/hooks/useClassHistory';
 
-const MOOD_OPTIONS: { value: ClassMood; label: string; emoji: string; color: string }[] = [
-  { value: 'great', label: 'Excelente', emoji: '🌟', color: 'border-green-400 bg-green-50 text-green-700' },
-  { value: 'good', label: 'Bien', emoji: '😊', color: 'border-blue-400 bg-blue-50 text-blue-700' },
-  { value: 'regular', label: 'Regular', emoji: '😕', color: 'border-amber-400 bg-amber-50 text-amber-700' },
+const MOOD_OPTIONS: { value: ClassMood; label: string; Icon: LucideIcon; color: string }[] = [
+  { value: 'great', label: 'Excelente', Icon: Sparkles, color: 'border-green-400 bg-green-50 text-green-700' },
+  { value: 'good', label: 'Bien', Icon: Smile, color: 'border-blue-400 bg-blue-50 text-blue-700' },
+  { value: 'regular', label: 'Regular', Icon: Frown, color: 'border-amber-400 bg-amber-50 text-amber-700' },
 ];
 
 type AttendanceValue = 'attended' | 'absent' | 'late';
@@ -65,7 +80,7 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
         <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="font-bold text-[#5A3D7A] text-base">📝 Notas de clase</h2>
+              <h2 className="font-bold text-[#5A3D7A] text-base inline-flex items-center gap-1.5"><FileText className="w-4 h-4" strokeWidth={2.25} /> Notas de clase</h2>
               <p className="text-xs text-gray-400 mt-0.5">Clase con {studentName}</p>
             </div>
             <button
@@ -89,17 +104,17 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
               </label>
               <div className="grid grid-cols-3 gap-1.5">
                 {([
-                  { val: 'attended', label: '✅ Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
-                  { val: 'late',     label: '⏰ Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
-                  { val: 'absent',   label: '❌ Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
-                ] as const).map(({ val, label, active, inactive }) => (
+                  { val: 'attended', Icon: CheckCircle2, label: 'Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
+                  { val: 'late',     Icon: Clock,        label: 'Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
+                  { val: 'absent',   Icon: XCircle,      label: 'Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
+                ] as const).map(({ val, Icon, label, active, inactive }) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setAttendance(a => (a === val ? null : val))}
-                    className={`py-2 rounded-full text-xs font-semibold transition-colors ${attendance === val ? active : inactive}`}
+                    className={`py-2 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${attendance === val ? active : inactive}`}
                   >
-                    {label}
+                    <Icon className="w-3.5 h-3.5" strokeWidth={2.5} /> {label}
                   </button>
                 ))}
               </div>
@@ -112,28 +127,31 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
               ¿Cómo fue la clase?
             </label>
             <div className="flex gap-2">
-              {MOOD_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setMood(m => (m === opt.value ? null : opt.value))}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl border-2 text-xs font-semibold transition-all ${
-                    mood === opt.value
-                      ? opt.color + ' border-opacity-100'
-                      : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
-                  }`}
-                >
-                  <span className="text-xl">{opt.emoji}</span>
-                  {opt.label}
-                </button>
-              ))}
+              {MOOD_OPTIONS.map(opt => {
+                const { Icon } = opt;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setMood(m => (m === opt.value ? null : opt.value))}
+                    className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl border-2 text-xs font-semibold transition-all ${
+                      mood === opt.value
+                        ? opt.color + ' border-opacity-100'
+                        : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" strokeWidth={2.25} />
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Covered topics */}
           <div>
-            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-              📚 ¿Qué cubrimos?
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> ¿Qué cubrimos?
             </label>
             <textarea
               value={covered}
@@ -146,8 +164,8 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
 
           {/* Student performance */}
           <div>
-            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-              💬 Desempeño del estudiante
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5" strokeWidth={2.5} /> Desempeño del estudiante
             </label>
             <textarea
               value={performance}
@@ -160,8 +178,8 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
 
           {/* Homework */}
           <div>
-            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-              📋 Tarea asignada
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
+              <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.5} /> Tarea asignada
             </label>
             <input
               type="text"
@@ -174,8 +192,8 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
 
           {/* Next class */}
           <div>
-            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-              🎯 Foco próxima clase
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5" strokeWidth={2.5} /> Foco próxima clase
             </label>
             <input
               type="text"
@@ -199,9 +217,9 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
           <button
             onClick={handleSave}
             disabled={saving || !canProceed}
-            className="flex-1 py-2.5 bg-[#9B7CB8] hover:bg-[#7A5C97] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 bg-[#9B7CB8] hover:bg-[#7A5C97] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5"
           >
-            {saving ? 'Guardando...' : '💾 Guardar notas'}
+            {saving ? 'Guardando...' : <><Save className="w-3.5 h-3.5" strokeWidth={2.5} /> Guardar notas</>}
           </button>
         </div>
       </div>

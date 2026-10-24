@@ -51,10 +51,10 @@ export default function ScheduleSlot({ booking, isBlocked, isToday, onClick }: P
     status = 'completed';
     label = displayName;
     sublabel = booking.attendance === 'attended'
-      ? '✓ Asistió'
+      ? 'Asistió'
       : booking.attendance === 'absent'
-        ? '✗ No asistió'
-        : '✓ Completada';
+        ? 'No asistió'
+        : 'Completada';
   } else if (booking?.status === 'confirmed') {
     if (isInterview) {
       status = booking.isRecurring ? 'interview' : 'interview-once';
