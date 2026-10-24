@@ -62,7 +62,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'group', label: 'Equipo' },
   { type: 'link', href: '/dashboard/teacher/cowork',      icon: GraduationCap, label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600', iconImg: '/sidebar-icons/co-work.png' },
   { type: 'group', label: 'Gestión' },
-  { type: 'link', href: '/dashboard/teacher/students',    icon: Users,         label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
+  { type: 'link', href: '/dashboard/teacher/students',    icon: Users,         label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/estudiantes.png' },
   { type: 'link', href: '/dashboard/teacher/history',     icon: ClipboardList, label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
   { type: 'group', label: 'Contenido' },
   { type: 'link', href: '/dashboard/teacher/lessons',     icon: BookOpen,      label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
