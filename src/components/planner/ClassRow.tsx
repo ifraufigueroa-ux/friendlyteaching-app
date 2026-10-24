@@ -5,6 +5,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { RotateCw, Mic, ArrowUpRight, Check } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { detectMaterialType } from './bookingUtils';
 import type { Booking } from '@/types/firebase';
@@ -110,11 +111,11 @@ export default function ClassRow({ booking, showDay }: Props) {
               {status.label}
             </span>
             {booking.isRecurring && (
-              <span className="text-[10px] text-gray-400">🔁 Recurrente</span>
+              <span className="text-[10px] text-gray-400 inline-flex items-center gap-1"><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurrente</span>
             )}
             {booking.bookingType === 'interview' && (
-              <span className="text-[10px] bg-[#FEF3D9] text-[#8A5A1A] font-semibold px-2 py-0.5 rounded-full">
-                🎙 Entrevista
+              <span className="text-[10px] bg-[#FEF3D9] text-[#8A5A1A] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Mic className="w-3 h-3" strokeWidth={2.5} /> Entrevista
               </span>
             )}
           </div>
@@ -129,9 +130,9 @@ export default function ClassRow({ booking, showDay }: Props) {
             className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F0E5FF] hover:bg-[#E0C8F0] text-[#5A3D7A] text-[11px] font-bold border border-[#D9C2EE] transition-colors"
             title={materialUrl}
           >
-            <span>{material.icon}</span>
+            {material.Icon && <material.Icon className="w-3 h-3" strokeWidth={2.5} />}
             <span>{material.label}</span>
-            <span className="opacity-60">↗</span>
+            <ArrowUpRight className="w-3 h-3 opacity-60" strokeWidth={2.25} />
           </a>
         )}
       </div>
@@ -141,7 +142,7 @@ export default function ClassRow({ booking, showDay }: Props) {
         <div>
           <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">
             Tema {savingTopic && <span className="text-[#5A3D7A]">· guardando…</span>}
-            {saved === 'topic' && <span className="text-green-600">· ✓ guardado</span>}
+            {saved === 'topic' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> guardado</span>}
           </label>
           <input
             value={topic}
@@ -155,7 +156,7 @@ export default function ClassRow({ booking, showDay }: Props) {
         <div>
           <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">
             Link del material {savingUrl && <span className="text-[#5A3D7A]">· guardando…</span>}
-            {saved === 'material' && <span className="text-green-600">· ✓ guardado</span>}
+            {saved === 'material' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> guardado</span>}
           </label>
           <input
             value={materialUrl}

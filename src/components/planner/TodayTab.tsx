@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — Planner: Hoy (today's classes)
 'use client';
 import { useMemo } from 'react';
+import { Coffee } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
 import ClassRow from './ClassRow';
 import { dedupeBookingsForWeek } from './bookingUtils';
@@ -59,7 +60,7 @@ export default function TodayTab({ teacherId }: { teacherId: string }) {
       {/* Class list */}
       {todaysClasses.length === 0 ? (
         <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-10 text-center">
-          <p className="text-5xl mb-3">☕</p>
+          <Coffee className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={2} />
           <p className="text-sm font-semibold text-[#5A3D7A]">Día libre.</p>
           <p className="text-xs text-gray-400 mt-1">Aprovecha para preparar contenido en el Kanban.</p>
         </div>

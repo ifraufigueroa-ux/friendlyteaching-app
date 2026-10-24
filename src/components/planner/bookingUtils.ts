@@ -11,30 +11,31 @@
 // carries the right status for today: completed / cancelled / etc.) and
 // falling back to the recurring template otherwise.
 
+import { Puzzle, Globe, BookMarked, Palette, Folder, Play, Link2, type LucideIcon } from 'lucide-react';
 import type { Booking } from '@/types/firebase';
 
 // ─── Material URL detection (shared by planner + dashboard carousel) ──
 // Recognise common LMS URLs so the UI can badge the source without the
-// teacher typing the label by hand. Falls back to 'other' → 🔗.
+// teacher typing the label by hand. Falls back to 'other' → Link2.
 export interface MaterialTypeInfo {
   type: string;
   label: string;
-  icon: string;
+  Icon: LucideIcon | null;
 }
 
 export function detectMaterialType(url: string | undefined | null): MaterialTypeInfo {
-  if (!url) return { type: 'none', label: '', icon: '' };
+  if (!url) return { type: 'none', label: '', Icon: null };
   const u = url.toLowerCase();
-  if (u.includes('off2class'))                    return { type: 'off2class',    label: 'Off2Class',    icon: '🧩' };
-  if (u.includes('ellii'))                        return { type: 'ellii',        label: 'Ellii',        icon: '🌐' };
+  if (u.includes('off2class'))                    return { type: 'off2class',    label: 'Off2Class',    Icon: Puzzle };
+  if (u.includes('ellii'))                        return { type: 'ellii',        label: 'Ellii',        Icon: Globe };
   if (u.includes('friendlyteaching') || u.includes('/lessons/'))
-                                                  return { type: 'friendlytext', label: 'Friendly',     icon: '📖' };
-  if (u.includes('canva.com'))                    return { type: 'canva',        label: 'Canva',        icon: '🎨' };
+                                                  return { type: 'friendlytext', label: 'Friendly',     Icon: BookMarked };
+  if (u.includes('canva.com'))                    return { type: 'canva',        label: 'Canva',        Icon: Palette };
   if (u.includes('docs.google.com') || u.includes('drive.google.com'))
-                                                  return { type: 'gdrive',       label: 'Drive',        icon: '📁' };
+                                                  return { type: 'gdrive',       label: 'Drive',        Icon: Folder };
   if (u.includes('youtube.com') || u.includes('youtu.be'))
-                                                  return { type: 'youtube',      label: 'YouTube',      icon: '▶️' };
-  return { type: 'other', label: 'Link', icon: '🔗' };
+                                                  return { type: 'youtube',      label: 'YouTube',      Icon: Play };
+  return { type: 'other', label: 'Link', Icon: Link2 };
 }
 
 // Read the ms-since-epoch out of a Firestore Timestamp-ish field.

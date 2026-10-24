@@ -4,6 +4,25 @@
 'use client';
 import { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import {
+  ClipboardList,
+  Calendar,
+  CheckCircle2,
+  Archive,
+  Check,
+  Layers,
+  FileText,
+  Pencil,
+  XCircle,
+  Inbox,
+  BookOpen,
+  MessageSquare,
+  Target,
+  Sparkles,
+  Smile,
+  Frown,
+  type LucideIcon,
+} from 'lucide-react';
 import { useLessons } from '@/hooks/useLessons';
 import { useStudents } from '@/hooks/useStudents';
 import { useStudentPlan, setStudentLessonStatus, setStudentLessonNote } from '@/hooks/useStudentPlan';
@@ -13,11 +32,11 @@ import { db } from '@/lib/firebase/config';
 import type { Lesson, LessonPlannerStatus, LessonLevel, FTUser } from '@/types/firebase';
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
-const COLUMNS: { id: LessonPlannerStatus; label: string; icon: string; color: string; bg: string }[] = [
-  { id: 'backlog',   label: 'Por preparar', icon: '📋', color: 'text-gray-600',  bg: 'bg-gray-50' },
-  { id: 'upcoming',  label: 'Próximas',     icon: '📅', color: 'text-blue-700',  bg: 'bg-blue-50' },
-  { id: 'ready',     label: 'Listas',       icon: '✅', color: 'text-green-700', bg: 'bg-green-50' },
-  { id: 'archived',  label: 'Archivadas',   icon: '🗃️', color: 'text-gray-400',  bg: 'bg-gray-100' },
+const COLUMNS: { id: LessonPlannerStatus; label: string; Icon: LucideIcon; color: string; bg: string }[] = [
+  { id: 'backlog',   label: 'Por preparar', Icon: ClipboardList, color: 'text-gray-600',  bg: 'bg-gray-50' },
+  { id: 'upcoming',  label: 'Próximas',     Icon: Calendar,      color: 'text-blue-700',  bg: 'bg-blue-50' },
+  { id: 'ready',     label: 'Listas',       Icon: CheckCircle2,  color: 'text-green-700', bg: 'bg-green-50' },
+  { id: 'archived',  label: 'Archivadas',   Icon: Archive,       color: 'text-gray-400',  bg: 'bg-gray-100' },
 ];
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -27,7 +46,7 @@ const LEVEL_COLORS: Record<string, string> = {
   C1: 'bg-purple-100 text-purple-700',
 };
 
-const MOOD_ICON: Record<string, string> = { great: '🌟', good: '😊', regular: '😕' };
+const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
 const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 function entryDate(e: ClassHistoryEntry): Date {
@@ -108,10 +127,10 @@ function LessonCard({
 
       <div className="flex items-center gap-2 mb-1.5">
         {lesson.isPublished
-          ? <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-semibold">✓ Publicada</span>
+          ? <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-0.5"><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Publicada</span>
           : <span className="text-[10px] bg-gray-50 text-gray-400 px-1.5 py-0.5 rounded-full">Borrador</span>}
         {lesson.slides?.length > 0 && (
-          <span className="text-[10px] text-gray-400">🎴 {lesson.slides.length}</span>
+          <span className="text-[10px] text-gray-400 inline-flex items-center gap-1"><Layers className="w-2.5 h-2.5" strokeWidth={2.5} /> {lesson.slides.length}</span>
         )}
       </div>
 
@@ -123,12 +142,12 @@ function LessonCard({
 
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={e => { e.stopPropagation(); onNoteEdit(lesson); }}
-          className="text-[10px] text-gray-400 hover:text-[#5A3D7A] px-1.5 py-0.5 rounded hover:bg-[#F0E5FF] transition-colors">
-          📝 Nota
+          className="text-[10px] text-gray-400 hover:text-[#5A3D7A] px-1.5 py-0.5 rounded hover:bg-[#F0E5FF] transition-colors inline-flex items-center gap-1">
+          <FileText className="w-2.5 h-2.5" strokeWidth={2.5} /> Nota
         </button>
         <Link href={`/dashboard/teacher/lessons/${lesson.id}/edit`} onClick={e => e.stopPropagation()}
-          className="text-[10px] text-gray-400 hover:text-[#5A3D7A] px-1.5 py-0.5 rounded hover:bg-[#F0E5FF] transition-colors">
-          ✏️ Editar
+          className="text-[10px] text-gray-400 hover:text-[#5A3D7A] px-1.5 py-0.5 rounded hover:bg-[#F0E5FF] transition-colors inline-flex items-center gap-1">
+          <Pencil className="w-2.5 h-2.5" strokeWidth={2.5} /> Editar
         </Link>
       </div>
     </div>
@@ -157,7 +176,7 @@ function KanbanColumn({
     >
       <div className="px-3 pt-3 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span>{column.icon}</span>
+          <column.Icon className={`w-3.5 h-3.5 ${column.color}`} strokeWidth={2.5} />
           <span className={`text-xs font-bold ${column.color}`}>{column.label}</span>
         </div>
         <span className="text-[10px] font-bold text-gray-400 bg-white/80 px-1.5 py-0.5 rounded-full">
@@ -217,14 +236,14 @@ function StudentHistoryPanel({
         const withNotes = studentHistory.filter(e => e.notes?.covered || e.notes?.performance).length;
         return (
           <div className="flex gap-2 px-4 py-2 flex-shrink-0">
-            <span className="text-[10px] bg-green-50 text-green-700 font-semibold px-2 py-1 rounded-full">
-              ✅ {attended} realizadas
+            <span className="text-[10px] bg-green-50 text-green-700 font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} /> {attended} realizadas
             </span>
-            <span className="text-[10px] bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full">
-              ❌ {studentHistory.length - attended} ausencias
+            <span className="text-[10px] bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
+              <XCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {studentHistory.length - attended} ausencias
             </span>
-            <span className="text-[10px] bg-[#F0E5FF] text-[#5A3D7A] font-semibold px-2 py-1 rounded-full">
-              📝 {withNotes} con notas
+            <span className="text-[10px] bg-[#F0E5FF] text-[#5A3D7A] font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
+              <FileText className="w-2.5 h-2.5" strokeWidth={2.5} /> {withNotes} con notas
             </span>
           </div>
         );
@@ -233,7 +252,7 @@ function StudentHistoryPanel({
       <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
         {studentHistory.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-2xl mb-1">📭</p>
+            <Inbox className="w-6 h-6 mx-auto mb-1 text-gray-300" strokeWidth={2} />
             <p className="text-xs text-gray-400">Sin clases registradas</p>
           </div>
         ) : (
@@ -243,17 +262,20 @@ function StudentHistoryPanel({
             return (
               <div key={entry.id} className="bg-white rounded-xl border border-gray-100 p-3">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-base">{entry.attended ? '✅' : '❌'}</span>
+                  <span className="flex-shrink-0">{entry.attended ? <CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.5} /> : <XCircle className="w-4 h-4 text-red-500" strokeWidth={2.5} />}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-gray-700">
                       {DAY_ES[d.getDay()]} {d.getDate()}/{d.getMonth() + 1}/{d.getFullYear()}
                       <span className="text-gray-400 font-normal ml-1">{entry.hour}:00</span>
                     </p>
-                    {entry.notes?.mood && (
-                      <p className="text-[10px] text-gray-400">
-                        {MOOD_ICON[entry.notes.mood]} {entry.notes.mood === 'great' ? 'Excelente' : entry.notes.mood === 'good' ? 'Buena' : 'Regular'}
-                      </p>
-                    )}
+                    {entry.notes?.mood && (() => {
+                      const Mood = MOOD_ICON[entry.notes.mood];
+                      return (
+                        <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
+                          {Mood && <Mood className="w-2.5 h-2.5" strokeWidth={2.5} />} {entry.notes.mood === 'great' ? 'Excelente' : entry.notes.mood === 'good' ? 'Buena' : 'Regular'}
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -261,25 +283,25 @@ function StudentHistoryPanel({
                   <div className="space-y-1.5 mt-1.5 pt-1.5 border-t border-gray-50">
                     {entry.notes?.covered && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400">📚 Temas: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><BookOpen className="w-2.5 h-2.5" strokeWidth={2.5} /> Temas: </span>
                         {entry.notes.covered}
                       </p>
                     )}
                     {entry.notes?.performance && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400">💬 Desempeño: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" strokeWidth={2.5} /> Desempeño: </span>
                         {entry.notes.performance}
                       </p>
                     )}
                     {entry.notes?.nextClass && (
                       <p className="text-[10px] text-[#5A3D7A]">
-                        <span className="font-semibold">🎯 Próxima: </span>
+                        <span className="font-semibold inline-flex items-center gap-1"><Target className="w-2.5 h-2.5" strokeWidth={2.5} /> Próxima: </span>
                         {entry.notes.nextClass}
                       </p>
                     )}
                     {entry.notes?.homework && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400">📋 Tarea: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><ClipboardList className="w-2.5 h-2.5" strokeWidth={2.5} /> Tarea: </span>
                         {entry.notes.homework}
                       </p>
                     )}
@@ -374,7 +396,7 @@ function StudentPlannerModal({
                   : 'bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0C8F0]'
               }`}
             >
-              📋 Historial
+              <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.5} /> Historial
             </button>
             <button onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors text-xl leading-none">
@@ -391,7 +413,7 @@ function StudentPlannerModal({
               </div>
             ) : levelLessons.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2">
-                <p className="text-3xl">📚</p>
+                <BookOpen className="w-8 h-8 text-gray-300" strokeWidth={2} />
                 <p className="text-sm text-gray-500">No hay lecciones para el nivel {studentLevel ?? 'asignado'}</p>
               </div>
             ) : (

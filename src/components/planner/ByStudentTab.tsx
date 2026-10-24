@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — Planner: Por estudiante (classes grouped by student)
 'use client';
 import { useMemo, useState } from 'react';
+import { Users, Inbox } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
 import { useStudents } from '@/hooks/useStudents';
 import ClassRow from './ClassRow';
@@ -136,7 +137,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
         <div>
           {!selected ? (
             <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-10 text-center">
-              <p className="text-5xl mb-3">👥</p>
+              <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={2} />
               <p className="text-sm font-semibold text-[#5A3D7A]">Elige un estudiante</p>
               <p className="text-xs text-gray-400 mt-1">Verás sus clases agendadas y podrás editar tema + material.</p>
             </div>
@@ -159,7 +160,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
 
               {selectedBookings.length === 0 ? (
                 <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-8 text-center">
-                  <p className="text-3xl mb-2">📭</p>
+                  <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
                   <p className="text-xs text-gray-400">Sin clases agendadas para este estudiante.</p>
                 </div>
               ) : (
