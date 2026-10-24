@@ -3,6 +3,25 @@
 // Shows gap analysis radar chart, assessment history, and allows adding new evaluations.
 
 import { useState } from 'react';
+import {
+  MessagesSquare,
+  Ear,
+  BookMarked,
+  PenTool,
+  Ruler,
+  BookOpen,
+  Star,
+  Save,
+  X,
+  BarChart3,
+  ClipboardList,
+  TrendingUp,
+  Plus,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  type LucideIcon,
+} from 'lucide-react';
 import { useSkillAssessments } from '@/hooks/useSkillAssessments';
 import { useLevelHistory } from '@/hooks/useLevelHistory';
 import { useExportReport } from '@/hooks/useExportReport';
@@ -20,13 +39,13 @@ const SKILL_KEYS: (keyof SkillScores)[] = [
   'vocabulary',
 ];
 
-const SKILL_META: Record<keyof SkillScores, { label: string; icon: string }> = {
-  speaking: { label: 'Hablar', icon: '🗣️' },
-  listening: { label: 'Escuchar', icon: '👂' },
-  reading: { label: 'Leer', icon: '📖' },
-  writing: { label: 'Escribir', icon: '✍️' },
-  grammar: { label: 'Gramática', icon: '📐' },
-  vocabulary: { label: 'Vocabulario', icon: '📚' },
+const SKILL_META: Record<keyof SkillScores, { label: string; Icon: LucideIcon }> = {
+  speaking: { label: 'Hablar', Icon: MessagesSquare },
+  listening: { label: 'Escuchar', Icon: Ear },
+  reading: { label: 'Leer', Icon: BookMarked },
+  writing: { label: 'Escribir', Icon: PenTool },
+  grammar: { label: 'Gramática', Icon: Ruler },
+  vocabulary: { label: 'Vocabulario', Icon: BookOpen },
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -55,7 +74,7 @@ function StarRating({
           onClick={() => onChange(star)}
           className="text-xl transition-transform hover:scale-110 focus:outline-none"
         >
-          {star <= value ? '★' : '☆'}
+          <Star className={`w-5 h-5 ${star <= value ? 'fill-current' : ''}`} strokeWidth={2.25} />
         </button>
       ))}
     </div>
@@ -122,7 +141,7 @@ function AssessmentForm({
       <div className="space-y-3">
         {SKILL_KEYS.map(key => (
           <div key={key} className="flex items-center gap-3">
-            <span className="text-base w-6 text-center">{SKILL_META[key].icon}</span>
+            <span className="w-6 flex justify-center">{(() => { const I = SKILL_META[key].Icon; return <I className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} />; })()}</span>
             <span className="text-sm font-semibold text-gray-700 w-24">{SKILL_META[key].label}</span>
             <div className={`${STAR_COLORS[scores[key]]}`}>
               <StarRating value={scores[key]} onChange={v => setScores(s => ({ ...s, [key]: v }))} />
@@ -158,7 +177,7 @@ function AssessmentForm({
           disabled={saving}
           className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
         >
-          {saving ? 'Guardando...' : '💾 Guardar evaluación'}
+          {saving ? 'Guardando...' : <span className="inline-flex items-center justify-center gap-1.5"><Save className="w-3.5 h-3.5" strokeWidth={2.5} /> Guardar evaluación</span>}
         </button>
       </div>
     </div>
@@ -228,7 +247,7 @@ function AssessmentCard({
         <div className="px-4 pb-4 space-y-2 border-t border-gray-50 pt-3">
           {SKILL_KEYS.map(key => (
             <div key={key} className="flex items-center gap-2">
-              <span className="text-sm w-5">{SKILL_META[key].icon}</span>
+              <span className="w-5 flex justify-center">{(() => { const I = SKILL_META[key].Icon; return <I className="w-3.5 h-3.5 text-[#5A3D7A]" strokeWidth={2.25} />; })()}</span>
               <span className="text-xs text-gray-500 w-20">{SKILL_META[key].label}</span>
               <div className="flex-1">
                 <ScoreBar score={assessment.scores[key]} />
@@ -323,27 +342,30 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Tab bar */}
         <div className="flex border-b border-gray-100 flex-shrink-0">
-          {([['chart', '📊 Análisis'], ['history', '📋 Historial'], ['level', '📈 Nivel'], ['new', '➕ Evaluar']] as const).map(
-            ([tab, label]) => (
-              <button
-                key={tab}
-                onClick={() => setView(tab)}
-                className={`flex-1 py-3 text-xs font-bold transition-colors ${
-                  view === tab
-                    ? 'text-[#5A3D7A] border-b-2 border-[#9B7CB8]'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {label}
-              </button>
-            ),
-          )}
+          {([
+            ['chart',   BarChart3,      'Análisis'],
+            ['history', ClipboardList,  'Historial'],
+            ['level',   TrendingUp,     'Nivel'],
+            ['new',     Plus,           'Evaluar'],
+          ] as const).map(([tab, Icon, label]) => (
+            <button
+              key={tab}
+              onClick={() => setView(tab)}
+              className={`flex-1 py-3 text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5 ${
+                view === tab
+                  ? 'text-[#5A3D7A] border-b-2 border-[#9B7CB8]'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" strokeWidth={2.5} /> {label}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
@@ -372,7 +394,7 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
                         key={key}
                         className="bg-[#FDFAFF] rounded-xl px-3 py-2 border border-[#EDE0F6] text-center"
                       >
-                        <p className="text-base">{SKILL_META[key].icon}</p>
+                        <div className="flex justify-center">{(() => { const I = SKILL_META[key].Icon; return <I className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} />; })()}</div>
                         <p className="text-xs text-gray-500 leading-tight">{SKILL_META[key].label}</p>
                         <p className="text-sm font-bold text-[#5A3D7A] mt-0.5">
                           {averageScores[key]}/5
@@ -391,13 +413,13 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
                     return (
                       <div className="mt-3 space-y-2">
                         <div className="flex items-center gap-2 bg-red-50 text-red-700 rounded-xl px-3 py-2 text-xs font-semibold">
-                          <span>⚠️</span>
+                          <AlertTriangle className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
                           <span>
                             Área a reforzar: <strong>{SKILL_META[weakest].label}</strong> ({averageScores[weakest]}/5)
                           </span>
                         </div>
                         <div className="flex items-center gap-2 bg-green-50 text-green-700 rounded-xl px-3 py-2 text-xs font-semibold">
-                          <span>✅</span>
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
                           <span>
                             Mejor habilidad: <strong>{SKILL_META[strongest].label}</strong> ({averageScores[strongest]}/5)
                           </span>
@@ -418,7 +440,7 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
                         Generando...
                       </>
                     ) : (
-                      '📄 Exportar reporte de progreso'
+                      <><FileText className="w-3.5 h-3.5" strokeWidth={2.5} /> Exportar reporte de progreso</>
                     )}
                   </button>
                   {exportError && (
@@ -427,16 +449,16 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-4xl mb-3">📊</p>
+                  <BarChart3 className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={2} />
                   <p className="text-gray-500 text-sm font-semibold">Sin evaluaciones aún</p>
                   <p className="text-xs text-gray-400 mt-1 mb-5">
                     Registra la primera evaluación para ver el análisis de brechas.
                   </p>
                   <button
                     onClick={() => setView('new')}
-                    className="px-5 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
+                    className="px-5 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors inline-flex items-center gap-1.5"
                   >
-                    ➕ Primera evaluación
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2.5} /> Primera evaluación
                   </button>
                 </div>
               )}
@@ -452,7 +474,7 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
                 </div>
               ) : assessments.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-3xl mb-2">📋</p>
+                  <ClipboardList className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
                   <p className="text-gray-500 text-sm">Sin historial de evaluaciones.</p>
                 </div>
               ) : (

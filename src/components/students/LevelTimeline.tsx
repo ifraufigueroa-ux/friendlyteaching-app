@@ -2,6 +2,7 @@
 // FriendlyTeaching.cl — Level Progress Timeline
 // Shows A0→C1 CEFR scale with a student's current level and change history.
 
+import { TrendingUp } from 'lucide-react';
 import type { LevelHistoryEntry, LessonLevel } from '@/types/firebase';
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -115,7 +116,7 @@ export function LevelTimeline({ history, currentLevel, loading }: Props) {
       {/* Timeline of changes */}
       {history.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-2xl mb-2">📈</p>
+          <TrendingUp className="w-7 h-7 mx-auto mb-2 text-gray-300" strokeWidth={2} />
           <p className="text-sm text-gray-500">Sin cambios de nivel registrados.</p>
           <p className="text-xs text-gray-400 mt-1">
             El historial aparece aquí cuando cambies el nivel del estudiante.
