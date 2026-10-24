@@ -173,7 +173,11 @@ export default function StudentLessonsPage() {
         level: a.level,
         href: isFT ? `/classroom/${a.refId}` : '',
         externalUrl: isFT ? undefined : a.externalUrl,
-        badgeIcon: isFT ? <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} /> : (material?.icon ? <span>{material.icon}</span> : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />),
+        badgeIcon: isFT
+          ? <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} />
+          : material?.Icon
+            ? <material.Icon className="w-2.5 h-2.5" strokeWidth={2.25} />
+            : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />,
         badgeLabel: isFT ? 'FT Librería' : (material?.label || 'Link externo'),
         isCompleted: a.status === 'completed' || (isFT && a.refId ? completedLessonIds.has(a.refId) : false),
         isStarted: isFT && a.refId ? startedLessonIds.has(a.refId) : false,

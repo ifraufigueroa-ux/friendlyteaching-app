@@ -6,6 +6,7 @@
 
 'use client';
 import { useMemo, useState } from 'react';
+import { BookOpen, Link2, type LucideIcon } from 'lucide-react';
 import { useLessons } from '@/hooks/useLessons';
 import { createStudentAssignment } from '@/hooks/useStudentAssignments';
 import { detectMaterialType } from '@/components/planner/bookingUtils';
@@ -80,7 +81,7 @@ export default function AssignMaterialModal({
         });
         count++;
       }
-      setOkMsg(`✓ ${count} lección${count === 1 ? '' : 'es'} asignada${count === 1 ? '' : 's'} a ${studentName}.`);
+      setOkMsg(`${count} lección${count === 1 ? '' : 'es'} asignada${count === 1 ? '' : 's'} a ${studentName}.`);
       setFtPicked(new Set());
       setFtNotes('');
       onAssigned?.();
@@ -114,7 +115,7 @@ export default function AssignMaterialModal({
         level: (extLevel || undefined) as LessonLevel | undefined,
         notes: extNotes.trim() || undefined,
       });
-      setOkMsg(`✓ Material externo "${title}" asignado a ${studentName}.`);
+      setOkMsg(`Material externo "${title}" asignado a ${studentName}.`);
       setExtUrl(''); setExtTitle(''); setExtLevel(''); setExtNotes('');
       onAssigned?.();
     } catch (e) {
@@ -139,19 +140,19 @@ export default function AssignMaterialModal({
         {/* Tabs */}
         <div className="px-5 pt-3 border-b border-gray-100 flex gap-2">
           {([
-            { id: 'ft',       label: 'Assign FT lessons',    icon: '📚' },
-            { id: 'external', label: 'Assign other lessons', icon: '🔗' },
+            { id: 'ft',       label: 'Assign FT lessons',    Icon: BookOpen as LucideIcon },
+            { id: 'external', label: 'Assign other lessons', Icon: Link2 as LucideIcon },
           ] as const).map(t => (
             <button
               key={t.id}
               onClick={() => { setTab(t.id); setError(null); setOkMsg(null); }}
-              className={`px-3.5 py-2 -mb-px border-b-2 text-xs font-bold transition-colors ${
+              className={`px-3.5 py-2 -mb-px border-b-2 text-xs font-bold transition-colors inline-flex items-center gap-1.5 ${
                 tab === t.id
                   ? 'border-[#5A3D7A] text-[#5A3D7A]'
                   : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
-              <span className="mr-1.5">{t.icon}</span>{t.label}
+              <t.Icon className="w-3.5 h-3.5" strokeWidth={2.25} />{t.label}
             </button>
           ))}
         </div>
@@ -237,8 +238,11 @@ export default function AssignMaterialModal({
                   className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
                 />
                 {extPreview && extPreview.type !== 'none' && (
-                  <p className="mt-1 text-[10px] text-gray-500">
-                    Detectado: <span className="font-semibold">{extPreview.icon} {extPreview.label}</span>
+                  <p className="mt-1 text-[10px] text-gray-500 inline-flex items-center gap-1">
+                    Detectado: <span className="font-semibold inline-flex items-center gap-1">
+                      {extPreview.Icon && <extPreview.Icon className="w-3 h-3" strokeWidth={2.5} />}
+                      {extPreview.label}
+                    </span>
                   </p>
                 )}
               </div>

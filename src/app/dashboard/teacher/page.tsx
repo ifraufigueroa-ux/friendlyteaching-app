@@ -17,6 +17,7 @@ import {
   PartyPopper,
   ClipboardList,
   Target,
+  ArrowUpRight,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
@@ -656,6 +657,7 @@ export default function TeacherDashboardPage() {
                         to Off2Class / Ellii / Drive without losing the dashboard. */}
                     {carouselCurrent.materialUrl && (() => {
                       const material = detectMaterialType(carouselCurrent.materialUrl);
+                      const MaterialIcon = material.Icon;
                       return (
                         <a
                           href={carouselCurrent.materialUrl}
@@ -664,9 +666,9 @@ export default function TeacherDashboardPage() {
                           className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-full text-xs font-bold transition-colors shrink-0 inline-flex items-center gap-1"
                           title={carouselCurrent.materialUrl}
                         >
-                          <span>{material.icon}</span>
+                          {MaterialIcon && <MaterialIcon className="w-3.5 h-3.5" strokeWidth={2.25} />}
                           <span>{material.label}</span>
-                          <span className="opacity-70">↗</span>
+                          <ArrowUpRight className="w-3 h-3 opacity-70" strokeWidth={2.25} />
                         </a>
                       );
                     })()}
