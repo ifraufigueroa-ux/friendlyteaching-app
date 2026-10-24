@@ -1,13 +1,24 @@
 import type { Metadata, Viewport } from 'next';
-import { Nunito, Cinzel, Plus_Jakarta_Sans } from 'next/font/google';
+import { Inter, Fraunces, Cinzel, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import PWAProvider from '@/components/pwa/PWAProvider';
 
-const nunito = Nunito({
+// Platform-wide type system — Fraunces (serif display, variable) for
+// headings and feature titles, Inter (geometric humanist sans) for UI
+// and body copy. Fraunces's `SOFT` axis gives the serif the warmer,
+// less academic look that fits FriendlyTeaching's palette.
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-nunito',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  axes: ['SOFT', 'opsz'],
+  variable: '--font-fraunces',
   display: 'swap',
 });
 
@@ -71,7 +82,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-CL" className={`${nunito.variable} ${cinzel.variable} ${jakarta.variable}`}>
+    <html lang="es-CL" className={`${inter.variable} ${fraunces.variable} ${cinzel.variable} ${jakarta.variable}`}>
       <body className="antialiased">
         <AuthProvider>
           {children}

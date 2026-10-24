@@ -35,6 +35,15 @@
 @theme inline {
   --color-background: var(--ft-light);
   --color-foreground: var(--ft-dark);
+
+  /* Platform-wide type system.
+     - font-sans  → Inter (loaded by next/font in layout.tsx)
+     - font-serif → Fraunces (variable, SOFT axis for warmer feel)
+     Both the Tailwind `font-sans` / `font-serif` utilities and the raw
+     body font-family resolve through these variables, so changing them
+     here is the single switch for platform typography. */
+  --font-sans:  var(--font-inter), 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), 'Fraunces', Georgia, 'Times New Roman', serif;
 }
 
 * { box-sizing: border-box; }
@@ -43,7 +52,7 @@ body {
   background: var(--gradient-hero);
   background-attachment: fixed;
   color: var(--ft-dark);
-  font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
