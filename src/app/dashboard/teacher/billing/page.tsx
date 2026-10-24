@@ -122,7 +122,7 @@ function PaidModal({
           Método de pago
         </label>
         <div className="space-y-2 mb-4">
-          {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map(m => (
+          {(Object.keys(METHOD_META) as PaymentMethod[]).map(m => (
             <button
               key={m}
               onClick={() => setMethod(m)}
