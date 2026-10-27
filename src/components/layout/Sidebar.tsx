@@ -3,7 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
 import {
   Home,
   GraduationCap,
@@ -142,7 +144,14 @@ function useNavBadges(role: string | null, uid: string): Map<string, number> {
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { profile, role } = useAuthStore();
   const pathname = usePathname();
-  const uid       = profile?.uid ?? '';
+
+  // Fallback: authStore.profile puede quedar null tras montar (bug de
+  // hidratación conocido). Suscribimos onAuthStateChanged directo para
+  // tener siempre un uid válido — sin él, los hooks de badges (cowork,
+  // homework, etc.) se quedan en 0 silenciosamente.
+  const [authUid, setAuthUid] = useState<string>(() => auth.currentUser?.uid ?? '');
+  useEffect(() => onAuthStateChanged(auth, (u) => setAuthUid(u?.uid ?? '')), []);
+  const uid = profile?.uid || authUid;
   const firstName = profile?.fullName?.split(' ')[0] ?? '';
   const lastName  = profile?.fullName?.split(' ').slice(1).join(' ') ?? '';
 

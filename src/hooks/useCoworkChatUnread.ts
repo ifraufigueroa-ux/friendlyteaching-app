@@ -11,9 +11,11 @@ import {
   Timestamp,
   type QuerySnapshot, type DocumentData,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase/config';
 
 const STORAGE_KEY = 'cowork_chat_last_seen';
+const DEBUG = typeof window !== 'undefined' && localStorage.getItem('cowork_debug') === '1';
 
 export function markCoworkChatSeen() {
   try {
@@ -30,11 +32,24 @@ function readLastSeen(): number {
   } catch { return 0; }
 }
 
-export function useCoworkChatUnread(currentUid: string, pageSize = 50): number {
+// `enabledUid` sirve de "enable gate": truthy = activar, falsy = no hacer
+// nada. Pero el uid real para filtrar mensajes propios se resuelve con
+// onAuthStateChanged (bug de hidratación de authStore — ver memoria
+// [[authstore-hydration-bug]]). El Sidebar pasa `role === 'teacher' ? uid : ''`
+// y así evitamos spam a Firestore cuando el usuario es alumno.
+export function useCoworkChatUnread(enabledUid: string, pageSize = 50): number {
   const [unread, setUnread] = useState(0);
+  const [authUid, setAuthUid] = useState<string>(() => auth.currentUser?.uid ?? '');
 
   useEffect(() => {
-    if (!currentUid) { setUnread(0); return; }
+    return onAuthStateChanged(auth, (u) => setAuthUid(u?.uid ?? ''));
+  }, []);
+
+  const uid = enabledUid ? (authUid || enabledUid) : '';
+
+  useEffect(() => {
+    if (!uid) { setUnread(0); return; }
+    if (DEBUG) console.log('[cowork-unread] subscribe', { uid });
 
     let lastSeen = readLastSeen();
     // First visit ever: treat "now" as the baseline so we don't flag
@@ -56,12 +71,15 @@ export function useCoworkChatUnread(currentUid: string, pageSize = 50): number {
       for (const d of snap.docs) {
         const data = d.data() as { authorId?: string; createdAt?: Timestamp };
         const t = data.createdAt?.toMillis?.() ?? 0;
-        if (t > latestSeen && data.authorId !== currentUid) count++;
+        if (t > latestSeen && data.authorId !== uid) count++;
       }
+      if (DEBUG) console.log('[cowork-unread] snapshot', { docs: snap.docs.length, count, latestSeen });
       setUnread(count);
     };
 
-    const unsub = onSnapshot(q, recompute);
+    const unsub = onSnapshot(q, recompute, (err: Error) => {
+      console.error('[cowork-unread] firestore error', err);
+    });
 
     // If the user marks the section as seen while this hook is mounted,
     // recompute against the new timestamp without waiting for a new snapshot.
@@ -77,7 +95,7 @@ export function useCoworkChatUnread(currentUid: string, pageSize = 50): number {
       window.removeEventListener('cowork-chat-seen', onSeen);
       window.removeEventListener('storage', onSeen);
     };
-  }, [currentUid, pageSize]);
+  }, [uid, pageSize]);
 
   return unread;
 }

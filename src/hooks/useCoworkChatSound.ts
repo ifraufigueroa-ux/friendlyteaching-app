@@ -17,17 +17,19 @@
 //   - El usuario puede silenciar con localStorage `cowork_chat_sound_muted`.
 
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   collection, query, orderBy, limit as fbLimit, onSnapshot,
   Timestamp,
   type QuerySnapshot, type DocumentData,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase/config';
 
 const MUTE_KEY = 'cowork_chat_sound_muted';
 const TITLE_BLINK_MS = 1200;
 const TITLE_BLINK_COUNT = 6;
+const DEBUG = typeof window !== 'undefined' && localStorage.getItem('cowork_debug') === '1';
 
 type AudioCtxCtor = typeof AudioContext;
 
@@ -69,12 +71,21 @@ function isMuted(): boolean {
   try { return localStorage.getItem(MUTE_KEY) === '1'; } catch { return false; }
 }
 
-export function useCoworkChatSound(currentUid: string) {
+// `enabledUid` actúa de enable-gate (truthy = activar). El uid real para
+// filtrar mensajes propios lo resolvemos con onAuthStateChanged (bug de
+// hidratación — ver memoria [[authstore-hydration-bug]]).
+export function useCoworkChatSound(enabledUid: string) {
   const ctxRef = useRef<AudioContext | null>(null);
   const baselineRef = useRef<number | null>(null);
   const titleRef = useRef<{ original: string; timer: number | null; count: number }>({
     original: '', timer: null, count: 0,
   });
+
+  const [authUid, setAuthUid] = useState<string>(() => auth.currentUser?.uid ?? '');
+  useEffect(() => {
+    return onAuthStateChanged(auth, (u) => setAuthUid(u?.uid ?? ''));
+  }, []);
+  const currentUid = enabledUid ? (authUid || enabledUid) : '';
 
   // Prime AudioContext en el primer gesto. Los navegadores exigen un user
   // gesture antes de permitir audio; una vez que el ctx está en estado
@@ -142,6 +153,7 @@ export function useCoworkChatSound(currentUid: string) {
 
   useEffect(() => {
     if (!currentUid) return;
+    if (DEBUG) console.log('[cowork-sound] subscribe', { uid: currentUid });
 
     const q = query(
       collection(db, 'coworkMessages'),
@@ -163,6 +175,7 @@ export function useCoworkChatSound(currentUid: string) {
       // Baseline: la primera emisión fija el "ya conocido" y no suena.
       if (baselineRef.current == null) {
         baselineRef.current = t;
+        if (DEBUG) console.log('[cowork-sound] baseline set', { t });
         return;
       }
 
@@ -171,14 +184,19 @@ export function useCoworkChatSound(currentUid: string) {
       if (data.authorId === currentUid) return; // mio: silencio
       if (isMuted()) return;
 
+      if (DEBUG) console.log('[cowork-sound] chime for new msg', { from: data.authorName, t });
       const ctx = ctxRef.current;
       if (ctx && ctx.state !== 'suspended') {
-        try { playChime(ctx); } catch { /* ignore */ }
+        try { playChime(ctx); } catch (e) { console.error('[cowork-sound] playChime failed', e); }
+      } else if (DEBUG) {
+        console.log('[cowork-sound] no audio ctx — user hasnt interacted yet', { ctx: !!ctx, state: ctx?.state });
       }
       blinkTitle(data.authorName || '');
     };
 
-    const unsub = onSnapshot(q, handle);
+    const unsub = onSnapshot(q, handle, (err: Error) => {
+      console.error('[cowork-sound] firestore error', err);
+    });
     return () => {
       unsub();
       if (titleRef.current.timer != null) {
