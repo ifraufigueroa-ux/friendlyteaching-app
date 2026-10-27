@@ -15,9 +15,11 @@ import { markCoworkChatSeen } from '@/hooks/useCoworkChatUnread';
 import { playCoworkTestChime } from '@/hooks/useCoworkChatSound';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkPresence } from '@/hooks/useCoworkPresence';
+import { EmojiPicker } from '@/components/cowork/EmojiPicker';
+import { renderMessageText } from '@/lib/cowork/renderMessageText';
 import type { CoworkAnnouncement, CoworkMessage, CoworkPresence } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
-import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users, Volume2 } from 'lucide-react';
+import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users, Volume2, Smile } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -263,7 +265,9 @@ function MessageRow({
               </div>
             </div>
           ) : (
-            <p className="whitespace-pre-wrap break-words">{msg.text}</p>
+            <p className="whitespace-pre-wrap break-words leading-relaxed">
+              {renderMessageText(msg.text)}
+            </p>
           )}
           <div className={`flex items-center gap-1.5 mt-1 text-[9px] ${isMine ? 'text-white/70' : 'text-gray-400'}`}>
             <span>{formatTime(msg.createdAt)}</span>
@@ -346,6 +350,26 @@ export default function CoworkPage() {
   const [composing, setComposing] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const emojiBtnRef = useRef<HTMLButtonElement>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+
+  // Inserta el token en la posición del cursor del textarea. Si el user
+  // nunca lo focuseó (selectionStart = null), lo appendea al final.
+  function insertAtCursor(token: string) {
+    const ta = textareaRef.current;
+    if (!ta) { setDraft((d) => d + token); return; }
+    const start = ta.selectionStart ?? draft.length;
+    const end = ta.selectionEnd ?? draft.length;
+    const next = draft.slice(0, start) + token + draft.slice(end);
+    setDraft(next);
+    // Re-focusear y poner el cursor justo después del token insertado.
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + token.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  }
 
   // Auto-scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
@@ -533,8 +557,9 @@ export default function CoworkPage() {
                 Cargando sesión… espera un segundo antes de enviar.
               </p>
             )}
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-2 relative">
               <textarea
+                ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKey}
@@ -543,12 +568,33 @@ export default function CoworkPage() {
                 className="flex-1 resize-none px-3 py-2 rounded-2xl border border-gray-200 focus:border-[#C8A8DC] focus:outline-none text-sm max-h-32"
               />
               <button
+                ref={emojiBtnRef}
+                type="button"
+                onClick={() => setEmojiOpen((o) => !o)}
+                aria-label="Insertar emoji"
+                title="Insertar emoji"
+                className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-2xl border transition-colors ${
+                  emojiOpen
+                    ? 'bg-[#F0E5FF] border-[#C8A8DC] text-[#5A3D7A]'
+                    : 'bg-white border-gray-200 text-gray-500 hover:text-[#5A3D7A] hover:border-[#C8A8DC]'
+                }`}
+              >
+                <Smile className="w-5 h-5" strokeWidth={2.25} />
+              </button>
+              <button
                 onClick={handleSend}
                 disabled={!draft.trim() || !uid}
                 className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#7B5EA7] to-[#5A3D7A] text-white font-bold text-sm shadow-md disabled:opacity-40 flex-shrink-0"
               >
                 Enviar
               </button>
+
+              <EmojiPicker
+                open={emojiOpen}
+                onClose={() => setEmojiOpen(false)}
+                onPick={(token) => insertAtCursor(token)}
+                anchorRef={emojiBtnRef}
+              />
             </div>
           </div>
         </section>
