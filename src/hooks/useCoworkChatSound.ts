@@ -87,22 +87,27 @@ export function useCoworkChatSound(enabledUid: string) {
   }, []);
   const currentUid = enabledUid ? (authUid || enabledUid) : '';
 
-  // Prime AudioContext en el primer gesto. Los navegadores exigen un user
-  // gesture antes de permitir audio; una vez que el ctx está en estado
-  // "running", los pings subsiguientes funcionan incluso sin gesto nuevo.
+  // Prime AudioContext en CADA gesto del usuario (sin `once: true`). Chrome
+  // suspende el ctx tras ~30s de inactividad del tab; necesitamos poder
+  // re-resumir en cualquier gesto futuro, no sólo el primero.
   useEffect(() => {
     if (!currentUid) return;
     function prime() {
-      if (ctxRef.current) return;
-      const ctx = getAudioCtx();
-      if (ctx) {
+      let ctx = ctxRef.current;
+      if (!ctx) {
+        ctx = getAudioCtx();
+        if (!ctx) return;
         ctxRef.current = ctx;
-        // Un ctx recien creado tras gesto queda en 'running' en Chrome;
-        // en Safari conviene resume() explicito.
-        ctx.resume?.().catch(() => {});
+      }
+      if (ctx.state === 'suspended') {
+        ctx.resume?.().then(() => {
+          if (DEBUG) console.log('[cowork-sound] ctx resumed', ctx!.state);
+        }).catch((e) => {
+          if (DEBUG) console.log('[cowork-sound] ctx resume failed', e);
+        });
       }
     }
-    const opts = { once: true, passive: true } as const;
+    const opts = { passive: true } as const;
     window.addEventListener('click', prime, opts);
     window.addEventListener('keydown', prime, opts);
     window.addEventListener('touchstart', prime, opts);
@@ -185,11 +190,22 @@ export function useCoworkChatSound(enabledUid: string) {
       if (isMuted()) return;
 
       if (DEBUG) console.log('[cowork-sound] chime for new msg', { from: data.authorName, t });
-      const ctx = ctxRef.current;
-      if (ctx && ctx.state !== 'suspended') {
+      let ctx = ctxRef.current;
+      if (!ctx) {
+        // Fallback: intentar crearlo acá por si el user ya interactuó pero
+        // el primer no gatilló (edge cases: navegación SPA sin click nuevo).
+        ctx = getAudioCtx();
+        if (ctx) ctxRef.current = ctx;
+      }
+      if (ctx) {
+        // Si está suspendido, intentar resume igual — a veces Chrome lo
+        // permite sin gesto nuevo si ya hubo gestos previos en la página.
+        if (ctx.state === 'suspended') {
+          ctx.resume?.().catch(() => {});
+        }
         try { playChime(ctx); } catch (e) { console.error('[cowork-sound] playChime failed', e); }
       } else if (DEBUG) {
-        console.log('[cowork-sound] no audio ctx — user hasnt interacted yet', { ctx: !!ctx, state: ctx?.state });
+        console.log('[cowork-sound] no audio ctx available');
       }
       blinkTitle(data.authorName || '');
     };
@@ -214,4 +230,21 @@ export function setCoworkChatSoundMuted(muted: boolean) {
 }
 export function isCoworkChatSoundMuted(): boolean {
   return isMuted();
+}
+
+// Dispara el chime bajo demanda (botón "Probar sonido"). Garantiza que
+// corra dentro del user-gesture — crea el ctx on-demand y lo resumea.
+export function playCoworkTestChime(): Promise<void> {
+  const ctx = getAudioCtx();
+  if (!ctx) return Promise.reject(new Error('no AudioContext'));
+  const run = () => {
+    try { playChime(ctx); } catch (e) { console.error('[cowork-sound] test chime failed', e); }
+  };
+  if (ctx.state === 'suspended') {
+    return ctx.resume().then(run).catch((e) => {
+      console.error('[cowork-sound] resume failed', e);
+    });
+  }
+  run();
+  return Promise.resolve();
 }

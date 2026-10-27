@@ -12,11 +12,12 @@ import { useAuthStore } from '@/store/authStore';
 import TopBar from '@/components/layout/TopBar';
 import { useCoworkChat } from '@/hooks/useCoworkChat';
 import { markCoworkChatSeen } from '@/hooks/useCoworkChatUnread';
+import { playCoworkTestChime } from '@/hooks/useCoworkChatSound';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkPresence } from '@/hooks/useCoworkPresence';
 import type { CoworkAnnouncement, CoworkMessage, CoworkPresence } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
-import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users } from 'lucide-react';
+import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users, Volume2 } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -459,9 +460,20 @@ export default function CoworkPage() {
 
         {/* ── Chat ─────────────────────────────────────── */}
         <section className="glass-card rounded-2xl flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0">
-            <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><MessageSquare className="w-4 h-4" strokeWidth={2.25} /> Chat del equipo</h3>
-            <p className="text-[10px] text-gray-500">Mensajes visibles para todos los profesores</p>
+          <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><MessageSquare className="w-4 h-4" strokeWidth={2.25} /> Chat del equipo</h3>
+              <p className="text-[10px] text-gray-500">Mensajes visibles para todos los profesores</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { playCoworkTestChime().catch(() => {}); }}
+              className="flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold text-[#7B5EA7] hover:text-[#3D1F6B] bg-[#F0E5FF] hover:bg-[#E6DAFF] px-2 py-1 rounded-md transition-colors"
+              title="Reproducir el chime de notificación para verificar que el audio funciona"
+            >
+              <Volume2 className="w-3 h-3" strokeWidth={2.5} />
+              Probar sonido
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
