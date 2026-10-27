@@ -77,33 +77,33 @@ function TopicCard({
 
         {/* ── Face-up ───────────────────────────────────────────────── */}
         <div
-          className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FBF8F0] to-[#F0E5D8] shadow-2xl border-2 border-[#C8A8DC]/40 overflow-hidden p-7 flex flex-col"
+          className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FEFEFD] to-[#E6F0ED] shadow-2xl border-2 border-[#5EAEA8]/40 overflow-hidden p-7 flex flex-col"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
           <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${meta.gradient}`} />
-          <div className="absolute top-4 left-5 text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]/50 inline-flex items-center gap-1.5">
+          <div className="absolute top-4 left-5 text-[10px] font-bold uppercase tracking-widest text-[#0F766E]/50 inline-flex items-center gap-1.5">
             <span>{meta.icon}</span>
             <span>{topic.category}</span>
           </div>
           <div className="absolute top-4 right-5 text-[10px] font-bold uppercase tracking-widest inline-flex items-center gap-1.5">
-            <span className="text-[#5A3D7A]/50">Random topic</span>
+            <span className="text-[#0F766E]/50">Random topic</span>
           </div>
 
           <div className="flex-1 flex flex-col justify-center mt-4">
             <div className={`${small ? 'text-4xl' : 'text-6xl'} mb-3`}>{topic.emoji}</div>
-            <h2 className={`${small ? 'text-sm' : 'text-2xl md:text-[26px]'} font-bold text-[#2D1B4E] mb-5 leading-tight font-serif`}>
+            <h2 className={`${small ? 'text-sm' : 'text-2xl md:text-[26px]'} font-bold text-[#0D2A2E] mb-5 leading-tight font-serif`}>
               {topic.topic}
             </h2>
             {!small && (
               <>
-                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#5A3D7A]/70 mb-2">Follow-ups</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#0F766E]/70 mb-2">Follow-ups</p>
                 <ul className="space-y-2">
                   {topic.followUps.map((q, i) => (
                     <li key={i} className="flex items-start gap-2.5">
                       <span className={`flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br ${meta.gradient} text-white text-[11px] font-bold flex items-center justify-center mt-0.5`}>
                         {i + 1}
                       </span>
-                      <p className="text-[#2D1B4E] text-[15px] leading-snug pt-0.5">{q}</p>
+                      <p className="text-[#0D2A2E] text-[15px] leading-snug pt-0.5">{q}</p>
                     </li>
                   ))}
                 </ul>
@@ -302,7 +302,7 @@ export default function RandomTopicsPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
+    <div className="min-h-screen relative overflow-hidden bg-[#EEF4F2] text-[#0D2A2E]">
       {/* ── Ambient background — beefed up so the glass TopBar has vivid
           color behind it to blur through. Two overlapping wide blobs of
           purple and gold anchored to the top of the page + a rotating
@@ -312,8 +312,8 @@ export default function RandomTopicsPage() {
         className="absolute inset-0 pointer-events-none opacity-[0.05]"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(90,61,122,1) 1px, transparent 1px),' +
-            'linear-gradient(90deg, rgba(90,61,122,1) 1px, transparent 1px)',
+            'linear-gradient(rgba(15,118,110,1) 1px, transparent 1px),' +
+            'linear-gradient(90deg, rgba(15,118,110,1) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
           maskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
           WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
@@ -326,10 +326,10 @@ export default function RandomTopicsPage() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(70rem 45rem at 50% -5%, rgba(155,124,184,0.55) 0%, transparent 60%),' +
-            'radial-gradient(50rem 32rem at 8% 8%, rgba(232,181,71,0.35) 0%, transparent 65%),' +
-            'radial-gradient(50rem 32rem at 92% 12%, rgba(99,102,241,0.35) 0%, transparent 65%),' +
-            'radial-gradient(45rem 30rem at 15% 92%, rgba(232,181,71,0.20) 0%, transparent 60%)',
+            'radial-gradient(70rem 45rem at 50% -5%, rgba(20,184,166,0.55) 0%, transparent 60%),' +
+            'radial-gradient(50rem 32rem at 8% 8%, rgba(245,158,11,0.35) 0%, transparent 65%),' +
+            'radial-gradient(50rem 32rem at 92% 12%, rgba(100,116,139,0.35) 0%, transparent 65%),' +
+            'radial-gradient(45rem 30rem at 15% 92%, rgba(245,158,11,0.20) 0%, transparent 60%)',
         }}
       />
       {/* Dedicated glow band sitting exactly behind the TopBar so the
@@ -339,9 +339,9 @@ export default function RandomTopicsPage() {
         className="absolute inset-x-0 top-0 h-72 pointer-events-none"
         style={{
           background:
-            'radial-gradient(35rem 18rem at 20% 40%, rgba(232,181,71,0.5) 0%, transparent 65%),' +
-            'radial-gradient(35rem 18rem at 80% 40%, rgba(155,124,184,0.55) 0%, transparent 65%),' +
-            'radial-gradient(28rem 14rem at 50% 55%, rgba(236,72,153,0.28) 0%, transparent 70%)',
+            'radial-gradient(35rem 18rem at 20% 40%, rgba(245,158,11,0.5) 0%, transparent 65%),' +
+            'radial-gradient(35rem 18rem at 80% 40%, rgba(20,184,166,0.55) 0%, transparent 65%),' +
+            'radial-gradient(28rem 14rem at 50% 55%, rgba(245,158,11,0.28) 0%, transparent 70%)',
         }}
       />
 
@@ -357,8 +357,8 @@ export default function RandomTopicsPage() {
           ]}
           leading={
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E8B547]/40 to-[#9B7CB8]/40 blur-md" />
-              <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/70 shadow-lg shadow-[#9B7CB8]/30">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#F59E0B]/40 to-[#14B8A6]/40 blur-md" />
+              <div className="relative w-11 h-11 rounded-full overflow-hidden ring-2 ring-white/70 shadow-lg shadow-[#14B8A6]/30">
                 <Image
                   src="/logo-friendlyteaching.jpg"
                   alt="FriendlyTeaching"
@@ -384,7 +384,7 @@ export default function RandomTopicsPage() {
                   setPracticed(0);
                   backToDeck();
                 }}
-                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#C8A8DC] bg-white text-[#5A3D7A] focus:outline-none focus:ring-2 focus:ring-[#9B7CB8]/30"
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#5EAEA8] bg-white text-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/30"
               >
                 <option value="">Elegir estudiante…</option>
                 {students.map(s => (
@@ -394,7 +394,7 @@ export default function RandomTopicsPage() {
                 ))}
               </select>
               <span className="text-xs text-gray-500 hidden sm:inline">
-                Practicados: <strong className="text-[#5A3D7A]">{practiced}</strong>
+                Practicados: <strong className="text-[#0F766E]">{practiced}</strong>
               </span>
             </div>
           }
@@ -404,14 +404,14 @@ export default function RandomTopicsPage() {
 
           {/* ── Hero ──────────────────────────────────────────────────── */}
           <div className="text-center mb-6 space-y-3">
-            <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-3 py-1.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E8B547] animate-pulse" />
+            <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#0F766E] bg-[#DBEEEE] border border-[#5EAEA8]/60 px-3 py-1.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
               Speaking Roulette
             </span>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#2D1B4E] leading-tight tracking-tight">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#0D2A2E] leading-tight tracking-tight">
               Random Topic Simulator
             </h1>
-            <p className="text-sm text-[#5A3D7A]/70 max-w-lg mx-auto">
+            <p className="text-sm text-[#0F766E]/70 max-w-lg mx-auto">
               Saca una carta al azar y conversa. Cada topic viene con 3 follow-ups
               por si la charla necesita un empujón.
             </p>
@@ -426,8 +426,8 @@ export default function RandomTopicsPage() {
                 onClick={selectAllCategories}
                 className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all ${
                   selectedCats.size === 0
-                    ? 'bg-[#5A3D7A] text-white border-transparent shadow'
-                    : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
+                    ? 'bg-[#0F766E] text-white border-transparent shadow'
+                    : 'bg-white text-[#0F766E] border-[#CDE4E3] hover:border-[#5EAEA8]'
                 }`}
               >
                 All · {RANDOM_TOPICS.length - disabledIds.size}
@@ -444,7 +444,7 @@ export default function RandomTopicsPage() {
                     className={`text-xs font-bold px-3.5 py-1.5 rounded-full border transition-all inline-flex items-center gap-1.5 ${
                       active
                         ? `${meta.chipBg} ${meta.chipText} border-transparent shadow`
-                        : 'bg-white text-[#5A3D7A] border-[#E8D5F0] hover:border-[#C8A8DC]'
+                        : 'bg-white text-[#0F766E] border-[#CDE4E3] hover:border-[#5EAEA8]'
                     }`}
                     aria-pressed={active}
                   >
@@ -455,17 +455,17 @@ export default function RandomTopicsPage() {
                 );
               })}
             </div>
-            <div className="flex justify-center gap-3 mt-3 text-[11px] text-[#5A3D7A]/70">
+            <div className="flex justify-center gap-3 mt-3 text-[11px] text-[#0F766E]/70">
               <button
                 onClick={() => setShowPicker(true)}
-                className="font-semibold hover:text-[#5A3D7A] underline decoration-dotted"
+                className="font-semibold hover:text-[#0F766E] underline decoration-dotted"
               >
                 🎯 Elegir topics ({pool.length} en el mazo)
               </button>
               {disabledIds.size > 0 && (
                 <button
                   onClick={resetAllTopics}
-                  className="font-semibold hover:text-[#5A3D7A] underline decoration-dotted"
+                  className="font-semibold hover:text-[#0F766E] underline decoration-dotted"
                 >
                   Reactivar los {disabledIds.size} excluidos
                 </button>
@@ -482,24 +482,24 @@ export default function RandomTopicsPage() {
           {!sessionActive ? (
             <div className="max-w-xl mx-auto mb-6">
               {!studentId ? (
-                <div className="text-center bg-white/80 backdrop-blur rounded-2xl border border-[#E8D5F0] px-6 py-5 shadow-sm">
-                  <p className="text-sm text-[#5A3D7A]/80 mb-2">
+                <div className="text-center bg-white/80 backdrop-blur rounded-2xl border border-[#CDE4E3] px-6 py-5 shadow-sm">
+                  <p className="text-sm text-[#0F766E]/80 mb-2">
                     Elegí un estudiante arriba para empezar.
                   </p>
-                  <p className="text-[11px] text-[#5A3D7A]/60">
+                  <p className="text-[11px] text-[#0F766E]/60">
                     Guardamos qué cue cards ya respondió, así no se repiten en próximas clases.
                   </p>
                 </div>
               ) : progressLoading ? (
-                <div className="text-center text-[#5A3D7A]/60 text-xs py-6">
+                <div className="text-center text-[#0F766E]/60 text-xs py-6">
                   Cargando progreso de {activeStudent?.fullName ?? '…'}…
                 </div>
               ) : (
-                <div className="bg-white/90 backdrop-blur rounded-2xl border border-[#E8D5F0] px-6 py-5 shadow-sm">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#5A3D7A]/60 mb-1 text-center">
+                <div className="bg-white/90 backdrop-blur rounded-2xl border border-[#CDE4E3] px-6 py-5 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#0F766E]/60 mb-1 text-center">
                     Sesión
                   </p>
-                  <p className="text-sm text-[#2D1B4E] mb-4 text-center">
+                  <p className="text-sm text-[#0D2A2E] mb-4 text-center">
                     <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
                     {progressExists && practicedIds.size > 0 && (
                       <> · ya practicó <strong>{practicedIds.size}</strong> cue card{practicedIds.size === 1 ? '' : 's'}</>
@@ -509,7 +509,7 @@ export default function RandomTopicsPage() {
                     {practicedIds.size > 0 && (
                       <button
                         onClick={resumeSession}
-                        className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
+                        className="px-5 py-2.5 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-full text-sm font-bold shadow-lg shadow-[#0F766E]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95"
                       >
                         ▶ Resume
                       </button>
@@ -519,8 +519,8 @@ export default function RandomTopicsPage() {
                         onClick={() => (practicedIds.size > 0 ? setConfirmReset(true) : startNewSession())}
                         className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
                           practicedIds.size > 0
-                            ? 'bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF]'
-                            : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5'
+                            ? 'bg-white border-2 border-[#5EAEA8] text-[#0F766E] hover:bg-[#DBEEEE]'
+                            : 'bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white shadow-lg shadow-[#0F766E]/25 hover:shadow-xl hover:-translate-y-0.5'
                         }`}
                       >
                         + New Session
@@ -549,8 +549,8 @@ export default function RandomTopicsPage() {
               )}
             </div>
           ) : (
-            <div className="max-w-xl mx-auto mb-6 flex items-center justify-between gap-3 bg-[#F0E5FF]/70 border border-[#C8A8DC]/60 rounded-full px-4 py-2">
-              <span className="text-xs text-[#5A3D7A]">
+            <div className="max-w-xl mx-auto mb-6 flex items-center justify-between gap-3 bg-[#DBEEEE]/70 border border-[#5EAEA8]/60 rounded-full px-4 py-2">
+              <span className="text-xs text-[#0F766E]">
                 Sesión con <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
                 {' · '}
                 <strong>{pool.length}</strong> restantes
@@ -559,7 +559,7 @@ export default function RandomTopicsPage() {
               </span>
               <button
                 onClick={endSession}
-                className="text-[11px] font-bold text-[#5A3D7A] hover:underline"
+                className="text-[11px] font-bold text-[#0F766E] hover:underline"
               >
                 Terminar sesión
               </button>
@@ -594,13 +594,13 @@ export default function RandomTopicsPage() {
               <div className="flex justify-center gap-3">
                 <button
                   onClick={pickRandom}
-                  className="px-6 py-3 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 inline-flex items-center gap-2"
+                  className="px-6 py-3 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-full text-sm font-bold shadow-lg shadow-[#0F766E]/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 inline-flex items-center gap-2"
                 >
                   🎲 Pick random
                 </button>
                 <button
                   onClick={() => setDeckSeed(s => s + 1)}
-                  className="px-6 py-3 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+                  className="px-6 py-3 bg-white border-2 border-[#5EAEA8] text-[#0F766E] rounded-full text-sm font-bold hover:bg-[#DBEEEE] active:scale-95"
                 >
                   🔀 Shuffle
                 </button>
@@ -653,13 +653,13 @@ export default function RandomTopicsPage() {
                 </button>
                 <button
                   onClick={pickRandom}
-                  className="px-5 py-2.5 bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8] text-white rounded-full text-sm font-bold shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl active:scale-95"
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-full text-sm font-bold shadow-lg shadow-[#0F766E]/25 hover:shadow-xl active:scale-95"
                 >
                   🔀 Skip · another random
                 </button>
                 <button
                   onClick={backToDeck}
-                  className="px-4 py-2.5 bg-white border-2 border-[#C8A8DC] text-[#5A3D7A] rounded-full text-sm font-bold hover:bg-[#F0E5FF] active:scale-95"
+                  className="px-4 py-2.5 bg-white border-2 border-[#5EAEA8] text-[#0F766E] rounded-full text-sm font-bold hover:bg-[#DBEEEE] active:scale-95"
                 >
                   ← Back to deck
                 </button>
@@ -734,7 +734,7 @@ function TopicPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2D1B4E]/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D2A2E]/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -742,10 +742,10 @@ function TopicPickerModal({
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E8D5F0] bg-gradient-to-r from-[#F0E5FF] to-[#FBF8F0] flex items-center gap-3">
+        <div className="px-6 py-4 border-b border-[#CDE4E3] bg-gradient-to-r from-[#DBEEEE] to-[#FEFEFD] flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-xl font-bold text-[#2D1B4E]">🎯 Elegir topics</h2>
-            <p className="text-[11px] text-[#5A3D7A]/70 mt-0.5">
+            <h2 className="font-serif text-xl font-bold text-[#0D2A2E]">🎯 Elegir topics</h2>
+            <p className="text-[11px] text-[#0F766E]/70 mt-0.5">
               {totalEnabled} activos · {disabledIds.size} excluidos · {RANDOM_TOPICS.length} totales
             </p>
           </div>
@@ -754,18 +754,18 @@ function TopicPickerModal({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar topic…"
-            className="text-xs px-3 py-1.5 rounded-full border border-[#C8A8DC] bg-white/80 text-[#2D1B4E] placeholder:text-[#5A3D7A]/40 focus:outline-none focus:ring-2 focus:ring-[#9B7CB8]/30 w-40"
+            className="text-xs px-3 py-1.5 rounded-full border border-[#5EAEA8] bg-white/80 text-[#0D2A2E] placeholder:text-[#0F766E]/40 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/30 w-40"
           />
           <button
             onClick={onResetAll}
             disabled={disabledIds.size === 0}
-            className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-[#5EAEA8] text-[#0F766E] hover:bg-[#DBEEEE] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Resetear
           </button>
           <button
             onClick={onClose}
-            className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#5A3D7A] text-white hover:bg-[#2D1B4E]"
+            className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#0F766E] text-white hover:bg-[#0D2A2E]"
           >
             Listo
           </button>
@@ -782,7 +782,7 @@ function TopicPickerModal({
             return (
               <section key={cat}>
                 <header className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#5A3D7A] inline-flex items-center gap-2">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#0F766E] inline-flex items-center gap-2">
                     <span className={`inline-flex w-6 h-6 rounded-full ${meta.chipBg} ${meta.chipText} items-center justify-center text-[11px]`}>
                       {meta.icon}
                     </span>
@@ -814,14 +814,14 @@ function TopicPickerModal({
                     const disabled = disabledIds.has(t.id);
                     return (
                       <li key={t.id}>
-                        <label className={`flex items-start gap-2 p-2 rounded-lg hover:bg-[#F0E5FF]/50 cursor-pointer ${disabled ? 'opacity-45' : ''}`}>
+                        <label className={`flex items-start gap-2 p-2 rounded-lg hover:bg-[#DBEEEE]/50 cursor-pointer ${disabled ? 'opacity-45' : ''}`}>
                           <input
                             type="checkbox"
                             checked={!disabled}
                             onChange={() => onToggleTopic(t.id)}
-                            className="mt-1 w-4 h-4 accent-[#5A3D7A]"
+                            className="mt-1 w-4 h-4 accent-[#0F766E]"
                           />
-                          <span className="text-sm leading-snug flex-1 min-w-0 text-[#2D1B4E]">
+                          <span className="text-sm leading-snug flex-1 min-w-0 text-[#0D2A2E]">
                             <span className="mr-1.5">{t.emoji}</span>
                             {t.topic}
                           </span>
