@@ -47,8 +47,10 @@ function playChime(ctx: AudioContext) {
   const now = ctx.currentTime;
   const master = ctx.createGain();
   master.gain.value = 0.0001;
-  master.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
-  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+  // Subido de 0.18 → 0.55 (~3x más alto). Dejamos un poco más de headroom
+  // bajo 1.0 para evitar clipping cuando los dos tonos coinciden.
+  master.gain.exponentialRampToValueAtTime(0.55, now + 0.01);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
   master.connect(ctx.destination);
 
   function tone(freq: number, start: number, dur: number) {
