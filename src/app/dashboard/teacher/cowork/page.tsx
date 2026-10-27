@@ -12,14 +12,14 @@ import { useAuthStore } from '@/store/authStore';
 import TopBar from '@/components/layout/TopBar';
 import { useCoworkChat } from '@/hooks/useCoworkChat';
 import { markCoworkChatSeen } from '@/hooks/useCoworkChatUnread';
-import { playCoworkTestChime } from '@/hooks/useCoworkChatSound';
+import { playCoworkTestChime, setCoworkChatSoundMuted, isCoworkChatSoundMuted } from '@/hooks/useCoworkChatSound';
 import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkPresence } from '@/hooks/useCoworkPresence';
 import { EmojiPicker } from '@/components/cowork/EmojiPicker';
 import { renderMessageText } from '@/lib/cowork/renderMessageText';
 import type { CoworkAnnouncement, CoworkMessage, CoworkPresence } from '@/types/firebase';
 import type { Timestamp } from 'firebase/firestore';
-import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users, Volume2, Smile } from 'lucide-react';
+import { Pin, PinOff, Trash2, Pencil, MessageSquare, Sprout, Hand, Users, Volume2, VolumeX, Smile } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -354,6 +354,18 @@ export default function CoworkPage() {
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
 
+  // Preferencia de sonido del chat. La fuente de verdad es localStorage
+  // (lo lee el hook en cada mensaje); este state sólo refleja el toggle
+  // para rerenderizar el icono. Lo hidratamos tras montar para no romper
+  // SSR — localStorage no existe en el servidor.
+  const [muted, setMuted] = useState(false);
+  useEffect(() => { setMuted(isCoworkChatSoundMuted()); }, []);
+  function toggleMute() {
+    const next = !muted;
+    setCoworkChatSoundMuted(next);
+    setMuted(next);
+  }
+
   // Inserta el token en la posición del cursor del textarea. Si el user
   // nunca lo focuseó (selectionStart = null), lo appendea al final.
   function insertAtCursor(token: string) {
@@ -429,19 +441,38 @@ export default function CoworkPage() {
 
         {/* ── Anuncios ─────────────────────────────────── */}
         <aside className="glass-card rounded-2xl p-4 flex flex-col min-h-0 overflow-hidden">
-          <div className="flex items-center justify-between mb-3 flex-shrink-0">
-            <div>
+          <div className="flex items-center justify-between mb-3 flex-shrink-0 gap-2">
+            <div className="min-w-0">
               <h3 className="text-sm font-extrabold text-[#3D1F6B] inline-flex items-center gap-1.5"><Pin className="w-4 h-4" strokeWidth={2.25} /> Tablón</h3>
               <p className="text-[10px] text-gray-500">
                 {unreadCount > 0 ? `${unreadCount} sin leer` : 'Todo al día'}
               </p>
             </div>
-            <button
-              onClick={() => setComposing(v => !v)}
-              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-[#7B5EA7] to-[#5A3D7A] text-white shadow-sm"
-            >
-              {composing ? '×' : '+ Nuevo'}
-            </button>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={muted ? 'Activar sonido del chat' : 'Silenciar sonido del chat'}
+                title={muted
+                  ? 'Chat silenciado — click para reactivar el sonido'
+                  : 'Sonido del chat activado — click para silenciar'}
+                className={`w-8 h-8 flex items-center justify-center rounded-xl border transition-colors ${
+                  muted
+                    ? 'bg-gray-100 border-gray-200 text-gray-400'
+                    : 'bg-white border-[#DDD0F5] text-[#5A3D7A] hover:bg-[#F0E5FF]'
+                }`}
+              >
+                {muted
+                  ? <VolumeX className="w-4 h-4" strokeWidth={2.25} />
+                  : <Volume2 className="w-4 h-4" strokeWidth={2.25} />}
+              </button>
+              <button
+                onClick={() => setComposing(v => !v)}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-[#7B5EA7] to-[#5A3D7A] text-white shadow-sm"
+              >
+                {composing ? '×' : '+ Nuevo'}
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
