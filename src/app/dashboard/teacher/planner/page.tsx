@@ -20,10 +20,10 @@ import LessonKanbanTab from '@/components/planner/LessonKanbanTab';
 import ByStudentTab   from '@/components/planner/ByStudentTab';
 
 const TABS: Array<{ id: 'hoy' | 'semana' | 'kanban' | 'estudiante'; label: string; Icon: LucideIcon; subtitle: string }> = [
-  { id: 'hoy',        label: 'Hoy',            Icon: Sun,          subtitle: 'Clases de hoy'          },
-  { id: 'semana',     label: 'Semana',         Icon: Calendar,     subtitle: 'Agenda semanal'         },
-  { id: 'kanban',     label: 'Kanban',         Icon: FolderKanban, subtitle: 'Preparación de material' },
-  { id: 'estudiante', label: 'Por estudiante', Icon: Users,        subtitle: 'Clases por alumno'  },
+  { id: 'hoy',        label: 'Today',       Icon: Sun,          subtitle: "Today's classes"       },
+  { id: 'semana',     label: 'Week',        Icon: Calendar,     subtitle: 'Weekly agenda'         },
+  { id: 'kanban',     label: 'Kanban',      Icon: FolderKanban, subtitle: 'Material preparation'  },
+  { id: 'estudiante', label: 'By student',  Icon: Users,        subtitle: 'Classes by student'    },
 ];
 
 type TabId = (typeof TABS)[number]['id'];

@@ -21,9 +21,9 @@ import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
-const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_ES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
-const MOOD_LABEL: Record<string, string> = { great: 'Excelente', good: 'Buena', regular: 'Regular' };
+const MOOD_LABEL: Record<string, string> = { great: 'Great', good: 'Good', regular: 'So-so' };
 
 type Range = '7' | '30' | '90' | 'all';
 type AttendFilter = 'all' | 'attended' | 'absent';
@@ -103,11 +103,11 @@ export default function ClassHistoryPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Historial de Clases"
-        subtitle="Registro de todas las sesiones impartidas"
+        title="Class History"
+        subtitle="Record of every class taught"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Historial' },
+          { label: 'History' },
         ]}
       />
 
@@ -115,12 +115,12 @@ export default function ClassHistoryPage() {
 
         {/* ── Stats row ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatChip Icon={ClipboardList} label="Total clases" value={stats.total} color="#C8A8DC" />
-          <StatChip Icon={CheckCircle2} label="Realizadas" value={stats.attended} color="#A8E6A1" />
-          <StatChip Icon={XCircle} label="Ausencias" value={stats.absent} color="#FFAAAA" />
+          <StatChip Icon={ClipboardList} label="Total classes" value={stats.total} color="#C8A8DC" />
+          <StatChip Icon={CheckCircle2} label="Attended" value={stats.attended} color="#A8E6A1" />
+          <StatChip Icon={XCircle} label="No shows" value={stats.absent} color="#FFAAAA" />
           <StatChip
             Icon={FileText}
-            label="Con notas"
+            label="With notes"
             value={stats.withNotes}
             sub={stats.total > 0 ? `${Math.round((stats.withNotes / stats.total) * 100)}%` : '—'}
             color="#FFE8A8"
@@ -141,7 +141,7 @@ export default function ClassHistoryPage() {
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {r === 'all' ? 'Todo' : `${r}d`}
+                {r === 'all' ? 'All' : `${r}d`}
               </button>
             ))}
           </div>
@@ -158,7 +158,7 @@ export default function ClassHistoryPage() {
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {f === 'all' ? 'Todas' : f === 'attended' ? <><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Realizadas</> : <><XCircle className="w-3 h-3" strokeWidth={2.5} /> Ausencias</>}
+                {f === 'all' ? 'All' : f === 'attended' ? <><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Attended</> : <><XCircle className="w-3 h-3" strokeWidth={2.5} /> No shows</>}
               </button>
             ))}
           </div>
@@ -169,24 +169,24 @@ export default function ClassHistoryPage() {
             onChange={(e) => setStudentFilter(e.target.value)}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600 border-none outline-none hover:bg-gray-200 transition-colors cursor-pointer"
           >
-            <option value="">Todos los estudiantes</option>
+            <option value="">All students</option>
             {studentNames.map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
 
           <span className="ml-auto text-xs text-gray-400 font-medium">
-            {stats.total} resultado{stats.total !== 1 ? 's' : ''}
+            {stats.total} result{stats.total !== 1 ? 's' : ''}
           </span>
         </div>
 
         {/* ── History list ───────────────────────────────────────── */}
         {loading ? (
-          <div className="text-center py-16 text-gray-400 text-sm">Cargando historial…</div>
+          <div className="text-center py-16 text-gray-400 text-sm">Loading history…</div>
         ) : grouped.length === 0 ? (
           <div className="text-center py-16">
             <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
-            <p className="text-gray-500 text-sm">No hay clases registradas para este filtro.</p>
+            <p className="text-gray-500 text-sm">No classes recorded for this filter.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -230,7 +230,7 @@ export default function ClassHistoryPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-800 truncate">{entry.studentName}</p>
                             <p className="text-[11px] text-gray-400 inline-flex items-center gap-1">
-                              {entry.isRecurring ? '↻ Recurrente' : '• Una vez'}
+                              {entry.isRecurring ? '↻ Recurring' : '• One-off'}
                               {entry.notes?.mood && MoodIcon ? (
                                 <>
                                   <span className="mx-1">·</span>
@@ -247,14 +247,14 @@ export default function ClassHistoryPage() {
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-600'
                           }`}>
-                            {entry.attended ? 'Asistió' : 'Ausente'}
+                            {entry.attended ? 'Attended' : 'No show'}
                           </span>
 
                           {/* Notes indicator + expand chevron */}
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {hasNotes && (
                               <span className="text-[10px] text-[#9B7CB8] font-semibold bg-[#F0E5FF] px-2 py-0.5 rounded-full">
-                                Notas
+                                Notes
                               </span>
                             )}
                             <span className={`text-gray-400 text-sm transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
@@ -267,21 +267,21 @@ export default function ClassHistoryPage() {
                         {isExpanded && hasNotes && (
                           <div className="px-14 pb-4 pt-1 bg-[#FAFAFA] border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-3">
                             {entry.notes?.covered && (
-                              <NoteField Icon={BookOpen} label="Temas cubiertos" value={entry.notes.covered} />
+                              <NoteField Icon={BookOpen} label="Topics covered" value={entry.notes.covered} />
                             )}
                             {entry.notes?.performance && (
-                              <NoteField Icon={MessageSquare} label="Desempeño" value={entry.notes.performance} />
+                              <NoteField Icon={MessageSquare} label="Performance" value={entry.notes.performance} />
                             )}
                             {entry.notes?.nextClass && (
-                              <NoteField Icon={Target} label="Próxima clase" value={entry.notes.nextClass} />
+                              <NoteField Icon={Target} label="Next class" value={entry.notes.nextClass} />
                             )}
                             {entry.notes?.homework && (
-                              <NoteField Icon={ClipboardList} label="Tarea asignada" value={entry.notes.homework} />
+                              <NoteField Icon={ClipboardList} label="Homework assigned" value={entry.notes.homework} />
                             )}
                             {entry.notes?.mood && MoodIcon && (
                               <NoteField
                                 Icon={MoodIcon}
-                                label="Estado de la clase"
+                                label="Class vibe"
                                 value={MOOD_LABEL[entry.notes.mood]}
                               />
                             )}
@@ -289,7 +289,7 @@ export default function ClassHistoryPage() {
                         )}
                         {isExpanded && !hasNotes && (
                           <div className="px-14 pb-3 pt-1 bg-[#FAFAFA] border-t border-gray-100">
-                            <p className="text-xs text-gray-400 italic">Sin notas registradas para esta clase.</p>
+                            <p className="text-xs text-gray-400 italic">No notes recorded for this class.</p>
                           </div>
                         )}
                       </div>
@@ -347,7 +347,7 @@ function weekLabel(isoMonday: string): string {
   thisMonday.setHours(0, 0, 0, 0);
   const diffMs = thisMonday.getTime() - d.getTime();
   const diffWeeks = Math.round(diffMs / (7 * 24 * 3600 * 1000));
-  if (diffWeeks === 0) return 'Esta semana';
-  if (diffWeeks === 1) return 'Semana pasada';
-  return `Semana del ${d.getDate()} de ${d.toLocaleDateString('es-CL', { month: 'long' })}`;
+  if (diffWeeks === 0) return 'This week';
+  if (diffWeeks === 1) return 'Last week';
+  return `Week of ${d.toLocaleDateString('en-US', { month: 'long' })} ${d.getDate()}`;
 }

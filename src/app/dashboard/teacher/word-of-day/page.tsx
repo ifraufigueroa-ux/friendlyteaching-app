@@ -22,11 +22,11 @@ export default function TeacherWordOfDayPage() {
   return (
     <div className="min-h-screen p-6">
       <TopBar
-        title="Palabra del día"
-        subtitle="Respuestas de tus estudiantes al ejercicio diario de vocabulario"
+        title="Word of the Day"
+        subtitle="Your students' answers to the daily vocabulary exercise"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Palabra del día' },
+          { label: 'Word of the Day' },
         ]}
       />
 
