@@ -47,7 +47,7 @@ function toDate(v: Timestamp | Date | undefined): Date | undefined {
   return v.toDate();
 }
 
-const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_ES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const LEVEL_COLORS: Record<string, string> = {
   A0: 'bg-teal-100 text-teal-700', A1: 'bg-green-100 text-green-700',
   A2: 'bg-emerald-100 text-emerald-700', B1: 'bg-yellow-100 text-yellow-700',
@@ -89,7 +89,7 @@ export default function TeacherDashboardPage() {
   // be a silent console.warn — surfacing it prevents the invisible-desync
   // bug (booking stays 'confirmed' while history says attended).
   const [recordError, setRecordError] = useState<string | null>(null);
-  // Carousel state for "Clases de hoy" card
+  // Carousel state for "Today's classes" card
   // dismissedSlots uses "dow-hour" keys so the same slot never reappears
   // even if Firestore returns a different booking document for the same slot.
   const [carouselIdx, setCarouselIdx]         = useState(0);
@@ -238,15 +238,15 @@ export default function TeacherDashboardPage() {
       // Surface the failure state so the teacher notices instead of the
       // click looking successful while the write silently failed.
       if (bookingFailed && historyFailed) {
-        setRecordError(`No pudimos registrar la clase de ${booking.studentName}. Revisa tu conexión e intenta de nuevo.`);
+        setRecordError(`Couldn't record the class with ${booking.studentName}. Check your connection and try again.`);
       } else if (historyFailed) {
-        setRecordError(`El registro de historial de la clase de ${booking.studentName} falló. La clase reaparecerá; márcala otra vez.`);
+        setRecordError(`Saving history for ${booking.studentName}'s class failed. The class will reappear; mark it again.`);
       } else if (bookingFailed) {
-        setRecordError(`La clase de ${booking.studentName} se registró pero el estado del calendario no se pudo actualizar. Reintenta desde el schedule si notas inconsistencias.`);
+        setRecordError(`${booking.studentName}'s class was recorded, but the calendar status didn't update. Retry from the schedule if you notice inconsistencies.`);
       }
     } catch (err) {
       console.error('[handleRecord] error:', err);
-      setRecordError('Ocurrió un error inesperado al registrar la clase. Revisa la consola.');
+      setRecordError('Unexpected error while recording the class. Check the console.');
     } finally {
       setRecordingKey(null);
       // If both writes failed there's nothing recorded — don't hide the
@@ -498,13 +498,13 @@ export default function TeacherDashboardPage() {
   // Recent homework to review (submitted, not yet reviewed)
   const toReview = homework.filter((h) => h.status === 'submitted').slice(0, 3);
 
-  const firstName = profile?.fullName?.split(' ')[0] ?? 'Profesor';
+  const firstName = profile?.fullName?.split(' ')[0] ?? 'Teacher';
 
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Panel Principal"
-        subtitle={`Hola, ${firstName} — ${today.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+        title="Dashboard"
+        subtitle={`Hi, ${firstName} — ${today.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}`}
       />
       <div className="flex-1 p-6 overflow-auto space-y-6 bg-mesh">
 
@@ -513,13 +513,13 @@ export default function TeacherDashboardPage() {
           <div className="bg-red-50/90 backdrop-blur-sm border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3 shadow-glass">
             <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" strokeWidth={2.25} />
             <div className="flex-1">
-              <p className="font-bold text-red-800 text-sm">Registro con problemas</p>
+              <p className="font-bold text-red-800 text-sm">Registration had issues</p>
               <p className="text-xs text-red-600 leading-relaxed">{recordError}</p>
             </div>
             <button
               onClick={() => setRecordError(null)}
               className="text-red-500 hover:text-red-700 text-lg font-bold leading-none pt-0.5"
-              aria-label="Cerrar aviso"
+              aria-label="Close alert"
             >
               ×
             </button>
@@ -533,9 +533,9 @@ export default function TeacherDashboardPage() {
               <Hourglass className="w-6 h-6 text-amber-500 flex-shrink-0" strokeWidth={2.25} />
               <div>
                 <p className="font-bold text-amber-800 text-sm">
-                  {pendingStudents} estudiante{pendingStudents > 1 ? 's' : ''} esperando aprobación
+                  {pendingStudents} student{pendingStudents > 1 ? 's' : ''} waiting for approval
                 </p>
-                <p className="text-xs text-amber-600">Haz clic para revisar y aprobar</p>
+                <p className="text-xs text-amber-600">Click to review and approve</p>
               </div>
               <span className="ml-auto text-amber-500 font-bold">→</span>
             </div>
@@ -544,19 +544,19 @@ export default function TeacherDashboardPage() {
 
         {/* ── Stats grid ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon={<Users className="w-6 h-6" strokeWidth={2.25} />} label="Estudiantes activos" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pendiente${pendingStudents > 1 ? 's' : ''}` : 'Semanalmente'} color="#C8A8DC" href="/dashboard/teacher/students" />
-          <StatCard icon={<BookOpen className="w-6 h-6" strokeWidth={2.25} />} label="Lecciones publicadas" value={publishedLessons} sub={`de ${lessons.length} total`} color="#5EAE55" href="/dashboard/teacher/lessons" />
-          <StatCard icon={<FileText className="w-6 h-6" strokeWidth={2.25} />} label="Tareas por revisar" value={pendingHomework} sub={pendingHomework > 0 ? 'Requieren atención' : 'Todo al día'} color="#C8A035" href="/dashboard/teacher/homework" />
-          <StatCard icon={<Star className="w-6 h-6" strokeWidth={2.25} />} label="Puntuación promedio" value={avgScore ?? '—'} sub={avgScore ? 'escala 1–7' : 'Sin datos aún'} color="#E07896" href="/dashboard/teacher/progress" />
+          <StatCard icon={<Users className="w-6 h-6" strokeWidth={2.25} />} label="Active students" value={activeStudentCount} sub={pendingStudents > 0 ? `+${pendingStudents} pending` : 'Weekly'} color="#C8A8DC" href="/dashboard/teacher/students" />
+          <StatCard icon={<BookOpen className="w-6 h-6" strokeWidth={2.25} />} label="Published lessons" value={publishedLessons} sub={`of ${lessons.length} total`} color="#5EAE55" href="/dashboard/teacher/lessons" />
+          <StatCard icon={<FileText className="w-6 h-6" strokeWidth={2.25} />} label="Homework to review" value={pendingHomework} sub={pendingHomework > 0 ? 'Needs attention' : 'All caught up'} color="#C8A035" href="/dashboard/teacher/homework" />
+          <StatCard icon={<Star className="w-6 h-6" strokeWidth={2.25} />} label="Average score" value={avgScore ?? '—'} sub={avgScore ? '1–7 scale' : 'No data yet'} color="#E07896" href="/dashboard/teacher/progress" />
         </div>
 
         {/* ── Next class + Today's schedule ───────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* ── Clases de hoy — carousel ─────────────────────── */}
+          {/* ── Today's classes — carousel ─────────────────────── */}
           <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-5 text-white flex flex-col shadow-glass-lg">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Clases de hoy</p>
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider inline-flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Today's classes</p>
               {carouselClasses.length > 0 && (
                 <span className="text-xs text-white/50 font-medium">{carouselSafeIdx + 1} / {carouselClasses.length}</span>
               )}
@@ -577,9 +577,9 @@ export default function TeacherDashboardPage() {
                         <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md ring-2 ring-white/20">
                           <Image src="/sidebar-icons/herramientas.png" alt="" width={56} height={56} className="w-full h-full object-cover" />
                         </div>
-                        <p className="text-sm font-semibold text-white/80 mt-1">¡Al día con las clases de hoy!</p>
+                        <p className="text-sm font-semibold text-white/80 mt-1">All caught up for today!</p>
                       </>
-                    : <p className="text-sm text-white/60">Sin clases confirmadas para hoy</p>
+                    : <p className="text-sm text-white/60">No confirmed classes today</p>
                   }
                 </div>
               ) : (
@@ -599,7 +599,7 @@ export default function TeacherDashboardPage() {
                           {DAY_ES[carouselCurrent.dayOfWeek] ?? ''} · {carouselCurrent.hour}:{String(carouselCurrent.minute ?? 0).padStart(2, '0')} – {carouselCurrent.minute ? carouselCurrent.hour + 1 : carouselCurrent.hour + 1}:{String(carouselCurrent.minute ?? 0).padStart(2, '0')}
                         </p>
                         <p className="text-white/50 text-xs mt-0.5">
-                          {carouselCurrent.isRecurring ? '↻ Recurrente' : '• Una vez'}
+                          {carouselCurrent.isRecurring ? '↻ Recurring' : '• One-off'}
                         </p>
                         {carouselCurrent.topic && (
                           <p className="text-white/85 text-xs mt-1 truncate font-medium inline-flex items-center gap-1">
@@ -634,21 +634,21 @@ export default function TeacherDashboardPage() {
                       onClick={() => handleRecord(carouselCurrent, true)}
                       className="flex-1 py-2 bg-green-400/25 hover:bg-green-400/40 text-white rounded-full text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
-                      {recordingKey ? '…' : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} />} Se tomó
+                      {recordingKey ? '…' : <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} />} Attended
                     </button>
                     <button
                       disabled={!!recordingKey || carouselExiting}
                       onClick={() => handleRecord(carouselCurrent, false)}
                       className="flex-1 py-2 bg-red-400/25 hover:bg-red-400/40 text-white rounded-full text-xs font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
-                      {recordingKey ? '…' : <XCircle className="w-3.5 h-3.5" strokeWidth={2.5} />} No se tomó
+                      {recordingKey ? '…' : <XCircle className="w-3.5 h-3.5" strokeWidth={2.5} />} No show
                     </button>
                     {carouselCurrent.lessonId && (
                       <Link
                         href={`/classroom/${carouselCurrent.lessonId}`}
                         className="px-3 py-2 bg-white/15 hover:bg-white/25 text-white rounded-full text-xs font-bold transition-colors shrink-0"
                       >
-                        Abrir →
+                        Open →
                       </Link>
                     )}
                     {/* Material link — the URL registered in the planner. Same
@@ -692,16 +692,16 @@ export default function TeacherDashboardPage() {
 
             {/* Stats footer — today only */}
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-4 text-xs text-white/50">
-              <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayCompletedCount} completadas</span>
-              <span className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayBookings.length} pendientes</span>
-              <span className="inline-flex items-center gap-1"><Target className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayTotalClasses} hoy</span>
+              <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayCompletedCount} completed</span>
+              <span className="inline-flex items-center gap-1"><Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayBookings.length} pending</span>
+              <span className="inline-flex items-center gap-1"><Target className="w-3.5 h-3.5" strokeWidth={2.25} /> {todayTotalClasses} today</span>
             </div>
           </div>
 
           {/* Today's classes */}
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-gray-700 text-sm">Clases de hoy</p>
+              <p className="font-bold text-gray-700 text-sm">Today's classes</p>
               <span className="text-xs text-gray-400">{DAY_ES[today.getDay()]} {today.getDate()}</span>
             </div>
             {bookingsLoading ? (
@@ -737,7 +737,7 @@ export default function TeacherDashboardPage() {
                         </p>
                         {b.lessonId && (() => {
                           const l = lessons.find(x => x.id === b.lessonId);
-                          return <p className="text-[10px] text-gray-500 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {l ? `${l.code} · ${l.title}` : 'Lección asignada'}</p>;
+                          return <p className="text-[10px] text-gray-500 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} /> {l ? `${l.code} · ${l.title}` : 'Lesson assigned'}</p>;
                         })()}
                       </div>
                       {isCompleted ? (
@@ -747,12 +747,12 @@ export default function TeacherDashboardPage() {
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-600'
                           }`}>
-                            {attended ? 'Asistió' : 'No asistió'}
+                            {attended ? 'Attended' : 'No show'}
                           </span>
                           <button
                             onClick={() => handleReopen(b)}
                             disabled={reopeningKey === `${b.dayOfWeek}-${b.hour}-${b.minute ?? 0}`}
-                            title="Reabrir para re-marcar"
+                            title="Reopen to re-mark"
                             className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 hover:bg-[#C8A8DC] hover:text-white text-gray-400 text-[10px] transition-colors disabled:opacity-40"
                           >
                             ↩
@@ -780,7 +780,7 @@ export default function TeacherDashboardPage() {
                       <span className="text-xs font-mono font-bold text-[#5A3D7A] w-12 flex-shrink-0">{s.hour}:{String(sFallbackMin).padStart(2, '0')}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold text-gray-800 truncate">{s.name}</p>
-                        <p className="text-[10px] text-gray-400">{s.isRecurring ? '↻ Recurrente' : '• Una vez'}</p>
+                        <p className="text-[10px] text-gray-400">{s.isRecurring ? '↻ Recurring' : '• One-off'}</p>
                       </div>
                     </div>
                   );
@@ -789,7 +789,7 @@ export default function TeacherDashboardPage() {
             ) : (
               <div className="text-center py-6 flex flex-col items-center gap-1">
                 <PartyPopper className="w-7 h-7 text-[#C8A8DC]" strokeWidth={2.25} />
-                <p className="text-sm text-gray-500">Sin clases hoy</p>
+                <p className="text-sm text-gray-500">No classes today</p>
               </div>
             )}
           </div>
@@ -799,8 +799,8 @@ export default function TeacherDashboardPage() {
         {toReview.length > 0 && (
           <div className="glass-card rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><FileText className="w-4 h-4" strokeWidth={2.25} /> Tareas entregadas — pendientes de revisión</p>
-              <Link href="/dashboard/teacher/homework" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Ver todas →</Link>
+              <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><FileText className="w-4 h-4" strokeWidth={2.25} /> Submitted homework — pending review</p>
+              <Link href="/dashboard/teacher/homework" className="text-xs text-[#9B7CB8] font-semibold hover:underline">View all →</Link>
             </div>
             <div className="space-y-2">
               {toReview.map((hw) => {
@@ -815,11 +815,11 @@ export default function TeacherDashboardPage() {
                     </div>
                     {submittedDate && (
                       <span className="text-[10px] text-gray-400 flex-shrink-0">
-                        {submittedDate.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
+                        {submittedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                       </span>
                     )}
                     <Link href="/dashboard/teacher/homework" className="px-2 py-1 bg-amber-500 text-white rounded-full text-[10px] font-bold flex-shrink-0">
-                      Revisar
+                      Review
                     </Link>
                   </div>
                 );
@@ -836,15 +836,15 @@ export default function TeacherDashboardPage() {
                 onClick={() => { setStudentsOpen(o => !o); if (studentsOpen) setExpandedStudent(null); }}
                 className="flex items-center gap-2 font-bold text-gray-700 text-sm hover:text-[#5A3D7A] transition-colors"
               >
-                <Users className="w-4 h-4" strokeWidth={2.25} /> Mis estudiantes
+                <Users className="w-4 h-4" strokeWidth={2.25} /> My students
                 <span className={`text-xs text-[#9B7CB8] transition-transform duration-200 ${studentsOpen ? 'rotate-180' : ''}`}>▾</span>
               </button>
-              <Link href="/dashboard/teacher/students" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Gestionar →</Link>
+              <Link href="/dashboard/teacher/students" className="text-xs text-[#9B7CB8] font-semibold hover:underline">Manage →</Link>
             </div>
             {studentsOpen && <div className="flex flex-wrap gap-2 mt-3">
               {students.filter((s) => s.status === 'approved').map((s) => {
                 const isOpen = expandedStudent === s.uid;
-                const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Estudiante';
+                const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Student';
                 return (
                   <button
                     key={s.uid}
@@ -872,7 +872,7 @@ export default function TeacherDashboardPage() {
             {studentsOpen && expandedStudent && (() => {
               const s = students.find((st) => st.uid === expandedStudent && st.status === 'approved');
               if (!s) return null;
-              const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Estudiante';
+              const firstName = s.fullName?.split(' ')[0] ?? s.email?.split('@')[0] ?? 'Student';
               const rawPhone = s.phone ?? '';
               const digits = rawPhone.replace(/\D/g, '');
               const waPhone = digits.startsWith('56') ? digits : digits.startsWith('9') && digits.length === 9 ? `56${digits}` : digits;
@@ -893,25 +893,25 @@ export default function TeacherDashboardPage() {
                   {rawPhone ? (
                     <div className="flex gap-1.5 flex-shrink-0">
                       <a
-                        href={`https://wa.me/${waPhone}?text=Hola%20${encodeURIComponent(firstName)}%2C%20soy%20tu%20profesora%20de%20FriendlyTeaching%20%F0%9F%91%8B`}
+                        href={`https://wa.me/${waPhone}?text=Hi%20${encodeURIComponent(firstName)}%2C%20this%20is%20your%20FriendlyTeaching%20teacher%20%F0%9F%91%8B`}
                         target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1 px-2.5 py-1.5 bg-[#25D366] hover:bg-[#1ebe5c] text-white rounded-full text-[10px] font-bold transition-colors"
                       >
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
-                        Mensaje
+                        Message
                       </a>
                       <a
-                        href={`https://wa.me/${waPhone}?text=Recordatorio%3A%20tienes%20clase%20hoy%20con%20FriendlyTeaching%20%F0%9F%93%9A`}
+                        href={`https://wa.me/${waPhone}?text=Reminder%3A%20you%20have%20a%20FriendlyTeaching%20class%20today%20%F0%9F%93%9A`}
                         target="_blank" rel="noopener noreferrer"
                         className="px-2.5 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-[10px] font-bold transition-colors"
                       >
-                        Recordatorio
+                        Reminder
                       </a>
                     </div>
                   ) : (
-                    <p className="text-[10px] text-gray-300 italic flex-shrink-0">Sin teléfono registrado</p>
+                    <p className="text-[10px] text-gray-300 italic flex-shrink-0">No phone on file</p>
                   )}
                 </div>
               );
@@ -929,8 +929,8 @@ export default function TeacherDashboardPage() {
               <ClipboardList className="w-5 h-5" strokeWidth={2.25} />
             </div>
             <div className="text-left">
-              <p className="text-sm font-bold text-gray-800">Historial de clases</p>
-              <p className="text-xs text-gray-400">Ver clases registradas</p>
+              <p className="text-sm font-bold text-gray-800">Class history</p>
+              <p className="text-xs text-gray-400">View recorded classes</p>
             </div>
           </div>
           <span className="text-[#9B7CB8] font-bold text-sm group-hover:translate-x-1 transition-transform">→</span>
@@ -939,7 +939,7 @@ export default function TeacherDashboardPage() {
         {/* ── Weekly schedule ── */}
         <div className="glass-card no-hover-lift rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Calendar className="w-4 h-4" strokeWidth={2.25} /> Horario Semanal</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><Calendar className="w-4 h-4" strokeWidth={2.25} /> Weekly Schedule</p>
           </div>
           <div className="px-20 sm:px-24 pb-4">
             <SchedulingGrid />
