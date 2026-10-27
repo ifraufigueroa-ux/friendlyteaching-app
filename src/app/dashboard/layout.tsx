@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         style={{ background: 'var(--gradient-hero)' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[#9B7CB8] font-semibold">Cargando...</p>
+          <p className="text-[#9B7CB8] font-semibold">Loading…</p>
         </div>
       </div>
     );
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button
             onClick={() => setSidebarOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-xl text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors"
-            aria-label="Abrir menú"
+            aria-label="Open menu"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
               <rect y="3" width="20" height="2" rx="1" />

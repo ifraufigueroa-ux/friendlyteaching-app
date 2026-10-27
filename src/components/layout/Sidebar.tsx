@@ -60,45 +60,45 @@ type NavItem = NavLink | NavGroup;
 // ── Nav definitions ───────────────────────────────────────────
 
 const TEACHER_NAV: NavItem[] = [
-  { type: 'link', href: '/dashboard/teacher',             icon: Home,          label: 'Panel Principal',   iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
-  { type: 'group', label: 'Equipo' },
-  { type: 'link', href: '/dashboard/teacher/cowork',      icon: GraduationCap, label: 'Co-Work',           iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600', iconImg: '/sidebar-icons/co-work.png' },
-  { type: 'group', label: 'Gestión' },
-  { type: 'link', href: '/dashboard/teacher/students',    icon: Users,         label: 'Estudiantes',        iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/estudiantes.png' },
-  { type: 'link', href: '/dashboard/teacher/history',     icon: ClipboardList, label: 'Historial de clases',iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
-  { type: 'group', label: 'Contenido' },
-  { type: 'link', href: '/dashboard/teacher/lessons',     icon: BookOpen,      label: 'Librería',           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
-  { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: Download,      label: 'Importar lecciones', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
+  { type: 'link', href: '/dashboard/teacher',             icon: Home,          label: 'Dashboard',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
+  { type: 'group', label: 'Team' },
+  { type: 'link', href: '/dashboard/teacher/cowork',      icon: GraduationCap, label: 'Co-Work',            iconBg: 'bg-fuchsia-100', iconColor: 'text-fuchsia-600', iconImg: '/sidebar-icons/co-work.png' },
+  { type: 'group', label: 'Management' },
+  { type: 'link', href: '/dashboard/teacher/students',    icon: Users,         label: 'Students',           iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/estudiantes.png' },
+  { type: 'link', href: '/dashboard/teacher/history',     icon: ClipboardList, label: 'Class History',      iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
+  { type: 'group', label: 'Content' },
+  { type: 'link', href: '/dashboard/teacher/lessons',     icon: BookOpen,      label: 'Library',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
+  { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: Download,      label: 'Import Lessons',     iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
   { type: 'link', href: '/dashboard/teacher/planner',     icon: FolderKanban,  label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/planner.png' },
-  { type: 'group', label: 'Seguimiento' },
-  { type: 'link', href: '/dashboard/teacher/homework',     icon: FileText,     label: 'Tareas',             iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/tareas.png'  },
-  { type: 'link', href: '/dashboard/teacher/progress',     icon: BarChart3,    label: 'Progreso',           iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
-  { type: 'link', href: '/dashboard/teacher/word-of-day',  icon: BookMarked,   label: 'Palabra del día',    iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/palabra-dia.png'  },
+  { type: 'group', label: 'Tracking' },
+  { type: 'link', href: '/dashboard/teacher/homework',     icon: FileText,     label: 'Homework',           iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/tareas.png'  },
+  { type: 'link', href: '/dashboard/teacher/progress',     icon: BarChart3,    label: 'Progress',           iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
+  { type: 'link', href: '/dashboard/teacher/word-of-day',  icon: BookMarked,   label: 'Word of the Day',    iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/palabra-dia.png'  },
   { type: 'link', href: '/dashboard/teacher/placement',    icon: Ruler,        label: 'Placement Test',     iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
-  { type: 'group', label: 'Administración' },
+  { type: 'group', label: 'Administration' },
   { type: 'link', href: '/dashboard/teacher/admin/leads',  icon: Mail,         label: 'Leads',              iconBg: 'bg-rose-100',    iconColor: 'text-rose-600',   iconImg: '/sidebar-icons/leads.png' },
-  { type: 'link', href: '/dashboard/teacher/reminders',   icon: Bell,          label: 'Recordatorios',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
-  { type: 'link', href: '/dashboard/teacher/billing',     icon: CreditCard,    label: 'Facturación',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
-  { type: 'link', href: '/dashboard/teacher/activities',  icon: Target,        label: 'Actividades',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/actividades.png' },
-  { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Herramientas',       iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
-  { type: 'group', label: 'Ayuda' },
-  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
+  { type: 'link', href: '/dashboard/teacher/reminders',   icon: Bell,          label: 'Reminders',          iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
+  { type: 'link', href: '/dashboard/teacher/billing',     icon: CreditCard,    label: 'Billing',            iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
+  { type: 'link', href: '/dashboard/teacher/activities',  icon: Target,        label: 'Activities',         iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/actividades.png' },
+  { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Tools',              iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
+  { type: 'group', label: 'Help' },
+  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 const STUDENT_NAV: NavItem[] = [
-  { type: 'link', href: '/dashboard/student',             icon: Home,         label: 'Panel Principal',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
-  { type: 'group', label: 'Aprendizaje' },
-  { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'Mis Lecciones',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
-  { type: 'link', href: '/dashboard/student/music',       icon: Music,        label: 'Friendlyrics®',      iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
-  { type: 'link', href: '/dashboard/student/texts',       icon: BookMarked,   label: 'FriendlyTales®',     iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
-  { type: 'group', label: 'Mis Clases' },
-  { type: 'link', href: '/dashboard/student/schedule',    icon: Calendar,     label: 'Horario',            iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
-  { type: 'link', href: '/dashboard/student/book',        icon: CalendarPlus, label: 'Solicitar clase',    iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
-  { type: 'group', label: 'Seguimiento' },
-  { type: 'link', href: '/dashboard/student/homework',    icon: FileText,     label: 'Mis Tareas',         iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
-  { type: 'link', href: '/dashboard/student/progress',    icon: BarChart3,    label: 'Mi Progreso',        iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
-  { type: 'group', label: 'Ayuda' },
-  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,     label: 'Tutoriales',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
+  { type: 'link', href: '/dashboard/student',             icon: Home,         label: 'Dashboard',           iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
+  { type: 'group', label: 'Learning' },
+  { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'My Lessons',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/dashboard/student/music',       icon: Music,        label: 'Friendlyrics®',       iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
+  { type: 'link', href: '/dashboard/student/texts',       icon: BookMarked,   label: 'FriendlyTales®',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
+  { type: 'group', label: 'My Classes' },
+  { type: 'link', href: '/dashboard/student/schedule',    icon: Calendar,     label: 'Schedule',            iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
+  { type: 'link', href: '/dashboard/student/book',        icon: CalendarPlus, label: 'Request Class',       iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
+  { type: 'group', label: 'Tracking' },
+  { type: 'link', href: '/dashboard/student/homework',    icon: FileText,     label: 'My Homework',         iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
+  { type: 'link', href: '/dashboard/student/progress',    icon: BarChart3,    label: 'My Progress',         iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
+  { type: 'group', label: 'Help' },
+  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,     label: 'Tutorials',           iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 // ── Badge hook ────────────────────────────────────────────────
@@ -192,7 +192,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 ? 'bg-[#5A3D7A] text-white'
                 : 'bg-[#D4EDDA] text-[#2E7D4F]'
             }`}>
-              {role === 'teacher' ? 'Profesor' : 'Estudiante'}
+              {role === 'teacher' ? 'Teacher' : 'Student'}
             </span>
           </div>
         </div>
@@ -278,7 +278,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           }`}>
             <Image src="/sidebar-icons/mi-perfil.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
           </span>
-          Mi Perfil
+          My Profile
         </Link>
         <button
           onClick={handleLogout}
@@ -287,7 +287,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <span className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all group-hover:scale-105 group-hover:ring-1 group-hover:ring-red-300">
             <Image src="/sidebar-icons/cerrar-sesion.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
           </span>
-          Cerrar Sesión
+          Sign Out
         </button>
       </div>
     </aside>
