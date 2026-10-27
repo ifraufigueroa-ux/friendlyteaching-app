@@ -96,7 +96,7 @@ function TopicCard({
             </h2>
             {!small && (
               <>
-                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#0F766E]/70 mb-2">Follow-ups</p>
+                <p className="font-serif italic text-[13px] text-[#0F766E]/70 mb-2 tracking-wide">Follow-ups</p>
                 <ul className="space-y-2">
                   {topic.followUps.map((q, i) => (
                     <li key={i} className="flex items-start gap-2.5">
@@ -349,7 +349,7 @@ export default function RandomTopicsPage() {
         <FullscreenButton />
         <TopBar
           title="Random Topic Simulator"
-          subtitle={`Ruleta de temas de conversación · ${RANDOM_TOPICS.length} topics · follow-ups incluidos`}
+          subtitle={`Conversation topic roulette · ${RANDOM_TOPICS.length} topics · follow-ups included`}
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools', href: '/dashboard/teacher/tools' },
@@ -386,7 +386,7 @@ export default function RandomTopicsPage() {
                 }}
                 className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#5EAEA8] bg-white text-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/30"
               >
-                <option value="">Elegir estudiante…</option>
+                <option value="">Select student…</option>
                 {students.map(s => (
                   <option key={s.uid} value={s.uid}>
                     {s.fullName || s.email}
@@ -394,7 +394,7 @@ export default function RandomTopicsPage() {
                 ))}
               </select>
               <span className="text-xs text-gray-500 hidden sm:inline">
-                Practicados: <strong className="text-[#0F766E]">{practiced}</strong>
+                Practiced: <strong className="text-[#0F766E]">{practiced}</strong>
               </span>
             </div>
           }
@@ -411,9 +411,9 @@ export default function RandomTopicsPage() {
             <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#0D2A2E] leading-tight tracking-tight">
               Random Topic Simulator
             </h1>
-            <p className="text-sm text-[#0F766E]/70 max-w-lg mx-auto">
-              Saca una carta al azar y conversa. Cada topic viene con 3 follow-ups
-              por si la charla necesita un empujón.
+            <p className="font-serif italic text-base text-[#0F766E]/70 max-w-xl mx-auto leading-relaxed">
+              Draw a random card and start the conversation. Every topic comes
+              with 3 follow-ups to keep things moving.
             </p>
           </div>
 
@@ -460,14 +460,14 @@ export default function RandomTopicsPage() {
                 onClick={() => setShowPicker(true)}
                 className="font-semibold hover:text-[#0F766E] underline decoration-dotted"
               >
-                🎯 Elegir topics ({pool.length} en el mazo)
+                🎯 Choose topics ({pool.length} in the deck)
               </button>
               {disabledIds.size > 0 && (
                 <button
                   onClick={resetAllTopics}
                   className="font-semibold hover:text-[#0F766E] underline decoration-dotted"
                 >
-                  Reactivar los {disabledIds.size} excluidos
+                  Re-enable the {disabledIds.size} excluded
                 </button>
               )}
             </div>
@@ -484,25 +484,25 @@ export default function RandomTopicsPage() {
               {!studentId ? (
                 <div className="text-center bg-white/80 backdrop-blur rounded-2xl border border-[#CDE4E3] px-6 py-5 shadow-sm">
                   <p className="text-sm text-[#0F766E]/80 mb-2">
-                    Elegí un estudiante arriba para empezar.
+                    Pick a student above to begin.
                   </p>
                   <p className="text-[11px] text-[#0F766E]/60">
-                    Guardamos qué cue cards ya respondió, así no se repiten en próximas clases.
+                    We save which cue cards they&apos;ve already done so they don&apos;t repeat in future classes.
                   </p>
                 </div>
               ) : progressLoading ? (
                 <div className="text-center text-[#0F766E]/60 text-xs py-6">
-                  Cargando progreso de {activeStudent?.fullName ?? '…'}…
+                  Loading progress for {activeStudent?.fullName ?? '…'}…
                 </div>
               ) : (
                 <div className="bg-white/90 backdrop-blur rounded-2xl border border-[#CDE4E3] px-6 py-5 shadow-sm">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#0F766E]/60 mb-1 text-center">
-                    Sesión
+                  <p className="font-serif italic text-[13px] text-[#0F766E]/70 mb-1 text-center tracking-wide">
+                    Session
                   </p>
                   <p className="text-sm text-[#0D2A2E] mb-4 text-center">
-                    <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
+                    <strong>{activeStudent?.fullName ?? 'Student'}</strong>
                     {progressExists && practicedIds.size > 0 && (
-                      <> · ya practicó <strong>{practicedIds.size}</strong> cue card{practicedIds.size === 1 ? '' : 's'}</>
+                      <> · already practiced <strong>{practicedIds.size}</strong> cue card{practicedIds.size === 1 ? '' : 's'}</>
                     )}
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center">
@@ -528,19 +528,19 @@ export default function RandomTopicsPage() {
                     ) : (
                       <div className="flex gap-2 items-center bg-rose-50 border border-rose-200 rounded-full pl-4 pr-1 py-1">
                         <span className="text-xs text-rose-700 font-semibold">
-                          ¿Resetear las {practicedIds.size} practicadas?
+                          Reset the {practicedIds.size} practiced?
                         </span>
                         <button
                           onClick={startNewSession}
                           className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold"
                         >
-                          Sí, resetear
+                          Yes, reset
                         </button>
                         <button
                           onClick={() => setConfirmReset(false)}
                           className="px-3 py-1.5 text-rose-700 hover:bg-rose-100 rounded-full text-xs font-bold"
                         >
-                          Cancelar
+                          Cancel
                         </button>
                       </div>
                     )}
@@ -551,17 +551,17 @@ export default function RandomTopicsPage() {
           ) : (
             <div className="max-w-xl mx-auto mb-6 flex items-center justify-between gap-3 bg-[#DBEEEE]/70 border border-[#5EAEA8]/60 rounded-full px-4 py-2">
               <span className="text-xs text-[#0F766E]">
-                Sesión con <strong>{activeStudent?.fullName ?? 'Estudiante'}</strong>
+                Session with <strong>{activeStudent?.fullName ?? 'Student'}</strong>
                 {' · '}
-                <strong>{pool.length}</strong> restantes
+                <strong>{pool.length}</strong> left
                 {' · '}
-                <strong>{practicedIds.size}</strong> ya hechas
+                <strong>{practicedIds.size}</strong> done
               </span>
               <button
                 onClick={endSession}
                 className="text-[11px] font-bold text-[#0F766E] hover:underline"
               >
-                Terminar sesión
+                End session
               </button>
             </div>
           )}
@@ -570,16 +570,16 @@ export default function RandomTopicsPage() {
           {sessionActive && pool.length === 0 && basePool.length > 0 && (
             <div className="max-w-xl mx-auto mb-6 bg-emerald-50 border-2 border-emerald-200 rounded-2xl px-6 py-5 text-center">
               <p className="text-sm font-bold text-emerald-900 mb-1">
-                🎉 ¡Mazo completo!
+                🎉 Deck complete!
               </p>
               <p className="text-xs text-emerald-700 mb-3">
-                {activeStudent?.fullName ?? 'El estudiante'} practicó las {practicedIds.size} cue cards del mazo. Podés resetear el ciclo para volver a empezar.
+                {activeStudent?.fullName ?? 'The student'} has practiced all {practicedIds.size} cue cards in the deck. Reset the cycle to start over.
               </p>
               <button
                 onClick={startNewSession}
                 className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-sm font-bold active:scale-95"
               >
-                Resetear ciclo
+                Reset cycle
               </button>
             </div>
           )}
@@ -744,16 +744,16 @@ function TopicPickerModal({
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#CDE4E3] bg-gradient-to-r from-[#DBEEEE] to-[#FEFEFD] flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h2 className="font-serif text-xl font-bold text-[#0D2A2E]">🎯 Elegir topics</h2>
+            <h2 className="font-serif text-xl font-bold text-[#0D2A2E]">🎯 Choose topics</h2>
             <p className="text-[11px] text-[#0F766E]/70 mt-0.5">
-              {totalEnabled} activos · {disabledIds.size} excluidos · {RANDOM_TOPICS.length} totales
+              {totalEnabled} active · {disabledIds.size} excluded · {RANDOM_TOPICS.length} total
             </p>
           </div>
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar topic…"
+            placeholder="Search topic…"
             className="text-xs px-3 py-1.5 rounded-full border border-[#5EAEA8] bg-white/80 text-[#0D2A2E] placeholder:text-[#0F766E]/40 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/30 w-40"
           />
           <button
@@ -761,13 +761,13 @@ function TopicPickerModal({
             disabled={disabledIds.size === 0}
             className="text-xs font-bold px-3 py-1.5 rounded-full bg-white border border-[#5EAEA8] text-[#0F766E] hover:bg-[#DBEEEE] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Resetear
+            Reset
           </button>
           <button
             onClick={onClose}
             className="text-xs font-bold px-4 py-1.5 rounded-full bg-[#0F766E] text-white hover:bg-[#0D2A2E]"
           >
-            Listo
+            Done
           </button>
         </div>
 
@@ -797,7 +797,7 @@ function TopicPickerModal({
                       disabled={allEnabled}
                       className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      Todos
+                      All
                     </button>
                     <span className="text-gray-300">·</span>
                     <button
@@ -805,7 +805,7 @@ function TopicPickerModal({
                       disabled={enabledInCat === 0}
                       className="text-[10px] font-bold text-rose-600 hover:text-rose-800 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      Ninguno
+                      None
                     </button>
                   </div>
                 </header>
