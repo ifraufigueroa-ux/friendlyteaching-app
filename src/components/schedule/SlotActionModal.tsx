@@ -15,7 +15,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { auth } from '@/lib/firebase/config';
 import type { Lesson } from '@/types/firebase';
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const HOURS = Array.from({ length: 15 }, (_, i) => i + 7); // 7–21
 
 type SubPanel = 'none' | 'rename' | 'move' | 'lesson' | 'student' | 'cancel' | 'complete';
@@ -155,7 +155,7 @@ export default function SlotActionModal() {
           : currentWeekStart;
         await cancelFutureRecurringBookings(
           teacherUid, booking.dayOfWeek, booking.hour,
-          booking.studentName, fromWeek, 'Clase movida', booking.minute ?? 0
+          booking.studentName, fromWeek, 'Class moved', booking.minute ?? 0
         );
         await createBooking(teacherUid, {
           studentName: booking.studentName,
@@ -304,20 +304,20 @@ export default function SlotActionModal() {
 
   const RenamePanel = (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-600">Nuevo nombre del estudiante:</p>
+      <p className="text-xs font-semibold text-gray-600">New student name:</p>
       <input
         type="text"
         value={newName}
         onChange={(e) => setNewName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-        placeholder="Nombre completo"
+        placeholder="Full name"
         className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
         autoFocus
       />
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Back</button>
         <button onClick={handleRename} disabled={loading || !newName.trim()} className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-full text-sm font-semibold disabled:opacity-50">
-          {loading ? 'Guardando…' : 'Guardar'}
+          {loading ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>
@@ -325,7 +325,7 @@ export default function SlotActionModal() {
 
   const MovePanel = (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-600">Nuevo día:</p>
+      <p className="text-xs font-semibold text-gray-600">New day:</p>
       <div className="grid grid-cols-6 gap-1">
         {[1, 2, 3, 4, 5, 6].map((d) => (
           <button
@@ -338,7 +338,7 @@ export default function SlotActionModal() {
         ))}
       </div>
 
-      <p className="text-xs font-semibold text-gray-600">Nueva hora:</p>
+      <p className="text-xs font-semibold text-gray-600">New time:</p>
       <div className="flex gap-2 items-start">
         <div className="flex-1 grid grid-cols-5 gap-1 max-h-36 overflow-y-auto">
           {HOURS.map((h) => (
@@ -372,18 +372,18 @@ export default function SlotActionModal() {
 
       {booking?.isRecurring && (
         <p className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
-          ↻ Clase recurrente — se moverán todas las futuras desde hoy
+          ↻ Recurring class — all future ones from today will be moved
         </p>
       )}
 
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Back</button>
         <button
           onClick={handleMove}
           disabled={loading || (moveDow === day && moveHour === hour && moveMinute === minute)}
           className="flex-1 px-3 py-2.5 bg-[#C8A8DC] text-white rounded-full text-sm font-semibold disabled:opacity-50"
         >
-          {loading ? 'Moviendo…' : '↕ Mover'}
+          {loading ? 'Moving…' : '↕ Move'}
         </button>
       </div>
     </div>
@@ -391,12 +391,12 @@ export default function SlotActionModal() {
 
   const LessonPanel = (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-600">Seleccionar lección:</p>
+      <p className="text-xs font-semibold text-gray-600">Select lesson:</p>
       <input
         type="text"
         value={lessonSearch}
         onChange={(e) => setLessonSearch(e.target.value)}
-        placeholder="Buscar por código o título…"
+        placeholder="Search by code or title…"
         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
         autoFocus
       />
@@ -405,7 +405,7 @@ export default function SlotActionModal() {
           onClick={() => setSelectedLessonId('')}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${selectedLessonId === '' ? 'bg-[#C8A8DC] text-white' : 'hover:bg-gray-100 text-gray-600'}`}
         >
-          — Sin lección asignada
+          — No lesson assigned
         </button>
         {filteredLessons.map((l: Lesson) => (
           <button
@@ -418,12 +418,12 @@ export default function SlotActionModal() {
             {l.level && <span className="ml-1 opacity-60">[{l.level}]</span>}
           </button>
         ))}
-        {filteredLessons.length === 0 && <p className="text-center text-xs text-gray-400 py-2">Sin resultados</p>}
+        {filteredLessons.length === 0 && <p className="text-center text-xs text-gray-400 py-2">No results</p>}
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Back</button>
         <button onClick={handleAssignLesson} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-full text-xs font-semibold disabled:opacity-50">
-          {loading ? 'Guardando…' : 'Guardar'}
+          {loading ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>
@@ -431,13 +431,13 @@ export default function SlotActionModal() {
 
   const StudentPanel = (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-600">Vincular a estudiante registrado:</p>
+      <p className="text-xs font-semibold text-gray-600">Link to registered student:</p>
       <div className="max-h-40 overflow-y-auto space-y-1">
         <button
           onClick={() => setSelectedStudentId('')}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${selectedStudentId === '' ? 'bg-[#C8A8DC] text-white' : 'hover:bg-gray-100 text-gray-600'}`}
         >
-          — Sin vincular
+          — Not linked
         </button>
         {students.map((s) => (
           <button
@@ -449,12 +449,12 @@ export default function SlotActionModal() {
             {s.studentData?.level && <span className="ml-1 opacity-70">[{s.studentData.level}]</span>}
           </button>
         ))}
-        {students.length === 0 && <p className="text-center text-xs text-gray-400 py-2">No hay estudiantes aprobados</p>}
+        {students.length === 0 && <p className="text-center text-xs text-gray-400 py-2">No approved students</p>}
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2 border border-gray-200 text-gray-600 rounded-full text-xs font-semibold">Back</button>
         <button onClick={handleLinkStudent} disabled={loading} className="flex-1 px-3 py-2 bg-[#C8A8DC] text-white rounded-full text-xs font-semibold disabled:opacity-50">
-          {loading ? 'Guardando…' : 'Guardar'}
+          {loading ? 'Saving…' : 'Save'}
         </button>
       </div>
     </div>
@@ -462,42 +462,42 @@ export default function SlotActionModal() {
 
   const CancelPanel = (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-700">Motivo (opcional):</p>
+      <p className="text-sm font-medium text-gray-700">Reason (optional):</p>
       <input
         type="text"
         value={cancelReason}
         onChange={(e) => setCancelReason(e.target.value)}
-        placeholder="Ej. Estudiante no asistió"
+        placeholder="E.g. Student did not attend"
         className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
         autoFocus
       />
       {booking?.isRecurring && (
         <p className="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
-          ↻ Clase recurrente — puedes cancelar solo esta o todas las futuras
+          ↻ Recurring class — you can cancel just this one or all future
         </p>
       )}
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Back</button>
         <button onClick={() => handleCancel(false)} disabled={loading} className="flex-1 px-3 py-2.5 bg-red-400 hover:bg-red-500 text-white rounded-full text-xs font-semibold disabled:opacity-50">
-          {loading ? '…' : booking?.isRecurring ? 'Solo esta' : 'Eliminar'}
+          {loading ? '…' : booking?.isRecurring ? 'Just this one' : 'Delete'}
         </button>
       </div>
       <button onClick={() => handleCancel(true)} disabled={loading} className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-semibold disabled:opacity-50">
-        Eliminar permanentemente este horario ↻
+        Permanently delete this time slot ↻
       </button>
     </div>
   );
 
   const CompletePanel = (
     <div className="space-y-3">
-      <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">¿Cómo fue la clase?</p>
+      <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">How did the class go?</p>
       <div>
-        <p className="text-xs text-gray-500 mb-1.5">Asistencia</p>
+        <p className="text-xs text-gray-500 mb-1.5">Attendance</p>
         <div className="grid grid-cols-3 gap-1.5">
           {([
-            { val: 'attended', Icon: CheckCircle2, label: 'Asistió', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
-            { val: 'late',     Icon: Clock,        label: 'Tarde',   active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
-            { val: 'absent',   Icon: XCircle,      label: 'Faltó',   active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
+            { val: 'attended', Icon: CheckCircle2, label: 'Attended', active: 'bg-green-400 text-white', inactive: 'border border-green-200 text-green-700 hover:bg-green-50' },
+            { val: 'late',     Icon: Clock,        label: 'Late',     active: 'bg-amber-400 text-white', inactive: 'border border-amber-200 text-amber-700 hover:bg-amber-50' },
+            { val: 'absent',   Icon: XCircle,      label: 'No show',  active: 'bg-red-400 text-white',   inactive: 'border border-red-200 text-red-600 hover:bg-red-50' },
           ] as const).map(({ val, Icon, label, active, inactive }) => (
             <button
               key={val}
@@ -511,13 +511,13 @@ export default function SlotActionModal() {
       </div>
       <p className="text-[11px] text-gray-400 italic">
         {completeAttendance === 'attended' || completeAttendance === 'late'
-          ? 'Se abrirá el formulario de notas a continuación.'
-          : 'Confirma para registrar la ausencia.'}
+          ? 'The notes form will open next.'
+          : 'Confirm to record the absence.'}
       </p>
       <div className="flex gap-2">
-        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Volver</button>
+        <button onClick={() => setSubPanel('none')} className="flex-1 px-3 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold">Back</button>
         <button onClick={handleComplete} disabled={loading || !completeAttendance} className="flex-1 px-3 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50">
-          {loading ? 'Guardando…' : <span className="inline-flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar</span>}
+          {loading ? 'Saving…' : <span className="inline-flex items-center justify-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirm</span>}
         </button>
       </div>
     </div>
@@ -532,7 +532,7 @@ export default function SlotActionModal() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-[#5A3D7A]">{dayName} {hour}:{String(minute).padStart(2,'0')}</h2>
-            <p className="text-sm text-gray-400">Gestionar horario</p>
+            <p className="text-sm text-gray-400">Manage slot</p>
           </div>
           <button onClick={closeSlotAction} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">×</button>
         </div>
@@ -541,10 +541,10 @@ export default function SlotActionModal() {
         {slotType === 'available' && (
           <div className="space-y-3">
             <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
-              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Registrar Estudiante
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Register Student
             </button>
             <button onClick={handleBlock} disabled={loading} className="w-full px-4 py-3 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
-              <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear Horario
+              <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Block Slot
             </button>
           </div>
         )}
@@ -552,12 +552,12 @@ export default function SlotActionModal() {
         {/* BLOCKED */}
         {slotType === 'blocked' && (
           <div className="space-y-3">
-            <p className="text-center text-sm text-gray-500">Este horario está bloqueado</p>
+            <p className="text-center text-sm text-gray-500">This slot is blocked</p>
             <button onClick={handleUnblock} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Desbloquear Horario
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Unblock Slot
             </button>
             <button onClick={() => openBookingModal()} className="w-full px-4 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-semibold inline-flex items-center justify-center gap-1.5">
-              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Registrar Estudiante
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Register Student
             </button>
           </div>
         )}
@@ -569,7 +569,7 @@ export default function SlotActionModal() {
             <div className="bg-[#F0E5FF] rounded-xl p-3 space-y-1">
               <p className="font-bold text-[#5A3D7A] text-sm">{booking.studentName}</p>
               <p className="text-xs text-[#9B7CB8] inline-flex items-center gap-1">
-                {booking.isRecurring ? <><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurrente</> : '• Una vez'}
+                {booking.isRecurring ? <><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurring</> : '• One-off'}
                 {booking.notes && <span className="ml-2 text-gray-500">· {booking.notes}</span>}
               </p>
               {linkedStudent && (
@@ -603,10 +603,10 @@ export default function SlotActionModal() {
                   <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                     <CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2.5} />
                     <div>
-                      <p className="text-xs font-bold text-gray-600">Clase registrada</p>
+                      <p className="text-xs font-bold text-gray-600">Class recorded</p>
                       {booking.attendance && (
                         <p className="text-[11px] text-gray-400">
-                          {booking.attendance === 'attended' ? 'Asistió' : booking.attendance === 'absent' ? 'Faltó' : 'Llegó tarde'}
+                          {booking.attendance === 'attended' ? 'Attended' : booking.attendance === 'absent' ? 'No show' : 'Arrived late'}
                         </p>
                       )}
                     </div>
@@ -625,7 +625,7 @@ export default function SlotActionModal() {
                       disabled={loading}
                       className="ml-auto text-xs text-[#9B7CB8] hover:text-[#5A3D7A] font-semibold underline disabled:opacity-50 inline-flex items-center gap-1"
                     >
-                      <Undo2 className="w-3 h-3" strokeWidth={2.5} /> Reabrir
+                      <Undo2 className="w-3 h-3" strokeWidth={2.5} /> Reopen
                     </button>
                   </div>
                 )}
@@ -633,29 +633,29 @@ export default function SlotActionModal() {
                 {/* 2×2 secondary actions */}
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => setSubPanel('rename')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
-                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Renombrar
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} /> Rename
                   </button>
                   <button onClick={() => setSubPanel('move')} className="px-3 py-2.5 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
-                    <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={2.5} /> Mover
+                    <ArrowUpDown className="w-3.5 h-3.5" strokeWidth={2.5} /> Move
                   </button>
                   <button onClick={() => setSubPanel('lesson')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> {assignedLesson ? 'Cambiar lección' : 'Asignar lección'}
+                    <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> {assignedLesson ? 'Change lesson' : 'Assign lesson'}
                   </button>
                   <button onClick={() => setSubPanel('student')} className="px-3 py-2.5 bg-[#F0F9FF] hover:bg-[#DDEEFF] text-[#1A6B9A] rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
-                    <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedStudent ? 'Cambiar alumno' : 'Vincular alumno'}
+                    <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedStudent ? 'Change student' : 'Link student'}
                   </button>
                 </div>
 
                 {/* Primary action — only show if not already completed */}
                 {booking.status !== 'completed' && (
                   <button onClick={handleOpenCompleteNotes} disabled={loading} className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Marcar como Completada
+                    <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Mark as Completed
                   </button>
                 )}
 
                 {/* Danger action */}
                 <button onClick={() => setSubPanel('cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 transition-colors inline-flex items-center justify-center gap-1.5">
-                  <X className="w-3.5 h-3.5" strokeWidth={2.5} /> {booking.isRecurring ? 'Cancelar / Eliminar clases' : 'Eliminar clase'}
+                  <X className="w-3.5 h-3.5" strokeWidth={2.5} /> {booking.isRecurring ? 'Cancel / Delete classes' : 'Delete class'}
                 </button>
               </>
             )}
@@ -667,7 +667,7 @@ export default function SlotActionModal() {
           <div className="space-y-3">
             <div className="text-center py-2 bg-[#FFF5C8] rounded-xl">
               <p className="font-bold text-[#7A5E00]">{booking.studentName}</p>
-              <p className="text-xs text-[#9A7800]">Solicitud pendiente</p>
+              <p className="text-xs text-[#9A7800]">Pending request</p>
             </div>
             <button
               disabled={loading}
@@ -681,10 +681,10 @@ export default function SlotActionModal() {
               }}
               className="w-full px-4 py-3 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar Clase
+              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirm Class
             </button>
             <button onClick={() => setSubPanel(subPanel === 'cancel' ? 'none' : 'cancel')} className="w-full px-4 py-3 border border-red-200 text-red-500 rounded-full text-sm font-semibold hover:bg-red-50 inline-flex items-center justify-center gap-1.5">
-              <X className="w-3.5 h-3.5" strokeWidth={2.5} /> Rechazar
+              <X className="w-3.5 h-3.5" strokeWidth={2.5} /> Reject
             </button>
             {subPanel === 'cancel' && (
               <div className="space-y-2">
@@ -692,12 +692,12 @@ export default function SlotActionModal() {
                   type="text"
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  placeholder="Motivo del rechazo (opcional)"
+                  placeholder="Rejection reason (optional)"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
                   autoFocus
                 />
                 <button onClick={() => handleCancel(false)} disabled={loading} className="w-full px-3 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-semibold disabled:opacity-50">
-                  {loading ? '…' : 'Confirmar Rechazo'}
+                  {loading ? '…' : 'Confirm Rejection'}
                 </button>
               </div>
             )}
@@ -708,7 +708,7 @@ export default function SlotActionModal() {
           <div className="absolute inset-0 bg-white/80 rounded-2xl flex items-center justify-center z-10">
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-3 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm font-semibold text-[#9B7CB8] animate-pulse">Procesando…</p>
+              <p className="text-sm font-semibold text-[#9B7CB8] animate-pulse">Processing…</p>
             </div>
           </div>
         )}

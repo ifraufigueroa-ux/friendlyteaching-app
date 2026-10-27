@@ -20,7 +20,7 @@ const BookingModal = React.lazy(() => import('./BookingModal'));
 const AvailabilityModal = React.lazy(() => import('./AvailabilityModal'));
 const NameNormalizerModal = React.lazy(() => import('./NameNormalizerModal'));
 
-const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // Base visible hours — can be extended dynamically by :30 slots from bookings
 const BASE_HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8–21
@@ -269,16 +269,16 @@ export default function SchedulingGrid() {
         <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
           <button
             onClick={() => setShowNameNormalizer(true)}
-            title="Fusionar nombres duplicados o con tildes diferentes"
+            title="Merge duplicate names or variants with different accents"
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-full transition-colors"
           >
-            <Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Fusionar nombres
+            <Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Merge names
           </button>
           <button
             onClick={() => setShowAvailability(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0CCFF] rounded-full transition-colors"
           >
-            <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> Disponibilidad
+            <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> Availability
           </button>
         </div>
       </div>
@@ -382,13 +382,13 @@ export default function SchedulingGrid() {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 mt-2 flex-shrink-0 text-lg text-gray-500">
         {[
-          { color: 'bg-[#A8E6A1]',                      label: 'Disponible' },
-          { color: 'bg-[#C8A8DC]',                      label: 'Ocupado (recurrente)' },
-          { color: 'bg-[#FFB8D9]',                      label: 'Ocupado (única vez)' },
-          { color: 'bg-[#FFE8A8]',                      label: 'Pendiente' },
-          { color: 'bg-gray-100 border border-gray-200', label: 'Realizada' },
-          { color: 'bg-[#D9D9D9]',                      label: 'Bloqueado' },
-          { color: 'bg-[#FFB347]',                      label: 'Entrevista' },
+          { color: 'bg-[#A8E6A1]',                      label: 'Available' },
+          { color: 'bg-[#C8A8DC]',                      label: 'Booked (recurring)' },
+          { color: 'bg-[#FFB8D9]',                      label: 'Booked (one-off)' },
+          { color: 'bg-[#FFE8A8]',                      label: 'Pending' },
+          { color: 'bg-gray-100 border border-gray-200', label: 'Completed' },
+          { color: 'bg-[#D9D9D9]',                      label: 'Blocked' },
+          { color: 'bg-[#FFB347]',                      label: 'Interview' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={`w-3 h-3 rounded ${color}`} />

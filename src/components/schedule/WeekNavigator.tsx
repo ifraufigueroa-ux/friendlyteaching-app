@@ -9,7 +9,7 @@ export default function WeekNavigator() {
   weekEnd.setDate(weekEnd.getDate() + 5);
 
   const fmt = (d: Date) =>
-    d.toLocaleDateString('es-CL', { day: 'numeric', month: 'long' });
+    d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
   const isCurrentWeek = (() => {
     const today = new Date();
@@ -26,24 +26,24 @@ export default function WeekNavigator() {
       <button
         onClick={previousWeek}
         className="p-2 rounded-full hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
-        title="Semana anterior"
+        title="Previous week"
       >
         ‹
       </button>
 
       <div className="text-center">
         <p className="text-sm font-semibold text-[#5A3D7A]">
-          Semana del {fmt(currentWeekStart)} al {fmt(weekEnd)}
+          Week of {fmt(currentWeekStart)} to {fmt(weekEnd)}
         </p>
         {isCurrentWeek && (
-          <span className="text-xs text-[#9B7CB8]">Semana actual</span>
+          <span className="text-xs text-[#9B7CB8]">Current week</span>
         )}
       </div>
 
       <button
         onClick={nextWeek}
         className="p-2 rounded-full hover:bg-[#F0E5FF] text-[#5A3D7A] transition-colors font-bold text-lg"
-        title="Siguiente semana"
+        title="Next week"
       >
         ›
       </button>

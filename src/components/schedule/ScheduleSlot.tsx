@@ -44,37 +44,37 @@ export default function ScheduleSlot({ booking, isBlocked, isToday, onClick }: P
   const displayName = booking
     ? (booking.studentName?.trim()
        || booking.studentEmail?.split('@')[0]
-       || 'Sin nombre')
+       || 'No name')
     : '';
 
   if (booking?.status === 'completed') {
     status = 'completed';
     label = displayName;
     sublabel = booking.attendance === 'attended'
-      ? 'Asistió'
+      ? 'Attended'
       : booking.attendance === 'absent'
-        ? 'No asistió'
-        : 'Completada';
+        ? 'No show'
+        : 'Completed';
   } else if (booking?.status === 'confirmed') {
     if (isInterview) {
       status = booking.isRecurring ? 'interview' : 'interview-once';
       label = displayName;
-      sublabel = booking.isRecurring ? '↻ Entrevista' : '• Entrevista';
+      sublabel = booking.isRecurring ? '↻ Interview' : '• Interview';
     } else {
       status = booking.isRecurring ? 'occupied' : 'occupied-once';
       label = displayName;
-      sublabel = booking.isRecurring ? '↻ Recurrente' : '• Una vez';
+      sublabel = booking.isRecurring ? '↻ Recurring' : '• One-off';
     }
   } else if (booking?.status === 'pending') {
     status = 'pending';
     label = displayName;
-    sublabel = 'Pendiente';
+    sublabel = 'Pending';
   } else if (isBlocked) {
     status = 'blocked';
-    label = 'Bloqueado';
+    label = 'Blocked';
   } else {
     status = isToday ? 'today-available' : 'available';
-    label = 'Disponible';
+    label = 'Available';
   }
 
   return (
