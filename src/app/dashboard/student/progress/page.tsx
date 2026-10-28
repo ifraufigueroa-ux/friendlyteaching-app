@@ -12,7 +12,7 @@ import type { Timestamp } from 'firebase/firestore';
 
 function formatDate(ts: Timestamp | undefined) {
   if (!ts) return '—';
-  return ts.toDate().toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+  return ts.toDate().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
 function formatDuration(mins?: number) {
@@ -22,9 +22,9 @@ function formatDuration(mins?: number) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; Icon: LucideIcon; color: string }> = {
-  completed:   { label: 'Completada', Icon: Check, color: 'text-green-600 bg-green-50' },
-  in_progress: { label: 'En progreso', Icon: Clock, color: 'text-amber-600 bg-amber-50' },
-  abandoned:   { label: 'Abandonada', Icon: Pause, color: 'text-gray-400 bg-gray-50' },
+  completed:   { label: 'Completed',   Icon: Check, color: 'text-green-600 bg-green-50' },
+  in_progress: { label: 'In progress',  Icon: Clock, color: 'text-amber-600 bg-amber-50' },
+  abandoned:   { label: 'Abandoned',    Icon: Pause, color: 'text-gray-400 bg-gray-50' },
 };
 
 export default function StudentProgressPage() {
@@ -51,11 +51,11 @@ export default function StudentProgressPage() {
   return (
     <div className="min-h-screen">
       <TopBar
-        title="Mi Progreso"
-        subtitle="Tu historial de aprendizaje"
+        title="My Progress"
+        subtitle="Your learning history"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Progreso' }
+          { label: 'Progress' }
         ]}
       />
       <div className="p-6">
@@ -63,10 +63,10 @@ export default function StudentProgressPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Lecciones completadas', value: uniqueLessons, Icon: GraduationCap, color: 'text-[#5A3D7A]' },
-          { label: 'Tiempo total', value: totalMinutes > 0 ? formatDuration(totalMinutes) : '—', Icon: Timer, color: 'text-blue-600' },
-          { label: 'Nota promedio', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
-          { label: 'Sesiones totales', value: progress.length, Icon: BookOpen, color: 'text-green-600' },
+          { label: 'Completed lessons', value: uniqueLessons, Icon: GraduationCap, color: 'text-[#5A3D7A]' },
+          { label: 'Total time', value: totalMinutes > 0 ? formatDuration(totalMinutes) : '—', Icon: Timer, color: 'text-blue-600' },
+          { label: 'Avg. grade', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
+          { label: 'Total sessions', value: progress.length, Icon: BookOpen, color: 'text-green-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
             <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-6 h-6" strokeWidth={2.25} /></div>
@@ -83,13 +83,13 @@ export default function StudentProgressPage() {
       ) : progress.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
           <div className="mb-3 flex justify-center text-green-500"><Sprout className="w-10 h-10" strokeWidth={2} /></div>
-          <p className="text-gray-500 text-sm">Aún no has completado ninguna lección.</p>
-          <p className="text-xs text-gray-400 mt-1">Tu progreso aparecerá aquí después de tus clases.</p>
+          <p className="text-gray-500 text-sm">You haven't completed any lessons yet.</p>
+          <p className="text-xs text-gray-400 mt-1">Your progress will appear here after your classes.</p>
           <Link
             href="/dashboard/student"
             className="mt-4 inline-block text-sm font-semibold text-[#9B7CB8] underline"
           >
-            Ver mis lecciones →
+            View my lessons →
           </Link>
         </div>
       ) : (
@@ -97,7 +97,7 @@ export default function StudentProgressPage() {
           {/* Progress bar por lección */}
           {uniqueLessons > 0 && (
             <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">Lecciones</h2>
+              <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">Lessons</h2>
               <div className="space-y-3">
                 {[...new Set(progress.map(p => p.lessonId))].map(lessonId => {
                   const lesson = lessons.find(l => l.id === lessonId);
@@ -121,7 +121,7 @@ export default function StudentProgressPage() {
                           href={`/classroom/${lessonId}`}
                           className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors flex-shrink-0"
                         >
-                          {isComp ? 'Repasar →' : 'Continuar →'}
+                          {isComp ? 'Review →' : 'Continue →'}
                         </Link>
                       )}
                     </div>
@@ -133,7 +133,7 @@ export default function StudentProgressPage() {
 
           {/* Historial de sesiones */}
           <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">Historial de sesiones</h2>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">Session history</h2>
             <div className="space-y-2">
               {progress.map(p => {
                 const cfg = STATUS_CONFIG[p.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.in_progress;

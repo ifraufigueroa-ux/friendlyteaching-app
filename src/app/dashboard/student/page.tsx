@@ -24,7 +24,7 @@ import BadgeUnlockToast from '@/components/gamification/BadgeUnlockToast';
 import WordOfTheDay from '@/components/gamification/WordOfTheDay';
 import type { Booking } from '@/types/firebase';
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function getWeekStart() {
   const d = new Date();
@@ -74,7 +74,7 @@ export default function StudentDashboardPage() {
   useEffect(() => { if (uid) recordDailyLogin(); }, [uid]);
 
   const isPending = profile?.status === 'pending';
-  const firstName = profile?.fullName?.split(' ')[0] ?? 'Estudiante';
+  const firstName = profile?.fullName?.split(' ')[0] ?? 'Student';
 
   const completedLessons = new Set(progress.filter(p => p.status === 'completed').map(p => p.lessonId)).size;
   const pendingHomework = homework.filter(h => h.status === 'assigned' || h.status === 'pending').length;
@@ -95,14 +95,14 @@ export default function StudentDashboardPage() {
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--gradient-hero)' }}>
         <div className="glass-card rounded-2xl p-8 text-center max-w-md w-full shadow-glass-lg">
           <div className="mb-4 flex justify-center text-[#5A3D7A]"><Clock className="w-12 h-12" strokeWidth={2} /></div>
-          <h2 className="text-xl font-bold text-[#5A3D7A] mb-2">Cuenta pendiente de aprobación</h2>
+          <h2 className="text-xl font-bold text-[#5A3D7A] mb-2">Account awaiting approval</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
-            Tu cuenta está siendo revisada por el profesor. Una vez aprobada, tendrás acceso
-            a todas las lecciones, horarios y materiales.
+            Your account is being reviewed by your teacher. Once it's approved,
+            you'll have access to all your lessons, schedule, and materials.
           </p>
           <div className="mt-6 bg-[#F0E5FF] rounded-xl p-4">
             <p className="text-xs text-[#5A3D7A] font-medium inline-flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5" strokeWidth={2.25} /> Recibirás un correo cuando tu cuenta sea aprobada.
+              <Mail className="w-3.5 h-3.5" strokeWidth={2.25} /> You'll get an email once your account is approved.
             </p>
           </div>
         </div>
@@ -122,11 +122,11 @@ export default function StudentDashboardPage() {
         >
           <span className="w-3 h-3 rounded-full bg-white animate-pulse flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold inline-flex items-center gap-1.5"><Tv className="w-4 h-4" strokeWidth={2.25} /> Clase en vivo activa</p>
+            <p className="text-sm font-bold inline-flex items-center gap-1.5"><Tv className="w-4 h-4" strokeWidth={2.25} /> Live class in session</p>
             <p className="text-xs text-red-200 truncate">{session.lessonTitle}</p>
           </div>
           <span className="text-xs font-bold bg-white/20 px-3 py-1 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0">
-            Unirse →
+            Join →
           </span>
         </Link>
       ))}
@@ -145,16 +145,16 @@ export default function StudentDashboardPage() {
             <span className="flex-shrink-0"><ClipboardList className="w-6 h-6" strokeWidth={2.25} /></span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold">
-                {isSuite ? 'Placement test completo asignado' : 'Test de nivel asignado'}
+                {isSuite ? 'Full placement test assigned' : 'Level test assigned'}
               </p>
               <p className="text-xs opacity-75">
                 {isSuite
-                  ? `Tu profesor te ha pedido completar ${assignment.components!.length} componente${assignment.components!.length !== 1 ? 's' : ''}.`
-                  : 'Tu profesor te ha pedido completar el placement test.'}
+                  ? `Your teacher asked you to complete ${assignment.components!.length} component${assignment.components!.length !== 1 ? 's' : ''}.`
+                  : 'Your teacher asked you to complete the placement test.'}
               </p>
             </div>
             <span className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-lg group-hover:bg-white/30 transition-colors flex-shrink-0 whitespace-nowrap">
-              Comenzar →
+              Start →
             </span>
           </Link>
         );
@@ -174,9 +174,9 @@ export default function StudentDashboardPage() {
               ) : null}
               <div>
                 <p className="text-sm font-bold text-[#5A3D7A]">
-                  Hola, {firstName}
+                  Hi, {firstName}
                 </p>
-                <p className="text-xs text-gray-400">Tu portal de aprendizaje</p>
+                <p className="text-xs text-gray-400">Your learning portal</p>
               </div>
             </div>
             {/* Racha inline */}
@@ -185,7 +185,7 @@ export default function StudentDashboardPage() {
                 <Flame className="w-4 h-4 text-orange-500" strokeWidth={2.25} />
                 <div className="text-right">
                   <p className="text-sm font-bold text-orange-600 leading-none">{gam.currentStreak}</p>
-                  <p className="text-[9px] text-orange-400 leading-none mt-0.5">días</p>
+                  <p className="text-[9px] text-orange-400 leading-none mt-0.5">days</p>
                 </div>
               </div>
             )}
@@ -200,7 +200,7 @@ export default function StudentDashboardPage() {
 
         {/* Próxima Lección card (spans 1/3) */}
         <div className="glass-card rounded-2xl p-4 flex flex-col justify-between">
-          <p className="text-xs font-bold text-[#9B7CB8] uppercase tracking-wider mb-2">Próxima Lección</p>
+          <p className="text-xs font-bold text-[#9B7CB8] uppercase tracking-wider mb-2">Next class</p>
           {nextBooking ? (
             <>
               <div className="flex-1">
@@ -217,7 +217,7 @@ export default function StudentDashboardPage() {
                   ) : null;
                 })()}
                 <p className="text-[10px] text-gray-400 mt-1 inline-flex items-center gap-1">
-                  {nextBooking.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Recurrente</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> Clase única</>}
+                  {nextBooking.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Recurring</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> One-off class</>}
                 </p>
               </div>
               {nextBooking.lessonId && (
@@ -225,16 +225,16 @@ export default function StudentDashboardPage() {
                   href={`/classroom/${nextBooking.lessonId}`}
                   className="mt-3 w-full text-center px-3 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
                 >
-                  Entrar →
+                  Enter →
                 </Link>
               )}
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-2">
               <Calendar className="w-6 h-6 mb-1 text-[#9B7CB8]" strokeWidth={2.25} />
-              <p className="text-xs text-gray-400">Sin clases agendadas</p>
+              <p className="text-xs text-gray-400">No scheduled classes</p>
               <Link href="/dashboard/student/schedule" className="mt-2 text-xs font-semibold text-[#9B7CB8] hover:underline">
-                Ver horario →
+                View schedule →
               </Link>
             </div>
           )}
@@ -246,17 +246,17 @@ export default function StudentDashboardPage() {
         <Link href="/dashboard/student/progress"
           className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
           <p className="text-xl md:text-2xl font-bold text-[#5A3D7A]">{progressLoading ? '…' : completedLessons}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones Completadas</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Completed lessons</p>
         </Link>
         <Link href="/dashboard/student/homework"
           className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
           <p className={`text-xl md:text-2xl font-bold ${pendingHomework > 0 ? 'text-amber-500' : 'text-green-500'}`}>{pendingHomework}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Tareas Pendientes</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Pending homework</p>
         </Link>
         <Link href="/dashboard/student/lessons"
           className="glass-card rounded-2xl p-3 md:p-4 text-center stat-glow hover-lift">
           <p className="text-xl md:text-2xl font-bold text-blue-600">{totalAssignedLessons}</p>
-          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Lecciones Asignadas</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Assigned lessons</p>
         </Link>
       </div>
 
@@ -271,21 +271,21 @@ export default function StudentDashboardPage() {
       {(skillScores || studentLevel) && (
         <div className="glass-card rounded-2xl overflow-hidden mb-3">
           <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} /> Mi progreso de inglés</p>
+            <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} /> My English progress</p>
             <Link href="/dashboard/student/progress" className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
-              Ver detalle →
+              See details →
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
             {studentLevel && (
               <div className="px-4 py-4">
-                <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">Nivel CEFR</p>
+                <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">CEFR level</p>
                 <LevelTimeline history={levelHistory} currentLevel={studentLevel} />
               </div>
             )}
             {skillScores && (
               <div className="px-4 py-4">
-                <p className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Habilidades</p>
+                <p className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Skills</p>
                 <SkillRadarChart scores={skillScores} compact />
               </div>
             )}

@@ -178,7 +178,7 @@ export default function StudentLessonsPage() {
           : material?.Icon
             ? <material.Icon className="w-2.5 h-2.5" strokeWidth={2.25} />
             : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />,
-        badgeLabel: isFT ? 'FT Librería' : (material?.label || 'Link externo'),
+        badgeLabel: isFT ? 'FT Library' : (material?.label || 'External link'),
         isCompleted: a.status === 'completed' || (isFT && a.refId ? completedLessonIds.has(a.refId) : false),
         isStarted: isFT && a.refId ? startedLessonIds.has(a.refId) : false,
         assignedAtMs: a.createdAt?.toMillis?.() ?? 0,
@@ -206,7 +206,7 @@ export default function StudentLessonsPage() {
       out.push({
         key: `music-${l.id}`,
         kind: 'ft-music',
-        title: (l.song?.title || l.title || 'Canción'),
+        title: (l.song?.title || l.title || 'Song'),
         level: l.level,
         href: `/dashboard/student/music/${l.id}`,
         badgeIcon: <Music className="w-2.5 h-2.5" strokeWidth={2.25} />,
@@ -222,7 +222,7 @@ export default function StudentLessonsPage() {
       out.push({
         key: `text-${l.id}`,
         kind: 'ft-text',
-        title: l.title || 'Lectura',
+        title: l.title || 'Reading',
         level: l.level,
         href: `/dashboard/student/texts/${l.id}`,
         badgeIcon: <BookMarked className="w-2.5 h-2.5" strokeWidth={2.25} />,
@@ -257,14 +257,14 @@ export default function StudentLessonsPage() {
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-lg font-extrabold text-[#5A3D7A] inline-flex items-center gap-2"><BookOpen className="w-5 h-5" strokeWidth={2.25} /> Mis lecciones</h1>
+          <h1 className="text-lg font-extrabold text-[#5A3D7A] inline-flex items-center gap-2"><BookOpen className="w-5 h-5" strokeWidth={2.25} /> My lessons</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Todo el material que tu profe te ha asignado — FriendlyTeaching + externo.
+            All the material your teacher has assigned — FriendlyTeaching + external.
           </p>
         </div>
         <Link href="/dashboard/student/progress"
           className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] transition-colors">
-          Ver progreso →
+          View progress →
         </Link>
       </div>
 
@@ -275,7 +275,7 @@ export default function StudentLessonsPage() {
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar lección..."
+            placeholder="Search lessons…"
             className="w-full px-4 py-2 border border-white/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white/70 backdrop-blur-sm shadow-glass"
           />
           <div className="flex gap-1.5 flex-wrap">
@@ -287,7 +287,7 @@ export default function StudentLessonsPage() {
                   kindFilter === k ? 'bg-[#5A3D7A] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-[#C8A8DC]'
                 }`}
               >
-                {k === 'all' ? 'Todos' : k === 'ft' ? 'FriendlyTeaching' : 'Externas'}
+                {k === 'all' ? 'All' : k === 'ft' ? 'FriendlyTeaching' : 'External'}
               </button>
             ))}
           </div>
@@ -299,7 +299,7 @@ export default function StudentLessonsPage() {
                   !levelFilter ? 'bg-[#C8A8DC] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-[#C8A8DC]'
                 }`}
               >
-                Todos los niveles
+                All levels
               </button>
               {availableLevels.map(l => (
                 <button
@@ -328,16 +328,16 @@ export default function StudentLessonsPage() {
       ) : cards.length === 0 ? (
         <div className="glass-card rounded-2xl p-10 text-center">
           <div className="mb-3 flex justify-center text-[#9B7CB8]"><Inbox className="w-10 h-10" strokeWidth={2} /></div>
-          <p className="text-[#5A3D7A] font-bold">Aún no tienes material asignado</p>
-          <p className="text-gray-500 text-sm mt-1">Tu profesor puede asignarte lecciones de FriendlyTeaching o material externo (Off2Class, Drive, YouTube, etc.).</p>
+          <p className="text-[#5A3D7A] font-bold">No material assigned yet</p>
+          <p className="text-gray-500 text-sm mt-1">Your teacher can assign FriendlyTeaching lessons or external material (Off2Class, Drive, YouTube, etc.).</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card rounded-2xl p-6 text-center">
           <div className="mb-2 flex justify-center text-gray-400"><Search className="w-6 h-6" strokeWidth={2.25} /></div>
-          <p className="text-gray-500 text-sm">No hay lecciones que coincidan.</p>
+          <p className="text-gray-500 text-sm">No matching lessons.</p>
           <button onClick={() => { setSearch(''); setLevelFilter(''); setKindFilter('all'); }}
             className="mt-2 text-xs font-semibold text-[#9B7CB8] underline">
-            Limpiar filtros
+            Clear filters
           </button>
         </div>
       ) : (

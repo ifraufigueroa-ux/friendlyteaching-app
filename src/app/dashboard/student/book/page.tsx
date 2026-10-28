@@ -17,8 +17,8 @@ import type { Booking } from '@/types/firebase';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const DAY_SHORT = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAYS      = [1, 2, 3, 4, 5, 6];                      // Mon–Sat
 const HOURS     = Array.from({ length: 14 }, (_, i) => 8 + i); // 8:00–21:00
 
@@ -147,7 +147,7 @@ export default function StudentBookPage() {
       });
       setDone(true);
     } catch {
-      setError('Hubo un error. Por favor intenta de nuevo.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -174,15 +174,15 @@ export default function StudentBookPage() {
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm">
           <div className="mb-4 flex justify-center text-gray-400"><Lock className="w-10 h-10" strokeWidth={2} /></div>
-          <h2 className="text-lg font-bold text-[#5A3D7A] mb-2">Sin profesor asignado</h2>
+          <h2 className="text-lg font-bold text-[#5A3D7A] mb-2">No teacher assigned</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Aún no tienes un profesor asignado. Una vez que tu cuenta sea aprobada podrás solicitar clases.
+            You don't have a teacher assigned yet. Once your account is approved, you'll be able to request classes.
           </p>
           <Link
             href="/dashboard/student"
             className="inline-block px-5 py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-bold hover:bg-[#9B7CB8] transition-colors"
           >
-            Volver al inicio
+            Back to home
           </Link>
         </div>
       </div>
@@ -194,26 +194,26 @@ export default function StudentBookPage() {
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-sm">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"><Check className="w-8 h-8 text-green-600" strokeWidth={2.5} /></div>
-          <h2 className="text-xl font-extrabold text-[#5A3D7A] mb-2">¡Solicitud enviada!</h2>
+          <h2 className="text-xl font-extrabold text-[#5A3D7A] mb-2">Request sent!</h2>
           <p className="text-sm text-gray-500 mb-1">
-            Has solicitado el horario del{' '}
-            <strong>{DAY_NAMES[selected?.dow ?? 1]} a las {selected?.hour}:00</strong>.
+            You requested the slot on{' '}
+            <strong>{DAY_NAMES[selected?.dow ?? 1]} at {selected?.hour}:00</strong>.
           </p>
           <p className="text-xs text-gray-400 mb-6">
-            Tu profesor revisará la solicitud y te confirmará por correo o WhatsApp.
+            Your teacher will review the request and confirm by email or WhatsApp.
           </p>
           <div className="flex flex-col gap-2">
             <button
               onClick={() => { setDone(false); setSelected(null); setMessage(''); }}
               className="w-full py-2.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-xl text-sm font-bold hover:bg-[#E0D5FF] transition-colors"
             >
-              Solicitar otro horario
+              Request another slot
             </button>
             <Link
               href="/dashboard/student/schedule"
               className="w-full py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-bold hover:bg-[#9B7CB8] transition-colors text-center"
             >
-              Ver mi horario
+              View my schedule
             </Link>
           </div>
         </div>
@@ -239,12 +239,12 @@ export default function StudentBookPage() {
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-1">
           <Link href="/dashboard/student/schedule" className="text-[#9B7CB8] hover:text-[#5A3D7A] text-sm font-semibold transition-colors">
-            ← Mi horario
+            ← My schedule
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-[#5A3D7A] inline-flex items-center gap-2"><Calendar className="w-6 h-6" strokeWidth={2.25} /> Solicitar clase</h1>
+        <h1 className="text-2xl font-bold text-[#5A3D7A] inline-flex items-center gap-2"><Calendar className="w-6 h-6" strokeWidth={2.25} /> Request class</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Elige un horario disponible y tu profesor confirmará la solicitud.
+          Pick an available slot and your teacher will confirm the request.
         </p>
       </div>
 
@@ -253,15 +253,15 @@ export default function StudentBookPage() {
         <div className="bg-white rounded-2xl px-4 py-3 shadow-sm flex flex-wrap gap-4 text-xs font-medium">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-md bg-[#F0E5FF] border-2 border-[#C8A8DC]" />
-            <span className="text-gray-600">Disponible — puedes solicitar</span>
+            <span className="text-gray-600">Available — you can request</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-md bg-gray-100 border border-gray-200" />
-            <span className="text-gray-400">Ocupado</span>
+            <span className="text-gray-400">Taken</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-md bg-amber-50 border-2 border-amber-300" />
-            <span className="text-amber-600">Solicitud pendiente</span>
+            <span className="text-amber-600">Pending request</span>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@ export default function StudentBookPage() {
                           <div
                             key={key}
                             className="rounded-xl h-10 bg-gray-100 border border-gray-200 flex items-center justify-center"
-                            title="Ocupado"
+                            title="Taken"
                           >
                             <Lock className="w-3.5 h-3.5 text-gray-300 select-none" strokeWidth={2} />
                           </div>
@@ -330,7 +330,7 @@ export default function StudentBookPage() {
                           <div
                             key={key}
                             className="rounded-xl h-10 bg-amber-50 border-2 border-amber-300 flex items-center justify-center"
-                            title={`Solicitud ${req.status === 'approved' ? 'aprobada' : 'pendiente'}`}
+                            title={`Request ${req.status === 'approved' ? 'approved' : 'pending'}`}
                           >
                             <span className="text-amber-500 select-none">
                               {req.status === 'approved' ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : <Clock className="w-3.5 h-3.5" strokeWidth={2.25} />}
@@ -365,7 +365,7 @@ export default function StudentBookPage() {
           {myRequests.length > 0 && (
             <div className="px-6 mb-6">
               <h2 className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider mb-2">
-                Mis solicitudes
+                My requests
               </h2>
               <div className="space-y-2">
                 {myRequests
@@ -384,7 +384,7 @@ export default function StudentBookPage() {
                           {DAY_NAMES[r.requestedDow]} · {r.requestedHour}:00 – {r.requestedHour + 1}:00
                         </p>
                         <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
-                          {r.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Semanal</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> Una vez</>}
+                          {r.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Weekly</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> One-off</>}
                         </p>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 inline-flex items-center gap-1 ${
@@ -393,10 +393,10 @@ export default function StudentBookPage() {
                         'bg-red-50 text-red-500'
                       }`}>
                         {r.status === 'pending'
-                          ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> Pendiente</>
+                          ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> Pending</>
                           : r.status === 'approved'
-                          ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Aprobada</>
-                          : <><X className="w-2.5 h-2.5" strokeWidth={2.5} /> Rechazada</>}
+                          ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Approved</>
+                          : <><X className="w-2.5 h-2.5" strokeWidth={2.5} /> Rejected</>}
                       </span>
                     </div>
                   ))}
@@ -408,7 +408,7 @@ export default function StudentBookPage() {
           {selected && (
             <div className="px-6 pb-8">
               <div className="bg-white rounded-3xl shadow-lg p-5 border-2 border-[#C8A8DC]">
-                <h3 className="font-bold text-[#5A3D7A] text-base mb-4">Confirmar solicitud</h3>
+                <h3 className="font-bold text-[#5A3D7A] text-base mb-4">Confirm request</h3>
 
                 {/* Selected slot summary */}
                 <div className="bg-[#F0E5FF] rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
@@ -418,14 +418,14 @@ export default function StudentBookPage() {
                       {DAY_NAMES[selected.dow]} · {selected.hour}:00 – {selected.hour + 1}:00
                     </p>
                     <p className="text-[10px] text-[#9B7CB8]">
-                      Tu profesor confirmará la disponibilidad
+                      Your teacher will confirm availability
                     </p>
                   </div>
                 </div>
 
                 {/* Recurring toggle */}
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xs font-semibold text-gray-600">Tipo de clase:</span>
+                  <span className="text-xs font-semibold text-gray-600">Class type:</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setIsRecurring(true)}
@@ -435,7 +435,7 @@ export default function StudentBookPage() {
                           : 'bg-gray-100 text-gray-500 hover:bg-[#F0E5FF]'
                       }`}
                     >
-                      <span className="inline-flex items-center gap-1"><Repeat className="w-3 h-3" strokeWidth={2.25} /> Semanal</span>
+                      <span className="inline-flex items-center gap-1"><Repeat className="w-3 h-3" strokeWidth={2.25} /> Weekly</span>
                     </button>
                     <button
                       onClick={() => setIsRecurring(false)}
@@ -445,7 +445,7 @@ export default function StudentBookPage() {
                           : 'bg-gray-100 text-gray-500 hover:bg-[#F0E5FF]'
                       }`}
                     >
-                      <span className="inline-flex items-center gap-1"><Pin className="w-3 h-3" strokeWidth={2.25} /> Una sola vez</span>
+                      <span className="inline-flex items-center gap-1"><Pin className="w-3 h-3" strokeWidth={2.25} /> One-off</span>
                     </button>
                   </div>
                 </div>
@@ -453,20 +453,20 @@ export default function StudentBookPage() {
                 {/* Optional message */}
                 <div className="mb-4">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                    Mensaje para tu profesor (opcional)
+                    Message for your teacher (optional)
                   </label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     rows={2}
-                    placeholder="Ej: Me gustaría empezar desde la próxima semana..."
+                    placeholder="E.g. I'd like to start next week…"
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent"
                   />
                 </div>
 
                 {/* Student info (read-only) */}
                 <div className="bg-gray-50 rounded-xl px-4 py-2.5 mb-4">
-                  <p className="text-[10px] text-gray-400 font-semibold mb-1">Tu información</p>
+                  <p className="text-[10px] text-gray-400 font-semibold mb-1">Your info</p>
                   <p className="text-xs font-bold text-gray-700">{studentName}</p>
                   <p className="text-[10px] text-gray-500">{studentEmail}</p>
                 </div>
@@ -480,14 +480,14 @@ export default function StudentBookPage() {
                     onClick={() => { setSelected(null); setMessage(''); setError(''); }}
                     className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-2xl text-sm font-bold hover:bg-gray-200 transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
                     className="flex-1 py-3 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-2xl text-sm font-bold disabled:opacity-50 transition-colors"
                   >
-                    {submitting ? 'Enviando...' : <span className="inline-flex items-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.25} /> Enviar solicitud</span>}
+                    {submitting ? 'Sending…' : <span className="inline-flex items-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.25} /> Send request</span>}
                   </button>
                 </div>
               </div>
@@ -499,9 +499,9 @@ export default function StudentBookPage() {
             <div className="px-6 pb-8">
               <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
                 <div className="mb-3 flex justify-center text-gray-400"><Inbox className="w-8 h-8" strokeWidth={2} /></div>
-                <p className="text-sm text-gray-500">El horario de tu profesor aún no está configurado.</p>
+                <p className="text-sm text-gray-500">Your teacher's schedule isn't set up yet.</p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Puedes enviar tu preferencia de horario y tu profesor lo confirmará.
+                  You can send your preferred slot and your teacher will confirm.
                 </p>
               </div>
             </div>

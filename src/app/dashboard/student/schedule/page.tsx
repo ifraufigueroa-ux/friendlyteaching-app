@@ -11,18 +11,18 @@ import { usePublishedLessons } from '@/hooks/useLessons';
 import TopBar from '@/components/layout/TopBar';
 import type { Booking } from '@/types/firebase';
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const STATUS_CONFIG: Record<string, { label: string; color: string; Icon: LucideIcon }> = {
-  confirmed:  { label: 'Confirmada', color: 'bg-[#F0E5FF] text-[#5A3D7A] border-[#C8A8DC]', Icon: Check },
-  pending:    { label: 'Pendiente',  color: 'bg-amber-50 text-amber-700 border-amber-200', Icon: Clock },
-  completed:  { label: 'Completada', color: 'bg-green-50 text-green-700 border-green-200', Icon: GraduationCap },
-  cancelled:  { label: 'Cancelada',  color: 'bg-red-50 text-red-400 border-red-100', Icon: X },
+  confirmed:  { label: 'Confirmed', color: 'bg-[#F0E5FF] text-[#5A3D7A] border-[#C8A8DC]', Icon: Check },
+  pending:    { label: 'Pending',   color: 'bg-amber-50 text-amber-700 border-amber-200', Icon: Clock },
+  completed:  { label: 'Completed', color: 'bg-green-50 text-green-700 border-green-200', Icon: GraduationCap },
+  cancelled:  { label: 'Cancelled', color: 'bg-red-50 text-red-400 border-red-100', Icon: X },
 };
 
 function formatWeekRange(date: Date) {
   const end = new Date(date);
   end.setDate(end.getDate() + 5);
-  return `${date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })} – ${end.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  return `${date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}`;
 }
 
 function formatTime(hour: number) {
@@ -66,18 +66,18 @@ export default function StudentSchedulePage() {
   return (
     <div className="min-h-screen">
       <TopBar
-        title="Mi Horario"
-        subtitle="Tus clases agendadas con tu profesor"
+        title="My Schedule"
+        subtitle="Your classes with your teacher"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Mi Horario' }
+          { label: 'My Schedule' }
         ]}
         actions={teacherUid && (
           <Link
             href="/dashboard/student/book"
             className="flex-shrink-0 px-4 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
           >
-            + Solicitar clase
+            + Request class
           </Link>
         )}
       />
@@ -86,9 +86,9 @@ export default function StudentSchedulePage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Próximas', value: upcomingBookings.length, Icon: Calendar, color: 'text-[#5A3D7A]' },
-          { label: 'Completadas', value: completedBookings.length, Icon: GraduationCap, color: 'text-green-600' },
-          { label: 'Total clases', value: myBookings.length, Icon: BookOpen, color: 'text-blue-600' },
+          { label: 'Upcoming', value: upcomingBookings.length, Icon: Calendar, color: 'text-[#5A3D7A]' },
+          { label: 'Completed', value: completedBookings.length, Icon: GraduationCap, color: 'text-green-600' },
+          { label: 'Total classes', value: myBookings.length, Icon: BookOpen, color: 'text-blue-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
             <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-5 h-5" strokeWidth={2.25} /></div>
@@ -104,7 +104,7 @@ export default function StudentSchedulePage() {
           <button onClick={previousWeek} className="w-8 h-8 rounded-full hover:bg-[#F0E5FF] flex items-center justify-center text-[#9B7CB8] font-bold transition-colors">‹</button>
           <div className="text-center">
             <p className="text-sm font-bold text-[#5A3D7A]">{formatWeekRange(currentWeekStart)}</p>
-            <p className="text-xs text-gray-400">Semana actual</p>
+            <p className="text-xs text-gray-400">Current week</p>
           </div>
           <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-[#F0E5FF] flex items-center justify-center text-[#9B7CB8] font-bold transition-colors">›</button>
         </div>
@@ -117,12 +117,12 @@ export default function StudentSchedulePage() {
       ) : myBookings.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
           <div className="mb-3 flex justify-center text-gray-400"><Inbox className="w-10 h-10" strokeWidth={2} /></div>
-          <p className="text-gray-500 text-sm">No tienes clases agendadas esta semana.</p>
-          <p className="text-xs text-gray-400 mt-1">Tu profesor agendará tus clases desde el panel de horario.</p>
+          <p className="text-gray-500 text-sm">No classes scheduled this week.</p>
+          <p className="text-xs text-gray-400 mt-1">Your teacher will schedule your classes from the schedule panel.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider">Esta semana</h2>
+          <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider">This week</h2>
           {myBookings
             .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour)
             .map(b => {
@@ -138,7 +138,7 @@ export default function StudentSchedulePage() {
                       <div>
                         <p className="text-sm font-bold text-[#5A3D7A]">{DAY_NAMES[b.dayOfWeek]} · {formatTime(b.hour)}</p>
                         <p className="text-xs text-gray-400 inline-flex items-center gap-1">
-                          {b.isRecurring ? <><Repeat className="w-3 h-3" strokeWidth={2.25} /> Clase recurrente</> : <><Pin className="w-3 h-3" strokeWidth={2.25} /> Clase única</>}
+                          {b.isRecurring ? <><Repeat className="w-3 h-3" strokeWidth={2.25} /> Recurring class</> : <><Pin className="w-3 h-3" strokeWidth={2.25} /> One-off class</>}
                           {b.notes ? ` · ${b.notes}` : ''}
                         </p>
                         {b.lessonId && (() => {
@@ -160,7 +160,7 @@ export default function StudentSchedulePage() {
                           href={`/classroom/${b.lessonId}`}
                           className="px-3 py-1.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-xs font-bold transition-colors"
                         >
-                          Entrar →
+                          Enter →
                         </Link>
                       )}
                     </div>

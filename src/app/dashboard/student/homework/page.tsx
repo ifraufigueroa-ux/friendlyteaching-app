@@ -30,12 +30,12 @@ import type { Timestamp } from 'firebase/firestore';
 const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; Icon: LucideIcon; badge: string }> = {
   off2class: { label: 'Off2Class',       Icon: GraduationCap, badge: 'bg-orange-100 text-orange-700' },
   ellii:     { label: 'Ellii',           Icon: BookOpenCheck, badge: 'bg-emerald-100 text-emerald-700' },
-  other:     { label: 'Material propio', Icon: Link2,         badge: 'bg-purple-100 text-[#5A3D7A]' },
+  other:     { label: 'Own material', Icon: Link2,         badge: 'bg-purple-100 text-[#5A3D7A]' },
 };
 
 function formatDate(ts: Timestamp | undefined) {
   if (!ts) return '—';
-  return ts.toDate().toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+  return ts.toDate().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
 function isDueSoon(ts: Timestamp | undefined) {
@@ -50,10 +50,10 @@ function isOverdue(ts: Timestamp | undefined) {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  assigned:  { label: 'Pendiente',  color: 'bg-blue-100 text-blue-700' },
-  submitted: { label: 'Entregada',  color: 'bg-amber-100 text-amber-700' },
-  reviewed:  { label: 'Revisada',   color: 'bg-green-100 text-green-700' },
-  pending:   { label: 'Pendiente',  color: 'bg-gray-100 text-gray-500' },
+  assigned:  { label: 'Pending',    color: 'bg-blue-100 text-blue-700' },
+  submitted: { label: 'Submitted',  color: 'bg-amber-100 text-amber-700' },
+  reviewed:  { label: 'Reviewed',   color: 'bg-green-100 text-green-700' },
+  pending:   { label: 'Pending',    color: 'bg-gray-100 text-gray-500' },
 };
 
 export default function StudentHomeworkPage() {
@@ -119,11 +119,11 @@ export default function StudentHomeworkPage() {
   return (
     <div className="min-h-screen">
       <TopBar
-        title="Mis Tareas"
-        subtitle={`${pending.length} tarea${pending.length !== 1 ? 's' : ''} pendiente${pending.length !== 1 ? 's' : ''}`}
+        title="My Homework"
+        subtitle={`${pending.length} pending task${pending.length !== 1 ? 's' : ''}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Tareas' }
+          { label: 'Homework' }
         ]}
       />
       <div className="p-6">
@@ -131,9 +131,9 @@ export default function StudentHomeworkPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Pendientes', value: pending.length, Icon: ClipboardList, color: pending.length > 0 ? 'text-amber-600' : 'text-gray-400' },
-          { label: 'Entregadas', value: submitted.length, Icon: Send, color: 'text-blue-600' },
-          { label: 'Revisadas', value: reviewed.length, Icon: CheckCircle2, color: 'text-green-600' },
+          { label: 'Pending', value: pending.length, Icon: ClipboardList, color: pending.length > 0 ? 'text-amber-600' : 'text-gray-400' },
+          { label: 'Submitted', value: submitted.length, Icon: Send, color: 'text-blue-600' },
+          { label: 'Reviewed', value: reviewed.length, Icon: CheckCircle2, color: 'text-green-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center">
             <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-5 h-5" strokeWidth={2.25} /></div>
@@ -145,7 +145,7 @@ export default function StudentHomeworkPage() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-4 flex-wrap">
-        {[['pending', 'Pendientes'], ['submitted', 'Entregadas'], ['reviewed', 'Revisadas'], ['all', 'Todas']].map(([v, l]) => (
+        {[['pending', 'Pending'], ['submitted', 'Submitted'], ['reviewed', 'Reviewed'], ['all', 'All']].map(([v, l]) => (
           <button
             key={v}
             onClick={() => setFilterStatus(v)}
@@ -166,7 +166,7 @@ export default function StudentHomeworkPage() {
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
           <div className="mb-3 flex justify-center text-gray-400">{filterStatus === 'pending' ? <PartyPopper className="w-10 h-10 text-amber-500" strokeWidth={2} /> : <Inbox className="w-10 h-10" strokeWidth={2} />}</div>
           <p className="text-gray-500 text-sm">
-            {filterStatus === 'pending' ? '¡No tienes tareas pendientes!' : 'No hay tareas en esta sección.'}
+            {filterStatus === 'pending' ? 'No pending homework!' : 'No homework in this section.'}
           </p>
         </div>
       ) : (
@@ -192,26 +192,26 @@ export default function StudentHomeworkPage() {
                           <platform.Icon className="w-3 h-3" strokeWidth={2.25} /> {platform.label}
                         </span>
                       )}
-                      {overdue && <span className="text-xs font-bold text-red-500 inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3" strokeWidth={2.5} /> Vencida</span>}
-                      {dueSoon && <span className="text-xs font-bold text-amber-500 inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> Vence pronto</span>}
+                      {overdue && <span className="text-xs font-bold text-red-500 inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3" strokeWidth={2.5} /> Overdue</span>}
+                      {dueSoon && <span className="text-xs font-bold text-amber-500 inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> Due soon</span>}
                       <p className="text-sm font-bold text-[#5A3D7A]">{hw.title}</p>
                     </div>
                     {hw.lessonId && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.25} /> {lessonTitle(hw.lessonId)}</p>}
                     {hw.description && <p className="text-sm text-gray-600 mt-1">{hw.description}</p>}
-                    <p className="text-xs text-gray-400 mt-1 inline-flex items-center gap-1"><Calendar className="w-3 h-3" strokeWidth={2.25} /> Fecha de entrega: {formatDate(hw.dueDate)}</p>
+                    <p className="text-xs text-gray-400 mt-1 inline-flex items-center gap-1"><Calendar className="w-3 h-3" strokeWidth={2.25} /> Due: {formatDate(hw.dueDate)}</p>
 
                     {/* Reviewed: show feedback */}
                     {hw.status === 'reviewed' && hw.feedback && (
                       <div className="mt-2 bg-green-50 rounded-xl p-3">
-                        <p className="text-xs font-bold text-green-700 mb-1">Feedback del profesor:</p>
+                        <p className="text-xs font-bold text-green-700 mb-1">Teacher feedback:</p>
                         <p className="text-sm text-green-700">{hw.feedback}</p>
-                        {hw.score !== undefined && <p className="text-xs font-bold text-green-700 mt-1">Nota: {hw.score}/7</p>}
+                        {hw.score !== undefined && <p className="text-xs font-bold text-green-700 mt-1">Grade: {hw.score}/7</p>}
                       </div>
                     )}
 
                     {/* Submitted */}
                     {hw.status === 'submitted' && (
-                      <p className="text-xs text-amber-600 mt-1 font-medium inline-flex items-center gap-1"><Check className="w-3 h-3" strokeWidth={2.5} /> Entregada el {formatDate(hw.submittedAt)} · Esperando revisión</p>
+                      <p className="text-xs text-amber-600 mt-1 font-medium inline-flex items-center gap-1"><Check className="w-3 h-3" strokeWidth={2.5} /> Submitted on {formatDate(hw.submittedAt)} · Awaiting review</p>
                     )}
                   </div>
 
@@ -224,7 +224,7 @@ export default function StudentHomeworkPage() {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-sm font-bold transition-colors text-center inline-flex items-center justify-center gap-1.5"
                       >
-                        {PlatformIcon && <PlatformIcon className="w-3.5 h-3.5" strokeWidth={2.25} />} Abrir
+                        {PlatformIcon && <PlatformIcon className="w-3.5 h-3.5" strokeWidth={2.25} />} Open
                       </a>
                     )}
                     {canAct && (
@@ -234,14 +234,14 @@ export default function StudentHomeworkPage() {
                           disabled={markingId === hw.id}
                           className="px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-40 transition-colors"
                         >
-                          {markingId === hw.id ? 'Guardando…' : <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Marcar como hecha</span>}
+                          {markingId === hw.id ? 'Saving…' : <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Mark as done</span>}
                         </button>
                       ) : (
                         <button
                           onClick={() => { setActiveHw(hw); setAnswer(''); }}
                           className="px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
                         >
-                          Entregar
+                          Submit
                         </button>
                       )
                     )}
@@ -257,22 +257,22 @@ export default function StudentHomeworkPage() {
       {activeHw && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold text-[#5A3D7A] mb-1">Entregar tarea</h2>
+            <h2 className="text-lg font-bold text-[#5A3D7A] mb-1">Submit homework</h2>
             <p className="text-sm text-gray-500 mb-4">{activeHw.title}</p>
             {activeHw.description && (
               <div className="bg-[#F9F5FF] rounded-xl p-3 mb-4">
-                <p className="text-xs font-bold text-[#5A3D7A] mb-1">Instrucciones:</p>
+                <p className="text-xs font-bold text-[#5A3D7A] mb-1">Instructions:</p>
                 <p className="text-sm text-gray-700">{activeHw.description}</p>
               </div>
             )}
             <div>
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Tu respuesta</label>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Your answer</label>
               <textarea
                 value={answer}
                 onChange={e => setAnswer(e.target.value)}
                 rows={5}
                 className="w-full border border-[#C8A8DC] rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
-                placeholder="Escribe tu respuesta aquí..."
+                placeholder="Write your answer here…"
               />
             </div>
             <div className="flex gap-3 mt-4">
@@ -280,14 +280,14 @@ export default function StudentHomeworkPage() {
                 onClick={() => setActiveHw(null)}
                 className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!answer.trim() || submitting}
                 className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-40 transition-colors"
               >
-                {submitting ? 'Enviando...' : <span className="inline-flex items-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.25} /> Entregar</span>}
+                {submitting ? 'Sending…' : <span className="inline-flex items-center gap-1.5"><Send className="w-3.5 h-3.5" strokeWidth={2.25} /> Submit</span>}
               </button>
             </div>
           </div>

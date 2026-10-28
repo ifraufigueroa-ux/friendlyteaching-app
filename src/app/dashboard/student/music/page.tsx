@@ -26,7 +26,7 @@ export default function StudentMusicPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F9F5FF] to-[#F0E8FF]">
       <TopBar title="Friendlyrics®" />
       <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
-        <p className="text-sm text-gray-500 mb-5">Aprende inglés a través de la música — completa los ejercicios de cada canción.</p>
+        <p className="text-sm text-gray-500 mb-5">Learn English through music — complete the exercises for each song.</p>
 
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -36,7 +36,7 @@ export default function StudentMusicPage() {
           <div className="text-center py-16 text-gray-400">
             <div className="mb-3 flex justify-center"><Music className="w-12 h-12" strokeWidth={2} /></div>
             <p className="font-medium text-gray-500">No music lessons yet</p>
-            <p className="text-sm mt-1">Tu profe asignará canciones aquí pronto.</p>
+            <p className="text-sm mt-1">Your teacher will assign songs here soon.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

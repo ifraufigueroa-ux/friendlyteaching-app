@@ -37,7 +37,7 @@ export default function StudentTextsPage() {
       <TopBar title="FriendlyTales®" />
       <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
         <p className="text-sm text-gray-500 mb-5">
-          Aprende inglés a través de textos — completa los ejercicios de cada lectura.
+          Learn English through texts — complete the exercises for each reading.
         </p>
 
         {loading ? (
@@ -48,7 +48,7 @@ export default function StudentTextsPage() {
           <div className="text-center py-16 text-gray-400">
             <div className="mb-3 flex justify-center"><BookMarked className="w-12 h-12" strokeWidth={2} /></div>
             <p className="font-medium text-gray-500">No text lessons yet</p>
-            <p className="text-sm mt-1">Tu profe te asignará lecturas aquí pronto.</p>
+            <p className="text-sm mt-1">Your teacher will assign readings here soon.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
