@@ -33,10 +33,10 @@ import type { Lesson, LessonPlannerStatus, LessonLevel, FTUser } from '@/types/f
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
 const COLUMNS: { id: LessonPlannerStatus; label: string; Icon: LucideIcon; color: string; bg: string }[] = [
-  { id: 'backlog',   label: 'Por preparar', Icon: ClipboardList, color: 'text-gray-600',  bg: 'bg-gray-50' },
-  { id: 'upcoming',  label: 'Próximas',     Icon: Calendar,      color: 'text-blue-700',  bg: 'bg-blue-50' },
-  { id: 'ready',     label: 'Listas',       Icon: CheckCircle2,  color: 'text-green-700', bg: 'bg-green-50' },
-  { id: 'archived',  label: 'Archivadas',   Icon: Archive,       color: 'text-gray-400',  bg: 'bg-gray-100' },
+  { id: 'backlog',   label: 'To prep',   Icon: ClipboardList, color: 'text-gray-600',  bg: 'bg-gray-50' },
+  { id: 'upcoming',  label: 'Upcoming',  Icon: Calendar,      color: 'text-blue-700',  bg: 'bg-blue-50' },
+  { id: 'ready',     label: 'Ready',     Icon: CheckCircle2,  color: 'text-green-700', bg: 'bg-green-50' },
+  { id: 'archived',  label: 'Archived',  Icon: Archive,       color: 'text-gray-400',  bg: 'bg-gray-100' },
 ];
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -47,7 +47,7 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
-const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_ES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function entryDate(e: ClassHistoryEntry): Date {
   const d = e.date as unknown as { toDate?: () => Date; seconds?: number };
@@ -78,20 +78,20 @@ function NoteModal({
         <p className="text-xs text-gray-400 mb-3">{code}</p>
         <textarea
           value={note} onChange={e => setNote(e.target.value)} rows={3}
-          placeholder="Ej: Revisar vocab de U2 antes, agregar actividad de speaking..."
+          placeholder="E.g. Review U2 vocab beforehand, add a speaking activity…"
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] mb-4"
           autoFocus
         />
         <div className="flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={async () => { setSaving(true); try { await onSave(note); } finally { setSaving(false); } }}
             disabled={saving}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors">
-            {saving ? '...' : 'Guardar'}
+            {saving ? '…' : 'Save'}
           </button>
         </div>
       </div>
@@ -186,7 +186,7 @@ function KanbanColumn({
       <div className="flex-1 px-3 pb-3 space-y-2 min-h-[120px]">
         {lessons.length === 0 && (
           <div className="flex items-center justify-center h-20 border-2 border-dashed border-gray-200 rounded-xl">
-            <p className="text-[10px] text-gray-300">Arrastra aquí</p>
+            <p className="text-[10px] text-gray-300">Drag here</p>
           </div>
         )}
         {lessons.map(lesson => (
@@ -224,7 +224,7 @@ function StudentHistoryPanel({
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
         <div>
-          <p className="text-xs font-bold text-[#5A3D7A]">Historial de clases</p>
+          <p className="text-xs font-bold text-[#5A3D7A]">Class history</p>
           <p className="text-[11px] text-gray-400">{studentName}</p>
         </div>
         <button onClick={onClose}
@@ -237,13 +237,13 @@ function StudentHistoryPanel({
         return (
           <div className="flex gap-2 px-4 py-2 flex-shrink-0">
             <span className="text-[10px] bg-green-50 text-green-700 font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
-              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} /> {attended} realizadas
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} /> {attended} attended
             </span>
             <span className="text-[10px] bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
-              <XCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {studentHistory.length - attended} ausencias
+              <XCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {studentHistory.length - attended} no shows
             </span>
             <span className="text-[10px] bg-[#F0E5FF] text-[#5A3D7A] font-semibold px-2 py-1 rounded-full inline-flex items-center gap-1">
-              <FileText className="w-2.5 h-2.5" strokeWidth={2.5} /> {withNotes} con notas
+              <FileText className="w-2.5 h-2.5" strokeWidth={2.5} /> {withNotes} with notes
             </span>
           </div>
         );
@@ -253,7 +253,7 @@ function StudentHistoryPanel({
         {studentHistory.length === 0 ? (
           <div className="text-center py-10">
             <Inbox className="w-6 h-6 mx-auto mb-1 text-gray-300" strokeWidth={2} />
-            <p className="text-xs text-gray-400">Sin clases registradas</p>
+            <p className="text-xs text-gray-400">No classes recorded</p>
           </div>
         ) : (
           studentHistory.map(entry => {
@@ -272,7 +272,7 @@ function StudentHistoryPanel({
                       const Mood = MOOD_ICON[entry.notes.mood];
                       return (
                         <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
-                          {Mood && <Mood className="w-2.5 h-2.5" strokeWidth={2.5} />} {entry.notes.mood === 'great' ? 'Excelente' : entry.notes.mood === 'good' ? 'Buena' : 'Regular'}
+                          {Mood && <Mood className="w-2.5 h-2.5" strokeWidth={2.5} />} {entry.notes.mood === 'great' ? 'Great' : entry.notes.mood === 'good' ? 'Good' : 'So-so'}
                         </p>
                       );
                     })()}
@@ -283,25 +283,25 @@ function StudentHistoryPanel({
                   <div className="space-y-1.5 mt-1.5 pt-1.5 border-t border-gray-50">
                     {entry.notes?.covered && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><BookOpen className="w-2.5 h-2.5" strokeWidth={2.5} /> Temas: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><BookOpen className="w-2.5 h-2.5" strokeWidth={2.5} /> Topics: </span>
                         {entry.notes.covered}
                       </p>
                     )}
                     {entry.notes?.performance && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" strokeWidth={2.5} /> Desempeño: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" strokeWidth={2.5} /> Performance: </span>
                         {entry.notes.performance}
                       </p>
                     )}
                     {entry.notes?.nextClass && (
                       <p className="text-[10px] text-[#5A3D7A]">
-                        <span className="font-semibold inline-flex items-center gap-1"><Target className="w-2.5 h-2.5" strokeWidth={2.5} /> Próxima: </span>
+                        <span className="font-semibold inline-flex items-center gap-1"><Target className="w-2.5 h-2.5" strokeWidth={2.5} /> Next: </span>
                         {entry.notes.nextClass}
                       </p>
                     )}
                     {entry.notes?.homework && (
                       <p className="text-[10px] text-gray-600">
-                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><ClipboardList className="w-2.5 h-2.5" strokeWidth={2.5} /> Tarea: </span>
+                        <span className="font-semibold text-gray-400 inline-flex items-center gap-1"><ClipboardList className="w-2.5 h-2.5" strokeWidth={2.5} /> Homework: </span>
                         {entry.notes.homework}
                       </p>
                     )}
@@ -383,7 +383,7 @@ function StudentPlannerModal({
               )}
             </div>
             <p className="text-[11px] text-gray-400">
-              {levelLessons.length} lección{levelLessons.length !== 1 ? 'es' : ''} en su nivel
+              {levelLessons.length} lesson{levelLessons.length !== 1 ? 's' : ''} at their level
             </p>
           </div>
 
@@ -396,7 +396,7 @@ function StudentPlannerModal({
                   : 'bg-[#F0E5FF] text-[#5A3D7A] hover:bg-[#E0C8F0]'
               }`}
             >
-              <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.5} /> Historial
+              <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.5} /> History
             </button>
             <button onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors text-xl leading-none">
@@ -414,7 +414,7 @@ function StudentPlannerModal({
             ) : levelLessons.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2">
                 <BookOpen className="w-8 h-8 text-gray-300" strokeWidth={2} />
-                <p className="text-sm text-gray-500">No hay lecciones para el nivel {studentLevel ?? 'asignado'}</p>
+                <p className="text-sm text-gray-500">No lessons for level {studentLevel ?? 'assigned'}</p>
               </div>
             ) : (
               <div className="flex gap-3 h-full min-h-[400px]" style={{ minWidth: `${COLUMNS.length * 230}px` }}>
@@ -518,7 +518,7 @@ export default function LessonKanbanTab({ teacherId }: { teacherId: string }) {
       {!studentsLoading && students.length > 0 && (
         <div className="px-6 pt-4 pb-0">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-            Planificar por estudiante
+            Plan by student
           </p>
           <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-none">
             {students.map(student => (
@@ -531,7 +531,7 @@ export default function LessonKanbanTab({ teacherId }: { teacherId: string }) {
                   {initials(student.fullName)}
                 </div>
                 <span className="text-xs font-semibold text-gray-600 group-hover:text-[#5A3D7A] whitespace-nowrap">
-                  {student.fullName?.split(' ')[0] ?? student.email?.split('@')[0] ?? 'Estudiante'}
+                  {student.fullName?.split(' ')[0] ?? student.email?.split('@')[0] ?? 'Student'}
                 </span>
                 {student.studentData?.level && (
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${LEVEL_COLORS[student.studentData.level] ?? ''}`}>
@@ -547,13 +547,13 @@ export default function LessonKanbanTab({ teacherId }: { teacherId: string }) {
       {/* Level filter */}
       <div className="px-6 pt-3 pb-2 flex items-center gap-2 flex-wrap">
         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mr-1">
-          Todas las lecciones
+          All lessons
         </p>
         <button
           onClick={() => setLevelFilter('')}
           className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${!levelFilter ? 'bg-[#C8A8DC] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-[#C8A8DC]'}`}
         >
-          Todos ({lessons.length})
+          All ({lessons.length})
         </button>
         {LEVELS.filter(l => lessons.some(les => les.level === l)).map(l => (
           <button

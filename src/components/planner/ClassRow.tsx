@@ -11,10 +11,10 @@ import { detectMaterialType } from './bookingUtils';
 import type { Booking } from '@/types/firebase';
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
-  confirmed:  { label: 'Confirmada', className: 'bg-green-50 text-green-700 border-green-200' },
-  pending:    { label: 'Pendiente',  className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  completed:  { label: 'Realizada',  className: 'bg-[#F0E5FF] text-[#5A3D7A] border-[#D9C2EE]' },
-  cancelled:  { label: 'Cancelada',  className: 'bg-red-50 text-red-600 border-red-200' },
+  confirmed:  { label: 'Confirmed', className: 'bg-green-50 text-green-700 border-green-200' },
+  pending:    { label: 'Pending',   className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  completed:  { label: 'Completed', className: 'bg-[#F0E5FF] text-[#5A3D7A] border-[#D9C2EE]' },
+  cancelled:  { label: 'Cancelled', className: 'bg-red-50 text-red-600 border-red-200' },
 };
 
 function formatHour(hour: number, minute: number | undefined): string {
@@ -30,7 +30,7 @@ interface Props {
   showDay?: boolean;
 }
 
-const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function ClassRow({ booking, showDay }: Props) {
   const [topic, setTopic]         = useState(booking.topic ?? '');
@@ -95,7 +95,7 @@ export default function ClassRow({ booking, showDay }: Props) {
       <div className="flex items-center gap-3 mb-3">
         <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-14 rounded-xl bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white shadow-sm">
           <span className="text-[9px] font-bold uppercase tracking-widest opacity-80">
-            {showDay ? DAY_LABELS[booking.dayOfWeek] : 'Hora'}
+            {showDay ? DAY_LABELS[booking.dayOfWeek] : 'Time'}
           </span>
           <span className="text-sm font-bold leading-none mt-0.5 tabular-nums">
             {formatHour(booking.hour, booking.minute)}
@@ -104,18 +104,18 @@ export default function ClassRow({ booking, showDay }: Props) {
 
         <div className="flex-1 min-w-0">
           <p className="font-bold text-[#1B2C3F] text-sm truncate">
-            {booking.studentName || 'Sin nombre'}
+            {booking.studentName || 'No name'}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${status.className}`}>
               {status.label}
             </span>
             {booking.isRecurring && (
-              <span className="text-[10px] text-gray-400 inline-flex items-center gap-1"><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurrente</span>
+              <span className="text-[10px] text-gray-400 inline-flex items-center gap-1"><RotateCw className="w-3 h-3" strokeWidth={2.5} /> Recurring</span>
             )}
             {booking.bookingType === 'interview' && (
               <span className="text-[10px] bg-[#FEF3D9] text-[#8A5A1A] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                <Mic className="w-3 h-3" strokeWidth={2.5} /> Entrevista
+                <Mic className="w-3 h-3" strokeWidth={2.5} /> Interview
               </span>
             )}
           </div>
@@ -141,22 +141,22 @@ export default function ClassRow({ booking, showDay }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
         <div>
           <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">
-            Tema {savingTopic && <span className="text-[#5A3D7A]">· guardando…</span>}
-            {saved === 'topic' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> guardado</span>}
+            Topic {savingTopic && <span className="text-[#5A3D7A]">· saving…</span>}
+            {saved === 'topic' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> saved</span>}
           </label>
           <input
             value={topic}
             onChange={e => setTopic(e.target.value)}
             onBlur={commitTopic}
             onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            placeholder="Ej: Present simple be — questions"
+            placeholder="E.g. Present simple be — questions"
             className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#C8A8DC] focus:ring-1 focus:ring-[#C8A8DC]"
           />
         </div>
         <div>
           <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">
-            Link del material {savingUrl && <span className="text-[#5A3D7A]">· guardando…</span>}
-            {saved === 'material' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> guardado</span>}
+            Material link {savingUrl && <span className="text-[#5A3D7A]">· saving…</span>}
+            {saved === 'material' && <span className="text-green-600 inline-flex items-center gap-0.5">· <Check className="w-3 h-3" strokeWidth={2.5} /> saved</span>}
           </label>
           <input
             value={materialUrl}

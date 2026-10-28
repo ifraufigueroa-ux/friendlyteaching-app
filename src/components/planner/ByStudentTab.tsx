@@ -60,7 +60,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
     for (const s of students) {
       const key = s.uid;
       const count = (bookingsByStudent[key] ?? []).length;
-      entries.push({ key, student: s, name: s.fullName || s.email || 'Sin nombre', level: s.studentData?.level, count });
+      entries.push({ key, student: s, name: s.fullName || s.email || 'No name', level: s.studentData?.level, count });
       seen.add(key);
     }
     // Legacy bookings with no linked student — surface them so the teacher
@@ -68,7 +68,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
     for (const key of Object.keys(bookingsByStudent)) {
       if (seen.has(key)) continue;
       const first = bookingsByStudent[key][0];
-      entries.push({ key, name: first?.studentName || 'Sin nombre', count: bookingsByStudent[key].length });
+      entries.push({ key, name: first?.studentName || 'No name', count: bookingsByStudent[key].length });
     }
 
     entries.sort((a, b) => (b.count - a.count) || a.name.localeCompare(b.name));
@@ -94,9 +94,9 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden md:sticky md:top-4">
           <div className="px-4 py-3 border-b border-gray-100 bg-[#FDFAFF]">
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A3D7A]">
-              Estudiantes
+              Students
             </p>
-            <p className="text-[10px] text-gray-400 mt-0.5">{studentEntries.length} en total</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{studentEntries.length} total</p>
           </div>
           <div className="max-h-[70vh] overflow-y-auto divide-y divide-gray-50">
             {studentEntries.map(entry => {
@@ -123,7 +123,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
                         </span>
                       )}
                       <span className="text-[10px] text-gray-400">
-                        {entry.count} clase{entry.count === 1 ? '' : 's'}
+                        {entry.count} class{entry.count === 1 ? '' : 'es'}
                       </span>
                     </div>
                   </div>
@@ -138,8 +138,8 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
           {!selected ? (
             <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-10 text-center">
               <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={2} />
-              <p className="text-sm font-semibold text-[#5A3D7A]">Elige un estudiante</p>
-              <p className="text-xs text-gray-400 mt-1">Verás sus clases agendadas y podrás editar tema + material.</p>
+              <p className="text-sm font-semibold text-[#5A3D7A]">Pick a student</p>
+              <p className="text-xs text-gray-400 mt-1">You'll see their scheduled classes and can edit topic + material.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -149,10 +149,10 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
                     {initials(selected.name)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70">Clases con</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70">Classes with</p>
                     <h2 className="font-serif font-bold text-2xl truncate">{selected.name}</h2>
                     <p className="text-sm opacity-80">
-                      {selectedBookings.length} clase{selectedBookings.length === 1 ? '' : 's'} programada{selectedBookings.length === 1 ? '' : 's'}.
+                      {selectedBookings.length} class{selectedBookings.length === 1 ? '' : 'es'} scheduled.
                     </p>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export default function ByStudentTab({ teacherId }: { teacherId: string }) {
               {selectedBookings.length === 0 ? (
                 <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-8 text-center">
                   <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
-                  <p className="text-xs text-gray-400">Sin clases agendadas para este estudiante.</p>
+                  <p className="text-xs text-gray-400">No classes scheduled for this student.</p>
                 </div>
               ) : (
                 selectedBookings.map(b => (

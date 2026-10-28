@@ -17,8 +17,8 @@ function mondayOf(date: Date): Date {
   return d;
 }
 
-const DAY_ES_LONG = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MONTH_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DAY_ES_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTH_ES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function TodayTab({ teacherId }: { teacherId: string }) {
   const today = useMemo(() => new Date(), []);
@@ -46,14 +46,14 @@ export default function TodayTab({ teacherId }: { teacherId: string }) {
     <div className="p-6 space-y-4">
       {/* Hero header — today's date */}
       <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-3xl p-5 text-white shadow-lg">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70 mb-1">Hoy es</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70 mb-1">Today is</p>
         <h2 className="font-serif font-bold text-3xl leading-tight">
-          {DAY_ES_LONG[todayDow]} {today.getDate()} de {MONTH_ES[today.getMonth()]}
+          {DAY_ES_LONG[todayDow]}, {MONTH_ES[today.getMonth()]} {today.getDate()}
         </h2>
         <p className="text-sm opacity-80 mt-1">
           {todaysClasses.length === 0
-            ? 'No tienes clases programadas hoy.'
-            : `${todaysClasses.length} clase${todaysClasses.length === 1 ? '' : 's'} programada${todaysClasses.length === 1 ? '' : 's'}.`}
+            ? 'No classes scheduled today.'
+            : `${todaysClasses.length} class${todaysClasses.length === 1 ? '' : 'es'} scheduled.`}
         </p>
       </div>
 
@@ -61,8 +61,8 @@ export default function TodayTab({ teacherId }: { teacherId: string }) {
       {todaysClasses.length === 0 ? (
         <div className="bg-white rounded-2xl border-2 border-dashed border-[#E0C8F0] p-10 text-center">
           <Coffee className="w-12 h-12 mx-auto mb-3 text-gray-300" strokeWidth={2} />
-          <p className="text-sm font-semibold text-[#5A3D7A]">Día libre.</p>
-          <p className="text-xs text-gray-400 mt-1">Aprovecha para preparar contenido en el Kanban.</p>
+          <p className="text-sm font-semibold text-[#5A3D7A]">Day off.</p>
+          <p className="text-xs text-gray-400 mt-1">Use the time to prep content in the Kanban.</p>
         </div>
       ) : (
         <div className="space-y-3">

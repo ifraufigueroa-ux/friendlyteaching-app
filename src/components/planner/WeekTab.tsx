@@ -16,15 +16,15 @@ function mondayOf(date: Date): Date {
 }
 
 const DAYS = [
-  { dow: 1, label: 'Lunes'     },
-  { dow: 2, label: 'Martes'    },
-  { dow: 3, label: 'Miércoles' },
-  { dow: 4, label: 'Jueves'    },
-  { dow: 5, label: 'Viernes'   },
-  { dow: 6, label: 'Sábado'    },
+  { dow: 1, label: 'Monday'    },
+  { dow: 2, label: 'Tuesday'   },
+  { dow: 3, label: 'Wednesday' },
+  { dow: 4, label: 'Thursday'  },
+  { dow: 5, label: 'Friday'    },
+  { dow: 6, label: 'Saturday'  },
 ];
 
-const MONTH_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MONTH_ES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function WeekTab({ teacherId }: { teacherId: string }) {
   const today = useMemo(() => new Date(), []);
@@ -66,12 +66,12 @@ export default function WeekTab({ teacherId }: { teacherId: string }) {
     <div className="p-6 space-y-4">
       {/* Week hero */}
       <div className="bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] rounded-3xl p-5 text-white shadow-lg">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70 mb-1">Semana del</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70 mb-1">Week of</p>
         <h2 className="font-serif font-bold text-3xl leading-tight">
-          {weekStart.getDate()} de {MONTH_ES[weekStart.getMonth()]} — {dateFor(6).getDate()} de {MONTH_ES[dateFor(6).getMonth()]}
+          {MONTH_ES[weekStart.getMonth()]} {weekStart.getDate()} — {MONTH_ES[dateFor(6).getMonth()]} {dateFor(6).getDate()}
         </h2>
         <p className="text-sm opacity-80 mt-1">
-          {totalWeek} clase{totalWeek === 1 ? '' : 's'} programada{totalWeek === 1 ? '' : 's'} esta semana.
+          {totalWeek} class{totalWeek === 1 ? '' : 'es'} scheduled this week.
         </p>
       </div>
 
@@ -92,17 +92,17 @@ export default function WeekTab({ teacherId }: { teacherId: string }) {
                 </span>
                 {isToday && (
                   <span className="text-[9px] font-bold uppercase tracking-widest bg-[#5A3D7A] text-white px-2 py-0.5 rounded-full">
-                    Hoy
+                    Today
                   </span>
                 )}
               </div>
               <span className="text-[10px] font-bold text-gray-400">
-                {classes.length} clase{classes.length === 1 ? '' : 's'}
+                {classes.length} class{classes.length === 1 ? '' : 'es'}
               </span>
             </div>
             {classes.length === 0 ? (
               <div className="px-4 py-3 text-[11px] text-gray-300 italic text-center">
-                Sin clases
+                No classes
               </div>
             ) : (
               <div className="p-3 space-y-2">
