@@ -34,13 +34,13 @@ import TopBar from '@/components/layout/TopBar';
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
 const LEVEL_DESC: Record<string, string> = {
-  A0: 'Principiante absoluto',
-  A1: 'Principiante',
-  A2: 'Básico',
-  B1: 'Intermedio',
-  'B1+': 'Intermedio alto',
-  B2: 'Intermedio avanzado',
-  C1: 'Avanzado',
+  A0: 'Absolute beginner',
+  A1: 'Beginner',
+  A2: 'Elementary',
+  B1: 'Intermediate',
+  'B1+': 'Upper intermediate',
+  B2: 'Advanced intermediate',
+  C1: 'Advanced',
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -53,8 +53,8 @@ const LEVEL_COLORS: Record<string, string> = {
   C1: 'bg-purple-100 text-purple-700',
 };
 
-const DAY_SHORT = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const DAY_FULL  = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_SHORT = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_FULL  = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function toWhatsAppUrl(phone: string): string {
   // Strip everything except digits; opens the conversation in WhatsApp Web
@@ -112,13 +112,13 @@ function ApproveModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-        <h2 className="text-lg font-bold text-[#5A3D7A] mb-1">Aprobar estudiante</h2>
+        <h2 className="text-lg font-bold text-[#5A3D7A] mb-1">Approve student</h2>
         <p className="text-sm text-gray-500 mb-5">
-          Asigna el nivel de <strong>{student.fullName}</strong> antes de aprobar.
+          Assign a level for <strong>{student.fullName}</strong> before approving.
         </p>
         <div className="space-y-2 mb-5">
           <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-            Nivel de inglés
+            English level
           </label>
           {LEVELS.map((l) => (
             <button
@@ -143,14 +143,14 @@ function ApproveModal({
             onClick={onClose}
             className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-bold disabled:opacity-50"
           >
-            {loading ? 'Aprobando...' : 'Aprobar'}
+            {loading ? 'Approving…' : 'Approve'}
           </button>
         </div>
       </div>
@@ -260,7 +260,7 @@ function EditStudentModal({
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              {t === 'info' ? 'Información' : t === 'schedule' ? 'Horario' : t === 'level' ? 'Nivel' : <span className="inline-flex items-center gap-1"><Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Links</span>}
+              {t === 'info' ? 'Info' : t === 'schedule' ? 'Schedule' : t === 'level' ? 'Level' : <span className="inline-flex items-center gap-1"><Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Links</span>}
             </button>
           ))}
         </div>
@@ -271,13 +271,13 @@ function EditStudentModal({
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Nombre completo
+                  Full name
                 </label>
                 <input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
-                  placeholder="Nombre completo"
+                  placeholder="Full name"
                 />
               </div>
               <div>
@@ -292,7 +292,7 @@ function EditStudentModal({
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Teléfono
+                  Phone
                 </label>
                 <input
                   value={phone}
@@ -303,14 +303,14 @@ function EditStudentModal({
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                  Notas internas
+                  Internal notes
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8] resize-none"
-                  placeholder="Notas sobre el estudiante (solo visibles para ti)"
+                  placeholder="Notes about the student (visible only to you)"
                 />
               </div>
             </div>
@@ -319,7 +319,7 @@ function EditStudentModal({
           {tab === 'platforms' && (
             <div className="space-y-4">
               <p className="text-xs text-gray-400 leading-relaxed">
-                Pega aquí los links de acceso directo de este estudiante a cada plataforma. Aparecerán como botones en su dashboard.
+                Paste this student's direct-access links for each platform here. They'll appear as buttons in their dashboard.
               </p>
               {([
                 { key: 'off2class', label: 'Off2Class', placeholder: 'https://app.off2class.com/...', color: '#1E40AF', val: off2classUrl, set: setOff2classUrl },
@@ -340,7 +340,7 @@ function EditStudentModal({
                   {val && (
                     <a href={val} target="_blank" rel="noopener noreferrer"
                       className="text-[10px] text-[#9B7CB8] hover:underline mt-0.5 block">
-                      Verificar link →
+                      Open link →
                     </a>
                   )}
                 </div>
@@ -352,7 +352,7 @@ function EditStudentModal({
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  Clases recurrentes vinculadas
+                  Linked recurring classes
                 </p>
                 {scheduleSlots.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -369,17 +369,17 @@ function EditStudentModal({
                       ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">No hay clases vinculadas por ID.</p>
+                  <p className="text-sm text-gray-400 italic">No classes linked by ID.</p>
                 )}
               </div>
 
               {unlinkedSlots.length > 0 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                   <p className="text-xs font-bold text-amber-700 mb-1">
-                    Clases por nombre (sin vincular)
+                    Classes by name (not linked)
                   </p>
                   <p className="text-xs text-amber-600 mb-3">
-                    Se encontraron {unlinkedSlots.length} horario{unlinkedSlots.length !== 1 ? 's' : ''} con el nombre &ldquo;{student.fullName}&rdquo; que aún no están vinculados al perfil.
+                    Found {unlinkedSlots.length} slot{unlinkedSlots.length !== 1 ? 's' : ''} with the name &ldquo;{student.fullName}&rdquo; not yet linked to the profile.
                   </p>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {unlinkedSlots
@@ -393,7 +393,7 @@ function EditStudentModal({
                   </div>
                   {linkedCount > 0 ? (
                     <p className="text-xs text-green-700 font-semibold inline-flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedCount} reserva{linkedCount !== 1 ? 's' : ''} vinculada{linkedCount !== 1 ? 's' : ''} correctamente.
+                      <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> {linkedCount} booking{linkedCount !== 1 ? 's' : ''} linked successfully.
                     </p>
                   ) : (
                     <button
@@ -401,7 +401,7 @@ function EditStudentModal({
                       disabled={linking}
                       className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold disabled:opacity-50 transition-colors"
                     >
-                      {linking ? 'Vinculando...' : 'Vincular clases al perfil'}
+                      {linking ? 'Linking…' : 'Link classes to profile'}
                     </button>
                   )}
                 </div>
@@ -409,8 +409,8 @@ function EditStudentModal({
 
               {scheduleSlots.length === 0 && unlinkedSlots.length === 0 && (
                 <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-gray-400">Este estudiante no tiene clases recurrentes.</p>
-                  <p className="text-xs text-gray-300 mt-1">Ve al Planner para asignar horarios.</p>
+                  <p className="text-sm text-gray-400">This student has no recurring classes.</p>
+                  <p className="text-xs text-gray-300 mt-1">Go to Planner to assign slots.</p>
                 </div>
               )}
             </div>
@@ -418,7 +418,7 @@ function EditStudentModal({
 
           {tab === 'level' && (
             <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Nivel de inglés</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">English level</p>
               {LEVELS.map((l) => (
                 <button
                   key={l}
@@ -446,14 +446,14 @@ function EditStudentModal({
             onClick={onClose}
             className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-full text-sm font-bold disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       </div>
@@ -476,7 +476,7 @@ function PendingCard({
   const [rejecting,   setRejecting]   = useState(false);
 
   async function handleReject() {
-    if (!confirm(`¿Rechazar a ${student.fullName}?`)) return;
+    if (!confirm(`Reject ${student.fullName}?`)) return;
     setRejecting(true);
     try { await rejectStudent(student.uid); }
     finally { setRejecting(false); }
@@ -497,7 +497,7 @@ function PendingCard({
             </div>
           </div>
           <span className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-            Pendiente
+            Pending
           </span>
         </div>
         <div className="flex gap-2">
@@ -505,14 +505,14 @@ function PendingCard({
             onClick={() => setShowApprove(true)}
             className="flex-1 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-xs font-bold transition-colors"
           >
-            Aprobar
+            Approve
           </button>
           <button
             onClick={handleReject}
             disabled={rejecting}
             className="flex-1 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-full text-xs font-semibold transition-colors disabled:opacity-50"
           >
-            Rechazar
+            Reject
           </button>
         </div>
       </div>
@@ -554,9 +554,9 @@ function StudentRow({
 
   async function handleArchive() {
     if (!confirm(
-      `¿Archivar a ${student.fullName}?\n\n` +
-      `Se moverá a la papelera y se cancelarán todas sus clases recurrentes en el horario. ` +
-      `Los datos se conservan y podrás restaurarlo cuando quieras (las clases se cancelan, no se borran).`
+      `Archive ${student.fullName}?\n\n` +
+      `They'll be moved to trash and all their recurring classes will be cancelled. ` +
+      `Data is kept and you can restore them any time (classes are cancelled, not deleted).`
     )) return;
     setArchiving(true);
     try {
@@ -566,10 +566,10 @@ function StudentRow({
         name: student.fullName,
       });
       if (res.bookingsCancelled > 0) {
-        alert(`${student.fullName} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+        alert(`${student.fullName} archived.\n${res.bookingsCancelled} class${res.bookingsCancelled === 1 ? '' : 'es'} cancelled from the schedule.`);
       }
     } catch (e) {
-      alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
+      alert('Archive error: ' + (e instanceof Error ? e.message : String(e)));
       // Fallback to plain archive if the batch failed but the user is
       // already flipped — keeps the row from getting stuck.
       try { await archiveStudent(student.uid); } catch { /* noop */ }
@@ -631,11 +631,11 @@ function StudentRow({
                   </span>
                 ))}
               <span className="px-2 py-0.5 bg-amber-50 text-amber-500 text-xs rounded-full border border-amber-200 whitespace-nowrap inline-flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" strokeWidth={2.5} /> Sin vincular
+                <AlertTriangle className="w-3 h-3" strokeWidth={2.5} /> Not linked
               </span>
             </>
           ) : (
-            <span className="text-xs text-gray-300 italic">Sin horario</span>
+            <span className="text-xs text-gray-300 italic">No schedule</span>
           )}
         </div>
 
@@ -658,29 +658,29 @@ function StudentRow({
           <button
             onClick={() => setShowAssign(true)}
             className="px-3 py-1.5 bg-[#E0F2FE] hover:bg-[#BAE6FD] text-[#0369A1] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1"
-            title="Asignar material (FT o externo)"
+            title="Assign material (FT or external)"
           >
-            <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Asignar
+            <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Assign
           </button>
           <button
             onClick={() => setShowEdit(true)}
             className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
-            title="Editar estudiante"
+            title="Edit student"
           >
-            Editar
+            Edit
           </button>
           <button
             onClick={() => setShowDetail(true)}
             className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-full text-xs font-semibold transition-colors"
-            title="Ver análisis"
+            title="View analytics"
           >
-            Análisis
+            Analytics
           </button>
           <button
             onClick={handleArchive}
             disabled={archiving}
             className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
-            title="Mover a papelera"
+            title="Move to trash"
           >
             <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
           </button>
@@ -738,16 +738,16 @@ function ScheduleOnlyRow({
 
   async function handleArchive() {
     if (!confirm(
-      `¿Archivar a ${name}?\n\n` +
-      `Se cancelarán todas sus clases recurrentes en el horario. ` +
-      `Como no tiene cuenta registrada, esto solo afecta al horario (los datos de las clases se conservan cancelados).`
+      `Archive ${name}?\n\n` +
+      `All their recurring classes will be cancelled from the schedule. ` +
+      `Since there's no registered account, this only affects the schedule (class data is kept as cancelled).`
     )) return;
     setArchiving(true);
     try {
       const res = await archiveStudentEverywhere({ teacherId, name });
-      alert(`${name} archivado.\n${res.bookingsCancelled} clase${res.bookingsCancelled === 1 ? '' : 's'} cancelada${res.bookingsCancelled === 1 ? '' : 's'} del horario.`);
+      alert(`${name} archived.\n${res.bookingsCancelled} class${res.bookingsCancelled === 1 ? '' : 'es'} cancelled from the schedule.`);
     } catch (e) {
-      alert('Error al archivar: ' + (e instanceof Error ? e.message : String(e)));
+      alert('Archive error: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setArchiving(false);
     }
@@ -760,7 +760,7 @@ function ScheduleOnlyRow({
       </div>
       <div className="min-w-0 w-40 flex-shrink-0">
         <p className="font-semibold text-gray-700 text-sm truncate">{name}</p>
-        <p className="text-[10px] text-gray-400 italic">Sin cuenta registrada</p>
+        <p className="text-[10px] text-gray-400 italic">No account yet</p>
       </div>
       <div className="flex-shrink-0 w-20">
         <span className="text-xs text-gray-300">—</span>
@@ -779,15 +779,15 @@ function ScheduleOnlyRow({
         <button
           onClick={() => onCreate(name)}
           className="px-3 py-1.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-bold transition-colors"
-          title="Crear cuenta para este estudiante"
+          title="Create account for this student"
         >
-          ＋ Crear cuenta
+          ＋ Create account
         </button>
         <button
           onClick={handleArchive}
           disabled={archiving}
           className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
-          title="Archivar y cancelar clases del horario"
+          title="Archive and cancel schedule classes"
         >
           <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
         </button>
@@ -840,16 +840,16 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
   async function handleSubmit() {
     setError(null);
     const e = email.trim().toLowerCase();
-    if (!fullName.trim() || fullName.trim().length < 2) { setError('Nombre completo requerido'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))           { setError('Email inválido'); return; }
-    if (password.length < 6)                              { setError('Password mínimo 6 caracteres'); return; }
+    if (!fullName.trim() || fullName.trim().length < 2) { setError('Full name required'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))           { setError('Invalid email'); return; }
+    if (password.length < 6)                              { setError('Password must be at least 6 characters'); return; }
 
     setSaving(true);
     try {
       await createStudent({ email: e, fullName: fullName.trim(), password, phone: phone.trim(), level });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error inesperado');
+      setError(err instanceof Error ? err.message : 'Unexpected error');
     } finally {
       setSaving(false);
     }
@@ -860,8 +860,8 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-[#5A3D7A]">Crear estudiante</h2>
-            <p className="text-xs text-gray-400">Le crearás la cuenta con una contraseña temporal.</p>
+            <h2 className="text-lg font-bold text-[#5A3D7A]">Create student</h2>
+            <p className="text-xs text-gray-400">You'll create their account with a temporary password.</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -873,13 +873,13 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
         <div className="overflow-y-auto p-5 flex-1 space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-              Nombre completo *
+              Full name *
             </label>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
-              placeholder="Nombre y apellido"
+              placeholder="First and last name"
               autoFocus
             />
           </div>
@@ -892,24 +892,24 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
-              placeholder="estudiante@ejemplo.com"
+              placeholder="student@example.com"
               autoComplete="off"
             />
           </div>
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-              Teléfono
+              Phone
             </label>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8]"
-              placeholder="+56 9 1234 5678 (opcional)"
+              placeholder="+56 9 1234 5678 (optional)"
             />
           </div>
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">
-              Contraseña temporal *
+              Temporary password *
             </label>
             <div className="flex gap-2">
               <input
@@ -917,14 +917,14 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#9B7CB8] font-mono"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="At least 6 characters"
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd((v) => !v)}
                 className="px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-500 hover:bg-gray-50"
-                title={showPwd ? 'Ocultar' : 'Mostrar'}
+                title={showPwd ? 'Hide' : 'Show'}
               >
                 {showPwd ? <EyeOff className="w-4 h-4" strokeWidth={2.25} /> : <Eye className="w-4 h-4" strokeWidth={2.25} />}
               </button>
@@ -933,16 +933,16 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
                 onClick={genPassword}
                 className="px-3 py-2 border border-[#C8A8DC] text-[#5A3D7A] rounded-xl text-xs font-bold hover:bg-[#F0E5FF]"
               >
-                Generar
+                Generate
               </button>
             </div>
             <p className="text-[11px] text-gray-400 mt-1">
-              El estudiante recibirá esta contraseña por email para iniciar sesión.
+              The student will receive this password by email to sign in.
             </p>
           </div>
           <div>
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">
-              Nivel inicial
+              Initial level
             </label>
             <div className="grid grid-cols-4 gap-2">
               {LEVELS.map((l) => (
@@ -976,14 +976,14 @@ function CreateStudentModal({ onClose }: { onClose: () => void }) {
             disabled={saving}
             className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-semibold text-gray-500 hover:bg-gray-50 disabled:opacity-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={saving}
             className="flex-1 py-2.5 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-sm font-bold disabled:opacity-50"
           >
-            {saving ? 'Creando…' : 'Crear cuenta'}
+            {saving ? 'Creating…' : 'Create account'}
           </button>
         </div>
       </div>
@@ -1006,7 +1006,7 @@ export default function StudentsPage() {
     const unsub = onAuthStateChanged(auth, (user) => setTeacherId(user?.uid ?? ''));
     return () => unsub();
   }, []);
-  const teacherName = profile?.fullName ?? 'Tu profesor';
+  const teacherName = profile?.fullName ?? 'Your teacher';
 
   const { students, pendingStudents, archivedStudents, loading, error } = useStudents();
   const { requests: bookingRequests, approveRequest, rejectRequest } = useBookingRequests();
@@ -1089,13 +1089,13 @@ export default function StudentsPage() {
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 shadow-sm text-center max-w-md">
           <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3" strokeWidth={2.25} />
-          <p className="text-red-600 font-semibold mb-2">Error al cargar</p>
+          <p className="text-red-600 font-semibold mb-2">Failed to load</p>
           <p className="text-sm text-gray-500 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-[#C8A8DC] text-white rounded-full text-sm font-bold"
           >
-            Recargar página
+            Reload page
           </button>
         </div>
       </div>
@@ -1108,11 +1108,11 @@ export default function StudentsPage() {
   return (
     <div className="min-h-screen">
       <TopBar
-        title="Estudiantes"
-        subtitle={`${totalActive} activo${totalActive !== 1 ? 's' : ''}${pendingStudents.length ? ` · ${pendingStudents.length} pendiente${pendingStudents.length !== 1 ? 's' : ''}` : ''}`}
+        title="Students"
+        subtitle={`${totalActive} active${pendingStudents.length ? ` · ${pendingStudents.length} pending` : ''}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Estudiantes' },
+          { label: 'Students' },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -1120,7 +1120,7 @@ export default function StudentsPage() {
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-3 py-2 bg-[#A8E6A1] hover:bg-[#8DD67E] text-[#2D6E2A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
             >
-              ＋ Crear estudiante
+              ＋ Create student
             </button>
             <a
               href="/book"
@@ -1128,7 +1128,7 @@ export default function StudentsPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-2 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors flex-shrink-0"
             >
-              <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Página de reserva
+              <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Booking page
             </a>
           </div>
         }
@@ -1140,30 +1140,30 @@ export default function StudentsPage() {
       <div className="max-w-5xl mx-auto mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatChip
           icon={<Users className="w-5 h-5" strokeWidth={2.25} />}
-          label="Estudiantes activos"
+          label="Active students"
           value={totalActive}
-          sub={`${activeRegistered.length} registrados${scheduleOnlyNames.length ? ` · ${scheduleOnlyNames.length} en horario` : ''}`}
+          sub={`${activeRegistered.length} registered${scheduleOnlyNames.length ? ` · ${scheduleOnlyNames.length} on schedule` : ''}`}
           color="#C8A8DC"
         />
         <StatChip
           icon={<CheckCircle2 className="w-5 h-5" strokeWidth={2.25} />}
-          label="Realizadas"
+          label="Attended"
           value={attendanceStats.attended}
-          sub="últimos 30 días"
+          sub="last 30 days"
           color="#5EAE55"
         />
         <StatChip
           icon={<XCircle className="w-5 h-5" strokeWidth={2.25} />}
-          label="Ausencias"
+          label="No shows"
           value={attendanceStats.absent}
-          sub="últimos 30 días"
+          sub="last 30 days"
           color="#D04545"
         />
         <StatChip
           icon={<BarChart3 className="w-5 h-5" strokeWidth={2.25} />}
-          label="% asistencia"
+          label="Attendance %"
           value={attendanceStats.total > 0 ? `${attendanceStats.pct}%` : '—'}
-          sub={attendanceStats.total > 0 ? `${attendanceStats.total} clases` : 'sin datos aún'}
+          sub={attendanceStats.total > 0 ? `${attendanceStats.total} classes` : 'no data yet'}
           color="#FFE8A8"
         />
       </div>
@@ -1174,7 +1174,7 @@ export default function StudentsPage() {
         {bookingRequests.length > 0 && (
           <section>
             <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">
-              Solicitudes de reserva online ({bookingRequests.length})
+              Online booking requests ({bookingRequests.length})
             </h2>
             <div className="space-y-3">
               {bookingRequests.map((req) => (
@@ -1186,9 +1186,9 @@ export default function StudentsPage() {
                       {req.studentPhone && <p className="text-xs text-gray-400 inline-flex items-center gap-1"><Smartphone className="w-3 h-3" strokeWidth={2.5} /> {req.studentPhone}</p>}
                       <p className="text-xs text-blue-600 font-semibold mt-1">
                         {DAY_FULL[req.requestedDow]} · {req.requestedHour}:00
-                        {req.isRecurring ? ' · Recurrente' : ''}
+                        {req.isRecurring ? ' · Recurring' : ''}
                       </p>
-                      {req.currentLevel && <p className="text-xs text-gray-400">Nivel: {req.currentLevel}</p>}
+                      {req.currentLevel && <p className="text-xs text-gray-400">Level: {req.currentLevel}</p>}
                       {req.message && (
                         <p className="text-xs text-gray-500 italic mt-1">&ldquo;{req.message}&rdquo;</p>
                       )}
@@ -1198,13 +1198,13 @@ export default function StudentsPage() {
                         onClick={() => approveRequest(req)}
                         className="py-1.5 px-3 bg-green-100 hover:bg-green-200 text-green-700 rounded-full text-xs font-bold transition-colors"
                       >
-                        Aprobar
+                        Approve
                       </button>
                       <button
                         onClick={() => rejectRequest(req.id)}
                         className="py-1.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-full text-xs font-semibold transition-colors"
                       >
-                        Rechazar
+                        Reject
                       </button>
                     </div>
                   </div>
@@ -1218,7 +1218,7 @@ export default function StudentsPage() {
         {pendingStudents.length > 0 && (
           <section>
             <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">
-              Solicitudes pendientes ({pendingStudents.length})
+              Pending requests ({pendingStudents.length})
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {pendingStudents.map((s) => (
@@ -1237,13 +1237,13 @@ export default function StudentsPage() {
         <section>
           <div className="flex items-center justify-between mb-3 gap-3">
             <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider flex-shrink-0">
-              Estudiantes activos ({filteredStudents.length})
+              Active students ({filteredStudents.length})
             </h2>
             {students.length > 0 && (
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nombre, email o teléfono…"
+                placeholder="Search by name, email, or phone…"
                 className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#9B7CB8] w-full max-w-xs"
               />
             )}
@@ -1252,29 +1252,29 @@ export default function StudentsPage() {
           {activeRegistered.length === 0 && scheduleOnlyNames.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
               <Users className="w-10 h-10 text-[#C8A8DC] mx-auto mb-3" strokeWidth={2.25} />
-              <p className="text-gray-500 text-sm">No tienes estudiantes activos en el horario aún.</p>
+              <p className="text-gray-500 text-sm">No active students on the schedule yet.</p>
               <p className="text-xs text-gray-400 mt-2 max-w-xs mx-auto leading-relaxed">
-                Agenda una clase recurrente en el <strong>Planner</strong> o crea la cuenta desde aquí. Los estudiantes aparecerán en esta lista automáticamente.
+                Schedule a recurring class in the <strong>Planner</strong> or create an account here. Students will appear in this list automatically.
               </p>
             </div>
           ) : filteredStudents.length === 0 && search.trim() ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-              <p className="text-gray-400 text-sm">No hay coincidencias para &ldquo;{search}&rdquo;</p>
+              <p className="text-gray-400 text-sm">No matches for &ldquo;{search}&rdquo;</p>
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-dashed border-[#E0C8F0]">
-              <p className="text-gray-500 text-sm">Todos tus estudiantes activos aparecen abajo como &ldquo;en horario sin registrar&rdquo;.</p>
-              <p className="text-xs text-gray-400 mt-1">Crea sus cuentas para verlos aquí.</p>
+              <p className="text-gray-500 text-sm">All your active students appear below as &ldquo;on schedule, no account&rdquo;.</p>
+              <p className="text-xs text-gray-400 mt-1">Create their accounts to see them here.</p>
             </div>
           ) : (
             <>
               {/* Column headers */}
               <div className="hidden md:grid grid-cols-[40px_160px_80px_1fr_auto] gap-3 px-4 mb-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
                 <span />
-                <span>Estudiante</span>
-                <span>Nivel</span>
-                <span>Horario recurrente</span>
-                <span className="text-right">Acciones</span>
+                <span>Student</span>
+                <span>Level</span>
+                <span>Recurring schedule</span>
+                <span className="text-right">Actions</span>
               </div>
 
               <div className="space-y-2">
@@ -1296,7 +1296,7 @@ export default function StudentsPage() {
         {scheduleOnlyNames.length > 0 && (
           <section>
             <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-3">
-              En horario sin registrar ({scheduleOnlyNames.length})
+              On schedule, no account ({scheduleOnlyNames.length})
             </h2>
             <div className="space-y-2">
               {scheduleOnlyNames.map(({ name, slots }) => (
@@ -1319,7 +1319,7 @@ export default function StudentsPage() {
               onClick={() => setShowArchived((v) => !v)}
               className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider transition-colors"
             >
-              <span className="inline-flex items-center gap-1.5"><Trash2 className="w-4 h-4" strokeWidth={2.25} /> Papelera ({archivedStudents.length})</span>
+              <span className="inline-flex items-center gap-1.5"><Trash2 className="w-4 h-4" strokeWidth={2.25} /> Trash ({archivedStudents.length})</span>
               <span className="text-xs">{showArchived ? '▲' : '▼'}</span>
             </button>
 
@@ -1347,9 +1347,9 @@ export default function StudentsPage() {
                       <button
                         onClick={async () => { await restoreStudent(s.uid); }}
                         className="flex-shrink-0 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-full text-xs font-bold transition-colors"
-                        title="Restaurar estudiante"
+                        title="Restore student"
                       >
-                        ↩ Restaurar
+                        ↩ Restore
                       </button>
                     </div>
                   );
