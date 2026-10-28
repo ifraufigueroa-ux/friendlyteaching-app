@@ -4,8 +4,8 @@ const INTERNAL_TOOLS = [
   {
     href:        '/dashboard/teacher/tools/whiteboard',
     icon:        '🖊️',
-    title:       'Pizarra',
-    description: 'Dibuja, escribe y explica conceptos con lápiz, formas y texto. Exporta como PNG.',
+    title:       'Whiteboard',
+    description: 'Draw, write, and explain concepts with pen, shapes, and text. Export as PNG.',
     gradient:    'from-[#7B5EA7] to-[#9B7CB8]',
     glow:        'shadow-[#C8A8DC]/30',
     badge:       null,
@@ -14,16 +14,16 @@ const INTERNAL_TOOLS = [
     href:        '/dashboard/teacher/music',
     icon:        '🎵',
     title:       'Friendlyrics®',
-    description: 'Crea lecciones de inglés basadas en canciones reales. Busca una canción, genera ejercicios con IA y asígnalos.',
+    description: 'Build English lessons around real songs. Search a track, generate exercises with AI, and assign them.',
     gradient:    'from-[#EC4899] to-[#F472B6]',
     glow:        'shadow-pink-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/friendlyflix',
     icon:        '🎬',
     title:       'Friendlyflix®',
-    description: 'Crea lecciones con clips de series y películas en YouTube. Diálogo con huecos sincronizado con el video.',
+    description: 'Build lessons around YouTube clips from TV and movies. Gap-fill dialogue synced to the video.',
     gradient:    'from-[#E50914] to-[#FF6B6B]',
     glow:        'shadow-red-200/40',
     badge:       'Beta',
@@ -32,7 +32,7 @@ const INTERNAL_TOOLS = [
     href:        '/dashboard/teacher/texts',
     icon:        '📖',
     title:       'FriendlyTales®',
-    description: 'Pega un texto (artículo, diálogo, script). Opcionalmente añade audio de YouTube o genera TTS con ElevenLabs. IA arma el deck CLT de 10 slides.',
+    description: 'Paste a text (article, dialogue, script). Optionally add YouTube audio or generate TTS with ElevenLabs. AI builds the 10-slide CLT deck.',
     gradient:    'from-[#1B2C3F] to-[#4B6A85]',
     glow:        'shadow-slate-200/40',
     badge:       'Beta',
@@ -41,82 +41,82 @@ const INTERNAL_TOOLS = [
     href:        '/dashboard/teacher/ielts',
     icon:        '🇬🇧',
     title:       'IELTS GT Simulator',
-    description: 'Simulacro completo de IELTS General Training: Listening + Reading + Writing + Speaking. Presets por escenario de clase, band scoring 0–9 y AI grading para Writing.',
+    description: 'Full IELTS General Training mock: Listening + Reading + Writing + Speaking. Class presets, 0–9 band scoring, and AI grading for Writing.',
     gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
     glow:        'shadow-[#C8A8DC]/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/ielts-beginners',
     icon:        '🌱',
     title:       'IELTS GT Beginners',
-    description: 'Versión A2 del simulacro: audios cortos (~2 min), velocidad 0.85x, vocabulario simple. Para alumnos que recién arrancan con el examen.',
+    description: 'A2 version of the mock: short audio (~2 min), 0.85x speed, simple vocabulary. For students just starting the exam.',
     gradient:    'from-[#10B981] to-[#5A3D7A]',
     glow:        'shadow-emerald-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/ielts-intermediate',
     icon:        '🌿',
     title:       'IELTS GT Intermediate',
-    description: 'Versión B1/B2 del simulacro: 32 preguntas, audios de ~3 min por sección, velocidad 0.95x. Puente entre Beginners y el simulacro completo.',
+    description: 'B1/B2 version of the mock: 32 questions, ~3 min audio per section, 0.95x speed. The bridge between Beginners and the full mock.',
     gradient:    'from-[#3B82F6] to-[#5A3D7A]',
     glow:        'shadow-blue-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/ielts-upper-intermediate',
     icon:        '🌳',
     title:       'IELTS GT Upper-Intermediate',
-    description: 'Versión B2 del simulacro: 40 preguntas (volumen del examen real), velocidad natural 1.0x, todos los tipos de pregunta incluyendo plan-map y multi-select.',
+    description: 'B2 version of the mock: 40 questions (full exam volume), natural 1.0x speed, every question type including plan-map and multi-select.',
     gradient:    'from-[#A855F7] to-[#5A3D7A]',
     glow:        'shadow-purple-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/ielts-advanced',
     icon:        '🔥',
     title:       'IELTS GT Advanced',
-    description: 'Versión B2+/C1 del simulacro: densidad léxica y distractores del examen real, scripts más largos, preguntas mayormente inferenciales. Para band 7+.',
+    description: 'B2+/C1 version of the mock: real-exam lexical density and distractors, longer scripts, mostly inferential questions. For band 7+.',
     gradient:    'from-[#F43F5E] to-[#5A3D7A]',
     glow:        'shadow-rose-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',
-    description: 'Full mock TOEFL iBT: Reading, Listening, Speaking, Writing. Scoring 0-120 estilo ETS + AI grading para W y S.',
+    description: 'Full TOEFL iBT mock: Reading, Listening, Speaking, Writing. ETS-style 0–120 scoring + AI grading for W and S.',
     gradient:    'from-[#5A3D7A] to-[#9B7CB8]',
     glow:        'shadow-[#C8A8DC]/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/icao',
     icon:        '🛫',
     title:       'OACI Aviation English',
-    description: '8-etapa programa de preparación OACI Operational Level 4. Vocabulario, fraseología ATC, listening, non-routine y mock tests con audios ElevenLabs multi-voice.',
+    description: '8-stage ICAO Operational Level 4 prep program. Vocabulary, ATC phraseology, listening, non-routine, and mock tests with ElevenLabs multi-voice audio.',
     gradient:    'from-[#1E3A8A] to-[#5A3D7A]',
     glow:        'shadow-blue-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/tools/qa-simulator',
     icon:        '🎯',
     title:       'Q&A Simulator',
-    description: 'Simulación tipo foro internacional para defensas de tesis. Categorías, timer, racha y modo grabación.',
+    description: 'International-forum style simulation for thesis defenses. Categories, timer, streak, and recording mode.',
     gradient:    'from-[#10B981] to-[#34D399]',
     glow:        'shadow-emerald-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
   {
     href:        '/dashboard/teacher/tools/tongue-twisters',
     icon:        '👅',
     title:       'Random Tongue Twisters',
-    description: 'Ruleta de trabalenguas para warm-up de pronunciación. Filtros por sonido target (/r-l/, /th/, /s-sh/…), TTS integrado con speed control y contador de "say it 3× fast".',
+    description: 'Tongue-twister roulette for pronunciation warm-ups. Filters by target sound (/r-l/, /th/, /s-sh/…), built-in TTS with speed control, and a "say it 3× fast" counter.',
     gradient:    'from-[#F472B6] to-[#FB923C]',
     glow:        'shadow-pink-200/40',
-    badge:       'Nuevo',
+    badge:       'New',
   },
 ];
 
@@ -125,7 +125,7 @@ const EXTERNAL_TOOLS = [
     href:        'https://app.off2class.com/',
     icon:        '📚',
     title:       'Off2Class',
-    description: 'Gestiona tareas, ejercicios y progreso de tus estudiantes.',
+    description: 'Manage homework, exercises, and student progress.',
     gradient:    'from-[#F59E0B] to-[#FBBF24]',
     glow:        'shadow-amber-200/40',
   },
@@ -133,7 +133,7 @@ const EXTERNAL_TOOLS = [
     href:        'https://ellii.com',
     icon:        '🌐',
     title:       'Ellii',
-    description: 'Plataforma interactiva de práctica de inglés para tus alumnos.',
+    description: 'Interactive English practice platform for your students.',
     gradient:    'from-[#06B6D4] to-[#22D3EE]',
     glow:        'shadow-cyan-200/40',
   },
@@ -151,8 +151,8 @@ export default function ToolsPage() {
 
         <div className="relative max-w-4xl mx-auto">
           <p className="text-[#C8A8DC] text-xs font-bold uppercase tracking-widest mb-1">FriendlyTeaching.cl</p>
-          <h1 className="text-3xl font-extrabold text-white mb-1">Herramientas</h1>
-          <p className="text-white/60 text-sm">Todo lo que necesitas para tus clases, en un solo lugar.</p>
+          <h1 className="text-3xl font-extrabold text-white mb-1">Tools</h1>
+          <p className="text-white/60 text-sm">Everything you need for your classes, in one place.</p>
         </div>
       </div>
 
@@ -162,7 +162,7 @@ export default function ToolsPage() {
         <section>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#7B5EA7] to-[#C8A8DC] flex items-center justify-center text-white text-xs">✦</div>
-            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Nuestras herramientas</h2>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-widest">Our tools</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -192,7 +192,7 @@ export default function ToolsPage() {
                 </div>
 
                 <div className="flex items-center gap-1 text-xs font-semibold text-[#9B7CB8] group-hover:text-[#5A3D7A] mt-auto transition-colors">
-                  <span>Abrir</span>
+                  <span>Open</span>
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </div>
               </Link>
@@ -204,7 +204,7 @@ export default function ToolsPage() {
         <section>
           <div className="flex items-center gap-3 mb-5">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs">⎋</div>
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Plataformas externas</h2>
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">External platforms</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,7 +223,7 @@ export default function ToolsPage() {
                     {icon}
                   </div>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 border border-gray-200">
-                    externo ↗
+                    external ↗
                   </span>
                 </div>
 
@@ -233,7 +233,7 @@ export default function ToolsPage() {
                 </div>
 
                 <div className="flex items-center gap-1 text-xs font-semibold text-gray-400 group-hover:text-gray-600 mt-auto transition-colors">
-                  <span>Ir a plataforma</span>
+                  <span>Go to platform</span>
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </div>
               </a>

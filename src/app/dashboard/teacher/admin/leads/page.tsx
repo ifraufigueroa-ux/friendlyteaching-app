@@ -33,17 +33,17 @@ interface Lead {
 }
 
 const STATUS_META: Record<LeadStatus, { label: string; chip: string; dot: string }> = {
-  new:       { label: 'Nuevo',     chip: 'bg-violet-100 text-violet-700 border-violet-200', dot: 'bg-violet-500'   },
-  contacted: { label: 'Contactado', chip: 'bg-amber-100 text-amber-700 border-amber-200',   dot: 'bg-amber-500'    },
-  converted: { label: 'Convertido', chip: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  discarded: { label: 'Descartado', chip: 'bg-gray-100 text-gray-500 border-gray-200',     dot: 'bg-gray-400'     },
+  new:       { label: 'New',        chip: 'bg-violet-100 text-violet-700 border-violet-200', dot: 'bg-violet-500'   },
+  contacted: { label: 'Contacted',  chip: 'bg-amber-100 text-amber-700 border-amber-200',   dot: 'bg-amber-500'    },
+  converted: { label: 'Converted',  chip: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  discarded: { label: 'Discarded',  chip: 'bg-gray-100 text-gray-500 border-gray-200',     dot: 'bg-gray-400'     },
 };
 
 const NIVEL_LABEL: Record<string, string> = {
-  principiante: 'Principiante',
-  basico: 'Básico',
-  intermedio: 'Intermedio',
-  avanzado: 'Avanzado',
+  principiante: 'Beginner',
+  basico: 'Elementary',
+  intermedio: 'Intermediate',
+  avanzado: 'Advanced',
 };
 
 function digitsOnly(s: string): string {
@@ -53,7 +53,7 @@ function digitsOnly(s: string): string {
 function fmtDate(ts: Timestamp | null): string {
   if (!ts) return '—';
   const d = ts.toDate();
-  return d.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
+  return d.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export default function LeadsPage() {
@@ -113,7 +113,7 @@ export default function LeadsPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
+    if (!confirm('Delete this lead? This action can\'t be undone.')) return;
     await deleteDoc(doc(db, 'evaluationRequests', id));
   }
 
@@ -122,12 +122,12 @@ export default function LeadsPage() {
   if (!isAllowed) {
     return (
       <div className="flex flex-col h-full">
-        <TopBar title="Leads" subtitle="Solicitudes de evaluación gratuita" />
+        <TopBar title="Leads" subtitle="Free evaluation requests" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md text-center space-y-3">
             <Lock className="w-10 h-10 mx-auto text-gray-400" strokeWidth={2.25} />
-            <p className="font-bold text-gray-700">Acceso restringido</p>
-            <p className="text-sm text-gray-500">Esta sección solo está disponible para Ignacio y Aranxa.</p>
+            <p className="font-bold text-gray-700">Restricted access</p>
+            <p className="text-sm text-gray-500">This section is only available to Ignacio and Aranxa.</p>
           </div>
         </div>
       </div>
@@ -137,11 +137,11 @@ export default function LeadsPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Leads — Evaluaciones Gratuitas"
-        subtitle={`${counts.all} solicitudes en total · ${counts.new} sin contactar`}
+        title="Leads — Free Evaluations"
+        subtitle={`${counts.all} requests total · ${counts.new} not contacted`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Administración', href: '/dashboard/teacher/admin' },
+          { label: 'Administration', href: '/dashboard/teacher/admin' },
           { label: 'Leads' },
         ]}
       />
@@ -152,7 +152,7 @@ export default function LeadsPage() {
         <div className="flex flex-wrap gap-2">
           {(['all', 'new', 'contacted', 'converted', 'discarded'] as const).map(key => {
             const active = filter === key;
-            const label = key === 'all' ? 'Todos' : STATUS_META[key].label;
+            const label = key === 'all' ? 'All' : STATUS_META[key].label;
             return (
               <button
                 key={key}
@@ -173,7 +173,7 @@ export default function LeadsPage() {
         {loading && (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
             <div className="w-4 h-4 border-2 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
-            Cargando leads…
+            Loading leads…
           </div>
         )}
         {err && (
@@ -185,9 +185,9 @@ export default function LeadsPage() {
         {!loading && filtered.length === 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center space-y-2">
             <MailX className="w-10 h-10 mx-auto text-gray-400" strokeWidth={2.25} />
-            <p className="font-bold text-gray-700">Sin leads {filter !== 'all' && `en "${STATUS_META[filter].label}"`}</p>
+            <p className="font-bold text-gray-700">No leads {filter !== 'all' && `in "${STATUS_META[filter].label}"`}</p>
             <p className="text-sm text-gray-400">
-              Las nuevas solicitudes del formulario de la landing aparecerán aquí en tiempo real.
+              New submissions from the landing page form will appear here in real time.
             </p>
           </div>
         )}
@@ -209,13 +209,13 @@ export default function LeadsPage() {
                   <span className={`w-2 h-2 rounded-full flex-shrink-0 ${meta.dot}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-gray-800 text-sm truncate">{lead.nombre || '(Sin nombre)'}</p>
+                      <p className="font-bold text-gray-800 text-sm truncate">{lead.nombre || '(No name)'}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.chip}`}>
                         {meta.label}
                       </span>
                       {!lead.emailSent && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-red-50 text-red-600 border-red-100 inline-flex items-center gap-1" title={lead.emailError ?? ''}>
-                          <MailX className="w-3 h-3" strokeWidth={2.5} /> no enviado
+                          <MailX className="w-3 h-3" strokeWidth={2.5} /> not sent
                         </span>
                       )}
                       {lead.plan && (
@@ -238,20 +238,20 @@ export default function LeadsPage() {
                     {/* Details grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm pt-3">
                       <Field label="Email"      value={lead.email} />
-                      <Field label="Teléfono"   value={lead.telefono} />
-                      <Field label="Edad"       value={lead.edad} />
-                      <Field label="Nivel"      value={NIVEL_LABEL[lead.nivel] ?? lead.nivel} />
-                      <Field label="¿Cuándo comenzar?" value={lead.inicio} />
-                      <Field label="Plan seleccionado" value={lead.plan} />
+                      <Field label="Phone"      value={lead.telefono} />
+                      <Field label="Age"        value={lead.edad} />
+                      <Field label="Level"      value={NIVEL_LABEL[lead.nivel] ?? lead.nivel} />
+                      <Field label="When to start?" value={lead.inicio} />
+                      <Field label="Selected plan" value={lead.plan} />
                       {lead.objetivo && (
                         <div className="sm:col-span-2">
-                          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Objetivo</p>
+                          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Goal</p>
                           <p className="text-sm text-gray-700 bg-gray-50 rounded-xl px-3 py-2 whitespace-pre-wrap">{lead.objetivo}</p>
                         </div>
                       )}
                       {lead.emailError && (
                         <div className="sm:col-span-2">
-                          <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider mb-1">Error al enviar email</p>
+                          <p className="text-[11px] font-bold text-red-500 uppercase tracking-wider mb-1">Email send error</p>
                           <p className="text-xs text-red-600 bg-red-50 rounded-xl px-3 py-2 break-all">{lead.emailError}</p>
                         </div>
                       )}
@@ -271,17 +271,17 @@ export default function LeadsPage() {
                       )}
                       {lead.email && (
                         <a
-                          href={`mailto:${lead.email}?subject=${encodeURIComponent('FriendlyTeaching — Evaluación gratuita')}`}
+                          href={`mailto:${lead.email}?subject=${encodeURIComponent('FriendlyTeaching — Free evaluation')}`}
                           className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-white transition-colors inline-flex items-center gap-1.5"
                         >
-                          <Mail className="w-3.5 h-3.5" strokeWidth={2.5} /> Responder email
+                          <Mail className="w-3.5 h-3.5" strokeWidth={2.5} /> Reply by email
                         </a>
                       )}
                     </div>
 
                     {/* Status changer */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1">Estado:</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1">Status:</span>
                       {(Object.keys(STATUS_META) as LeadStatus[]).map(s => {
                         const active = lead.status === s;
                         const m = STATUS_META[s];
@@ -301,7 +301,7 @@ export default function LeadsPage() {
                         onClick={() => remove(lead.id)}
                         className="ml-auto px-3 py-1 rounded-full text-[11px] font-bold border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
                       >
-                        Eliminar
+                        Delete
                       </button>
                     </div>
                   </div>

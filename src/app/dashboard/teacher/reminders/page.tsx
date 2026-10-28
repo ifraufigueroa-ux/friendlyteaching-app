@@ -11,7 +11,7 @@ import { BASE_SCHEDULE, type ScheduleEntry } from '@/data/teacherSchedule';
 import TopBar from '@/components/layout/TopBar';
 import type { FTUser } from '@/types/firebase';
 
-const DAY_ES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_ES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // WhatsApp pre-filled message templates
 function buildWhatsAppMsg(
@@ -22,10 +22,10 @@ function buildWhatsAppMsg(
   hoursUntil: number,
 ): string {
   const when = hoursUntil <= 1
-    ? `en 1 hora (${hour}:00)`
-    : `mañana ${day} a las ${hour}:00`;
+    ? `in 1 hour (${hour}:00)`
+    : `tomorrow ${day} at ${hour}:00`;
   return encodeURIComponent(
-    `¡Hola ${studentName}! Te recuerdo que tenemos clase de inglés ${when}. ¡Nos vemos!\n— ${teacherName}`
+    `Hi ${studentName}! Just a reminder that we have English class ${when}. See you then!\n— ${teacherName}`
   );
 }
 
@@ -104,7 +104,7 @@ function ReminderRow({
         <div className="flex items-center gap-1 flex-shrink-0">
           {phone && <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" strokeWidth={2.5} /> WhatsApp</span>}
           {email && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</span>}
-          {!phone && !email && <span className="text-[10px] text-gray-400 italic">Sin contacto</span>}
+          {!phone && !email && <span className="text-[10px] text-gray-400 italic">No contact</span>}
         </div>
       </div>
 
@@ -112,7 +112,7 @@ function ReminderRow({
       <div className="grid grid-cols-2 gap-2">
         {/* 24h reminder */}
         <div className="space-y-1.5">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">24 horas antes</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">24 hours before</p>
           <div className="flex gap-1.5">
             {phone && (
               <a
@@ -134,7 +134,7 @@ function ReminderRow({
                     : 'bg-blue-50 hover:bg-blue-100 text-blue-700 disabled:opacity-50'
                 }`}
               >
-                {sent['email-24'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Enviado</> : sending24 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
+                {sent['email-24'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Sent</> : sending24 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
               </button>
             )}
           </div>
@@ -142,7 +142,7 @@ function ReminderRow({
 
         {/* 1h reminder */}
         <div className="space-y-1.5">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">1 hora antes</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">1 hour before</p>
           <div className="flex gap-1.5">
             {phone && (
               <a
@@ -164,7 +164,7 @@ function ReminderRow({
                     : 'bg-blue-50 hover:bg-blue-100 text-blue-700 disabled:opacity-50'
                 }`}
               >
-                {sent['email-1'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Enviado</> : sending1 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
+                {sent['email-1'] ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Sent</> : sending1 ? '...' : <><Mail className="w-3 h-3" strokeWidth={2.5} /> Email</>}
               </button>
             )}
           </div>
@@ -180,7 +180,7 @@ export default function RemindersPage() {
   const { profile } = useAuthStore();
   const { currentWeekStart } = useScheduleStore();
   const teacherId = profile?.uid ?? '';
-  const teacherName = profile?.fullName ?? 'Tu profesor';
+  const teacherName = profile?.fullName ?? 'Your teacher';
   const teacherEmail = profile?.email ?? '';
 
   const { students } = useStudents();
@@ -228,11 +228,11 @@ export default function RemindersPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Recordatorios"
-        subtitle="Envía recordatorios de clase por WhatsApp o email"
+        title="Reminders"
+        subtitle="Send class reminders via WhatsApp or email"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Recordatorios' },
+          { label: 'Reminders' },
         ]}
       />
 
@@ -242,11 +242,11 @@ export default function RemindersPage() {
         <div className="bg-[#F0E5FF] border border-[#C8A8DC] rounded-2xl px-4 py-3 flex items-start gap-3">
           <Lightbulb className="w-5 h-5 flex-shrink-0 text-[#5A3D7A] mt-0.5" strokeWidth={2.25} />
           <div className="text-xs text-[#5A3D7A]">
-            <p className="font-bold mb-1">Recordatorios manuales</p>
+            <p className="font-bold mb-1">Manual reminders</p>
             <p className="text-[#7A5A9A]">
-              Los botones de WhatsApp abren una conversación pre-redactada en tu app de WhatsApp.
-              Los botones de Email envían directamente usando Resend (requiere configurar RESEND_API_KEY).
-              Para recordatorios automáticos, configura un Cloud Function de Firebase.
+              WhatsApp buttons open a pre-written conversation in your WhatsApp app.
+              Email buttons send directly via Resend (requires RESEND_API_KEY).
+              For automated reminders, set up a Firebase Cloud Function.
             </p>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function RemindersPage() {
               onClick={() => setDayFilter(null)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${dayFilter === null ? 'bg-[#C8A8DC] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-[#C8A8DC]'}`}
             >
-              Esta semana ({upcoming.length})
+              This week ({upcoming.length})
             </button>
             {availableDays.map(d => (
               <button
@@ -278,7 +278,7 @@ export default function RemindersPage() {
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
             <PartyPopper className="w-10 h-10 mx-auto mb-3 text-[#C8A8DC]" strokeWidth={2} />
-            <p className="text-gray-500 text-sm">No hay más clases esta semana.</p>
+            <p className="text-gray-500 text-sm">No more classes this week.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -287,7 +287,7 @@ export default function RemindersPage() {
                 {/* Day separator */}
                 {(i === 0 || filtered[i - 1].dow !== entry.dow) && (
                   <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider mb-2 mt-3 first:mt-0">
-                    {DAY_ES[entry.dow]} {entry.dow === todayDow ? '· hoy' : ''}
+                    {DAY_ES[entry.dow]} {entry.dow === todayDow ? '· today' : ''}
                   </p>
                 )}
                 <ReminderRow
@@ -310,9 +310,9 @@ export default function RemindersPage() {
           if (missing.length === 0) return null;
           return (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <p className="text-xs font-bold text-amber-700 mb-1 inline-flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /> Estudiantes sin datos de contacto</p>
+              <p className="text-xs font-bold text-amber-700 mb-1 inline-flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} /> Students with no contact info</p>
               <p className="text-xs text-amber-600">
-                {missing.map(e => e.name).join(', ')} — pídeles que actualicen su perfil.
+                {missing.map(e => e.name).join(', ')} — ask them to update their profile.
               </p>
             </div>
           );

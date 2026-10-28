@@ -28,13 +28,13 @@ import type { LessonLevel } from '@/types/firebase';
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const SKILLS: { id: ActivitySkill; label: string; Icon: LucideIcon; color: string }[] = [
-  { id: 'vocabulary', label: 'Vocabulario',  Icon: BookOpen,      color: 'bg-blue-100 text-blue-700' },
-  { id: 'grammar',    label: 'Gramática',    Icon: Ruler,         color: 'bg-purple-100 text-purple-700' },
-  { id: 'reading',    label: 'Lectura',      Icon: BookMarked,    color: 'bg-sky-100 text-sky-700' },
-  { id: 'listening',  label: 'Escuchar',     Icon: Ear,           color: 'bg-pink-100 text-pink-700' },
-  { id: 'speaking',   label: 'Hablar',       Icon: MessageCircle, color: 'bg-orange-100 text-orange-700' },
-  { id: 'writing',    label: 'Escritura',    Icon: PenTool,       color: 'bg-green-100 text-green-700' },
-  { id: 'general',    label: 'General',      Icon: Sparkles,      color: 'bg-gray-100 text-gray-600' },
+  { id: 'vocabulary', label: 'Vocabulary',  Icon: BookOpen,      color: 'bg-blue-100 text-blue-700' },
+  { id: 'grammar',    label: 'Grammar',     Icon: Ruler,         color: 'bg-purple-100 text-purple-700' },
+  { id: 'reading',    label: 'Reading',     Icon: BookMarked,    color: 'bg-sky-100 text-sky-700' },
+  { id: 'listening',  label: 'Listening',   Icon: Ear,           color: 'bg-pink-100 text-pink-700' },
+  { id: 'speaking',   label: 'Speaking',    Icon: MessageCircle, color: 'bg-orange-100 text-orange-700' },
+  { id: 'writing',    label: 'Writing',     Icon: PenTool,       color: 'bg-green-100 text-green-700' },
+  { id: 'general',    label: 'General',     Icon: Sparkles,      color: 'bg-gray-100 text-gray-600' },
 ];
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
@@ -95,23 +95,23 @@ function ActivityFormModal({
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-          <h2 className="font-bold text-[#5A3D7A]">{initial ? 'Editar actividad' : 'Nueva actividad'}</h2>
+          <h2 className="font-bold text-[#5A3D7A]">{initial ? 'Edit activity' : 'New activity'}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"><X className="w-4 h-4" strokeWidth={2.25} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Title */}
           <div>
-            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Título *</label>
+            <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Title *</label>
             <input type="text" value={form.title} onChange={e => set('title', e.target.value)}
-              placeholder="Ej: Vocabulary bingo — Daily routines"
+              placeholder="E.g. Vocabulary bingo — Daily routines"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent" />
           </div>
 
           {/* Skill + Level */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Habilidad</label>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Skill</label>
               <select value={form.skill} onChange={e => set('skill', e.target.value as ActivitySkill)}
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]">
                 {SKILLS.map(s => (
@@ -120,10 +120,10 @@ function ActivityFormModal({
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Nivel</label>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Level</label>
               <select value={form.level} onChange={e => set('level', e.target.value as LessonLevel | '')}
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]">
-                <option value="">Todos los niveles</option>
+                <option value="">All levels</option>
                 {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
@@ -132,15 +132,15 @@ function ActivityFormModal({
           {/* Duration + Tags */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Duración (min)</label>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Duration (min)</label>
               <input type="number" value={form.duration} onChange={e => set('duration', e.target.value)}
                 placeholder="15"
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]" />
             </div>
             <div>
-              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Tags (separados por ,)</label>
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">Tags (comma-separated)</label>
               <input type="text" value={form.tags} onChange={e => set('tags', e.target.value)}
-                placeholder="Ej: dinámico, parejas, PPP"
+                placeholder="E.g. dynamic, pairs, PPP"
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]" />
             </div>
           </div>
@@ -148,27 +148,27 @@ function ActivityFormModal({
           {/* Instructions */}
           <div>
             <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">
-              Instrucciones / Cómo aplicar la actividad *
+              Instructions / How to run the activity *
             </label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)}
-              rows={3} placeholder="Describe cómo ejecutar esta actividad en clase..."
+              rows={3} placeholder="Describe how to run this activity in class…"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent" />
           </div>
 
           {/* Content */}
           <div>
             <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1">
-              Contenido (opcional)
+              Content (optional)
             </label>
             <textarea value={form.content} onChange={e => set('content', e.target.value)}
-              rows={4} placeholder="Preguntas, textos, listas de vocabulario, ejercicios..."
+              rows={4} placeholder="Questions, texts, vocabulary lists, exercises…"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent font-mono text-xs" />
           </div>
         </div>
 
         <div className="px-5 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={async () => {
@@ -180,7 +180,7 @@ function ActivityFormModal({
             disabled={saving || !form.title.trim() || !form.description.trim()}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5"
           >
-            {saving ? 'Guardando...' : initial ? 'Actualizar' : <><Save className="w-4 h-4" strokeWidth={2.25} /> Guardar</>}
+            {saving ? 'Saving…' : initial ? 'Update' : <><Save className="w-4 h-4" strokeWidth={2.25} /> Save</>}
           </button>
         </div>
       </div>
@@ -229,7 +229,7 @@ function ActivityCard({
 
         <div className="flex items-center gap-3 text-[10px] text-gray-400">
           {activity.duration && <span className="inline-flex items-center gap-1"><Timer className="w-3 h-3" strokeWidth={2.5} /> {activity.duration} min</span>}
-          {(activity.timesUsed ?? 0) > 0 && <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> {activity.timesUsed}× usada</span>}
+          {(activity.timesUsed ?? 0) > 0 && <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> used {activity.timesUsed}×</span>}
           {(activity.tags?.length ?? 0) > 0 && (
             <span className="truncate">{activity.tags!.join(' · ')}</span>
           )}
@@ -243,12 +243,12 @@ function ActivityCard({
       {expanded && (
         <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-3">
           <div>
-            <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-1">Instrucciones</p>
+            <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-1">Instructions</p>
             <p className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">{activity.description}</p>
           </div>
           {activity.content && (
             <div>
-              <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-1">Contenido</p>
+              <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-1">Content</p>
               <pre className="text-xs text-gray-600 whitespace-pre-wrap bg-gray-50 rounded-xl px-3 py-2 font-mono leading-relaxed overflow-x-auto">
                 {activity.content}
               </pre>
@@ -257,7 +257,7 @@ function ActivityCard({
           <div className="flex gap-2 pt-1">
             <button onClick={onUse}
               className="flex-1 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center justify-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Usar en clase
+              <CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Use in class
             </button>
             <button onClick={onEdit}
               className="py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl font-semibold transition-colors">
@@ -326,11 +326,11 @@ export default function ActivitiesPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Banco de Actividades"
-        subtitle={`${activities.length} actividade${activities.length !== 1 ? 's' : ''} guardada${activities.length !== 1 ? 's' : ''}`}
+        title="Activity Bank"
+        subtitle={`${activities.length} activit${activities.length !== 1 ? 'ies' : 'y'} saved`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Actividad' },
+          { label: 'Activities' },
         ]}
       />
 
@@ -342,13 +342,13 @@ export default function ActivitiesPage() {
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors shadow-sm"
           >
-            <Plus className="w-4 h-4" strokeWidth={2.5} /> Nueva actividad
+            <Plus className="w-4 h-4" strokeWidth={2.5} /> New activity
           </button>
           <input
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar..."
+            placeholder="Search…"
             className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white"
           />
         </div>
@@ -359,7 +359,7 @@ export default function ActivitiesPage() {
             onClick={() => setSkillFilter('')}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${!skillFilter ? 'bg-[#C8A8DC] text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-[#C8A8DC]'}`}
           >
-            Todas ({activities.length})
+            All ({activities.length})
           </button>
           {SKILLS.map(s => {
             const count = activities.filter(a => a.skill === s.id).length;
@@ -386,7 +386,7 @@ export default function ActivitiesPage() {
               onClick={() => setLevelFilter('')}
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${!levelFilter ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
             >
-              Todos
+              All
             </button>
             {LEVELS.filter(l => activities.some(a => a.level === l)).map(l => (
               <button
@@ -406,17 +406,17 @@ export default function ActivitiesPage() {
             {activities.length === 0 ? (
               <>
                 <Target className="w-10 h-10 mx-auto mb-3 text-[#C8A8DC]" strokeWidth={2} />
-                <p className="text-gray-500 text-sm font-semibold">Tu banco de actividades está vacío</p>
-                <p className="text-xs text-gray-400 mt-1 mb-5">Crea actividades reutilizables: dinámicas, ejercicios, juegos de vocabulario...</p>
+                <p className="text-gray-500 text-sm font-semibold">Your activity bank is empty</p>
+                <p className="text-xs text-gray-400 mt-1 mb-5">Create reusable activities: dynamics, exercises, vocabulary games…</p>
                 <button onClick={() => setShowForm(true)} className="px-5 py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-bold transition-colors hover:bg-[#9B7CB8] inline-flex items-center gap-1.5">
-                  <Plus className="w-4 h-4" strokeWidth={2.5} /> Crear primera actividad
+                  <Plus className="w-4 h-4" strokeWidth={2.5} /> Create first activity
                 </button>
               </>
             ) : (
               <>
                 <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
-                <p className="text-gray-500 text-sm">No hay actividades que coincidan.</p>
-                <button onClick={() => { setSkillFilter(''); setLevelFilter(''); setSearch(''); }} className="mt-2 text-xs text-[#9B7CB8] underline">Limpiar filtros</button>
+                <p className="text-gray-500 text-sm">No matching activities.</p>
+                <button onClick={() => { setSkillFilter(''); setLevelFilter(''); setSearch(''); }} className="mt-2 text-xs text-[#9B7CB8] underline">Clear filters</button>
               </>
             )}
           </div>
@@ -428,7 +428,7 @@ export default function ActivitiesPage() {
                 activity={a}
                 onEdit={() => setEditActivity(a)}
                 onDelete={async () => {
-                  if (confirm(`¿Eliminar "${a.title}"?`)) await deleteActivity(a.id);
+                  if (confirm(`Delete "${a.title}"?`)) await deleteActivity(a.id);
                 }}
                 onUse={() => incrementUsed(a.id, a.timesUsed ?? 0)}
               />
