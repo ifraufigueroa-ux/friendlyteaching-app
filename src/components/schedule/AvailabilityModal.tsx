@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
 import { useSchedule, setBulkAvailability } from '@/hooks/useSchedule';
 
-const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAYS = [1, 2, 3, 4, 5, 6];
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 10); // 10–21
 
@@ -90,9 +90,9 @@ export default function AvailabilityModal({ onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#5A3D7A]">Configurar Disponibilidad Semanal</h2>
+            <h2 className="text-lg font-bold text-[#5A3D7A]">Weekly Availability</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              Haz clic en las celdas para bloquear/desbloquear · {availableCount} horas disponibles · {blockedCount} bloqueadas
+              Click cells to block/unblock · {availableCount} hours available · {blockedCount} blocked
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">×</button>
@@ -102,11 +102,11 @@ export default function AvailabilityModal({ onClose }: Props) {
         <div className="flex items-center gap-4 mb-3 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-[#A8E6A1]" />
-            <span>Disponible</span>
+            <span>Available</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-4 rounded bg-[#D9D9D9]" />
-            <span>Bloqueado (no disponible)</span>
+            <span>Blocked (not available)</span>
           </div>
         </div>
 
@@ -119,13 +119,13 @@ export default function AvailabilityModal({ onClose }: Props) {
             <table className="w-full text-xs border-separate border-spacing-1">
               <thead>
                 <tr>
-                  <th className="w-12 text-gray-400 font-normal text-left pb-1">Hora</th>
+                  <th className="w-12 text-gray-400 font-normal text-left pb-1">Hour</th>
                   {DAY_NAMES.map((name, i) => (
                     <th key={name} className="text-center pb-1">
                       <button
                         onClick={() => blockColumn(DAYS[i])}
                         className="px-2 py-1 rounded-full font-bold text-[#5A3D7A] hover:bg-[#F0E5FF] transition-colors w-full"
-                        title="Clic para alternar toda la columna"
+                        title="Click to toggle the whole column"
                       >
                         {name}
                       </button>
@@ -140,7 +140,7 @@ export default function AvailabilityModal({ onClose }: Props) {
                       <button
                         onClick={() => blockRow(hour)}
                         className="hover:text-[#5A3D7A] hover:font-bold transition-colors"
-                        title="Clic para alternar toda la fila"
+                        title="Click to toggle the whole row"
                       >
                         {hour}:00
                       </button>
@@ -157,7 +157,7 @@ export default function AvailabilityModal({ onClose }: Props) {
                                 ? 'bg-[#D9D9D9] text-gray-500'
                                 : 'bg-[#A8E6A1] text-[#2D6E2A]'
                             }`}
-                            title={isBlocked ? 'Bloqueado — clic para disponibilizar' : 'Disponible — clic para bloquear'}
+                            title={isBlocked ? 'Blocked — click to free up' : 'Available — click to block'}
                           >
                             {isBlocked ? <Ban className="w-3.5 h-3.5 mx-auto" strokeWidth={2.5} /> : null}
                           </button>
@@ -173,12 +173,12 @@ export default function AvailabilityModal({ onClose }: Props) {
 
         {/* Quick presets */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <p className="text-xs text-gray-400 w-full">Presets rápidos:</p>
+          <p className="text-xs text-gray-400 w-full">Quick presets:</p>
           <button
             onClick={() => setBlocked(new Set())}
             className="px-3 py-1.5 bg-[#A8E6A1] text-[#2D6E2A] rounded-full text-xs font-semibold hover:bg-[#8DD67E] inline-flex items-center gap-1.5"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Todo disponible
+            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> All available
           </button>
           <button
             onClick={() => {
@@ -188,7 +188,7 @@ export default function AvailabilityModal({ onClose }: Props) {
             }}
             className="px-3 py-1.5 bg-[#D9D9D9] text-gray-600 rounded-full text-xs font-semibold hover:bg-gray-300 inline-flex items-center gap-1.5"
           >
-            <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Todo bloqueado
+            <Ban className="w-3.5 h-3.5" strokeWidth={2.5} /> Block all
           </button>
           <button
             onClick={() => {
@@ -201,7 +201,7 @@ export default function AvailabilityModal({ onClose }: Props) {
             }}
             className="px-3 py-1.5 bg-[#F0E5FF] text-[#5A3D7A] rounded-full text-xs font-semibold hover:bg-[#E0CCFF] inline-flex items-center gap-1.5"
           >
-            <Clock className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear mañanas y noches
+            <Clock className="w-3.5 h-3.5" strokeWidth={2.5} /> Block mornings & nights
           </button>
           <button
             onClick={() => {
@@ -212,14 +212,14 @@ export default function AvailabilityModal({ onClose }: Props) {
             }}
             className="px-3 py-1.5 bg-[#FFF5C8] text-[#7A5E00] rounded-full text-xs font-semibold hover:bg-[#FFE8A8] inline-flex items-center gap-1.5"
           >
-            <Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Bloquear sábado
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2.5} /> Block Saturday
           </button>
         </div>
 
         {/* Actions */}
         <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50">
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleSave}
@@ -229,8 +229,8 @@ export default function AvailabilityModal({ onClose }: Props) {
             }`}
           >
             {saved
-              ? <span className="inline-flex items-center justify-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Guardado</span>
-              : saving ? 'Guardando...' : 'Guardar disponibilidad'}
+              ? <span className="inline-flex items-center justify-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Saved</span>
+              : saving ? 'Saving…' : 'Save availability'}
           </button>
         </div>
       </div>

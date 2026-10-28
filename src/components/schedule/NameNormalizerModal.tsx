@@ -141,13 +141,13 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
 
       const bookingIds = fromNames.flatMap(n => byName[n] ?? []);
 
-      setSaveStatus(`Actualizando clases de "${group.canonical}"…`);
+      setSaveStatus(`Updating classes for "${group.canonical}"…`);
       if (bookingIds.length > 0) {
         await bulkRenameStudentBookings(bookingIds, group.canonical);
         bookingTotal += bookingIds.length;
       }
 
-      setSaveStatus(`Fusionando historial de "${group.canonical}"…`);
+      setSaveStatus(`Merging history for "${group.canonical}"…`);
       const h = await bulkRenameClassHistory(teacherId, fromNames, group.canonical);
       historyTotal += h;
     }
@@ -170,9 +170,9 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
-            <h3 className="font-bold text-[#5A3D7A] text-base inline-flex items-center gap-2"><Link2 className="w-4 h-4" strokeWidth={2.25} /> Fusionar nombres duplicados</h3>
+            <h3 className="font-bold text-[#5A3D7A] text-base inline-flex items-center gap-2"><Link2 className="w-4 h-4" strokeWidth={2.25} /> Merge duplicate names</h3>
             <p className="text-xs text-gray-400 mt-0.5">
-              Selecciona los nombres que son la misma persona y elige cuál conservar
+              Select names that belong to the same person and pick which to keep
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none ml-4">×</button>
@@ -182,14 +182,14 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
           <div className="flex-1 flex flex-col items-center justify-center py-12 px-6 text-center">
             <CheckCircle2 className="w-14 h-14 mx-auto mb-4 text-green-500" strokeWidth={2.25} />
             <p className="font-bold text-gray-800 text-lg mb-1">
-              {mergedCount > 0 ? `${mergedCount} registros actualizados` : 'Sin cambios'}
+              {mergedCount > 0 ? `${mergedCount} records updated` : 'No changes'}
             </p>
-            <p className="text-sm text-gray-500">Clases e historial unificados bajo un solo nombre.</p>
+            <p className="text-sm text-gray-500">Classes and history unified under one name.</p>
             <button
               onClick={onClose}
               className="mt-6 px-6 py-2.5 rounded-xl text-sm font-semibold bg-[#5A3D7A] text-white hover:bg-[#4A2D6A]"
             >
-              Cerrar
+              Close
             </button>
           </div>
         ) : (
@@ -201,7 +201,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                 <div className="md:w-64 flex-shrink-0 p-4 space-y-2">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      Nombres sin grupo
+                      Ungrouped names
                     </p>
                     <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
                       {ungroupedNames.length}
@@ -209,7 +209,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                   </div>
 
                   {ungroupedNames.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic py-2 inline-flex items-center gap-1">Todos agrupados <Check className="w-3 h-3" strokeWidth={2.5} /></p>
+                    <p className="text-xs text-gray-400 italic py-2 inline-flex items-center gap-1">All grouped <Check className="w-3 h-3" strokeWidth={2.5} /></p>
                   ) : (
                     <div className="space-y-1">
                       {ungroupedNames.map(name => {
@@ -240,12 +240,12 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                       onClick={createGroup}
                       className="w-full mt-2 py-2 rounded-xl text-sm font-semibold bg-[#5A3D7A] text-white hover:bg-[#4A2D6A] transition-all flex items-center justify-center gap-1.5"
                     >
-                      <Link2 className="w-3.5 h-3.5 inline" strokeWidth={2.5} /> Agrupar {selected.size} nombres
+                      <Link2 className="w-3.5 h-3.5 inline" strokeWidth={2.5} /> Group {selected.size} names
                     </button>
                   )}
                   {selected.size === 1 && (
                     <p className="text-[11px] text-center text-gray-400 mt-1">
-                      Selecciona al menos 2 para agrupar
+                      Pick at least 2 to group
                     </p>
                   )}
                 </div>
@@ -254,11 +254,11 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                 <div className="flex-1 p-4 space-y-3">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                      Grupos a fusionar
+                      Groups to merge
                     </p>
                     {groups.length > 0 && (
                       <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                        {groups.length} grupo{groups.length !== 1 ? 's' : ''} · {totalToRename} clase{totalToRename !== 1 ? 's' : ''} se renombrarán
+                        {groups.length} group{groups.length !== 1 ? 's' : ''} · {totalToRename} class{totalToRename !== 1 ? 'es' : ''} will be renamed
                       </span>
                     )}
                   </div>
@@ -267,7 +267,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <Hand className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
                       <p className="text-sm text-gray-500">
-                        Selecciona nombres de la izquierda y haz clic en "Agrupar"
+                        Pick names on the left and click "Group"
                       </p>
                     </div>
                   ) : (
@@ -280,18 +280,18 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                         <div key={i} className="border border-[#E8DAFF] rounded-2xl p-3 bg-[#FAFAFE] space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-[#9B7CB8]">
-                              Grupo {i + 1}
+                              Group {i + 1}
                             </span>
                             <div className="flex items-center gap-2">
                               {variantCount > 0 && (
                                 <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                                  {variantCount} clase{variantCount !== 1 ? 's' : ''} se renombrarán
+                                  {variantCount} class{variantCount !== 1 ? 'es' : ''} will be renamed
                                 </span>
                               )}
                               <button
                                 onClick={() => removeGroup(i)}
                                 className="text-gray-300 hover:text-red-400 text-sm leading-none transition-colors"
-                                title="Deshacer grupo"
+                                title="Undo group"
                               >
                                 ×
                               </button>
@@ -313,7 +313,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                                     }`}
                                 >
                                   <span className="flex items-center gap-2">
-                                    {isCanonical && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">conservar</span>}
+                                    {isCanonical && <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">keep</span>}
                                     {name}
                                   </span>
                                   <span className={`text-[10px] flex-shrink-0 font-medium px-1.5 py-0.5 rounded-full ${isCanonical ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-400'}`}>
@@ -324,7 +324,7 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                             })}
                           </div>
                           <p className="text-[11px] text-[#7B5EA7]">
-                            Toca el nombre que quieres conservar
+                            Tap the name you want to keep
                           </p>
                         </div>
                       );
@@ -338,15 +338,15 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
             <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
               <p className="text-xs text-gray-400">
                 {totalToRename > 0
-                  ? `Se actualizarán ${totalToRename} clases en Firestore`
-                  : groups.length > 0 ? 'No hay cambios pendientes' : 'Sin grupos creados'}
+                  ? `${totalToRename} classes will be updated in Firestore`
+                  : groups.length > 0 ? 'No pending changes' : 'No groups created'}
               </p>
               <div className="flex items-center gap-2">
                 {saving && saveStatus && (
                   <p className="text-xs text-[#7B5EA7] italic mr-2">{saveStatus}</p>
                 )}
                 <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-100">
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={handleSave}
@@ -355,8 +355,8 @@ export default function NameNormalizerModal({ allBookings, onClose }: Props) {
                 >
                   {saving && <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
                   {saving
-                    ? 'Guardando…'
-                    : <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Fusionar{totalToRename > 0 ? ` (${totalToRename})` : ''}</span>}
+                    ? 'Saving…'
+                    : <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Merge{totalToRename > 0 ? ` (${totalToRename})` : ''}</span>}
                 </button>
               </div>
             </div>

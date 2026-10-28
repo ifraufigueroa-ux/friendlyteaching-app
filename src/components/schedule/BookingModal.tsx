@@ -10,7 +10,7 @@ import { useLessons } from '@/hooks/useLessons';
 import { auth } from '@/lib/firebase/config';
 import type { FTUser, Lesson } from '@/types/firebase';
 
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const HOURS = Array.from({ length: 15 }, (_, i) => i + 7); // 7–21
 const MINUTES = [0, 15, 30, 45];
 
@@ -55,7 +55,7 @@ export default function BookingModal({ onCreated }: Props) {
     if (slotAction.day === null) return;
 
     const teacherUid = profile?.uid ?? auth.currentUser?.uid ?? '';
-    if (!teacherUid) { setError('No se pudo identificar al profesor. Intenta recargar.'); return; }
+    if (!teacherUid) { setError('Could not identify the teacher. Try reloading.'); return; }
 
     const finalName = mode === 'registered' ? (selectedStudent?.fullName ?? '') : studentName.trim();
     const finalEmail = mode === 'registered' ? (selectedStudent?.email ?? '') : studentEmail.trim();
@@ -63,7 +63,7 @@ export default function BookingModal({ onCreated }: Props) {
 
     if (!finalName) {
       const msg = mode === 'registered'
-        ? 'Selecciona un estudiante de la lista, o usa "Nuevo / externo" para escribir el nombre manualmente.'
+        ? 'Pick a student from the list, or use "New / external" to enter the name manually.'
         : 'El nombre es requerido';
       setError(msg);
       setTimeout(() => errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
@@ -104,7 +104,7 @@ export default function BookingModal({ onCreated }: Props) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[BookingModal] createBooking failed:', msg, err);
-      setError(`Error al guardar: ${msg}`);
+      setError(`Save error: ${msg}`);
       setTimeout(() => errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
     } finally {
       setLoading(false);
@@ -119,9 +119,9 @@ export default function BookingModal({ onCreated }: Props) {
       <div className="glass-strong rounded-2xl shadow-glass-xl w-full max-w-md p-6 animate-[slideInUp_0.2s_ease] max-h-[90vh] overflow-y-auto border border-white/40">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#5A3D7A]">Registrar Clase</h2>
+            <h2 className="text-lg font-bold text-[#5A3D7A]">Register Class</h2>
             <p className="text-sm text-gray-400">
-              {dayName} — {currentWeekStart.toLocaleDateString('es-CL')}
+              {dayName} — {currentWeekStart.toLocaleDateString('en-US')}
             </p>
           </div>
           <button
@@ -136,11 +136,11 @@ export default function BookingModal({ onCreated }: Props) {
 
           {/* ── Time picker ── */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-1.5">Hora de inicio</p>
+            <p className="text-sm font-medium text-gray-700 mb-1.5">Start time</p>
             <div className="flex gap-2 items-center">
               {/* Hour scroll */}
               <div className="flex-1">
-                <p className="text-[11px] text-gray-400 mb-1 text-center">Hora</p>
+                <p className="text-[11px] text-gray-400 mb-1 text-center">Hour</p>
                 <div className="grid grid-cols-5 gap-1 max-h-28 overflow-y-auto">
                   {HOURS.map((h) => (
                     <button
@@ -164,7 +164,7 @@ export default function BookingModal({ onCreated }: Props) {
 
               {/* Minute buttons */}
               <div className="w-24">
-                <p className="text-[11px] text-gray-400 mb-1 text-center">Minutos</p>
+                <p className="text-[11px] text-gray-400 mb-1 text-center">Minutes</p>
                 <div className="grid grid-cols-2 gap-1">
                   {MINUTES.map((m) => (
                     <button
@@ -199,14 +199,14 @@ export default function BookingModal({ onCreated }: Props) {
               onClick={() => setBookingType('class')}
               className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${bookingType === 'class' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} /> Clase
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} /> Class
             </button>
             <button
               type="button"
               onClick={() => setBookingType('interview')}
               className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${bookingType === 'interview' ? 'bg-[#FFB347] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> Entrevista
+              <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> Interview
             </button>
           </div>
 
@@ -217,25 +217,25 @@ export default function BookingModal({ onCreated }: Props) {
               onClick={() => { setMode('registered'); setSelectedStudent(null); }}
               className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${mode === 'registered' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <Users className="w-3.5 h-3.5" strokeWidth={2.25} /> Estudiante registrado
+              <Users className="w-3.5 h-3.5" strokeWidth={2.25} /> Registered student
             </button>
             <button
               type="button"
               onClick={() => { setMode('manual'); setSelectedStudent(null); }}
               className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-colors inline-flex items-center justify-center gap-1.5 ${mode === 'manual' ? 'bg-white text-[#5A3D7A] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              <Pencil className="w-3.5 h-3.5" strokeWidth={2.25} /> Nuevo / externo
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2.25} /> New / external
             </button>
           </div>
 
           {mode === 'registered' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Seleccionar estudiante <span className="text-red-400">*</span>
+                Select student <span className="text-red-400">*</span>
               </label>
               <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-xl p-2">
                 {students.length === 0 ? (
-                  <p className="text-center text-xs text-gray-400 py-3">No hay estudiantes aprobados</p>
+                  <p className="text-center text-xs text-gray-400 py-3">No approved students</p>
                 ) : students.map((s: FTUser) => (
                   <button
                     key={s.uid}
@@ -258,24 +258,24 @@ export default function BookingModal({ onCreated }: Props) {
             <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre <span className="text-red-400">*</span>
+                  Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="Ej. María González"
+                  placeholder="E.g. Mary Johnson"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email (opcional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
                 <input
                   type="email"
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
-                  placeholder="estudiante@email.com"
+                  placeholder="student@email.com"
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent"
                 />
               </div>
@@ -283,11 +283,11 @@ export default function BookingModal({ onCreated }: Props) {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Nivel, preferencias, etc."
+              placeholder="Level, preferences, etc."
               rows={2}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent resize-none"
             />
@@ -305,18 +305,18 @@ export default function BookingModal({ onCreated }: Props) {
                   <BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} />
                   {selectedLessonId
                     ? (() => { const l = lessons.find((x: Lesson) => x.id === selectedLessonId); return `${l?.code ?? ''} · ${l?.title ?? ''}`; })()
-                    : 'Asignar lección (opcional)'}
+                    : 'Assign lesson (optional)'}
                 </span>
                 <span className="text-xs opacity-60">{selectedLessonId ? <Pencil className="w-3 h-3" strokeWidth={2.5} /> : <Plus className="w-3 h-3" strokeWidth={2.5} />}</span>
               </button>
             ) : (
               <div className="border border-[#C8A8DC] rounded-xl p-3 space-y-2 bg-[#F9F5FF]">
-                <p className="text-xs font-semibold text-[#5A3D7A]">Seleccionar lección</p>
+                <p className="text-xs font-semibold text-[#5A3D7A]">Select lesson</p>
                 <input
                   type="text"
                   value={lessonSearch}
                   onChange={e => setLessonSearch(e.target.value)}
-                  placeholder="Buscar por código o título..."
+                  placeholder="Search by code or title…"
                   className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
                   autoFocus
                 />
@@ -326,7 +326,7 @@ export default function BookingModal({ onCreated }: Props) {
                     onClick={() => { setSelectedLessonId(''); setShowLessonPicker(false); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${!selectedLessonId ? 'bg-[#C8A8DC] text-white' : 'hover:bg-gray-100 text-gray-500'}`}
                   >
-                    — Sin lección asignada
+                    — No lesson assigned
                   </button>
                   {lessons
                     .filter((l: Lesson) =>
@@ -348,7 +348,7 @@ export default function BookingModal({ onCreated }: Props) {
                     ))}
                 </div>
                 <button type="button" onClick={() => setShowLessonPicker(false)} className="text-xs text-gray-400 hover:text-gray-600 w-full text-center pt-1">
-                  Cerrar
+                  Close
                 </button>
               </div>
             )}
@@ -362,7 +362,7 @@ export default function BookingModal({ onCreated }: Props) {
               className="w-4 h-4 rounded accent-[#C8A8DC]"
             />
             <span className="text-sm text-gray-700">
-              Clase recurrente <span className="text-gray-400">(se repite cada semana)</span>
+              Recurring class <span className="text-gray-400">(repeats every week)</span>
             </span>
           </label>
 
@@ -376,7 +376,7 @@ export default function BookingModal({ onCreated }: Props) {
               onClick={closeSlotAction}
               className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-full text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
@@ -388,10 +388,10 @@ export default function BookingModal({ onCreated }: Props) {
               }`}
             >
               {loading
-                ? 'Guardando...'
+                ? 'Saving…'
                 : bookingType === 'interview'
-                  ? <span className="inline-flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar Entrevista</span>
-                  : <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirmar Clase</span>}
+                  ? <span className="inline-flex items-center gap-1.5"><Mic className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirm Interview</span>
+                  : <span className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Confirm Class</span>}
             </button>
           </div>
         </form>

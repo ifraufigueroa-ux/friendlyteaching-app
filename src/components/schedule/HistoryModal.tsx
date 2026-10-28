@@ -23,9 +23,9 @@ import { db } from '@/lib/firebase/config';
 import { useClassHistory } from '@/hooks/useClassHistory';
 import type { ClassHistoryEntry } from '@/hooks/useClassHistory';
 
-const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_ES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
-const MOOD_LABEL: Record<string, string> = { great: 'Excelente', good: 'Buena', regular: 'Regular' };
+const MOOD_LABEL: Record<string, string> = { great: 'Great', good: 'Good', regular: 'So-so' };
 
 type Range = '7' | '30' | '90' | 'all';
 type AttendFilter = 'all' | 'attended' | 'absent';
@@ -134,8 +134,8 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" strokeWidth={2.25} /> Historial de clases</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{history.length} registros en total</p>
+            <h2 className="text-lg font-bold text-gray-800 inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" strokeWidth={2.25} /> Class history</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{history.length} records in total</p>
           </div>
           <button
             onClick={handleClose}
@@ -154,12 +154,12 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
           <div className="w-px bg-[#E8D5FF]" />
           <div className="text-center">
             <p className="text-xl font-extrabold text-green-600">{stats.attended}</p>
-            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Realizadas</p>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Attended</p>
           </div>
           <div className="w-px bg-[#E8D5FF]" />
           <div className="text-center">
             <p className="text-xl font-extrabold text-red-500">{stats.absent}</p>
-            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Ausencias</p>
+            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">No shows</p>
           </div>
           {stats.total > 0 && (
             <>
@@ -168,7 +168,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                 <p className="text-xl font-extrabold text-[#5A3D7A]">
                   {Math.round((stats.attended / stats.total) * 100)}%
                 </p>
-                <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Asistencia</p>
+                <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Attendance</p>
               </div>
             </>
           )}
@@ -186,7 +186,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                   range === r ? 'bg-[#5A3D7A] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {r === 'all' ? 'Todo' : `${r}d`}
+                {r === 'all' ? 'All' : `${r}d`}
               </button>
             ))}
           </div>
@@ -202,10 +202,10 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                 }`}
               >
                 {f === 'all'
-                  ? 'Todas'
+                  ? 'All'
                   : f === 'attended'
-                    ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Realizadas</span>
-                    : <span className="inline-flex items-center gap-1"><XCircle className="w-3 h-3" strokeWidth={2.5} /> Ausencias</span>}
+                    ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Attended</span>
+                    : <span className="inline-flex items-center gap-1"><XCircle className="w-3 h-3" strokeWidth={2.5} /> No shows</span>}
               </button>
             ))}
           </div>
@@ -216,7 +216,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
               onClick={() => setStudentDropdownOpen(o => !o)}
               className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-1 max-w-[160px]"
             >
-              <span className="truncate">{studentFilter || 'Todos los estudiantes'}</span>
+              <span className="truncate">{studentFilter || 'All students'}</span>
               <span className="flex-shrink-0 text-[9px] opacity-60">▾</span>
             </button>
             {studentDropdownOpen && (
@@ -225,7 +225,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                   onClick={() => { setStudentFilter(''); setStudentDropdownOpen(false); }}
                   className={`w-full text-left px-3 py-2 text-[11px] hover:bg-gray-50 transition-colors ${!studentFilter ? 'text-[#5A3D7A] font-semibold bg-[#F9F5FF]' : 'text-gray-600'}`}
                 >
-                  Todos los estudiantes
+                  All students
                 </button>
                 {studentNames.map((n) => (
                   <button
@@ -244,11 +244,11 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
         {/* List */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
-            <div className="text-center py-12 text-gray-400 text-sm">Cargando historial…</div>
+            <div className="text-center py-12 text-gray-400 text-sm">Loading history…</div>
           ) : grouped.length === 0 ? (
             <div className="text-center py-12">
               <Inbox className="w-8 h-8 mx-auto mb-2 text-gray-300" strokeWidth={2} />
-              <p className="text-gray-500 text-sm">Sin registros para este filtro.</p>
+              <p className="text-gray-500 text-sm">No records for this filter.</p>
             </div>
           ) : (
             <div className="space-y-5">
@@ -284,7 +284,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-gray-800 truncate">{entry.studentName}</p>
                               <p className="text-[10px] text-gray-400 inline-flex items-center gap-1">
-                                {entry.isRecurring ? <><RotateCw className="w-2.5 h-2.5" strokeWidth={2.5} /> Recurrente</> : '• Una vez'}
+                                {entry.isRecurring ? <><RotateCw className="w-2.5 h-2.5" strokeWidth={2.5} /> Recurring</> : '• One-off'}
                                 {entry.notes?.mood && (() => {
                                   const Mood = MOOD_ICON[entry.notes.mood];
                                   return Mood ? <> · <Mood className="w-2.5 h-2.5" strokeWidth={2.5} /></> : null;
@@ -295,7 +295,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
                               entry.attended ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                             }`}>
-                              {entry.attended ? 'Asistió' : 'Ausente'}
+                              {entry.attended ? 'Attended' : 'No show'}
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
@@ -314,7 +314,7 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(entry.id); }}
                             disabled={deletingId === entry.id}
-                            title="Eliminar este registro"
+                            title="Delete this record"
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 transition-colors disabled:opacity-40 opacity-0 group-hover:opacity-100"
                           >
                             {deletingId === entry.id ? '…' : <Trash2 className="w-3 h-3" strokeWidth={2.5} />}
@@ -325,28 +325,28 @@ export default function HistoryModal({ teacherId, onClose }: Props) {
                               {hasNotes ? (
                                 <div className="grid grid-cols-1 gap-2">
                                   {entry.notes?.covered && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Temas:</span> {entry.notes.covered}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Topics:</span> {entry.notes.covered}</p>
                                   )}
                                   {entry.notes?.performance && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Desempeño:</span> {entry.notes.performance}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Performance:</span> {entry.notes.performance}</p>
                                   )}
                                   {entry.notes?.nextClass && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Próxima clase:</span> {entry.notes.nextClass}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Next class:</span> {entry.notes.nextClass}</p>
                                   )}
                                   {entry.notes?.homework && (
-                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Tarea:</span> {entry.notes.homework}</p>
+                                    <p className="text-xs text-gray-600"><span className="font-semibold text-gray-700 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Homework:</span> {entry.notes.homework}</p>
                                   )}
                                   {entry.notes?.mood && (() => {
                                     const Mood = MOOD_ICON[entry.notes.mood];
                                     return (
                                       <p className="text-xs text-gray-600">
-                                        <span className="font-semibold text-gray-700 inline-flex items-center gap-1">{Mood && <Mood className="w-3 h-3" strokeWidth={2.5} />} Estado:</span> {MOOD_LABEL[entry.notes.mood]}
+                                        <span className="font-semibold text-gray-700 inline-flex items-center gap-1">{Mood && <Mood className="w-3 h-3" strokeWidth={2.5} />} Vibe:</span> {MOOD_LABEL[entry.notes.mood]}
                                       </p>
                                     );
                                   })()}
                                 </div>
                               ) : (
-                                <p className="text-xs text-gray-400 italic">Sin notas para esta clase.</p>
+                                <p className="text-xs text-gray-400 italic">No notes for this class.</p>
                               )}
                             </div>
                           )}
@@ -372,7 +372,7 @@ function formatWeekLabel(isoMonday: string): string {
   mon.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
   mon.setHours(0, 0, 0, 0);
   const diffWeeks = Math.round((mon.getTime() - d.getTime()) / (7 * 24 * 3600 * 1000));
-  if (diffWeeks === 0) return 'Esta semana';
-  if (diffWeeks === 1) return 'Semana pasada';
-  return `Semana del ${d.getDate()} de ${d.toLocaleDateString('es-CL', { month: 'long' })}`;
+  if (diffWeeks === 0) return 'This week';
+  if (diffWeeks === 1) return 'Last week';
+  return `Week of ${d.toLocaleDateString('en-US', { month: 'long' })} ${d.getDate()}`;
 }
