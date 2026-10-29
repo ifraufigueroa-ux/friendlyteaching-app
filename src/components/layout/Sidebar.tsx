@@ -27,6 +27,7 @@ import {
   Music,
   Calendar,
   CalendarPlus,
+  Flame,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -88,6 +89,7 @@ const TEACHER_NAV: NavItem[] = [
 const STUDENT_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/student',             icon: Home,         label: 'Dashboard',           iconBg: 'bg-violet-100',  iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'group', label: 'Learning' },
+  { type: 'link', href: '/dashboard/student/practice',    icon: Flame,        label: 'Daily Practice',      iconBg: 'bg-orange-100',  iconColor: 'text-orange-600' },
   { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'My Lessons',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/student/music',       icon: Music,        label: 'Friendlyrics®',       iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
   { type: 'link', href: '/dashboard/student/texts',       icon: BookMarked,   label: 'FriendlyTales®',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
