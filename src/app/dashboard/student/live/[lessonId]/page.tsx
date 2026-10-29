@@ -33,18 +33,18 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
         <div className="text-center max-w-sm px-6">
           <div className="mb-4 flex justify-center"><Tv className="w-12 h-12 text-gray-400" strokeWidth={2} /></div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">
-            {session ? 'La clase ha terminado' : 'Clase no disponible'}
+            {session ? 'The class has ended' : 'Class not available'}
           </h2>
           <p className="text-gray-500 text-sm mb-6">
             {session
-              ? 'Tu profesor ha finalizado la sesión en vivo.'
-              : 'No hay ninguna clase en vivo activa para esta lección.'}
+              ? 'Your teacher has ended the live session.'
+              : 'No active live class for this lesson.'}
           </p>
           <Link
             href="/dashboard/student"
             className="inline-block px-5 py-2.5 bg-[#C8547A] text-white rounded-xl text-sm font-bold hover:bg-[#A8365A] transition-colors"
           >
-            ← Volver al panel
+            ← Back to dashboard
           </Link>
         </div>
       </div>
@@ -57,15 +57,15 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="text-center max-w-sm px-6">
           <div className="mb-4 flex justify-center"><Lock className="w-12 h-12 text-gray-400" strokeWidth={2} /></div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Acceso restringido</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Restricted access</h2>
           <p className="text-gray-500 text-sm mb-6">
-            No estás invitado a esta clase en vivo. Contacta a tu profesor.
+            You aren't invited to this live class. Contact your teacher.
           </p>
           <Link
             href="/dashboard/student"
             className="inline-block px-5 py-2.5 bg-[#C8547A] text-white rounded-xl text-sm font-bold hover:bg-[#A8365A] transition-colors"
           >
-            ← Volver al panel
+            ← Back to dashboard
           </Link>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
       <div className="flex items-center justify-between px-4 py-2 bg-red-900/80 text-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-          <span className="text-xs font-bold tracking-wide uppercase">Clase en vivo</span>
+          <span className="text-xs font-bold tracking-wide uppercase">Live class</span>
           <span className="text-red-300 text-xs">·</span>
           <span className="text-xs text-red-200 truncate max-w-xs">{session.lessonTitle}</span>
         </div>
@@ -88,7 +88,7 @@ export default function StudentLivePage({ params }: { params: Promise<Params> })
           href="/dashboard/student"
           className="text-[10px] text-red-300 hover:text-white font-semibold transition-colors"
         >
-          Salir
+          Leave
         </Link>
       </div>
 

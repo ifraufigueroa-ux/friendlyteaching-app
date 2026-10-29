@@ -65,8 +65,8 @@ export default function TextLessonPlayerPage() {
         <div className="flex-1 flex items-center justify-center text-[#A69BB8]">
           <div className="text-center">
             <div className="mb-2 flex justify-center"><BookMarked className="w-10 h-10" strokeWidth={2} /></div>
-            <p>Lección no encontrada.</p>
-            <button onClick={() => router.back()} className="mt-3 text-sm text-[#F9F0A8] underline">Volver</button>
+            <p>Lesson not found.</p>
+            <button onClick={() => router.back()} className="mt-3 text-sm text-[#F9F0A8] underline">Back</button>
           </div>
         </div>
       </div>
@@ -84,14 +84,14 @@ export default function TextLessonPlayerPage() {
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="ft-glass-card p-8 max-w-sm w-full text-center">
             <div className="mb-2 flex justify-center"><PartyPopper className="w-8 h-8 text-[#F9F0A8]" strokeWidth={2} /></div>
-            <h2 className="text-xl font-bold ft-title-gold mb-1">¡Lección completada!</h2>
+            <h2 className="text-xl font-bold ft-title-gold mb-1">Lesson complete!</h2>
             <p className="text-[#A69BB8] text-sm mb-1">{lesson.text?.title ?? lesson.title}</p>
             <p className="text-[#A69BB8]/70 text-xs mb-6">— {lesson.text?.source ?? ''}</p>
             <button
               onClick={() => router.push('/dashboard/student/texts')}
               className="ft-cta w-full"
             >
-              Volver a FriendlyTales®
+              Back to FriendlyTales®
             </button>
           </div>
         </div>

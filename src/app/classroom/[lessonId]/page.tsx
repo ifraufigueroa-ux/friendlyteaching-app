@@ -82,7 +82,7 @@ export default function ClassroomPage({ params }: PageProps) {
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--gradient-hero)' }}>
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
-          <p className="text-[#9B7CB8] font-medium text-sm">Cargando lección...</p>
+          <p className="text-[#9B7CB8] font-medium text-sm">Loading lesson…</p>
         </div>
       </div>
     );
@@ -93,13 +93,13 @@ export default function ClassroomPage({ params }: PageProps) {
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--gradient-hero)' }}>
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm mx-4">
           <div className="text-4xl mb-3">😕</div>
-          <h2 className="font-bold text-[#5A3D7A] mb-2">Lección no encontrada</h2>
-          <p className="text-gray-400 text-sm mb-4">{error ?? 'Esta lección no existe.'}</p>
+          <h2 className="font-bold text-[#5A3D7A] mb-2">Lesson not found</h2>
+          <p className="text-gray-400 text-sm mb-4">{error ?? "This lesson doesn't exist."}</p>
           <Link
             href="/dashboard"
             className="inline-block px-6 py-2.5 bg-[#C8A8DC] text-white rounded-xl text-sm font-semibold hover:bg-[#9B7CB8] transition-colors"
           >
-            Volver al Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -117,11 +117,11 @@ export default function ClassroomPage({ params }: PageProps) {
           href={isPreview ? '/dashboard/teacher/lessons' : (role === 'teacher' ? '/dashboard/teacher' : '/dashboard/student')}
           className="text-[#9B7CB8] hover:text-[#5A3D7A] text-sm font-semibold flex items-center gap-1 transition-colors"
         >
-          ← {isPreview ? 'Volver a lecciones' : (role === 'teacher' ? 'Panel docente' : 'Mi dashboard')}
+          ← {isPreview ? 'Back to lessons' : (role === 'teacher' ? 'Teacher dashboard' : 'My dashboard')}
         </Link>
         {isPreview ? (
           <span className="text-xs font-bold text-amber-700 bg-amber-200 px-3 py-1 rounded-full">
-            Vista previa del estudiante
+            Student preview
           </span>
         ) : (
           <p className="text-xs text-gray-400 font-medium">

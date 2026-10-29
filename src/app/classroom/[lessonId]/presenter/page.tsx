@@ -118,7 +118,7 @@ export default function PresenterPage() {
         <div className="flex items-center gap-3">
           <div className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
           <span className="text-xs font-medium text-gray-400">
-            {connected ? 'Conectado al classroom' : 'Esperando conexión...'}
+            {connected ? 'Connected to classroom' : 'Waiting for connection…'}
           </span>
         </div>
         <div className="text-sm font-bold text-[#C8A8DC] truncate mx-4">
@@ -128,7 +128,7 @@ export default function PresenterPage() {
           <button
             onClick={resetTimer}
             className="text-xs text-gray-400 hover:text-white transition-colors"
-            title="Resetear timer"
+            title="Reset timer"
           >
             ⏱
           </button>
@@ -144,7 +144,7 @@ export default function PresenterPage() {
         {/* Left: Current slide preview */}
         <div className="flex-1 flex flex-col border-r border-gray-700">
           <div className="px-3 py-2 bg-gray-800/50 flex-shrink-0">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Slide actual</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Current slide</p>
           </div>
           <div className="flex-1 overflow-auto p-3">
             <div className="bg-white rounded-xl overflow-hidden shadow-lg h-full">
@@ -163,20 +163,20 @@ export default function PresenterPage() {
         {/* Center: Notes + Tips */}
         <div className="w-80 flex flex-col border-r border-gray-700">
           <div className="px-3 py-2 bg-gray-800/50 flex-shrink-0">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Notas del profesor</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Teacher notes</p>
           </div>
           <div className="flex-1 overflow-auto p-3 space-y-3">
             {/* Teacher Notes */}
             {currentSlide?.teacherNotes ? (
               <div className="bg-gray-800 rounded-xl p-3">
-                <p className="text-xs font-bold text-[#C8A8DC] mb-1">📝 Notas</p>
+                <p className="text-xs font-bold text-[#C8A8DC] mb-1">📝 Notes</p>
                 <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
                   {currentSlide.teacherNotes}
                 </p>
               </div>
             ) : (
               <div className="bg-gray-800 rounded-xl p-3 text-center">
-                <p className="text-xs text-gray-500">Sin notas para este slide</p>
+                <p className="text-xs text-gray-500">No notes for this slide</p>
               </div>
             )}
 
@@ -193,7 +193,7 @@ export default function PresenterPage() {
             {/* Answer key */}
             {currentSlide?.correctAnswer && (
               <div className="bg-green-900/30 rounded-xl p-3">
-                <p className="text-xs font-bold text-green-400 mb-1">✅ Respuesta</p>
+                <p className="text-xs font-bold text-green-400 mb-1">✅ Answer</p>
                 <p className="text-sm text-green-200/80">{currentSlide.correctAnswer}</p>
               </div>
             )}
@@ -201,7 +201,7 @@ export default function PresenterPage() {
             {/* Student response stats */}
             {currentAnswers && (
               <div className="bg-blue-900/30 rounded-xl p-3">
-                <p className="text-xs font-bold text-blue-400 mb-2">📊 Respuestas de estudiantes</p>
+                <p className="text-xs font-bold text-blue-400 mb-2">📊 Student answers</p>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-3 bg-gray-700 rounded-full overflow-hidden">
                     <div
@@ -212,7 +212,7 @@ export default function PresenterPage() {
                   <span className="text-sm font-bold text-white">{accuracy}%</span>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  {currentAnswers.correct}/{currentAnswers.total} correctas
+                  {currentAnswers.correct}/{currentAnswers.total} correct
                 </p>
               </div>
             )}
@@ -220,9 +220,9 @@ export default function PresenterPage() {
             {/* Slide metadata */}
             <div className="bg-gray-800/50 rounded-xl p-3">
               <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Tipo: <span className="text-gray-400 font-medium">{currentSlide?.type}</span></span>
+                <span>Type: <span className="text-gray-400 font-medium">{currentSlide?.type}</span></span>
                 {currentSlide?.phase && (
-                  <span>· Fase: <span className="text-gray-400 font-medium uppercase">{currentSlide.phase}</span></span>
+                  <span>· Phase: <span className="text-gray-400 font-medium uppercase">{currentSlide.phase}</span></span>
                 )}
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function PresenterPage() {
         {/* Right: Next slide preview */}
         <div className="w-72 flex flex-col">
           <div className="px-3 py-2 bg-gray-800/50 flex-shrink-0">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Próximo slide</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Next slide</p>
           </div>
           <div className="flex-1 overflow-auto p-3">
             {nextSlide ? (
@@ -248,7 +248,7 @@ export default function PresenterPage() {
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-600">
                   <p className="text-3xl mb-2">🏁</p>
-                  <p className="text-xs font-medium">Último slide</p>
+                  <p className="text-xs font-medium">Last slide</p>
                 </div>
               </div>
             )}

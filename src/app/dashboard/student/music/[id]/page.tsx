@@ -67,8 +67,8 @@ export default function MusicLessonPlayerPage() {
         <div className="flex-1 flex items-center justify-center text-gray-400">
           <div className="text-center">
             <div className="mb-2 flex justify-center"><Music className="w-10 h-10" strokeWidth={2} /></div>
-            <p>Lección no encontrada.</p>
-            <button onClick={() => router.back()} className="mt-3 text-sm text-[#5A3D7A] underline">Volver</button>
+            <p>Lesson not found.</p>
+            <button onClick={() => router.back()} className="mt-3 text-sm text-[#5A3D7A] underline">Back</button>
           </div>
         </div>
       </div>
@@ -89,14 +89,14 @@ export default function MusicLessonPlayerPage() {
               <Image src={lesson.song.albumArt} alt={lesson.song.title} width={96} height={96} className="w-24 h-24 rounded-2xl mx-auto mb-4 shadow-md" />
             )}
             <div className="mb-2 flex justify-center"><PartyPopper className="w-8 h-8 text-[#5A3D7A]" strokeWidth={2} /></div>
-            <h2 className="text-xl font-bold text-[#5A3D7A] mb-1">¡Lección completada!</h2>
+            <h2 className="text-xl font-bold text-[#5A3D7A] mb-1">Lesson complete!</h2>
             <p className="text-gray-500 text-sm mb-1">{lesson.song.title}</p>
             <p className="text-gray-400 text-xs mb-6">by {lesson.song.artist}</p>
             <button
               onClick={() => router.push('/dashboard/student/music')}
               className="w-full py-3 rounded-xl bg-[#5A3D7A] text-white font-semibold hover:bg-[#4A2D6A] transition-colors"
             >
-              Volver a Friendlyrics®
+              Back to Friendlyrics®
             </button>
           </div>
         </div>
