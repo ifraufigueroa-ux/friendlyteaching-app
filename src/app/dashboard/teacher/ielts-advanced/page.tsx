@@ -41,12 +41,13 @@ export default function IELTSAdvancedPage() {
       <div className="relative z-10 p-6">
         <FullscreenButton />
         <TopBar
-          title="IELTS GT Advanced"
-          subtitle="Simulacro con densidad léxica y distractores del examen real — nivel B2+/C1"
+          title="IELTS GT · Advanced"
+          subtitle="Mock with real-exam lexical density and distractors — B2+/C1 level"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
-            { label: 'IELTS GT Advanced' },
+            { label: 'IELTS Simulator', href: '/dashboard/teacher/ielts' },
+            { label: 'GT · Advanced' },
           ]}
         />
 

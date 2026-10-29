@@ -55,12 +55,13 @@ export default function IELTSBeginnersPage() {
       <div className="relative z-10 p-6">
         <FullscreenButton />
         <TopBar
-          title="IELTS GT Beginners"
-          subtitle="Simulacro IELTS con vocabulario y ritmo apropiados para A2"
+          title="IELTS GT · Beginners"
+          subtitle="IELTS mock with A2-appropriate vocabulary and pacing"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
-            { label: 'IELTS GT Beginners' },
+            { label: 'IELTS Simulator', href: '/dashboard/teacher/ielts' },
+            { label: 'GT · Beginners' },
           ]}
         />
 

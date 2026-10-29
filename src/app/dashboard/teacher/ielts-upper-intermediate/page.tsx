@@ -41,12 +41,13 @@ export default function IELTSUpperIntermediatePage() {
       <div className="relative z-10 p-6">
         <FullscreenButton />
         <TopBar
-          title="IELTS GT Upper-Intermediate"
-          subtitle="Simulacro IELTS a velocidad y volumen del examen real — nivel B2"
+          title="IELTS GT · Upper-Intermediate"
+          subtitle="IELTS mock at real-exam speed and volume — B2 level"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
-            { label: 'IELTS GT Upper-Intermediate' },
+            { label: 'IELTS Simulator', href: '/dashboard/teacher/ielts' },
+            { label: 'GT · Upper-Intermediate' },
           ]}
         />
 

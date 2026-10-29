@@ -1,98 +1,127 @@
-// FriendlyTeaching.cl — IELTS GT Simulator: consolidated landing
+// FriendlyTeaching.cl — IELTS Simulator (unified chooser)
 //
-// Single entry point for the four IELTS General Training sections. The
-// section pages themselves (listening / reading / writing / cue-cards)
-// still own their content and grading; this page just presents them as
-// one product, with the same preset + toggle pattern the teacher already
-// knows from the TOEFL Simulator.
+// Two-step chooser that funnels into one of the existing section/level
+// pages. Step 1 picks exam type (General Training vs Academic). Step 2
+// picks level (Beginners A2 / Intermediate B1-B2 / Upper-Intermediate B2
+// / Advanced B2+-C1 / Full Mock).
+//
+// Mapping to existing routes:
+//   GT · Full                 → /dashboard/teacher/ielts/mock
+//   GT · Beginners A2         → /dashboard/teacher/ielts-beginners
+//   GT · Intermediate B1-B2   → /dashboard/teacher/ielts-intermediate
+//   GT · Upper-Int B2         → /dashboard/teacher/ielts-upper-intermediate
+//   GT · Advanced B2+-C1      → /dashboard/teacher/ielts-advanced
+//
+//   Academic · Listening      → /dashboard/teacher/ielts/listening
+//     (listening content is identical across GT and Academic — official)
+//   Academic · Reading/Writing/Speaking → coming soon
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useState } from 'react';
+import { ArrowRight, Hourglass, Headphones, Sparkles } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
-import {
-  IELTS_SECTIONS, IELTS_SECTION_META, IELTS_PRESETS,
-  type IELTSSection, type IELTSPreset,
-} from '@/types/ielts-simulator';
-import { IELTS_MOCKS } from '@/lib/data/ielts/mocks';
 
-// Human "Nh Nmin" formatter for the total-time chip.
-function fmtDuration(min: number): string {
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m === 0 ? `${h}h` : `${h}h ${m}min`;
+type ExamType = 'gt' | 'academic';
+
+interface LevelOption {
+  id:       string;
+  label:    string;
+  cefr:     string;
+  tagline:  string;
+  href:     string | null;      // null → coming soon
+  comingSoon?: boolean;
+  highlight?: boolean;          // featured on the first row
+  note?:    string;             // extra line under the card (e.g. "shared with GT")
 }
 
-export default function IELTSSimulatorPage() {
-  // Mock picker — cada launch propaga ?mock=<id> a la sección abierta.
-  const [selectedMockId, setSelectedMockId] = useState<string>(IELTS_MOCKS[0].id);
-  const [selectedPreset, setSelectedPreset] = useState<string>('full-gt');
-  const [sections, setSections] = useState<Set<IELTSSection>>(
-    new Set(['listening', 'reading', 'writing', 'speaking']),
-  );
-  const [notice, setNotice] = useState<string | null>(null);
+const GT_LEVELS: LevelOption[] = [
+  {
+    id:        'full',
+    label:     'Full Mock',
+    cefr:      'B1 – C1',
+    tagline:   'The complete real-exam experience: Listening + Reading + Writing + Speaking in official order.',
+    href:      '/dashboard/teacher/ielts/mock',
+    highlight: true,
+  },
+  {
+    id:        'beginners',
+    label:     'Beginners',
+    cefr:      'A2',
+    tagline:   'Short audio (~2 min/section), 0.85× speed, simple vocabulary. For students just meeting the exam.',
+    href:      '/dashboard/teacher/ielts-beginners',
+  },
+  {
+    id:        'intermediate',
+    label:     'Intermediate',
+    cefr:      'B1 – B2',
+    tagline:   '32 questions, ~3 min audio per section, 0.95× speed. The bridge between Beginners and the full mock.',
+    href:      '/dashboard/teacher/ielts-intermediate',
+  },
+  {
+    id:        'upper',
+    label:     'Upper-Intermediate',
+    cefr:      'B2',
+    tagline:   '40 questions (full exam volume), natural 1.0× speed, every question type including plan-map and multi-select.',
+    href:      '/dashboard/teacher/ielts-upper-intermediate',
+  },
+  {
+    id:        'advanced',
+    label:     'Advanced',
+    cefr:      'B2+ – C1',
+    tagline:   'Real-exam lexical density and distractors, longer scripts, mostly inferential questions. For band 7+.',
+    href:      '/dashboard/teacher/ielts-advanced',
+  },
+];
 
-  // Compone la URL de una sección con el mock activo como query.
-  // La sección de reading usa /reading/[mockId] (ruta dinámica) — para las
-  // demás basta con appendear ?mock=X.
-  function sectionHref(s: IELTSSection): string {
-    const base = IELTS_SECTION_META[s].href;
-    if (s === 'reading') return `${base}/${selectedMockId}`;
-    return `${base}?mock=${encodeURIComponent(selectedMockId)}`;
-  }
+// Academic currently only has Listening — reuses the exact same GT
+// listening content because Listening is identical across both IELTS
+// formats (official). Reading/Writing/Speaking Academic are coming soon.
+const ACADEMIC_LEVELS: LevelOption[] = [
+  {
+    id:        'listening',
+    label:     'Listening (shared with GT)',
+    cefr:      'B1 – C1',
+    tagline:   'Listening is identical for Academic and General Training. Pick a mock and launch — same runner, same mocks.',
+    href:      '/dashboard/teacher/ielts/listening',
+    highlight: true,
+    note:      'Shared content — one source of truth across both exam types.',
+  },
+  {
+    id:        'ac-reading',
+    label:     'Reading (Academic)',
+    cefr:      'B1 – C1',
+    tagline:   '3 passages with academic texts and the full set of question types. In production.',
+    href:      null,
+    comingSoon: true,
+  },
+  {
+    id:        'ac-writing',
+    label:     'Writing (Academic)',
+    cefr:      'B1 – C1',
+    tagline:   'Task 1 chart/graph/diagram description + Task 2 essay. AI grading with Academic band descriptors.',
+    href:      null,
+    comingSoon: true,
+  },
+  {
+    id:        'ac-speaking',
+    label:     'Speaking (Academic)',
+    cefr:      'B1 – C1',
+    tagline:   'Part 1 + 2 + 3. Shared speaking content with the GT runner is on the roadmap.',
+    href:      null,
+    comingSoon: true,
+  },
+];
 
-  // Auto-clear the "opened" notice after a few seconds so it doesn't linger.
-  useEffect(() => {
-    if (!notice) return;
-    const t = setTimeout(() => setNotice(null), 5000);
-    return () => clearTimeout(t);
-  }, [notice]);
+export default function IELTSSimulatorChooser() {
+  const [examType, setExamType] = useState<ExamType | null>(null);
 
-  function applyPreset(preset: IELTSPreset) {
-    setSelectedPreset(preset.id);
-    setSections(new Set(preset.sections));
-  }
-  function toggleSection(s: IELTSSection) {
-    setSelectedPreset('custom');
-    setSections(prev => {
-      const next = new Set(prev);
-      if (next.has(s)) next.delete(s); else next.add(s);
-      return next;
-    });
-  }
-
-  const orderedSelected = useMemo(
-    () => IELTS_SECTIONS.filter(s => sections.has(s)),
-    [sections],
-  );
-  const estimatedMin = useMemo(
-    () => orderedSelected.reduce((sum, s) => sum + IELTS_SECTION_META[s].minutes, 0),
-    [orderedSelected],
-  );
-
-  // Open every selected section in its own tab, in official IELTS order.
-  // Browsers only allow multiple window.open calls right after a click,
-  // so we do them synchronously inside the handler.
-  function handleLaunchAll() {
-    if (orderedSelected.length === 0) return;
-    for (const s of orderedSelected) {
-      const meta = IELTS_SECTION_META[s];
-      window.open(sectionHref(s), '_blank', 'noopener,noreferrer');
-    }
-    setNotice(
-      orderedSelected.length === 1
-        ? 'Sección abierta en una nueva pestaña.'
-        : `${orderedSelected.length} secciones abiertas en pestañas separadas — orden oficial: ${orderedSelected.map(s => IELTS_SECTION_META[s].label).join(' → ')}.`,
-    );
-  }
-
-  function handleLaunchOne(s: IELTSSection) {
-    window.open(sectionHref(s), '_blank', 'noopener,noreferrer');
-  }
+  const levels = examType === 'gt' ? GT_LEVELS : examType === 'academic' ? ACADEMIC_LEVELS : [];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
+      {/* Decorative grid */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none opacity-[0.05]"
@@ -105,6 +134,7 @@ export default function IELTSSimulatorPage() {
           WebkitMaskImage: 'radial-gradient(circle at 50% 30%, black 40%, transparent 90%)',
         }}
       />
+      {/* Decorative glow */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
@@ -118,198 +148,199 @@ export default function IELTSSimulatorPage() {
       <div className="relative z-10 p-6">
         <FullscreenButton />
         <TopBar
-          title="IELTS GT Simulator"
-          subtitle="Todo el mock IELTS General Training en un solo lugar"
+          title="IELTS Simulator"
+          subtitle="Pick exam type and level — then launch the mock"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
-            { label: 'IELTS GT' },
+            { label: 'IELTS Simulator' },
           ]}
         />
 
-        <div className="max-w-4xl mx-auto mt-8 space-y-6">
+        <div className="max-w-4xl mx-auto mt-8 space-y-8">
+
           {/* Hero */}
           <div className="text-center space-y-3">
             <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#5A3D7A] bg-[#F0E5FF] border border-[#C8A8DC]/60 px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#DC143C] animate-pulse" />
-              IELTS General Training
+              IELTS®
             </span>
             <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#2D1B4E] leading-tight tracking-tight">
-              IELTS GT<span className="text-[#DC143C]">®</span> Mock
+              IELTS Simulator
             </h1>
             <p className="text-sm text-[#5A3D7A]/70 max-w-lg mx-auto">
-              Listening + Reading + Writing + Speaking en el orden oficial.
-              Band scoring 0–9. AI grading para Writing con band descriptors oficiales.
+              Every version of our IELTS prep in one entrance. Start by picking
+              the format your student is sitting, then the level.
             </p>
           </div>
 
-          {/* Mock picker */}
-          <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5">
-            <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">
-              Elegí el mock
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {IELTS_MOCKS.map((m) => {
-                const active = selectedMockId === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedMockId(m.id)}
-                    className={`text-left rounded-xl p-3 border-2 transition-all ${
-                      active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
-                    }`}
-                  >
-                    <p className="text-sm font-bold text-[#5A3D7A]">{m.title}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                      L: {m.listening.sections.length}·10 Qs · R: {m.reading.totalQuestions} Qs · W: {m.writing.task1.title}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Presets */}
-          <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5 space-y-4">
-            <div>
-              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-3">
-                Presets rápidos
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {IELTS_PRESETS.map((p) => {
-                  const active = selectedPreset === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => applyPreset(p)}
-                      className={`text-left rounded-xl p-3 border-2 transition-all ${
-                        active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC]'
-                      }`}
-                    >
-                      <p className="text-sm font-bold text-[#5A3D7A]">{p.label}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{p.desc}</p>
-                    </button>
-                  );
-                })}
+          {/* Step 1 — exam type */}
+          <section className="bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-1">Step 1</p>
+                <h2 className="font-serif font-bold text-xl text-[#2D1B4E] leading-tight">Choose exam type</h2>
               </div>
-            </div>
-
-            {/* Custom section toggles */}
-            <div>
-              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-2">
-                O personalizá
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {IELTS_SECTIONS.map((s) => {
-                  const meta = IELTS_SECTION_META[s];
-                  const active = sections.has(s);
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => toggleSection(s)}
-                      className={`text-left rounded-xl p-3 border-2 transition-all ${
-                        active ? 'border-[#5A3D7A] bg-[#F0E5FF]' : 'border-gray-200 bg-white hover:border-[#C8A8DC] opacity-70'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[11px] font-bold ${
-                          active ? 'border-[#5A3D7A] bg-[#5A3D7A] text-white' : 'border-gray-300 text-gray-400'
-                        }`}>{active ? '✓' : ''}</span>
-                        <span className="text-lg">{meta.icon}</span>
-                      </div>
-                      <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
-                      <p className="text-[10px] text-gray-500 tabular-nums">~{meta.minutes} min</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl px-3 py-2 flex items-center justify-between">
-              <p className="text-xs text-[#5A3D7A]">
-                <strong>{orderedSelected.length}</strong> sección{orderedSelected.length !== 1 ? 'es' : ''} — {orderedSelected.map(s => IELTS_SECTION_META[s].label).join(' → ') || 'ninguna'}
-              </p>
-              <p className="text-xs font-bold text-[#5A3D7A] tabular-nums">≈ {fmtDuration(estimatedMin)}</p>
-            </div>
-          </div>
-
-          {/* Main CTA */}
-          <div className="space-y-3">
-            <div className="flex justify-center">
-              {orderedSelected.length > 0 ? (
+              {examType && (
                 <button
-                  onClick={handleLaunchAll}
-                  className="px-6 py-3 rounded-full text-sm font-bold text-white shadow-lg shadow-[#5A3D7A]/25 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
-                  style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}
+                  onClick={() => setExamType(null)}
+                  className="text-[11px] font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] underline decoration-dotted"
                 >
-                  ▶ Iniciar Mock en Vivo
-                  <span className="ml-2 opacity-80 font-normal text-[11px]">
-                    ({orderedSelected.length} pestaña{orderedSelected.length !== 1 ? 's' : ''})
-                  </span>
-                </button>
-              ) : (
-                <button disabled className="px-6 py-3 rounded-full text-sm font-bold text-white opacity-40 cursor-not-allowed"
-                  style={{ background: 'linear-gradient(135deg, #3D2558, #5A3D7A)' }}>
-                  Elegí al menos una sección
+                  Change
                 </button>
               )}
             </div>
 
-            {notice && (
-              <div className="max-w-2xl mx-auto bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-center">
-                <p className="text-[11px] text-emerald-700">{notice}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <ExamTypeCard
+                active={examType === 'gt'}
+                title="General Training"
+                blurb="Everyday English — work, immigration, and daily-life contexts. Most common for Chile/LatAm candidates."
+                badge="Full stack ready"
+                onClick={() => setExamType('gt')}
+              />
+              <ExamTypeCard
+                active={examType === 'academic'}
+                title="Academic"
+                blurb="University admissions and professional registration (medical / engineering boards). Reading & Writing use academic sources."
+                badge="Listening only (for now)"
+                badgeTone="amber"
+                onClick={() => setExamType('academic')}
+              />
+            </div>
+
+            <p className="text-[11px] text-[#5A3D7A]/60 flex items-start gap-1.5">
+              <Headphones className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" strokeWidth={2.25} />
+              <span>
+                Heads up: the <strong>Listening section is identical</strong> for General Training and
+                Academic (official IELTS format), so both options point to the same listening mocks.
+              </span>
+            </p>
+          </section>
+
+          {/* Step 2 — level */}
+          <section
+            className={`bg-white rounded-3xl border border-[#E8D5F0] shadow-md p-5 space-y-4 transition-all duration-200 ${
+              examType ? 'opacity-100' : 'opacity-40 pointer-events-none'
+            }`}
+          >
+            <div>
+              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-[0.25em] mb-1">Step 2</p>
+              <h2 className="font-serif font-bold text-xl text-[#2D1B4E] leading-tight">
+                Choose level {examType === 'academic' && <span className="text-[#5A3D7A]/50 font-normal text-sm">· Academic</span>}
+                {examType === 'gt' && <span className="text-[#5A3D7A]/50 font-normal text-sm">· General Training</span>}
+              </h2>
+            </div>
+
+            {!examType ? (
+              <div className="text-center py-10 text-[#5A3D7A]/50 text-sm">
+                Pick an exam type above to see level options.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {levels.map((l) => (
+                  <LevelCard key={l.id} level={l} />
+                ))}
               </div>
             )}
-          </div>
-
-          <p className="text-center text-[10px] text-gray-400 max-w-md mx-auto">
-            💡 Cada sección se abre en su propia pestaña. Corré en el orden oficial (Listening → Reading → Writing → Speaking) para replicar la experiencia real del examen.
-          </p>
-
-          {/* Section detail cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {IELTS_SECTIONS.map((s) => {
-              const meta = IELTS_SECTION_META[s];
-              const active = sections.has(s);
-              return (
-                <div
-                  key={s}
-                  className={`bg-white rounded-2xl border shadow-sm p-4 transition-all ${
-                    active ? 'border-[#5A3D7A]/40' : 'border-gray-200 opacity-60'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white flex items-center justify-center text-xl shadow-md flex-shrink-0">
-                        {meta.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#2D1B4E] leading-tight">
-                          IELTS {meta.label}
-                        </p>
-                        <p className="text-[10px] font-black text-[#5A3D7A]/60 uppercase tracking-widest tabular-nums mt-0.5">
-                          ~{meta.minutes} min
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLaunchOne(s)}
-                      className="flex-shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full text-[#5A3D7A] bg-[#F0E5FF] hover:bg-[#E0D0F5] transition-colors"
-                    >
-                      Abrir ↗
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-[#5A3D7A]/70 leading-relaxed">
-                    {meta.summary}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          </section>
 
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────
+
+function ExamTypeCard({
+  active, title, blurb, badge, badgeTone = 'violet', onClick,
+}: {
+  active:    boolean;
+  title:     string;
+  blurb:     string;
+  badge:     string;
+  badgeTone?: 'violet' | 'amber';
+  onClick:   () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`text-left rounded-2xl p-4 border-2 transition-all ${
+        active
+          ? 'border-[#5A3D7A] bg-[#F0E5FF] shadow-md'
+          : 'border-gray-200 bg-white hover:border-[#C8A8DC] hover:shadow-sm'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <p className="font-serif text-lg font-bold text-[#2D1B4E] leading-tight">{title}</p>
+        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap ${
+          badgeTone === 'amber'
+            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+            : 'bg-[#F0E5FF] text-[#5A3D7A] border border-[#C8A8DC]/50'
+        }`}>
+          {badge}
+        </span>
+      </div>
+      <p className="text-[12px] text-[#5A3D7A]/70 leading-snug">{blurb}</p>
+    </button>
+  );
+}
+
+function LevelCard({ level }: { level: LevelOption }) {
+  const content = (
+    <div
+      className={`h-full flex flex-col rounded-2xl p-4 border-2 transition-all ${
+        level.comingSoon
+          ? 'border-dashed border-gray-200 bg-gray-50/60 opacity-70 cursor-not-allowed'
+          : level.highlight
+            ? 'border-[#5A3D7A]/60 bg-gradient-to-br from-[#F0E5FF] to-white hover:border-[#5A3D7A] hover:shadow-md'
+            : 'border-gray-200 bg-white hover:border-[#C8A8DC] hover:shadow-sm'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <div className="min-w-0">
+          <p className="font-serif text-base font-bold text-[#2D1B4E] leading-tight">
+            {level.label}
+          </p>
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#5A3D7A]/60 mt-0.5">
+            CEFR · {level.cefr}
+          </p>
+        </div>
+        {level.comingSoon ? (
+          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+            <Hourglass className="w-2.5 h-2.5" strokeWidth={2.5} /> Soon
+          </span>
+        ) : level.highlight ? (
+          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#5A3D7A] text-white whitespace-nowrap">
+            <Sparkles className="w-2.5 h-2.5" strokeWidth={2.5} /> Featured
+          </span>
+        ) : null}
+      </div>
+
+      <p className="text-[12px] text-[#5A3D7A]/70 leading-snug flex-1 mt-1">{level.tagline}</p>
+
+      {level.note && (
+        <p className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-1 mt-2">
+          ✓ {level.note}
+        </p>
+      )}
+
+      {!level.comingSoon && (
+        <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#5A3D7A]">
+          Launch <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+        </div>
+      )}
+    </div>
+  );
+
+  if (level.comingSoon || !level.href) {
+    return <div>{content}</div>;
+  }
+  return (
+    <Link href={level.href} className="block">
+      {content}
+    </Link>
   );
 }

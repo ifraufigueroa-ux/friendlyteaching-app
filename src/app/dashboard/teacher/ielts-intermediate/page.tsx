@@ -49,12 +49,13 @@ export default function IELTSIntermediatePage() {
       <div className="relative z-10 p-6">
         <FullscreenButton />
         <TopBar
-          title="IELTS GT Intermediate"
-          subtitle="Simulacro IELTS puente entre A2 y examen completo — nivel B1/B2"
+          title="IELTS GT · Intermediate"
+          subtitle="IELTS mock bridging A2 and the full exam — B1/B2 level"
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Tools',     href: '/dashboard/teacher/tools' },
-            { label: 'IELTS GT Intermediate' },
+            { label: 'IELTS Simulator', href: '/dashboard/teacher/ielts' },
+            { label: 'GT · Intermediate' },
           ]}
         />
 
