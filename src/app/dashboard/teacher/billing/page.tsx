@@ -45,9 +45,9 @@ const CURRENCY_SYMBOL: Record<PaymentCurrency, string> = {
 };
 
 const METHOD_META: Record<PaymentMethod, { Icon: LucideIcon; label: string }> = {
-  transfer: { Icon: Landmark,  label: 'Transferencia' },
-  cash:     { Icon: Banknote,  label: 'Efectivo' },
-  other:    { Icon: FileText,  label: 'Otro' },
+  transfer: { Icon: Landmark,  label: 'Bank transfer' },
+  cash:     { Icon: Banknote,  label: 'Cash' },
+  other:    { Icon: FileText,  label: 'Other' },
 };
 
 function MethodLabel({ method }: { method: PaymentMethod }) {
@@ -62,8 +62,8 @@ function MethodLabel({ method }: { method: PaymentMethod }) {
 }
 
 const MONTH_ES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
 function formatCLP(amount: number): string {
@@ -113,13 +113,13 @@ function PaidModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Registrar pago</h2>
+        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Register payment</h2>
         <p className="text-sm text-gray-500 mb-4">
           {studentName}{amount > 0 && <> — <strong>{formatCLP(amount)}</strong></>}
         </p>
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-          Método de pago
+          Payment method
         </label>
         <div className="space-y-2 mb-4">
           {(Object.keys(METHOD_META) as PaymentMethod[]).map(m => (
@@ -138,13 +138,13 @@ function PaidModal({
         </div>
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Notas (opcional)
+          Notes (optional)
         </label>
         <input
           type="text"
           value={notes}
           onChange={e => setNotes(e.target.value)}
-          placeholder="Ej: Transferencia #12345"
+          placeholder="E.g. Transfer #12345"
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] focus:border-transparent"
         />
 
@@ -152,11 +152,11 @@ function PaidModal({
           <>
             <div className="border-t border-gray-100 my-4" />
             <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider mb-3 inline-flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Nuevo período del plan
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> New plan period
             </p>
 
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
-              Total de clases
+              Total classes
             </label>
             <input
               type="number"
@@ -168,7 +168,7 @@ function PaidModal({
             />
 
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
-              Nueva fecha de inicio
+              New start date
             </label>
             <input
               type="date"
@@ -181,11 +181,11 @@ function PaidModal({
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5">
-            {saving ? 'Guardando...' : <><CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Confirmar pago</>}
+            {saving ? 'Saving…' : <><CheckCircle2 className="w-4 h-4" strokeWidth={2.25} /> Confirm payment</>}
           </button>
         </div>
       </div>
@@ -220,7 +220,7 @@ function SetAmountModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
-        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Monto mensual</h2>
+        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Monthly amount</h2>
         <p className="text-sm text-gray-400 mb-4">{studentName}</p>
         <div className="relative mb-4">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</span>
@@ -235,11 +235,11 @@ function SetAmountModal({
         </div>
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors">
-            {saving ? '...' : 'Guardar'}
+            {saving ? '…' : 'Save'}
           </button>
         </div>
       </div>
@@ -268,7 +268,7 @@ function ExportInvoiceButton({
 
     const invoiceData: InvoiceData = {
       type: 'invoice',
-      teacherName: profile?.fullName ?? 'Profesor FT',
+      teacherName: profile?.fullName ?? 'FT Teacher',
       teacherEmail: profile?.email ?? '',
       studentName: student.fullName,
       period: periodLabel,
@@ -288,7 +288,7 @@ function ExportInvoiceButton({
       disabled={exporting}
       className="w-full mt-2 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-xl text-[10px] font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
     >
-      {exporting ? 'Generando...' : <><FileText className="w-3.5 h-3.5" strokeWidth={2.25} /> Exportar factura</>}
+      {exporting ? 'Generating…' : <><FileText className="w-3.5 h-3.5" strokeWidth={2.25} /> Export invoice</>}
     </button>
   );
 }
@@ -329,9 +329,9 @@ function UnifiedStudentCard({
   const status = payment?.status;
 
   const STATUS_CONFIG = {
-    paid:    { label: 'Pagado',    Icon: CheckCircle2, iconColor: '', bg: 'bg-green-50',  border: 'border-green-200',  badge: 'bg-green-100 text-green-700' },
-    pending: { label: 'Pendiente', Icon: Hourglass,    iconColor: '', bg: 'bg-amber-50',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700' },
-    overdue: { label: 'Atrasado',  Icon: Circle,       iconColor: 'fill-red-500 text-red-500', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
+    paid:    { label: 'Paid',    Icon: CheckCircle2, iconColor: '', bg: 'bg-green-50',  border: 'border-green-200',  badge: 'bg-green-100 text-green-700' },
+    pending: { label: 'Pending', Icon: Hourglass,    iconColor: '', bg: 'bg-amber-50',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700' },
+    overdue: { label: 'Overdue',  Icon: Circle,       iconColor: 'fill-red-500 text-red-500', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
   } as const;
 
   const cfg = status ? STATUS_CONFIG[status] : null;
@@ -382,12 +382,12 @@ function UnifiedStudentCard({
             onClick={() => setShowAmountModal(true)}
             className="text-sm font-bold text-gray-700 hover:text-[#5A3D7A] transition-colors"
           >
-            {monthlyRate > 0 ? formatCLP(monthlyRate) : '$ Sin definir'}
-            <span className="text-[10px] text-gray-400 ml-1 font-normal inline-flex items-center gap-0.5">/mes <Pencil className="w-2.5 h-2.5" strokeWidth={2.5} /></span>
+            {monthlyRate > 0 ? formatCLP(monthlyRate) : '$ Not set'}
+            <span className="text-[10px] text-gray-400 ml-1 font-normal inline-flex items-center gap-0.5">/mo <Pencil className="w-2.5 h-2.5" strokeWidth={2.5} /></span>
           </button>
           {payment?.paidAt?.toDate && (
             <p className="text-[10px] text-gray-400 mt-0.5">
-              Pagó: {payment.paidAt.toDate().toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
+              Paid: {payment.paidAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               {payment.method && (<> · <MethodLabel method={payment.method} /></>)}
             </p>
           )}
@@ -398,7 +398,7 @@ function UnifiedStudentCard({
           <div className={`rounded-xl p-3 mb-3 ${isComplete ? 'bg-green-100/50' : 'bg-black/[0.03]'}`}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-[11px] font-semibold text-gray-500 truncate min-w-0 inline-flex items-center gap-1">
-                <BookOpen className="w-3 h-3" strokeWidth={2.5} /> {plan.planName || 'Plan de clases'}
+                <BookOpen className="w-3 h-3" strokeWidth={2.5} /> {plan.planName || 'Class plan'}
               </p>
               <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -431,7 +431,7 @@ function UnifiedStudentCard({
                     key={i}
                     onClick={() => handleDotClick(i)}
                     disabled={isAuto}
-                    title={isAuto ? `Clase ${i + 1} (registrada)` : isGreen ? `Clase ${i + 1} — click para desmarcar` : `Clase ${i + 1} — click para marcar`}
+                    title={isAuto ? `Class ${i + 1} (recorded)` : isGreen ? `Class ${i + 1} — click to unmark` : `Class ${i + 1} — click to mark`}
                     className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
                       isGreen
                         ? isAuto
@@ -477,7 +477,7 @@ function UnifiedStudentCard({
               onClick={onMarkPending}
               className="flex-1 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-semibold transition-colors"
             >
-              ↩ Marcar pendiente
+              ↩ Mark pending
             </button>
           )}
         </div>
@@ -562,7 +562,7 @@ function AddPlanModal({
       });
     } catch (err: unknown) {
       console.error('createLessonPlan error:', err);
-      setSaveError(err instanceof Error ? err.message : 'Error al guardar. Intenta de nuevo.');
+      setSaveError(err instanceof Error ? err.message : 'Save error. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -571,7 +571,7 @@ function AddPlanModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-        <h2 className="font-bold text-[#5A3D7A] text-base mb-4">Nuevo plan de clases</h2>
+        <h2 className="font-bold text-[#5A3D7A] text-base mb-4">New class plan</h2>
 
         <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-xl">
           <button
@@ -582,7 +582,7 @@ function AddPlanModal({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Estudiante registrado
+            Registered student
           </button>
           <button
             onClick={() => setMode('manual')}
@@ -592,12 +592,12 @@ function AddPlanModal({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Ingreso manual
+            Manual entry
           </button>
         </div>
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Estudiante
+          Student
         </label>
         {mode === 'registered' ? (
           <select
@@ -605,7 +605,7 @@ function AddPlanModal({
             onChange={e => setSelectedUid(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
           >
-            <option value="">Seleccionar estudiante...</option>
+            <option value="">Select student…</option>
             {students.map(s => (
               <option key={s.uid} value={s.uid}>{s.fullName}</option>
             ))}
@@ -615,25 +615,25 @@ function AddPlanModal({
             type="text"
             value={manualName}
             onChange={e => setManualName(e.target.value)}
-            placeholder="Nombre completo del estudiante"
+            placeholder="Full name of the student"
             autoFocus
             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
           />
         )}
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Nombre del plan (opcional)
+          Plan name (optional)
         </label>
         <input
           type="text"
           value={planName}
           onChange={e => setPlanName(e.target.value)}
-          placeholder="Ej: Curso A2 — 12 clases"
+          placeholder="E.g. A2 Course — 12 classes"
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
         />
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Total de clases
+          Total classes
         </label>
         <input
           type="number"
@@ -645,7 +645,7 @@ function AddPlanModal({
         />
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Fecha de inicio
+          Start date
         </label>
         <input
           type="date"
@@ -660,14 +660,14 @@ function AddPlanModal({
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!canSave || saving}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
           >
-            {saving ? '...' : 'Crear plan'}
+            {saving ? '…' : 'Create plan'}
           </button>
         </div>
       </div>
@@ -715,22 +715,22 @@ function EditPlanModal({
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Editar plan</h2>
+        <h2 className="font-bold text-[#5A3D7A] text-base mb-1">Edit plan</h2>
         <p className="text-sm text-gray-400 mb-4">{plan.studentName}</p>
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Nombre del plan
+          Plan name
         </label>
         <input
           type="text"
           value={planName}
           onChange={e => setPlanName(e.target.value)}
-          placeholder="Ej: Curso A2 — 12 clases"
+          placeholder="E.g. A2 Course — 12 classes"
           className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
         />
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Total de clases
+          Total classes
         </label>
         <input
           type="number"
@@ -742,7 +742,7 @@ function EditPlanModal({
         />
 
         <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-          Fecha de inicio
+          Start date
         </label>
         <input
           type="date"
@@ -753,14 +753,14 @@ function EditPlanModal({
 
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="flex-1 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-colors"
           >
-            {saving ? '...' : 'Guardar'}
+            {saving ? '…' : 'Save'}
           </button>
         </div>
       </div>
@@ -770,7 +770,7 @@ function EditPlanModal({
 
 // ─── Class detail popup (shown when clicking an auto-counted dot) ─────────────
 
-const DAY_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_ES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MOOD_ICON: Record<string, LucideIcon> = { great: Sparkles, good: Smile, regular: Frown };
 
 function ClassDetailPopup({
@@ -798,7 +798,7 @@ function ClassDetailPopup({
       >
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-            Clase {index + 1}
+            Class {index + 1}
           </p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg font-bold w-6 h-6 flex items-center justify-center">×</button>
         </div>
@@ -811,37 +811,37 @@ function ClassDetailPopup({
               const MoodIcon = MOOD_ICON[entry.notes.mood];
               return (
                 <p className="text-gray-600 inline-flex items-center gap-1.5">
-                  <MoodIcon className="w-4 h-4" strokeWidth={2.25} /> Clase {entry.notes.mood === 'great' ? 'excelente' : entry.notes.mood === 'good' ? 'bien' : 'regular'}
+                  <MoodIcon className="w-4 h-4" strokeWidth={2.25} /> {entry.notes.mood === 'great' ? 'Great class' : entry.notes.mood === 'good' ? 'Good class' : 'So-so class'}
                 </p>
               );
             })()}
             {entry.notes.covered && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Temas</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.5} /> Topics</p>
                 <p className="text-gray-700 text-sm leading-snug">{entry.notes.covered}</p>
               </div>
             )}
             {entry.notes.performance && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Desempeño</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><MessageSquare className="w-3 h-3" strokeWidth={2.5} /> Performance</p>
                 <p className="text-gray-600 text-sm leading-snug">{entry.notes.performance}</p>
               </div>
             )}
             {entry.notes.homework && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Tarea</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Homework</p>
                 <p className="text-gray-600 text-sm">{entry.notes.homework}</p>
               </div>
             )}
             {entry.notes.nextClass && (
               <div>
-                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Próxima clase</p>
+                <p className="text-[10px] font-bold text-[#5A3D7A] uppercase tracking-wider mb-0.5 inline-flex items-center gap-1"><Target className="w-3 h-3" strokeWidth={2.5} /> Next class</p>
                 <p className="text-gray-600 text-sm">{entry.notes.nextClass}</p>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 italic">Sin notas registradas para esta clase.</p>
+          <p className="text-sm text-gray-400 italic">No notes recorded for this class.</p>
         )}
       </div>
     </div>
@@ -937,10 +937,10 @@ function ManualPlanRow({
                 onClick={() => handleDotClick(i)}
                 title={
                   isAuto
-                    ? `Clase ${i + 1} · Haz click para ver detalles`
+                    ? `Class ${i + 1} · Click to see details`
                     : isGreen
-                      ? `Clase ${i + 1} (manual) — click para desmarcar`
-                      : `Clase ${i + 1} — click para marcar`
+                      ? `Class ${i + 1} (manual) — click to unmark`
+                      : `Class ${i + 1} — click to mark`
                 }
                 className={`w-4 h-4 rounded-full transition-all duration-200 ${
                   isGreen
@@ -959,7 +959,7 @@ function ManualPlanRow({
 
         {autoCount > 0 && (
           <p className="text-[10px] text-gray-400 mb-2 inline-flex items-center gap-1">
-            <Circle className="w-2.5 h-2.5 fill-green-500 text-green-500" strokeWidth={0} /> {autoCount} registrada{autoCount !== 1 ? 's' : ''} — click en un punto para ver detalles
+            <Circle className="w-2.5 h-2.5 fill-green-500 text-green-500" strokeWidth={0} /> {autoCount} recorded — click a dot to see details
             {manualCount > autoCount ? ` · +${manualCount - autoCount} manual` : ''}
           </p>
         )}
@@ -1074,11 +1074,11 @@ export default function BillingPage() {
   return (
     <div className="flex flex-col h-full">
       <TopBar
-        title="Facturación"
-        subtitle="Seguimiento de pagos mensuales por estudiante"
+        title="Billing"
+        subtitle="Monthly payment tracking per student"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard/teacher' },
-          { label: 'Facturación' },
+          { label: 'Billing' },
         ]}
       />
       <div className="flex-1 overflow-auto p-6 space-y-5">
@@ -1105,7 +1105,7 @@ export default function BillingPage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider inline-flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Planes de clases
+              <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Class plans
             </p>
             <button
               onClick={() => setShowAddPlan(true)}
@@ -1117,7 +1117,7 @@ export default function BillingPage() {
 
           {plansError && (
             <div className="bg-red-50 border border-red-100 rounded-2xl p-3">
-              <p className="text-xs text-red-600 font-semibold">Error al cargar planes: {plansError}</p>
+              <p className="text-xs text-red-600 font-semibold">Error loading plans: {plansError}</p>
             </div>
           )}
 
@@ -1130,8 +1130,8 @@ export default function BillingPage() {
           ) : plans.length === 0 ? (
             <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
               <BookOpen className="w-8 h-8 mx-auto mb-2 text-[#C8A8DC]" strokeWidth={2} />
-              <p className="text-gray-500 text-sm">Sin planes de clases aún.</p>
-              <p className="text-xs text-gray-400 mt-1">Presiona &ldquo;+ Plan&rdquo; para crear uno.</p>
+              <p className="text-gray-500 text-sm">No class plans yet.</p>
+              <p className="text-xs text-gray-400 mt-1">Press &ldquo;+ Plan&rdquo; to create one.</p>
             </div>
           ) : (
             plans.map(plan => {

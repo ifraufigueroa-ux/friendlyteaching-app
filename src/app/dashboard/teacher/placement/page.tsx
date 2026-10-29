@@ -147,7 +147,7 @@ function SessionModal({
         updatedAt: serverTimestamp(),
       });
     } catch (err: unknown) {
-      setGenerateError(err instanceof Error ? err.message : 'No se pudo generar el programa.');
+      setGenerateError(err instanceof Error ? err.message : 'Could not generate the program.');
     } finally {
       setGeneratingProgram(false);
     }
@@ -470,7 +470,7 @@ function SessionModal({
                         disabled={generatingProgram}
                         className="text-white text-sm px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-40"
                         style={{ background: B.purple }}>
-                        {generatingProgram ? 'Generando…' : <span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" strokeWidth={2.25} /> Generar programa</span>}
+                        {generatingProgram ? 'Generating…' : <span className="inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" strokeWidth={2.25} /> Generate program</span>}
                       </button>
                       {generateError && (
                         <p className="text-xs mt-3" style={{ color: '#DC2626' }}>{generateError}</p>
@@ -478,7 +478,7 @@ function SessionModal({
                     </>
                   ) : (
                     <p className="text-xs" style={{ color: B.purpleLight }}>
-                      El test aún no está completo.
+                      The test isn't complete yet.
                     </p>
                   )}
                 </div>
@@ -613,7 +613,7 @@ function SuiteSessionModal({
                 }`}
                 style={active ? { color: B.purple, borderBottom: `2px solid ${B.purple}` } : {}}
               >
-                {t === 'results' ? 'Resultados' : 'Programa 12 semanas'}
+                {t === 'results' ? 'Results' : '12-week program'}
               </button>
             );
           })}
@@ -626,7 +626,7 @@ function SuiteSessionModal({
               {/* Per-skill */}
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
-                  Nivel por habilidad
+                  Level by skill
                 </p>
                 <div className="space-y-2">
                   {session.components.map((cid) => {
@@ -669,7 +669,7 @@ function SuiteSessionModal({
                 return (
                   <div key={`sec-${cid}`}>
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2 inline-flex items-center gap-1.5" style={{ color: B.purple }}>
-                      <SectionIcon className="w-3 h-3" strokeWidth={2.5} /> {meta.label} · desglose por nivel
+                      <SectionIcon className="w-3 h-3" strokeWidth={2.5} /> {meta.label} · breakdown by level
                     </p>
                     <div className="space-y-1.5">
                       {visible.map((s) => (
@@ -685,7 +685,7 @@ function SuiteSessionModal({
           {tab === 'program' && session.learningProgram && (
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: B.purple }}>
-                Plan personalizado — nivel {session.learningProgram.placedLevel}
+                Personalized plan — level {session.learningProgram.placedLevel}
               </p>
               <p className="text-[11px] mb-3" style={{ color: B.purpleMed }}>
                 12 semanas con foco en los {session.learningProgram.weakAreas.length} weak areas detectadas.
@@ -712,7 +712,7 @@ function SuiteSessionModal({
 
           {tab === 'program' && !session.learningProgram && (
             <p className="text-xs text-gray-500 text-center py-8">
-              Este test aún no tiene programa generado (probablemente no completó Grammar).
+              This test doesn't have a generated program yet (likely didn't complete Grammar).
             </p>
           )}
 
@@ -724,7 +724,7 @@ function SuiteSessionModal({
               className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ background: B.purple }}
             >
-              {downloading ? <span className="inline-flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.25} /> Generando…</span> : <span className="inline-flex items-center gap-1.5"><Download className="w-3.5 h-3.5" strokeWidth={2.25} /> Descargar PDF completo</span>}
+              {downloading ? <span className="inline-flex items-center gap-1.5"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.25} /> Generating…</span> : <span className="inline-flex items-center gap-1.5"><Download className="w-3.5 h-3.5" strokeWidth={2.25} /> Download full PDF</span>}
             </button>
             <button
               onClick={onClose}
@@ -799,13 +799,13 @@ function SuiteConfigForm({
           }`}
         >
           <p className="text-sm font-bold text-[#5A3D7A] inline-flex items-center gap-1.5"><Sparkles className="w-4 h-4" strokeWidth={2.25} /> Custom</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">Elegí exactamente qué evaluar.</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Pick exactly what to assess.</p>
         </button>
       </div>
 
       {/* Component toggles */}
       <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-        Componentes
+        Components
       </label>
       <div className="space-y-1.5 mb-4">
         {Object.values(COMPONENT_META).map((meta) => {
@@ -832,7 +832,7 @@ function SuiteConfigForm({
                   <p className="text-sm font-bold text-[#2D1B4E]">{meta.label}</p>
                   {disabled && (
                     <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                      Próximo
+                      Coming soon
                     </span>
                   )}
                 </div>
@@ -847,13 +847,13 @@ function SuiteConfigForm({
       {(components.includes('grammar') || components.includes('vocabulary') || components.includes('reading')) && (
         <div className="mb-4 bg-[#FDFAFF] border border-[#E8D5F0] rounded-xl p-3 space-y-3">
           <p className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider">
-            Cantidad de preguntas
+            Number of questions
           </p>
           {components.includes('grammar') && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-[#2D1B4E]">
-                  Modo del test ({grammarMode === 'adaptive' ? 'adaptativo' : 'lineal'})
+                  Test mode ({grammarMode === 'adaptive' ? 'adaptive' : 'linear'})
                 </label>
               </div>
               {/* Mode toggle — applies to Grammar, Vocab and Reading */}
@@ -868,7 +868,7 @@ function SuiteConfigForm({
                         : 'bg-white text-[#5A3D7A] border border-[#E8D5F0]'
                     }`}
                   >
-                    {m === 'adaptive' ? <span className="inline-flex items-center gap-1"><Zap className="w-3 h-3" strokeWidth={2.5} /> Adaptativo</span> : <span className="inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Lineal</span>}
+                    {m === 'adaptive' ? <span className="inline-flex items-center gap-1"><Zap className="w-3 h-3" strokeWidth={2.5} /> Adaptive</span> : <span className="inline-flex items-center gap-1"><ClipboardList className="w-3 h-3" strokeWidth={2.5} /> Linear</span>}
                   </button>
                 ))}
               </div>
@@ -884,8 +884,8 @@ function SuiteConfigForm({
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
                 {grammarMode === 'adaptive'
-                  ? 'Arranca en A1. Corre las N preguntas completas ajustando dificultad on the go (4 correctas → sube, 3 erradas → baja).'
-                  : 'Corre las preguntas en orden A0 → C1. Autostop tras 6 erradas seguidas.'}
+                  ? 'Starts at A1. Runs the full N questions adjusting difficulty on the fly (4 correct → up, 3 wrong → down).'
+                  : 'Runs questions in order A0 → C1. Auto-stops after 6 wrong in a row.'}
               </p>
             </div>
           )}
@@ -900,8 +900,8 @@ function SuiteConfigForm({
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
                 {grammarMode === 'adaptive'
-                  ? 'Adaptativo: arranca en el nivel estimado por Grammar y ajusta on the go.'
-                  : 'Lineal: calibrado al ±1 del nivel estimado por Grammar.'}
+                  ? 'Adaptive: starts at the level Grammar estimated and adjusts on the fly.'
+                  : 'Linear: calibrated within ±1 of the Grammar-estimated level.'}
               </p>
             </div>
           )}
@@ -909,15 +909,15 @@ function SuiteConfigForm({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-[#2D1B4E] inline-flex items-center gap-1.5"><BookMarked className="w-3.5 h-3.5" strokeWidth={2.25} /> Reading</label>
-                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} pasaje{budgets.reading !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-[#5A3D7A] tabular-nums">{budgets.reading} passage{budgets.reading !== 1 ? 's' : ''}</span>
               </div>
               <input type="range" min={1} max={6} step={1} value={budgets.reading}
                 onChange={e => setBudget('reading', Number(e.target.value))}
                 className="w-full accent-[#5A3D7A]" />
               <p className="text-[10px] text-gray-500 leading-tight">
                 {grammarMode === 'adaptive'
-                  ? 'Adaptativo por pasaje: sube o baja el nivel del siguiente según accuracy en el actual.'
-                  : 'Lineal: pasajes cercanos al nivel estimado por Grammar, más cercano primero.'}
+                  ? 'Adaptive per passage: level goes up or down based on accuracy in the current one.'
+                  : 'Linear: passages near the Grammar-estimated level, closest first.'}
               </p>
             </div>
           )}
@@ -927,7 +927,7 @@ function SuiteConfigForm({
       {/* Summary */}
       <div className="bg-[#F0E5FF] border border-[#C8A8DC]/60 rounded-xl px-3 py-2 mb-4 flex items-center justify-between">
         <p className="text-xs text-[#5A3D7A]">
-          <strong>{components.length}</strong> componente{components.length !== 1 ? 's' : ''} seleccionado{components.length !== 1 ? 's' : ''}
+          <strong>{components.length}</strong> component{components.length !== 1 ? 's' : ''} selected
         </p>
         <p className="text-xs font-bold text-[#5A3D7A]">≈ {estimateMinutes(components, budgets)} min total</p>
       </div>
@@ -975,9 +975,9 @@ function LiveTestSetupModal({
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base font-bold text-white">Iniciar test en vivo</p>
+              <p className="text-base font-bold text-white">Start live test</p>
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                Modo teacher-led · se abre en una pestaña nueva.
+                Teacher-led mode · opens in a new tab.
               </p>
             </div>
             <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
@@ -988,7 +988,7 @@ function LiveTestSetupModal({
           <SuiteConfigForm value={cfg} onChange={setCfg} />
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-              Cancelar
+              Cancel
             </button>
             <button
               onClick={launch}
@@ -996,7 +996,7 @@ function LiveTestSetupModal({
               className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
               style={{ background: '#5A3D7A' }}
             >
-              ▶ Iniciar
+              ▶ Start
             </button>
           </div>
         </div>
@@ -1062,9 +1062,9 @@ function PersonalizeLinkModal({
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base font-bold text-white inline-flex items-center gap-1.5"><Link2 className="w-4 h-4" strokeWidth={2.25} /> Personalizar link para compartir</p>
+              <p className="text-base font-bold text-white inline-flex items-center gap-1.5"><Link2 className="w-4 h-4" strokeWidth={2.25} /> Personalize share link</p>
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                Configurá qué componentes incluir. El estudiante ingresa sus datos al abrir.
+                Configure which components to include. The student enters their info when opening it.
               </p>
             </div>
             <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
@@ -1077,12 +1077,12 @@ function PersonalizeLinkModal({
           {/* Live URL preview */}
           <div className="mb-4">
             <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-2">
-              Link generado
+              Generated link
             </label>
             <div className="flex gap-2">
               <input
                 readOnly
-                value={url || 'Seleccioná al menos un componente'}
+                value={url || 'Pick at least one component'}
                 className="flex-1 rounded-xl px-3 py-2 text-xs outline-none font-mono"
                 style={{ border: `1px solid ${B.lavenderDark}`, background: B.lavender, color: B.purpleMed }}
                 onFocus={(e) => e.currentTarget.select()}
@@ -1093,14 +1093,14 @@ function PersonalizeLinkModal({
                 className="text-xs font-bold px-4 py-2 rounded-xl transition-all hover:opacity-80 disabled:opacity-40"
                 style={{ background: copied ? '#DCFCE7' : B.purple, color: copied ? '#15803D' : 'white' }}
               >
-                {copied ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Copiado</span> : 'Copy'}
+                {copied ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Copied</span> : 'Copy'}
               </button>
             </div>
           </div>
 
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-              Cerrar
+              Close
             </button>
             <button
               onClick={handlePreview}
@@ -1141,7 +1141,7 @@ function AssignTestModal({
 
   async function handleAssign() {
     if (!selected) return;
-    if (components.length === 0) { setError('Seleccioná al menos un componente.'); return; }
+    if (components.length === 0) { setError('Pick at least one component.'); return; }
     setSaving(true); setError('');
     try {
       await createPlacementAssignment({
@@ -1156,7 +1156,7 @@ function AssignTestModal({
       });
       setDone(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al asignar.');
+      setError(err instanceof Error ? err.message : 'Assignment error.');
     } finally {
       setSaving(false);
     }
@@ -1169,9 +1169,9 @@ function AssignTestModal({
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #5A3D7A, #9B7CB8)' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base font-bold text-white">Asignar placement test</p>
+              <p className="text-base font-bold text-white">Assign placement test</p>
               <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                {done ? '¡Listo!' : `Paso ${step} de 2`}
+                {done ? 'Done!' : `Step ${step} of 2`}
               </p>
             </div>
             <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>
@@ -1190,30 +1190,30 @@ function AssignTestModal({
           {done ? (
             <div className="text-center py-4">
               <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" strokeWidth={2.25} />
-              <p className="font-semibold text-[#5A3D7A]">Test asignado a {selected?.fullName}</p>
+              <p className="font-semibold text-[#5A3D7A]">Test assigned to {selected?.fullName}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {components.length} componente{components.length !== 1 ? 's' : ''} · ~{estimateMinutes(components, budgets)} min
+                {components.length} component{components.length !== 1 ? 's' : ''} · ~{estimateMinutes(components, budgets)} min
               </p>
               <button onClick={onClose}
                 className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
                 style={{ background: '#5A3D7A' }}>
-                Cerrar
+                Close
               </button>
             </div>
           ) : step === 1 ? (
             <>
               <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5">
-                Estudiante
+                Student
               </label>
               {approvedStudents.length === 0 ? (
-                <p className="text-sm text-gray-400 mb-4">No hay estudiantes aprobados aún.</p>
+                <p className="text-sm text-gray-400 mb-4">No approved students yet.</p>
               ) : (
                 <select
                   value={selectedUid}
                   onChange={e => setSelectedUid(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm mb-5 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
                 >
-                  <option value="">Seleccionar estudiante...</option>
+                  <option value="">Select student…</option>
                   {approvedStudents.map(s => (
                     <option key={s.uid} value={s.uid}>{s.fullName}</option>
                   ))}
@@ -1230,7 +1230,7 @@ function AssignTestModal({
                   className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
                   style={{ background: '#5A3D7A' }}
                 >
-                  Continuar →
+                  Continue →
                 </button>
               </div>
             </>
@@ -1253,7 +1253,7 @@ function AssignTestModal({
                   onClick={() => setStep(1)}
                   className="py-2.5 px-4 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors"
                 >
-                  ← Atrás
+                  ← Back
                 </button>
                 <button
                   onClick={handleAssign}
@@ -1261,7 +1261,7 @@ function AssignTestModal({
                   className="flex-1 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-opacity hover:opacity-90"
                   style={{ background: '#5A3D7A' }}
                 >
-                  {saving ? 'Asignando…' : 'Asignar test'}
+                  {saving ? 'Assigning…' : 'Assign test'}
                 </button>
               </div>
             </>
@@ -1334,14 +1334,14 @@ export default function PlacementDashboardPage() {
             onClick={() => setShowAssign(true)}
             className="text-sm font-bold px-4 py-2.5 rounded-xl text-white transition-all hover:opacity-90"
             style={{ background: B.purple }}>
-            + Asignar a estudiante
+            + Assign to student
           </button>
           <button
             onClick={() => uid && setShowLink(true)}
             disabled={!uid}
             className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white"
             style={{ background: B.purpleMed }}>
-            <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Personalizar link</span>
+            <span className="inline-flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" strokeWidth={2.25} /> Personalize link</span>
           </button>
           <button
             onClick={() => uid && setShowLive(true)}
@@ -1349,7 +1349,7 @@ export default function PlacementDashboardPage() {
             className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all hover:opacity-90 border-2 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'white', color: B.purple, borderColor: B.purple }}
           >
-            ▶ Iniciar test en vivo
+            ▶ Start live test
           </button>
           {testUrl && (
             <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: B.lavender, border: `1px solid ${B.lavenderDark}` }}>
@@ -1390,7 +1390,7 @@ export default function PlacementDashboardPage() {
       {assignments.length > 0 && (
         <div className="mb-6">
           <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: B.purpleMed }}>
-            Tests asignados ({assignments.filter(a => a.status === 'pending').length} pendientes)
+            Assigned tests ({assignments.filter(a => a.status === 'pending').length} pending)
           </p>
           <div className="space-y-2">
             {assignments.map((a: PlacementAssignment) => (
@@ -1409,13 +1409,13 @@ export default function PlacementDashboardPage() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
                     style={{ background: a.status === 'completed' ? '#DCFCE7' : B.lavenderDark, color: a.status === 'completed' ? '#15803D' : B.purple }}>
-                    {a.status === 'completed' ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Completado</span> : <span className="inline-flex items-center gap-1"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.5} /> Pendiente</span>}
+                    {a.status === 'completed' ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} /> Completed</span> : <span className="inline-flex items-center gap-1"><Hourglass className="w-3.5 h-3.5" strokeWidth={2.5} /> Pending</span>}
                   </span>
                   <button
                     onClick={() => deletePlacementAssignment(a.id)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors hover:bg-red-50 hover:text-red-500"
                     style={{ color: B.purpleMed }}
-                    title="Eliminar asignación">
+                    title="Delete assignment">
                     <Trash2 className="w-4 h-4" strokeWidth={2.25} />
                   </button>
                 </div>
@@ -1588,9 +1588,9 @@ export default function PlacementDashboardPage() {
                             }}
                             className="text-[10px] font-bold px-2 py-1 rounded-full hover:opacity-80 transition-opacity"
                             style={{ background: B.purple, color: 'white' }}
-                            title="Continuar donde quedó el estudiante"
+                            title="Continue where the student left off"
                           >
-                            ▶ Continuar
+                            ▶ Continue
                           </button>
                         )}
                       </div>
