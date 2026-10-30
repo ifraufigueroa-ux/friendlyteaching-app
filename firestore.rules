@@ -34,6 +34,13 @@ service cloud.firestore {
       return getUserRole() == 'master';
     }
 
+    // Corporate admin — reads progress for employees in their org.
+    // Keep the gate narrow for list queries, but allow read on individual
+    // docs so the roster + drill-down pages work.
+    function isCorporate() {
+      return getUserRole() == 'corporate';
+    }
+
     // Returns the teacherId that approved the currently-authenticated student.
     // Used so students can read their own teacher's lesson plans and class history
     // even when the documents lack a studentId field (name-only bookings).
@@ -53,10 +60,13 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Single-document reads: owner, any teacher, master, or approved student reading their teacher's doc.
+      // Single-document reads: owner, any teacher, master, approved student
+      // reading their teacher's doc, or a corporate admin reading an employee
+      // of their organization.
       allow get: if isOwner(userId)
                    || isTeacher()
                    || isMaster()
+                   || isCorporate()
                    || (isApprovedStudent() && resource.data.role == 'teacher');
 
       // Collection list queries (useStudents does a bare collection scan and filters client-side).
@@ -342,7 +352,8 @@ service cloud.firestore {
     // Only the owning teacher can READ or UPDATE sessions.
     match /placementSessions/{sessionId} {
       allow create: if true;  // public — no login required
-      allow read:   if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow read:   if (isTeacher() && resource.data.teacherId == request.auth.uid)
+                      || isCorporate();
       allow update: if (
         // Teacher can update (link student, etc.)
         (isTeacher() && resource.data.teacherId == request.auth.uid)
@@ -458,6 +469,35 @@ service cloud.firestore {
     match /coworkPresence/{uid} {
       allow read:  if isTeacher();
       allow write: if isTeacher() && request.auth.uid == uid;
+    }
+
+    // ── Organizations (corporate Master Account) ─────────────────
+    // Each doc keyed by orgId. Admins (adminUids array) can read + update
+    // their own org. Teachers can read all (support/setup). Masters read all.
+    match /organizations/{orgId} {
+      allow read:   if isTeacher() || isMaster()
+                      || (isAuthenticated() && request.auth.uid in resource.data.adminUids)
+                      || (isAuthenticated() && request.auth.uid in resource.data.studentUids);
+      allow create: if isTeacher() || isMaster();
+      allow update: if isTeacher() || isMaster()
+                      || (isAuthenticated() && request.auth.uid in resource.data.adminUids);
+      allow delete: if isTeacher() || isMaster();
+    }
+
+    // ── Daily Practice progress ──────────────────────────────────
+    // One doc per student. Owner read/write. Teacher + master + corporate read.
+    match /practiceProgress/{studentId} {
+      allow read:   if isOwner(studentId) || isTeacher() || isMaster() || isCorporate();
+      allow create, update: if isOwner(studentId);
+      allow delete: if false;
+    }
+
+    // ── Daily Practice sessions (per-lesson history) ─────────────
+    // One subcollection per student. Owner writes; teacher/master/corporate read.
+    match /practiceSessions/{studentId}/items/{sessionId} {
+      allow read:   if isOwner(studentId) || isTeacher() || isMaster() || isCorporate();
+      allow create: if isOwner(studentId);
+      allow update, delete: if false;
     }
 
     // IELTS practice-mode saved sessions (per student, per mock) so the

@@ -12,14 +12,15 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { FTUser, LessonLevel } from '@/types/firebase';
 
-export function useStudents() {
+export function useStudents(enabled: boolean = true) {
   const [students, setStudents] = useState<FTUser[]>([]);
   const [pendingStudents, setPendingStudents] = useState<FTUser[]>([]);
   const [archivedStudents, setArchivedStudents] = useState<FTUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) { setLoading(false); return; }
     let mounted = true;
     // stopFn holds the active cleanup (either the Firestore unsub or the auth unsub)
     let stopFn: (() => void) | null = null;
@@ -150,7 +151,7 @@ export function useStudents() {
       mounted = false;
       stopFn?.();
     };
-  }, []); // Run once on mount — no dependency on any external state
+  }, [enabled]); // Re-run when the caller flips the enabled gate
 
   return { students, pendingStudents, archivedStudents, loading, error };
 }

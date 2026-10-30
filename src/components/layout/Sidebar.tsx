@@ -115,7 +115,7 @@ const STUDENT_NAV: NavItem[] = [
 function useNavBadges(role: string | null, uid: string): Map<string, number> {
   const studentHw  = useStudentHomework(role === 'student' ? uid : '');
   const teacherHw  = useTeacherHomework(role === 'teacher' ? uid : '');
-  const { pendingStudents } = useStudents();
+  const { pendingStudents } = useStudents(role === 'teacher');
   const { sessions: placementSessions } = usePlacementSessions(role === 'teacher' ? uid : '');
   // Avisos + mensajes del COWORK sin leer — sólo mide para profes; los
   // hooks quedan ociosos para estudiantes porque el guard del componente
