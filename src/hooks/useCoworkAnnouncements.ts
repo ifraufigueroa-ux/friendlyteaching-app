@@ -17,6 +17,11 @@ export function useCoworkAnnouncements(currentUid: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // currentUid doubles as the enable gate — the Sidebar passes
+    // `role === 'teacher' ? uid : ''`, so non-teachers (students,
+    // corporate admins) never trigger this listener and don't trip the
+    // Firestore rule that scopes coworkAnnouncements to teachers only.
+    if (!currentUid) { setLoading(false); return; }
     const q = query(
       collection(db, 'coworkAnnouncements'),
       orderBy('createdAt', 'desc'),
@@ -31,7 +36,7 @@ export function useCoworkAnnouncements(currentUid: string) {
       setLoading(false);
     });
     return unsub;
-  }, []);
+  }, [currentUid]);
 
   const createAnnouncement = useCallback(async (
     authorId: string,
