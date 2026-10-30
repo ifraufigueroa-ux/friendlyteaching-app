@@ -28,6 +28,7 @@ import {
   Calendar,
   CalendarPlus,
   Flame,
+  Building2,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -84,6 +85,12 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Tools',              iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
   { type: 'group', label: 'Help' },
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
+];
+
+const CORPORATE_NAV: NavItem[] = [
+  { type: 'link', href: '/dashboard/corporate',           icon: Building2,    label: 'Master Account',      iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'group', label: 'Help' },
+  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,     label: 'Tutorials',           iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 const STUDENT_NAV: NavItem[] = [
@@ -158,7 +165,10 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const lastName  = profile?.fullName?.split(' ').slice(1).join(' ') ?? '';
 
   const navBadges = useNavBadges(role, uid);
-  const nav = role === 'teacher' ? TEACHER_NAV : STUDENT_NAV;
+  const nav =
+    role === 'teacher'   ? TEACHER_NAV
+  : role === 'corporate' ? CORPORATE_NAV
+                         : STUDENT_NAV;
 
   async function handleLogout() {
     await logOut();
@@ -192,9 +202,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <span className={`inline-block mt-0.5 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
               role === 'teacher'
                 ? 'bg-[#5A3D7A] text-white'
+              : role === 'corporate'
+                ? 'bg-[#F59E0B] text-white'
                 : 'bg-[#D4EDDA] text-[#2E7D4F]'
             }`}>
-              {role === 'teacher' ? 'Teacher' : 'Student'}
+              {role === 'teacher' ? 'Teacher' : role === 'corporate' ? 'Corporate' : 'Student'}
             </span>
           </div>
         </div>

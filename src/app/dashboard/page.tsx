@@ -30,6 +30,9 @@ export default function DashboardPage() {
       case 'master':
         router.replace('/dashboard/master');
         break;
+      case 'corporate':
+        router.replace('/dashboard/corporate');
+        break;
       default:
         router.replace('/auth/login');
     }

@@ -6,7 +6,7 @@ import { Timestamp } from 'firebase/firestore';
 
 // ─── Roles y Estados ────────────────────────────────────────
 
-export type UserRole = 'teacher' | 'student' | 'admin' | 'master';
+export type UserRole = 'teacher' | 'student' | 'admin' | 'master' | 'corporate';
 export type UserStatus = 'active' | 'pending' | 'approved' | 'inactive' | 'archived';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 export type AttendanceStatus = 'attended' | 'absent' | 'late';
@@ -39,11 +39,22 @@ export interface FTUser {
     level?: LessonLevel;
     joinedAt?: Timestamp;
     notes?: string;
+    // If set, this student belongs to a corporate organization and the
+    // org's admins can see this student's progress via the Master Account.
+    organizationId?: string;
     platformLinks?: {
       off2class?: string;
       ellii?: string;
       sounter?: string;
     };
+  };
+  // Only set on users with role === 'corporate'. The organizationId is
+  // the Firestore id in the `organizations/{id}` collection, and the
+  // sub-role controls what they can do (admin can invite, viewer is
+  // read-only). Phase 1 only uses 'admin'.
+  corporateData?: {
+    organizationId: string;
+    corporateRole: 'admin' | 'viewer';
   };
   createdAt: Timestamp;
   updatedAt?: Timestamp;
