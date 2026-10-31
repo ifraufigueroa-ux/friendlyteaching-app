@@ -206,23 +206,23 @@ function StatCard({
   valueColor?: string;
 }) {
   return (
-    <div className="relative bg-white rounded-3xl border border-[#E8D5F0] shadow-sm overflow-hidden">
-      <div className="p-5 pr-20 relative">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg, color: iconColor }}>
+    <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm p-5 flex items-center gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg, color: iconColor }}>
             {iconLucide}
           </div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#9B7CB8] leading-tight pt-1.5">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B7CB8] leading-tight">
             {label}
           </p>
         </div>
-        <p className="font-serif text-5xl md:text-6xl font-bold leading-none mb-2 tracking-tight" style={{ color: valueColor ?? '#2D1B4E' }}>
+        <p className="font-serif text-5xl font-bold leading-none mb-1.5 tracking-tight" style={{ color: valueColor ?? '#2D1B4E' }}>
           {value}
         </p>
-        <p className="text-xs text-[#5A3D7A]/70 leading-snug">{sub}</p>
+        <p className="text-[11px] text-[#5A3D7A]/70 leading-snug">{sub}</p>
       </div>
-      <div className="absolute right-1 bottom-1 w-20 h-20 opacity-95 pointer-events-none select-none">
-        <Image src={mascot} alt="" width={80} height={80} className="object-contain" />
+      <div className="flex-shrink-0 w-16 h-16 select-none pointer-events-none">
+        <Image src={mascot} alt="" width={64} height={64} className="w-full h-full object-contain" />
       </div>
     </div>
   );

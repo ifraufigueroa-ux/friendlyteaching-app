@@ -188,30 +188,31 @@ export default function CorporateStudentPage({ params }: Props) {
           ) : (
             <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm overflow-hidden">
               {first && last && first.id !== last.id && (
-                <div className="grid grid-cols-[auto_1fr_auto_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-4 md:gap-6 px-5 md:px-7 py-5 bg-gradient-to-r from-[#F6EBFF] via-white to-[#F6EBFF] border-b border-[#E8D5F0]">
-                  <div className="w-11 h-11 rounded-xl bg-[#F0E5FF] text-[#5A3D7A] flex items-center justify-center flex-shrink-0">🎓</div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[#2D1B4E]">Último placement</p>
-                    <p className="text-xs text-[#9B7CB8]">{last.completedAt ? formatTs(last.completedAt) : '—'}</p>
-                  </div>
-                  <div className="hidden md:flex flex-col items-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B7CB8]">Inicial</p>
-                    <div className="inline-flex items-center gap-1 mt-1">
-                      <TrendingUp className="w-4 h-4 text-rose-600" strokeWidth={2.5} />
-                      <p className="font-serif text-3xl font-bold text-rose-700 leading-none">{first.level ?? '—'}</p>
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-4 px-5 md:px-7 py-5 bg-gradient-to-r from-[#F6EBFF] via-white to-[#F6EBFF] border-b border-[#E8D5F0]">
+                  {/* Left: label */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-[#F0E5FF] text-[#5A3D7A] flex items-center justify-center flex-shrink-0">🎓</div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#2D1B4E] leading-tight">Último placement</p>
+                      <p className="text-xs text-[#9B7CB8] mt-0.5">{last.completedAt ? formatTs(last.completedAt) : '—'}</p>
                     </div>
-                    <p className="text-[10px] text-[#9B7CB8] mt-1">{first.completedAt ? formatTs(first.completedAt, true) : '—'}</p>
                   </div>
-                  <ArrowRight className="hidden md:block w-6 h-6 text-amber-500" strokeWidth={2.5} />
-                  <div className="hidden md:flex flex-col items-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B7CB8]">Actual</p>
-                    <div className="inline-flex items-center gap-1 mt-1">
-                      <p className="font-serif text-3xl font-bold text-emerald-700 leading-none">{last.level ?? '—'}</p>
-                      <TrendingUp className="w-4 h-4 text-emerald-600" strokeWidth={2.5} />
+                  {/* Center: before → after */}
+                  <div className="flex items-center gap-6 md:gap-8 flex-1 justify-center">
+                    <div className="flex flex-col items-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B7CB8]">Inicial</p>
+                      <p className="font-serif text-4xl font-bold text-rose-700 leading-none mt-1">{first.level ?? '—'}</p>
+                      <p className="text-[10px] text-[#9B7CB8] mt-1 tabular-nums">{first.completedAt ? formatTs(first.completedAt, true) : '—'}</p>
                     </div>
-                    <p className="text-[10px] text-[#9B7CB8] mt-1">{last.completedAt ? formatTs(last.completedAt, true) : '—'}</p>
+                    <ArrowRight className="w-7 h-7 text-amber-500 flex-shrink-0" strokeWidth={2.5} />
+                    <div className="flex flex-col items-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B7CB8]">Actual</p>
+                      <p className="font-serif text-4xl font-bold text-emerald-700 leading-none mt-1">{last.level ?? '—'}</p>
+                      <p className="text-[10px] text-[#9B7CB8] mt-1 tabular-nums">{last.completedAt ? formatTs(last.completedAt, true) : '—'}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Right: score + pill */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
                     {last.score !== undefined && (
                       <span className="text-sm font-bold text-[#5A3D7A] tabular-nums">{last.score}%</span>
                     )}
@@ -338,8 +339,8 @@ function MiniStat({
   valueColor?: string;
 }) {
   return (
-    <div className="relative bg-white rounded-3xl border border-[#E8D5F0] shadow-sm overflow-hidden">
-      <div className="p-5 pr-20 relative">
+    <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm p-5 flex items-center gap-4">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg, color: iconColor }}>
             {iconLucide}
@@ -348,13 +349,13 @@ function MiniStat({
             {label}
           </p>
         </div>
-        <p className="font-serif text-5xl font-bold leading-none mb-2 tracking-tight" style={{ color: valueColor ?? '#2D1B4E' }}>
+        <p className="font-serif text-5xl font-bold leading-none mb-1.5 tracking-tight" style={{ color: valueColor ?? '#2D1B4E' }}>
           {value}
         </p>
-        <p className="text-xs text-[#5A3D7A]/70 leading-snug">{sub}</p>
+        <p className="text-[11px] text-[#5A3D7A]/70 leading-snug">{sub}</p>
       </div>
-      <div className="absolute right-1 bottom-1 w-16 h-16 opacity-95 pointer-events-none select-none">
-        <Image src={mascot} alt="" width={64} height={64} className="object-contain" />
+      <div className="flex-shrink-0 w-14 h-14 select-none pointer-events-none">
+        <Image src={mascot} alt="" width={56} height={56} className="w-full h-full object-contain" />
       </div>
     </div>
   );
