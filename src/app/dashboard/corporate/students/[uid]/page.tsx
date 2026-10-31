@@ -104,7 +104,7 @@ export default function CorporateStudentPage({ params }: Props) {
 
   return (
     <Shell>
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="space-y-8">
         {/* Back link */}
         <Link href="/dashboard/corporate" className="inline-flex items-center gap-2 text-sm font-semibold text-[#5A3D7A] hover:text-[#2D1B4E] transition-colors">
           <ArrowLeft className="w-4 h-4" strokeWidth={2.5} /> Volver al roster
@@ -293,13 +293,8 @@ export default function CorporateStudentPage({ params }: Props) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
-      <div aria-hidden className="absolute inset-0 pointer-events-none opacity-[0.045]"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(90,61,122,1) 1px, transparent 1px), linear-gradient(90deg, rgba(90,61,122,1) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-        }} />
-      <div className="relative z-10 p-6 md:p-10">{children}</div>
+    <div className="min-h-screen bg-[#FFFCF7] text-[#2D1B4E]">
+      <div className="p-6 md:p-8">{children}</div>
     </div>
   );
 }

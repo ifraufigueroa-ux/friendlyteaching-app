@@ -35,7 +35,7 @@ export default function CorporateDashboardPage() {
 
   return (
     <Shell>
-      <div className="max-w-6xl mx-auto space-y-10">
+      <div className="space-y-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-[#9B7CB8] font-medium">
           <Link href="/dashboard" className="hover:text-[#5A3D7A] transition-colors inline-flex items-center gap-1">
@@ -46,7 +46,7 @@ export default function CorporateDashboardPage() {
         </div>
 
         {/* Hero */}
-        <div className="relative bg-gradient-to-br from-[#2D1B4E] via-[#5A3D7A] to-[#8A5EB5] rounded-[32px] p-10 md:p-12 text-white shadow-2xl overflow-hidden">
+        <div id="panel" className="relative bg-gradient-to-br from-[#2D1B4E] via-[#5A3D7A] to-[#8A5EB5] rounded-[32px] p-8 md:p-10 text-white shadow-xl overflow-hidden">
           <div aria-hidden className="absolute inset-0 pointer-events-none opacity-30"
             style={{ backgroundImage: 'radial-gradient(circle at 85% 15%, rgba(245,158,11,0.35) 0%, transparent 55%), radial-gradient(circle at 10% 95%, rgba(255,255,255,0.15) 0%, transparent 55%)' }} />
           <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
@@ -71,7 +71,7 @@ export default function CorporateDashboardPage() {
         </div>
 
         {/* Aggregate stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div id="asistencia" className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           <StatCard
             iconLucide={<UsersIcon />}
             iconBg="#F0E5FF"
@@ -114,7 +114,7 @@ export default function CorporateDashboardPage() {
         </div>
 
         {/* Roster */}
-        <section className="space-y-5">
+        <section id="roster" className="space-y-5">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="space-y-2">
               <p className="text-[11px] font-black uppercase tracking-[0.35em] text-[#9B7CB8]">Roster</p>
@@ -153,15 +153,8 @@ export default function CorporateDashboardPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#FFFCF7] text-[#2D1B4E]">
-      <div aria-hidden className="absolute inset-0 pointer-events-none opacity-[0.045]"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(90,61,122,1) 1px, transparent 1px), linear-gradient(90deg, rgba(90,61,122,1) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-          maskImage: 'radial-gradient(circle at 50% 10%, black 60%, transparent 95%)',
-          WebkitMaskImage: 'radial-gradient(circle at 50% 10%, black 60%, transparent 95%)',
-        }} />
-      <div className="relative z-10 p-6 md:p-10">
+    <div className="min-h-screen bg-[#FFFCF7] text-[#2D1B4E]">
+      <div className="p-6 md:p-8">
         {children}
       </div>
     </div>
