@@ -294,7 +294,8 @@ export default function CorporateStudentPage({ params }: Props) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#FFFCF7] text-[#2D1B4E]">
+    <div className="relative min-h-full isolate text-[#2D1B4E]"
+      style={{ backgroundColor: '#FFFCF7', backgroundImage: 'none' }}>
       <div className="p-6 md:p-8">{children}</div>
     </div>
   );

@@ -152,11 +152,12 @@ export default function CorporateDashboardPage() {
 // ── Shell ────────────────────────────────────────────────────
 
 function Shell({ children }: { children: React.ReactNode }) {
+  // Opaque cream fill on an isolated stacking context — covers any
+  // ancestor pattern/gradient that would otherwise bleed through.
   return (
-    <div className="min-h-screen bg-[#FFFCF7] text-[#2D1B4E]">
-      <div className="p-6 md:p-8">
-        {children}
-      </div>
+    <div className="relative min-h-full isolate text-[#2D1B4E]"
+      style={{ backgroundColor: '#FFFCF7', backgroundImage: 'none' }}>
+      <div className="p-6 md:p-8">{children}</div>
     </div>
   );
 }
