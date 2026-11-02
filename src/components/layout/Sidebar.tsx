@@ -90,7 +90,9 @@ const TEACHER_NAV: NavItem[] = [
 // Flat corporate nav (no section headers) so the sidebar matches the
 // Carolina mockups for the Skechers pitch.
 const CORPORATE_NAV: NavItem[] = [
-  { type: 'link', href: '/dashboard/corporate',               icon: Building2,    label: 'Master Account',   iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
+  // Master Account uses the Building2 lucide (no iconImg) so it reads as
+  // the "home / admin" anchor and doesn't duplicate the Panel Principal cat.
+  { type: 'link', href: '/dashboard/corporate',               icon: Building2,    label: 'Master Account',   iconBg: 'bg-[#EDE2FA]', iconColor: 'text-[#5A3D7A]' },
   { type: 'link', href: '/dashboard/corporate#panel',         icon: Home,         label: 'Panel Principal',  iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'link', href: '/dashboard/corporate#roster',        icon: Users,        label: 'Estudiante',       iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/corporate/estudiante.png' },
   { type: 'link', href: '/dashboard/corporate#asistencia',    icon: ClipboardList,label: 'Asistencia',       iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/corporate/asistencia.png' },

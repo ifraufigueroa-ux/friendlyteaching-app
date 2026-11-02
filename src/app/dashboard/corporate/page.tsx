@@ -229,7 +229,7 @@ function StatCard({
   valueColor?: string;
 }) {
   return (
-    <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm p-5 flex items-center gap-4">
+    <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-[0_6px_18px_-10px_rgba(90,61,122,0.18)] p-5 flex items-center gap-3 hover:shadow-[0_10px_24px_-12px_rgba(90,61,122,0.28)] transition-shadow">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg, color: iconColor }}>
@@ -244,8 +244,8 @@ function StatCard({
         </p>
         <p className="text-[11px] text-[#5A3D7A]/70 leading-snug">{sub}</p>
       </div>
-      <div className="flex-shrink-0 w-16 h-16 select-none pointer-events-none">
-        <Image src={mascot} alt="" width={64} height={64} className="w-full h-full object-contain" />
+      <div className="flex-shrink-0 w-20 h-20 select-none pointer-events-none">
+        <Image src={mascot} alt="" width={80} height={80} className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(90,61,122,0.18)]" />
       </div>
     </div>
   );
