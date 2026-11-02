@@ -87,14 +87,14 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
+// Flat corporate nav (no section headers) so the sidebar matches the
+// Carolina mockups for the Skechers pitch.
 const CORPORATE_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/corporate',               icon: Building2,    label: 'Master Account',   iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
-  { type: 'group', label: 'Monitoreo' },
   { type: 'link', href: '/dashboard/corporate#panel',         icon: Home,         label: 'Panel Principal',  iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
-  { type: 'link', href: '/dashboard/corporate#roster',        icon: Users,        label: 'Estudiantes',      iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/corporate/estudiante.png' },
+  { type: 'link', href: '/dashboard/corporate#roster',        icon: Users,        label: 'Estudiante',       iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/corporate/estudiante.png' },
   { type: 'link', href: '/dashboard/corporate#asistencia',    icon: ClipboardList,label: 'Asistencia',       iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/corporate/asistencia.png' },
   { type: 'link', href: '/dashboard/corporate#historial',     icon: BarChart3,    label: 'Historial de clases', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', iconImg: '/sidebar-icons/corporate/historial-clases.png' },
-  { type: 'group', label: 'Help' },
   { type: 'link', href: '/dashboard/teacher/help',            icon: LifeBuoy,     label: 'Tutoriales',       iconBg: 'bg-teal-100',   iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
@@ -181,7 +181,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="w-64 flex-shrink-0 flex flex-col h-full bg-white border-r border-gray-100 shadow-[2px_0_16px_rgba(90,61,122,0.06)]">
+    <aside className={`${role === 'corporate' ? 'w-72 bg-[#F6EEFF] border-[#E8D5F0]' : 'w-64 bg-white border-gray-100'} flex-shrink-0 flex flex-col h-full border-r shadow-[2px_0_16px_rgba(90,61,122,0.06)]`}>
 
       {/* ── Brand ───────────────────────────────────────────── */}
       <div className="px-5 pt-6 pb-5">
@@ -218,7 +218,10 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {/* ── Navigation ──────────────────────────────────────── */}
-      <nav className="flex-1 px-3 pb-4 overflow-y-auto space-y-0.5">
+      {/* Corporate role gets a chunkier, more illustrated nav to match the
+          Carolina/Skechers mockups — bigger mascot tiles, generous spacing,
+          softer rounded cards. Teacher/student keep the compact look. */}
+      <nav className={`flex-1 px-3 pb-4 overflow-y-auto ${role === 'corporate' ? 'space-y-1.5 pt-2' : 'space-y-0.5'}`}>
         {nav.map((item, i) => {
           if (item.type === 'group') {
             return (
@@ -233,20 +236,30 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             href !== '/dashboard/teacher' && href !== '/dashboard/student' && pathname.startsWith(href)
           );
           const badge = navBadges.get(href) ?? 0;
+          const corporate = role === 'corporate';
 
           return (
             <Link
               key={href}
               href={href}
               onClick={onNavigate}
-              className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? 'bg-[#F0E5FF] text-[#3D1F6B] font-semibold'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-[#5A3D7A]'
+              className={`group relative flex items-center transition-all duration-150 ${
+                corporate
+                  ? `gap-4 px-3 py-2.5 rounded-2xl text-[15px] font-semibold ${
+                      isActive
+                        ? 'bg-white text-[#3D1F6B] shadow-[0_6px_18px_-6px_rgba(90,61,122,0.25)] ring-1 ring-[#E8D5F0]'
+                        : 'text-[#5A3D7A]/80 hover:bg-white/55 hover:text-[#3D1F6B]'
+                    }`
+                  : `gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                      isActive
+                        ? 'bg-[#F0E5FF] text-[#3D1F6B] font-semibold'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-[#5A3D7A]'
+                    }`
               }`}
             >
-              {/* Active left accent bar */}
-              {isActive && (
+              {/* Active left accent bar — teacher/student only; the
+                  corporate active state is a floating white card instead. */}
+              {isActive && !corporate && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-[#5A3D7A]" />
               )}
 
@@ -256,16 +269,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   salteamos iconBg cuando hay imagen. Active state: ring
                   alrededor + scale para no pintar sobre la ilustración. */}
               {iconImg ? (
-                <span className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-150 ${
-                  isActive ? 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
+                <span className={`${corporate ? 'w-14 h-14 rounded-2xl' : 'w-8 h-8 rounded-lg'} overflow-hidden flex-shrink-0 transition-all duration-150 ${
+                  isActive
+                    ? corporate ? 'shadow-sm' : 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm'
+                    : corporate ? 'group-hover:scale-105' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
                 }`}>
-                  <Image src={iconImg} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                  <Image src={iconImg} alt="" width={corporate ? 56 : 32} height={corporate ? 56 : 32} className="w-full h-full object-cover" />
                 </span>
               ) : (
-                <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${
+                <span className={`${corporate ? 'w-14 h-14 rounded-2xl' : 'w-7 h-7 rounded-lg'} flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${
                   isActive ? 'bg-[#5A3D7A] text-white shadow-sm scale-105' : `${iconBg} ${iconColor} group-hover:scale-105`
                 }`}>
-                  <Icon className="w-4 h-4" strokeWidth={2.25} />
+                  <Icon className={corporate ? 'w-5 h-5' : 'w-4 h-4'} strokeWidth={2.25} />
                 </span>
               )}
 
@@ -282,31 +297,54 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       {/* ── Bottom: profile + logout ─────────────────────────── */}
-      <div className="px-3 py-3 border-t border-gray-100 space-y-0.5">
+      <div className={`${role === 'corporate' ? 'px-3 py-3 border-t border-[#E8D5F0] space-y-1.5' : 'px-3 py-3 border-t border-gray-100 space-y-0.5'}`}>
         <Link
           href="/dashboard/profile"
           onClick={onNavigate}
-          className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            pathname === '/dashboard/profile'
-              ? 'bg-[#F0E5FF] text-[#3D1F6B] font-semibold'
-              : 'text-gray-400 hover:bg-gray-50 hover:text-[#5A3D7A]'
+          className={`group w-full flex items-center transition-all ${
+            role === 'corporate'
+              ? `gap-4 px-3 py-2.5 rounded-2xl text-[15px] font-semibold ${
+                  pathname === '/dashboard/profile'
+                    ? 'bg-white text-[#3D1F6B] shadow-[0_6px_18px_-6px_rgba(90,61,122,0.25)] ring-1 ring-[#E8D5F0]'
+                    : 'text-[#5A3D7A]/80 hover:bg-white/55 hover:text-[#3D1F6B]'
+                }`
+              : `gap-3 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                  pathname === '/dashboard/profile'
+                    ? 'bg-[#F0E5FF] text-[#3D1F6B] font-semibold'
+                    : 'text-gray-400 hover:bg-gray-50 hover:text-[#5A3D7A]'
+                }`
           }`}
         >
-          <span className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-            pathname === '/dashboard/profile' ? 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
+          <span className={`${role === 'corporate' ? 'w-14 h-14 rounded-2xl' : 'w-8 h-8 rounded-lg'} overflow-hidden flex-shrink-0 transition-all ${
+            pathname === '/dashboard/profile'
+              ? role === 'corporate' ? 'shadow-sm' : 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm'
+              : 'group-hover:scale-105'
           }`}>
-            <Image src="/sidebar-icons/mi-perfil.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
+            <Image src="/sidebar-icons/mi-perfil.png" alt="" width={role === 'corporate' ? 56 : 32} height={role === 'corporate' ? 56 : 32} className="w-full h-full object-cover" />
           </span>
-          My Profile
+          {role === 'corporate' ? 'Mi perfil' : 'My Profile'}
         </Link>
         <button
           onClick={handleLogout}
-          className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+          className={`group w-full flex items-center transition-all ${
+            role === 'corporate'
+              ? 'gap-3 px-4 py-3 rounded-2xl text-[15px] font-semibold bg-[#F43F5E] text-white shadow-[0_10px_24px_-10px_rgba(244,63,94,0.6)] hover:bg-[#E11D48]'
+              : 'gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-red-50 hover:text-red-500'
+          }`}
         >
-          <span className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all group-hover:scale-105 group-hover:ring-1 group-hover:ring-red-300">
-            <Image src="/sidebar-icons/cerrar-sesion.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
+          <span className={`${role === 'corporate' ? 'w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-lg' : 'w-8 h-8 rounded-lg overflow-hidden group-hover:scale-105 group-hover:ring-1 group-hover:ring-red-300'} flex-shrink-0 transition-all`}>
+            {role === 'corporate' ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            ) : (
+              <Image src="/sidebar-icons/cerrar-sesion.png" alt="" width={32} height={32} className="w-full h-full object-cover" />
+            )}
           </span>
-          Sign Out
+          <span className="flex-1 text-left">{role === 'corporate' ? 'Cerrar Sesión' : 'Sign Out'}</span>
+          {role === 'corporate' && <span className="text-white/80 text-base leading-none">×</span>}
         </button>
       </div>
     </aside>

@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Flame, Lock } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useMyOrganization } from '@/hooks/useOrganization';
 import { useOrganizationRoster } from '@/hooks/useOrganizationRoster';
@@ -45,14 +45,22 @@ export default function CorporateDashboardPage() {
           <span className="text-[#5A3D7A] font-semibold">Roster</span>
         </div>
 
-        {/* Hero */}
-        <div id="panel" className="relative bg-gradient-to-br from-[#2D1B4E] via-[#5A3D7A] to-[#8A5EB5] rounded-[32px] p-8 md:p-10 text-white shadow-xl overflow-hidden">
+        {/* Hero — gradient written inline because Tailwind v4 was dropping
+            the final to-[#…] stop and fading the right edge to transparent. */}
+        <div
+          id="panel"
+          className="relative rounded-[32px] p-8 md:p-10 text-white shadow-xl overflow-hidden"
+          style={{ backgroundImage: 'linear-gradient(135deg, #2D1B4E 0%, #5A3D7A 50%, #8A5EB5 100%)' }}
+        >
           <div aria-hidden className="absolute inset-0 pointer-events-none opacity-30"
             style={{ backgroundImage: 'radial-gradient(circle at 85% 15%, rgba(245,158,11,0.35) 0%, transparent 55%), radial-gradient(circle at 10% 95%, rgba(255,255,255,0.15) 0%, transparent 55%)' }} />
           <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
             <div className="flex-1 min-w-0 space-y-5">
-              <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-amber-300 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-amber-300/30">
-                <Lock className="w-3 h-3" strokeWidth={2.5} /> Master Account
+              <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-amber-300 bg-white/10 backdrop-blur-sm pl-2 pr-3 py-1.5 rounded-full border border-amber-300/30">
+                <span className="w-5 h-5 rounded-full bg-amber-300/20 flex items-center justify-center">
+                  <Building2 className="w-3 h-3" strokeWidth={2.5} />
+                </span>
+                Master Account
               </div>
               <h1 className="font-serif text-5xl md:text-6xl font-bold leading-[1.02] tracking-tight">
                 {org.name}
@@ -149,14 +157,28 @@ export default function CorporateDashboardPage() {
   );
 }
 
+// Grid template shared between the roster header and each row. Written in a
+// constant and applied via inline style because Tailwind v4 was coalescing
+// mixed fr/px arbitrary values into a single column.
+const ROSTER_GRID = '2.4fr 0.8fr 0.9fr 1.4fr 1.3fr 60px';
+
 // ── Shell ────────────────────────────────────────────────────
 
 function Shell({ children }: { children: React.ReactNode }) {
-  // Opaque cream fill on an isolated stacking context — covers any
-  // ancestor pattern/gradient that would otherwise bleed through.
+  // Cream base with a subtle lavender graph-paper grid — part of the
+  // intentional editorial look from Carolina's mockups. Isolated stacking
+  // context so no ancestor gradient bleeds through.
   return (
-    <div className="relative min-h-full isolate text-[#2D1B4E]"
-      style={{ backgroundColor: '#FFFCF7', backgroundImage: 'none' }}>
+    <div
+      className="relative min-h-full isolate text-[#2D1B4E]"
+      style={{
+        backgroundColor: '#FFFCF7',
+        backgroundImage:
+          'linear-gradient(to right, rgba(90,61,122,0.12) 1px, transparent 1px),' +
+          'linear-gradient(to bottom, rgba(90,61,122,0.12) 1px, transparent 1px)',
+        backgroundSize: '42px 42px',
+      }}
+    >
       <div className="p-6 md:p-8">{children}</div>
     </div>
   );
@@ -241,7 +263,12 @@ function RosterTable({ entries }: { entries: RosterEntry[] }) {
 
   return (
     <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm overflow-hidden">
-      <div className="hidden md:grid grid-cols-[2.4fr_0.8fr_0.9fr_1.4fr_1.3fr_60px] gap-5 px-7 py-4 bg-[#F6EBFF] border-b border-[#E8D5F0]">
+      {/* grid-template-columns is written inline because Tailwind v4 was
+          parsing [2.4fr_0.8fr_…60px] as a single column. */}
+      <div
+        className="hidden md:grid gap-5 px-7 py-4 bg-[#F6EBFF] border-b border-[#E8D5F0]"
+        style={{ gridTemplateColumns: ROSTER_GRID }}
+      >
         <HeaderCell>Empleado</HeaderCell>
         <HeaderCell>Nivel</HeaderCell>
         <HeaderCell>Última clase</HeaderCell>
@@ -278,7 +305,8 @@ function RosterRow({ entry, isLast }: { entry: RosterEntry; isLast: boolean }) {
   return (
     <Link
       href={`/dashboard/corporate/students/${entry.uid}`}
-      className={`group grid grid-cols-[1fr_40px] md:grid-cols-[2.4fr_0.8fr_0.9fr_1.4fr_1.3fr_60px] gap-5 px-7 py-5 hover:bg-[#FAF5FF] transition-colors ${isLast ? '' : 'border-b border-gray-100'}`}
+      className={`group flex md:grid gap-5 px-7 py-5 hover:bg-[#FAF5FF] transition-colors items-center ${isLast ? '' : 'border-b border-gray-100'}`}
+      style={{ gridTemplateColumns: ROSTER_GRID }}
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="w-12 h-12 rounded-full text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow" style={{ background: avatarBg }}>
@@ -308,9 +336,9 @@ function RosterRow({ entry, isLast }: { entry: RosterEntry; isLast: boolean }) {
       <div className="hidden md:flex items-center gap-2">
         {entry.practiceStreak > 0 ? (
           <>
-            <Flame className="w-5 h-5 text-orange-500" strokeWidth={2.5} fill="#FB923C" />
+            <span className="text-xl leading-none" aria-hidden>🔥</span>
             <span className="text-base font-bold text-[#2D1B4E] tabular-nums">{entry.practiceStreak}</span>
-            <span className="text-sm text-gray-400">·</span>
+            <span className="text-sm text-gray-400">-</span>
             <span className="text-sm text-gray-600 tabular-nums">{entry.practiceXp} XP</span>
           </>
         ) : (
