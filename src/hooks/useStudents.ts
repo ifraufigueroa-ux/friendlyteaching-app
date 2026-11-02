@@ -48,10 +48,15 @@ export function useStudents(enabled: boolean = true) {
         (snap: QuerySnapshot<DocumentData>) => {
           if (!mounted) return;
           clearTimeout(timer);
-          const all = snap.docs.map(
-            (d: QueryDocumentSnapshot<DocumentData>) =>
-              ({ uid: d.id, ...d.data() } as FTUser),
-          );
+          const all = snap.docs
+            .map(
+              (d: QueryDocumentSnapshot<DocumentData>) =>
+                ({ uid: d.id, ...d.data() } as FTUser),
+            )
+            // Hide corporate demo users (Skechers pitch — see
+            // scripts/seed-skechers-demo.js) from the teacher's own
+            // student list. They remain visible under /dashboard/corporate.
+            .filter((s: FTUser) => !(s.email ?? '').endsWith('@skechersdemo.cl'));
 
           // Approved students: show students assigned to THIS teacher OR students
           // whose approvedByTeacherId is unset/blank (covers the case where the

@@ -10,6 +10,12 @@ import {
 import { db } from '@/lib/firebase/config';
 import type { Booking, AttendanceStatus } from '@/types/firebase';
 
+// Bookings seeded by scripts/seed-skechers-demo.js use a `demo-skechers-<uid>-wN`
+// id. We hide them from the teacher's own schedule view so the corporate pitch
+// data (still visible at /dashboard/corporate) doesn't pollute the real grid.
+const DEMO_BOOKING_PREFIX = 'demo-skechers-';
+const isDemoBooking = (id: string) => id.startsWith(DEMO_BOOKING_PREFIX);
+
 export function useBookings(teacherId: string, weekStart: Date) {
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +47,9 @@ export function useBookings(teacherId: string, weekStart: Date) {
     const unsub = onSnapshot(
       q,
       (snap: QuerySnapshot<DocumentData>) => {
-        const all = snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Booking));
+        const all = snap.docs
+          .filter((d) => !isDemoBooking(d.id))
+          .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Booking));
         setAllBookings(all);
         setDebugInfo(`total:${all.length}`);
         setDataVersion((v) => v + 1);
@@ -370,6 +378,7 @@ export function useBookingStudentIdMap(teacherId: string): Map<string, string> {
     const unsub = onSnapshot(q, (snap: QuerySnapshot<DocumentData>) => {
       const next = new Map<string, string>();
       snap.docs.forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+        if (isDemoBooking(d.id)) return;
         const sid = d.data().studentId;
         if (sid) next.set(d.id, sid);
       });
