@@ -49,7 +49,7 @@ export default function CorporateDashboardPage() {
             the final to-[#…] stop and fading the right edge to transparent. */}
         <div
           id="panel"
-          className="relative rounded-[32px] p-8 md:p-10 text-white shadow-xl overflow-hidden"
+          className="relative rounded-[32px] p-10 md:p-12 text-white shadow-xl overflow-hidden"
           style={{ backgroundImage: 'linear-gradient(135deg, #2D1B4E 0%, #5A3D7A 50%, #8A5EB5 100%)' }}
         >
           <div aria-hidden className="absolute inset-0 pointer-events-none opacity-30"
@@ -81,18 +81,16 @@ export default function CorporateDashboardPage() {
         {/* Aggregate stats */}
         <div id="asistencia" className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           <StatCard
-            iconLucide={<UsersIcon />}
+            emoji="👥"
             iconBg="#F0E5FF"
-            iconColor="#5A3D7A"
             label="Empleados activos"
             value={stats.totalStudents.toString()}
             sub={org.name.toLowerCase().includes('skech') ? 'co-work' : 'estudiantes'}
             mascot="/sidebar-icons/estudiantes.png"
           />
           <StatCard
-            iconLucide={<ActivityIcon />}
+            emoji="📈"
             iconBg="#DCFCE7"
-            iconColor="#059669"
             label="Activos (30 días)"
             value={stats.activeLast30Days.toString()}
             sub={stats.totalStudents > 0 ? `${Math.round((stats.activeLast30Days / stats.totalStudents) * 100)}% del equipo` : 'Sin datos'}
@@ -100,9 +98,8 @@ export default function CorporateDashboardPage() {
             valueColor="#059669"
           />
           <StatCard
-            iconLucide={<CalendarIcon />}
+            emoji="📅"
             iconBg="#FEF3C7"
-            iconColor="#B45309"
             label="Clases (30 días)"
             value={stats.classesLast30Days.toString()}
             sub={stats.totalStudents > 0 ? `${(stats.classesLast30Days / stats.totalStudents).toFixed(1)} por estudiante` : '—'}
@@ -110,9 +107,8 @@ export default function CorporateDashboardPage() {
             valueColor="#B45309"
           />
           <StatCard
-            iconLucide={<CapIcon />}
+            emoji="🎓"
             iconBg="#FEE2E2"
-            iconColor="#B91C1C"
             label="Nivel más común"
             value={topLevel(stats.levelDistribution)}
             sub={levelDistributionLabel(stats.levelDistribution)}
@@ -208,20 +204,22 @@ function EmptyCard({ icon, title, body }: { icon: string; title: string; body: s
 // ── Pieces ────────────────────────────────────────────────────
 
 function HeroPill({ label, value }: { label: string; value: string }) {
+  // Solid white card — not the glassy translucent chip we had before.
+  // Carolina's mockup uses opaque white tiles so the data reads cleanly
+  // against the purple hero even at a glance.
   return (
-    <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 min-w-[120px]">
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/55 mb-1">{label}</p>
-      <p className="font-serif text-xl font-bold text-white leading-none">{value}</p>
+    <div className="bg-white rounded-2xl px-5 py-3 min-w-[112px] shadow-[0_6px_18px_-10px_rgba(0,0,0,0.35)]">
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#9B7CB8] mb-1">{label}</p>
+      <p className="font-serif text-xl font-bold text-[#2D1B4E] leading-none">{value}</p>
     </div>
   );
 }
 
 function StatCard({
-  iconLucide, iconBg, iconColor, label, value, sub, mascot, valueColor,
+  emoji, iconBg, label, value, sub, mascot, valueColor,
 }: {
-  iconLucide: React.ReactNode;
+  emoji: string;
   iconBg: string;
-  iconColor: string;
   label: string;
   value: string;
   sub: string;
@@ -232,8 +230,8 @@ function StatCard({
     <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-[0_6px_18px_-10px_rgba(90,61,122,0.18)] p-5 flex items-center gap-3 hover:shadow-[0_10px_24px_-12px_rgba(90,61,122,0.28)] transition-shadow">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg, color: iconColor }}>
-            {iconLucide}
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-xl leading-none" style={{ background: iconBg }} aria-hidden>
+            {emoji}
           </div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9B7CB8] leading-tight">
             {label}

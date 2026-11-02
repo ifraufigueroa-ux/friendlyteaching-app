@@ -28,7 +28,6 @@ import {
   Calendar,
   CalendarPlus,
   Flame,
-  Building2,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -87,13 +86,12 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
-// Flat corporate nav (no section headers) so the sidebar matches the
-// Carolina mockups for the Skechers pitch.
+// Flat corporate nav (no section headers, no 'Master Account' row — the
+// page you land on IS the Master Account, so the row was redundant).
+// 'Panel Principal' is the primary row for /dashboard/corporate and
+// takes the active state on load.
 const CORPORATE_NAV: NavItem[] = [
-  // Master Account uses the Building2 lucide (no iconImg) so it reads as
-  // the "home / admin" anchor and doesn't duplicate the Panel Principal cat.
-  { type: 'link', href: '/dashboard/corporate',               icon: Building2,    label: 'Master Account',   iconBg: 'bg-[#EDE2FA]', iconColor: 'text-[#5A3D7A]' },
-  { type: 'link', href: '/dashboard/corporate#panel',         icon: Home,         label: 'Panel Principal',  iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
+  { type: 'link', href: '/dashboard/corporate',               icon: Home,         label: 'Panel Principal',  iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'link', href: '/dashboard/corporate#roster',        icon: Users,        label: 'Estudiante',       iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/corporate/estudiante.png' },
   { type: 'link', href: '/dashboard/corporate#asistencia',    icon: ClipboardList,label: 'Asistencia',       iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/corporate/asistencia.png' },
   { type: 'link', href: '/dashboard/corporate#historial',     icon: BarChart3,    label: 'Historial de clases', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', iconImg: '/sidebar-icons/corporate/historial-clases.png' },
