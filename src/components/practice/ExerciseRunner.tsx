@@ -5,7 +5,7 @@
 // for calling recordSession() on completion.
 
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, Sparkles, ArrowRight, RotateCcw, Home } from 'lucide-react';
 import type {
@@ -21,6 +21,19 @@ interface Props {
 
 type Verdict = 'pending' | 'correct' | 'wrong';
 
+// Varied micro-copy keeps the correct banner from feeling robotic.
+const CORRECT_CHEERS = ['Nicely done!', 'Great!', 'You got it!', 'Spot on!', 'Yes!'];
+
+/** Human-readable correct answer for the banner (null when there's no single
+ *  string to show, e.g. match-pairs — the body already shows the result inline). */
+function getCorrectAnswer(ex: Exercise): string | null {
+  switch (ex.type) {
+    case 'multiple-choice': return ex.options[ex.correctIndex] ?? null;
+    case 'fill-blank':      return ex.answers.join(' / ');
+    case 'match-pairs':     return null;
+  }
+}
+
 export function ExerciseRunner({ unit, onComplete }: Props) {
   const [idx, setIdx] = useState(0);
   const [verdict, setVerdict] = useState<Verdict>('pending');
@@ -31,6 +44,13 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
   const total   = unit.exercises.length;
   const current = unit.exercises[idx];
   const progress = ((idx + (verdict !== 'pending' ? 1 : 0)) / total) * 100;
+
+  // Freeze a cheer per exercise so it doesn't flicker on re-render.
+  const cheer = useMemo(
+    () => CORRECT_CHEERS[Math.floor(Math.random() * CORRECT_CHEERS.length)],
+    [idx],
+  );
+  const correctAnswer = useMemo(() => getCorrectAnswer(current), [current]);
 
   function handleGrade(wasCorrect: boolean) {
     if (verdict !== 'pending') return;
@@ -52,6 +72,22 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
       }
     }
   }
+
+  // Enter advances once the exercise has been graded. Ref keeps the listener
+  // stable while still calling the latest handleNext.
+  const nextRef = useRef(handleNext);
+  nextRef.current = handleNext;
+  useEffect(() => {
+    if (verdict === 'pending') return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!saving) nextRef.current();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [verdict, saving]);
 
   if (done) {
     const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
@@ -105,40 +141,62 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
         </div>
       </div>
 
-      {/* Footer feedback + CTA */}
+      {/* Footer feedback banner (Duolingo-style, FT palette) */}
       <div
-        className={`flex-shrink-0 border-t transition-colors ${
-          verdict === 'correct' ? 'bg-emerald-50 border-emerald-200'
-          : verdict === 'wrong' ? 'bg-rose-50 border-rose-200'
-          : 'bg-white border-gray-100'
+        className={`flex-shrink-0 border-t-2 transition-colors duration-200 ${
+          verdict === 'correct' ? 'bg-emerald-50 border-emerald-400'
+          : verdict === 'wrong' ? 'bg-rose-50 border-rose-400'
+          : 'bg-white border-transparent'
         }`}
       >
-        <div className="max-w-xl mx-auto px-4 py-4">
+        <div className="max-w-xl mx-auto px-4 py-5">
           {verdict === 'pending' ? (
             <p className="text-center text-xs text-gray-400">
               Pick an answer to continue.
             </p>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              {/* Big round icon */}
+              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-md ring-4 ${
+                verdict === 'correct'
+                  ? 'bg-emerald-500 ring-emerald-500/20'
+                  : 'bg-rose-500 ring-rose-500/20'
+              }`}>
+                {verdict === 'correct'
+                  ? <Check className="w-7 h-7 text-white" strokeWidth={3} />
+                  : <X className="w-7 h-7 text-white" strokeWidth={3} />}
+              </div>
+
+              {/* Headline + correct answer + explanation */}
               <div className="flex-1 min-w-0">
-                <p className={`font-bold text-sm inline-flex items-center gap-1.5 ${
-                  verdict === 'correct' ? 'text-emerald-700' : 'text-rose-700'
+                <p className={`font-serif text-xl font-bold leading-tight ${
+                  verdict === 'correct' ? 'text-emerald-800' : 'text-rose-800'
                 }`}>
-                  {verdict === 'correct'
-                    ? <><Check className="w-4 h-4" strokeWidth={2.5} /> Correct</>
-                    : <><X className="w-4 h-4" strokeWidth={2.5} /> Not quite</>}
+                  {verdict === 'correct' ? cheer : 'Correct answer:'}
                 </p>
+                {verdict === 'wrong' && correctAnswer && (
+                  <p className="font-semibold text-base text-rose-900 leading-tight mt-0.5 truncate">
+                    {correctAnswer}
+                  </p>
+                )}
                 {current.explain && (
-                  <p className="text-xs text-gray-600 mt-0.5 leading-snug">{current.explain}</p>
+                  <p className={`text-[13px] leading-snug mt-1 ${
+                    verdict === 'correct' ? 'text-emerald-700/90' : 'text-rose-700/90'
+                  }`}>
+                    {current.explain}
+                  </p>
                 )}
               </div>
+
+              {/* Continue — FT violet when wrong, emerald when correct */}
               <button
                 onClick={handleNext}
                 disabled={saving}
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold text-white shadow-md hover:shadow-lg active:scale-95 transition-all ${
+                autoFocus
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-full text-[13px] font-black uppercase tracking-wider text-white shadow-lg active:scale-95 transition-all ${
                   verdict === 'correct'
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-                    : 'bg-gradient-to-r from-[#5A3D7A] to-[#9B7CB8]'
+                    ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30'
+                    : 'bg-[#5A3D7A] hover:bg-[#2D1B4E] shadow-[#5A3D7A]/30'
                 } disabled:opacity-50`}
               >
                 {saving ? 'Saving…' : idx + 1 < total ? 'Continue' : 'Finish'}
@@ -194,20 +252,21 @@ function MultipleChoiceBody({
       {ex.options.map((opt, i) => {
         const isPicked  = picked === i;
         const isCorrect = i === ex.correctIndex;
+        // Thicker border + ring when locked so the result reads at a glance.
         const tone =
           !locked
-            ? 'border-gray-200 bg-white hover:border-[#C8A8DC] hover:bg-[#FAF5FF]'
+            ? 'border-2 border-gray-200 bg-white hover:border-[#C8A8DC] hover:bg-[#FAF5FF]'
           : isCorrect
-            ? 'border-emerald-300 bg-emerald-50'
+            ? 'border-2 border-emerald-500 bg-emerald-50 ring-4 ring-emerald-500/20'
           : isPicked
-            ? 'border-rose-300 bg-rose-50'
-            : 'border-gray-100 bg-white opacity-60';
+            ? 'border-2 border-rose-500 bg-rose-50 ring-4 ring-rose-500/20'
+            : 'border-2 border-gray-100 bg-white opacity-50';
         return (
           <button
             key={i}
             onClick={() => handlePick(i)}
             disabled={locked}
-            className={`text-left px-4 py-3 border-2 rounded-xl text-[15px] font-medium text-[#2D1B4E] transition-all ${tone}`}
+            className={`text-left px-4 py-3 rounded-xl text-[15px] font-medium text-[#2D1B4E] transition-all ${tone}`}
           >
             <span className="inline-flex items-center gap-3">
               <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-bold ${
@@ -216,7 +275,9 @@ function MultipleChoiceBody({
                 : isPicked     ? 'border-rose-500 bg-rose-500 text-white'
                                 : 'border-gray-200 text-gray-300'
               }`}>
-                {String.fromCharCode(65 + i)}
+                {locked && isCorrect   ? <Check className="w-4 h-4" strokeWidth={3} />
+                 : locked && isPicked  ? <X className="w-4 h-4" strokeWidth={3} />
+                                        : String.fromCharCode(65 + i)}
               </span>
               {opt}
             </span>
@@ -291,11 +352,7 @@ function FillBlankBody({
           </button>
         </div>
       )}
-      {locked && verdict === 'wrong' && (
-        <p className="text-center text-sm text-rose-700">
-          Correct answer: <strong>{ex.answers.join(' / ')}</strong>
-        </p>
-      )}
+      {/* Correct-answer reveal now lives in the shared result banner. */}
     </div>
   );
 }
