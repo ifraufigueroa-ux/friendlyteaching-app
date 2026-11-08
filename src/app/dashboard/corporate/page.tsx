@@ -6,20 +6,26 @@
 // última clase + attendance bar + Daily Practice flame + arrow.
 
 'use client';
-import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Building2 } from 'lucide-react';
+import { ArrowRight, Building2, CalendarClock, Flame } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useMyOrganization } from '@/hooks/useOrganization';
 import { useOrganizationRoster } from '@/hooks/useOrganizationRoster';
-import type { RosterEntry } from '@/types/organization';
-import type { LessonLevel } from '@/types/firebase';
+import {
+  useOrganizationGroups, useGroupBundles, UNGROUPED_ID,
+  type GroupBundle,
+} from '@/hooks/useOrganizationGroups';
+import { RosterTable } from '@/components/corporate/RosterTable';
+
+const DAY_LABELS = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 export default function CorporateDashboardPage() {
   const { profile } = useAuthStore();
   const { org, loading: orgLoading, isCorporateAdmin } = useMyOrganization();
   const { roster, stats, loading: rosterLoading } = useOrganizationRoster(org);
+  const { groups, loading: groupsLoading } = useOrganizationGroups(org?.id);
+  const bundles = useGroupBundles(groups, roster);
 
   if (orgLoading) return <Shell><LoadingCard /></Shell>;
 
@@ -117,29 +123,37 @@ export default function CorporateDashboardPage() {
           />
         </div>
 
-        {/* Roster */}
+        {/* Groups + roster */}
         <section id="roster" className="space-y-5">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="space-y-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.35em] text-[#9B7CB8]">Roster</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.35em] text-[#9B7CB8]">
+                {groups.length > 0 ? 'Grupos' : 'Roster'}
+              </p>
               <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#2D1B4E] leading-[1.05]">
-                Progreso individual del equipo
+                {groups.length > 0
+                  ? 'Progreso por grupo'
+                  : 'Progreso individual del equipo'}
               </h2>
             </div>
             <p className="text-sm text-[#9B7CB8] italic">
-              Haz click en una fila para ver el detalle del estudiante
+              {groups.length > 0
+                ? 'Haz click en un grupo para ver el detalle de sus miembros'
+                : 'Haz click en una fila para ver el detalle del estudiante'}
             </p>
           </div>
 
-          {rosterLoading ? (
+          {rosterLoading || groupsLoading ? (
             <div className="bg-white rounded-3xl border border-[#E8D5F0] p-10 text-center shadow-sm">
               <p className="text-sm text-[#9B7CB8]">Cargando roster…</p>
             </div>
           ) : roster.length === 0 ? (
             <EmptyCard icon="👥" title="Todavía no hay empleados cargados"
               body="En cuanto el equipo de FriendlyTeaching active a los estudiantes, aparecerán aquí con todo su progreso." />
-          ) : (
+          ) : groups.length === 0 ? (
             <RosterTable entries={roster} />
+          ) : (
+            <GroupsOverview bundles={bundles} orgId={org!.id} />
           )}
         </section>
 
@@ -152,11 +166,6 @@ export default function CorporateDashboardPage() {
     </Shell>
   );
 }
-
-// Grid template shared between the roster header and each row. Written in a
-// constant and applied via inline style because Tailwind v4 was coalescing
-// mixed fr/px arbitrary values into a single column.
-const ROSTER_GRID = '2.4fr 0.8fr 0.9fr 1.4fr 1.3fr 60px';
 
 // ── Shell ────────────────────────────────────────────────────
 
@@ -249,141 +258,6 @@ function StatCard({
   );
 }
 
-function RosterTable({ entries }: { entries: RosterEntry[] }) {
-  const sorted = useMemo(() => {
-    return [...entries].sort((a, b) => {
-      if (!a.lastClassDate && !b.lastClassDate) return a.fullName.localeCompare(b.fullName);
-      if (!a.lastClassDate) return 1;
-      if (!b.lastClassDate) return -1;
-      return b.lastClassDate.localeCompare(a.lastClassDate);
-    });
-  }, [entries]);
-
-  return (
-    <div className="bg-white rounded-3xl border border-[#E8D5F0] shadow-sm overflow-hidden">
-      {/* grid-template-columns is written inline because Tailwind v4 was
-          parsing [2.4fr_0.8fr_…60px] as a single column. */}
-      <div
-        className="hidden md:grid gap-5 px-7 py-4 bg-[#F6EBFF] border-b border-[#E8D5F0]"
-        style={{ gridTemplateColumns: ROSTER_GRID }}
-      >
-        <HeaderCell>Empleado</HeaderCell>
-        <HeaderCell>Nivel</HeaderCell>
-        <HeaderCell>Última clase</HeaderCell>
-        <HeaderCell>Asistencia 30d</HeaderCell>
-        <HeaderCell>Daily Practice</HeaderCell>
-        <span />
-      </div>
-      <div>
-        {sorted.map((entry, i) => (
-          <RosterRow key={entry.uid} entry={entry} isLast={i === sorted.length - 1} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HeaderCell({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#9B7CB8]">
-      {children}
-    </p>
-  );
-}
-
-function RosterRow({ entry, isLast }: { entry: RosterEntry; isLast: boolean }) {
-  const initials = entry.fullName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(s => s[0]?.toUpperCase() ?? '')
-    .join('');
-  const avatarBg = avatarGradient(entry.uid);
-
-  return (
-    <Link
-      href={`/dashboard/corporate/students/${entry.uid}`}
-      className={`group flex md:grid gap-5 px-7 py-5 hover:bg-[#FAF5FF] transition-colors items-center ${isLast ? '' : 'border-b border-gray-100'}`}
-      style={{ gridTemplateColumns: ROSTER_GRID }}
-    >
-      <div className="flex items-center gap-4 min-w-0">
-        <div className="w-12 h-12 rounded-full text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow" style={{ background: avatarBg }}>
-          {initials || '·'}
-        </div>
-        <div className="min-w-0">
-          <p className="text-base font-bold text-[#2D1B4E] truncate leading-tight">{entry.fullName}</p>
-          <p className="text-xs text-gray-500 truncate mt-0.5">{entry.email}</p>
-        </div>
-      </div>
-
-      <div className="md:hidden flex items-center justify-end">
-        <ArrowRight className="w-4 h-4 text-[#9B7CB8] group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
-      </div>
-
-      <div className="hidden md:flex items-center">
-        <LevelPill level={entry.currentLevel} />
-      </div>
-      <div className="hidden md:flex items-center">
-        <p className="text-sm text-[#2D1B4E] font-medium">
-          {entry.lastClassDate ? formatDate(entry.lastClassDate) : <span className="text-gray-400">Sin clases</span>}
-        </p>
-      </div>
-      <div className="hidden md:flex items-center">
-        <AttendanceBar pct={entry.attendancePct} classes={entry.classesLast30Days} />
-      </div>
-      <div className="hidden md:flex items-center gap-2">
-        {entry.practiceStreak > 0 ? (
-          <>
-            <span className="text-xl leading-none" aria-hidden>🔥</span>
-            <span className="text-base font-bold text-[#2D1B4E] tabular-nums">{entry.practiceStreak}</span>
-            <span className="text-sm text-gray-400">-</span>
-            <span className="text-sm text-gray-600 tabular-nums">{entry.practiceXp} XP</span>
-          </>
-        ) : (
-          <span className="text-xs text-gray-400">Sin práctica</span>
-        )}
-      </div>
-      <div className="hidden md:flex items-center justify-end">
-        <div className="w-10 h-10 rounded-full bg-[#F0E5FF] text-[#5A3D7A] flex items-center justify-center group-hover:bg-[#5A3D7A] group-hover:text-white transition-colors">
-          <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function LevelPill({ level }: { level: LessonLevel | null }) {
-  if (!level) return <span className="text-xs text-gray-400">Sin nivel</span>;
-  const tone =
-    level === 'A0' ? 'bg-slate-50 text-slate-700 border-slate-200'
-  : level === 'A1' ? 'bg-sky-50 text-sky-700 border-sky-200'
-  : level === 'A2' ? 'bg-teal-50 text-teal-700 border-teal-200'
-  : level === 'B1' || level === 'B1+' ? 'bg-violet-50 text-violet-700 border-violet-200'
-  : level === 'B2' ? 'bg-rose-50 text-rose-700 border-rose-200'
-                   : 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  return (
-    <span className={`inline-flex items-center text-[13px] font-black px-3.5 py-1.5 rounded-full border ${tone}`}>
-      {level}
-    </span>
-  );
-}
-
-function AttendanceBar({ pct, classes }: { pct: number; classes: number }) {
-  if (classes === 0 && pct === 0) return <span className="text-xs text-gray-400">—</span>;
-  const tone = pct >= 90 ? '#10B981' : pct >= 70 ? '#F59E0B' : '#F43F5E';
-  return (
-    <div className="w-full min-w-[140px]">
-      <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-sm font-bold text-[#2D1B4E] tabular-nums">{pct}%</span>
-        <span className="text-xs text-gray-500">{classes} {classes === 1 ? 'clase' : 'clases'}</span>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, pct)}%`, background: tone }} />
-      </div>
-    </div>
-  );
-}
-
 // ── Helpers ───────────────────────────────────────────────────
 
 function planLabel(plan: string): string {
@@ -403,60 +277,133 @@ function levelDistributionLabel(dist: Record<string, number>): string {
   return 'lecciones';
 }
 
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+// ── Groups overview ──────────────────────────────────────────
+
+function GroupsOverview({ bundles, orgId }: { bundles: GroupBundle[]; orgId: string }) {
+  const real = bundles.filter(b => b.group.id !== UNGROUPED_ID);
+  const ungrouped = bundles.find(b => b.group.id === UNGROUPED_ID);
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {real.map(b => (
+          <GroupCard key={b.group.id} bundle={b} orgId={orgId} />
+        ))}
+      </div>
+
+      {ungrouped && ungrouped.members.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-end justify-between flex-wrap gap-2">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#9B7CB8]">Sin grupo</p>
+              <h3 className="font-serif text-2xl md:text-3xl font-bold text-[#2D1B4E] leading-tight">
+                Clases individuales
+              </h3>
+            </div>
+            <p className="text-xs text-[#9B7CB8] italic">
+              {ungrouped.members.length} {ungrouped.members.length === 1 ? 'persona' : 'personas'} sin asignar a un grupo
+            </p>
+          </div>
+          <RosterTable entries={ungrouped.members} />
+        </div>
+      )}
+    </div>
+  );
 }
 
-/** Deterministic violet-palette avatar gradient per uid. */
-function avatarGradient(uid: string): string {
-  const palettes = [
-    'linear-gradient(135deg, #5A3D7A 0%, #9B7CB8 100%)',
-    'linear-gradient(135deg, #4C1D95 0%, #7E22CE 100%)',
-    'linear-gradient(135deg, #1E293B 0%, #475569 100%)',
-    'linear-gradient(135deg, #7B2CBF 0%, #C77DFF 100%)',
-    'linear-gradient(135deg, #312E81 0%, #6366F1 100%)',
-  ];
-  let h = 0;
-  for (let i = 0; i < uid.length; i++) h = ((h << 5) - h + uid.charCodeAt(i)) | 0;
-  return palettes[Math.abs(h) % palettes.length];
+function GroupCard({ bundle, orgId }: { bundle: GroupBundle; orgId: string }) {
+  const { group, members, stats } = bundle;
+  const slot = formatSlot(group.dayOfWeek, group.hour);
+  const avatars = members.slice(0, 5);
+  const extras = Math.max(0, members.length - avatars.length);
+  const attendanceColor =
+    stats.attendancePct >= 85 ? '#059669'
+    : stats.attendancePct >= 70 ? '#B45309'
+    : '#B91C1C';
+
+  return (
+    <Link
+      href={`/dashboard/corporate/groups/${group.id}`}
+      className="group block bg-white rounded-3xl border border-[#E8D5F0] shadow-[0_6px_18px_-10px_rgba(90,61,122,0.18)] hover:shadow-[0_14px_32px_-14px_rgba(90,61,122,0.35)] hover:border-[#C8A8DC] transition-all p-6 space-y-5"
+    >
+      {/* Header: level + slot */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          {group.level && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#F0E5FF] text-[#5A3D7A] text-[11px] font-black tracking-wider">
+              {group.level}
+            </span>
+          )}
+          {slot && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-[11px] font-semibold">
+              <CalendarClock className="w-3 h-3" strokeWidth={2.5} />
+              {slot}
+            </span>
+          )}
+        </div>
+        <ArrowRight className="w-4 h-4 text-[#9B7CB8] group-hover:text-[#5A3D7A] group-hover:translate-x-0.5 transition-all" strokeWidth={2.5} />
+      </div>
+
+      {/* Name */}
+      <h3 className="font-serif text-2xl md:text-[1.6rem] font-bold text-[#2D1B4E] leading-tight">
+        {group.name}
+      </h3>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-2">
+        <GroupStat label="Miembros" value={stats.size.toString()} />
+        <GroupStat label="Asist. 30d" value={`${stats.attendancePct}%`} valueColor={attendanceColor} />
+        <GroupStat label="Clases 30d" value={stats.classesLast30Days.toString()} />
+      </div>
+
+      {/* Member avatars + Daily Practice flame */}
+      <div className="flex items-center justify-between pt-1 border-t border-[#F0E5FF]">
+        <div className="flex -space-x-2">
+          {avatars.map(m => (
+            <div
+              key={m.uid}
+              className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C8A8DC] to-[#9B7CB8] text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white"
+              title={m.fullName}
+            >
+              {initials(m.fullName)}
+            </div>
+          ))}
+          {extras > 0 && (
+            <div className="w-9 h-9 rounded-full bg-white text-[#5A3D7A] text-[11px] font-bold flex items-center justify-center ring-2 ring-white border border-[#E8D5F0]">
+              +{extras}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-[#9B7CB8]">
+          <Flame className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.5} />
+          <span className="font-semibold">{stats.practiceActive}</span>
+          <span>con racha activa</span>
+        </div>
+      </div>
+    </Link>
+  );
 }
 
-// ── Tiny inline icons (no extra deps) ────────────────────────
+function GroupStat({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+  return (
+    <div className="bg-[#FAF5FF] rounded-xl px-2 py-2.5 text-center">
+      <p className="font-serif text-xl font-bold leading-none" style={{ color: valueColor ?? '#2D1B4E' }}>
+        {value}
+      </p>
+      <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#9B7CB8] mt-1">
+        {label}
+      </p>
+    </div>
+  );
+}
 
-function UsersIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
+function initials(name: string): string {
+  return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase() ?? '').join('') || '·';
 }
-function ActivityIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  );
-}
-function CalendarIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-function CapIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-      <path d="M6 12v5c3 3 9 3 12 0v-5" />
-    </svg>
-  );
+
+function formatSlot(dayOfWeek: number | null, hour: number | null): string | null {
+  if (dayOfWeek == null || hour == null) return null;
+  const day = DAY_LABELS[dayOfWeek] ?? '';
+  const hh = String(hour).padStart(2, '0');
+  return day ? `${day} ${hh}:00` : `${hh}:00`;
 }

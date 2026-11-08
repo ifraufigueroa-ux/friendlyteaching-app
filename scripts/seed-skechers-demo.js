@@ -409,6 +409,72 @@ function hashSeed(s) {
     isDemo: true,
   }, { merge: true });
 
+  // Groups — 3 clusters that mirror how a real cohort gets split: two
+  // group classes of 4-5 people by level, plus a boutique B2 pair for
+  // the senior profiles. Keyed by email so re-runs keep the same uids.
+  console.log('→ Writing organizations/' + ORG_ID + '/groups/…');
+  const uidByEmail = Object.fromEntries(STUDENTS.map((s, i) => [s.email, studentUids[i]]));
+  const groups = [
+    {
+      id:         'grp-a2-martes-10',
+      name:       'A2 · Martes 10:00',
+      level:      'A2',
+      dayOfWeek:  2,
+      hour:       10,
+      memberEmails: [
+        'matias.vargas@skechersdemo.cl',
+        'fernanda.rios@skechersdemo.cl',
+        'antonia.silva@skechersdemo.cl',
+        'sebastian.lopez@skechersdemo.cl',
+      ],
+      notes: 'Primer ciclo. Nivel real mixto A1/A2 — Sebastián arrancó un paso atrás.',
+    },
+    {
+      id:         'grp-b1-miercoles-17',
+      name:       'B1 · Miércoles 17:00',
+      level:      'B1',
+      dayOfWeek:  3,
+      hour:       17,
+      memberEmails: [
+        'diego.sanchez@skechersdemo.cl',
+        'camila.rojas@skechersdemo.cl',
+        'felipe.morales@skechersdemo.cl',
+        'rodrigo.perez@skechersdemo.cl',
+      ],
+      notes: 'Grupo más consistente. Rodrigo ya roza B1+.',
+    },
+    {
+      id:         'grp-b2-ejecutivo-jueves-09',
+      name:       'B2 Ejecutivo · Jueves 09:00',
+      level:      'B2',
+      dayOfWeek:  4,
+      hour:        9,
+      memberEmails: [
+        'mjose.fuentes@skechersdemo.cl',
+        'valentina.castro@skechersdemo.cl',
+      ],
+      notes: 'Clase chica para perfiles senior — foco en negociación y presentaciones.',
+    },
+  ];
+  for (const g of groups) {
+    const memberUids = g.memberEmails.map(e => uidByEmail[e]).filter(Boolean);
+    if (memberUids.length !== g.memberEmails.length) {
+      console.warn(`  ⚠ Group ${g.id} dropped ${g.memberEmails.length - memberUids.length} members (uid not resolved)`);
+    }
+    await db.collection('organizations').doc(ORG_ID).collection('groups').doc(g.id).set({
+      orgId:      ORG_ID,
+      name:       g.name,
+      level:      g.level,
+      dayOfWeek:  g.dayOfWeek,
+      hour:       g.hour,
+      memberUids,
+      notes:      g.notes,
+      createdAt:  tsFromDate(programStart),
+      updatedAt:  FieldValue.serverTimestamp(),
+    }, { merge: true });
+    console.log(`  ✓ ${g.id.padEnd(30)} (${memberUids.length} miembros)`);
+  }
+
   console.log('');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('✅ Skechers Chile demo seeded');

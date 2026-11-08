@@ -76,3 +76,43 @@ export interface OrganizationStats {
   /** Students who have improved at least one CEFR band since program start. */
   improvedCount:      number;
 }
+
+// ─── Groups ──────────────────────────────────────────────────────
+//
+// A group bundles 4-5 employees that take class together. Each employee
+// belongs to at most ONE group (unassigned ones still show in the "Por
+// persona" view). Group identity is level + weekly slot — "A2 · Miércoles
+// 10:00". Stored as a subcollection under the org so queries stay scoped
+// and the org doc stays cheap.
+
+export interface OrgGroup {
+  /** Doc id of `organizations/{orgId}/groups/{groupId}`. */
+  id:         string;
+  /** Parent org id — mirrored here for simpler client code. */
+  orgId:      string;
+  /** Free-text name the admin edits — defaults to "{level} · {day} {hh:mm}". */
+  name:       string;
+  /** CEFR target for the group. Drives the level pill. */
+  level:      LessonLevel | null;
+  /** 1 = Monday … 7 = Sunday. Null if no fixed slot yet. */
+  dayOfWeek:  number | null;
+  /** 0–23. Null if no fixed slot yet. */
+  hour:       number | null;
+  /** UIDs of employees in this group. Subset of org.studentUids. */
+  memberUids: string[];
+  /** Optional free-text note shown on the group detail page. */
+  notes?:     string;
+  createdAt:  Timestamp;
+  updatedAt?: Timestamp;
+}
+
+/** Aggregate numbers derived from a group's RosterEntry members. */
+export interface GroupStats {
+  size:               number;
+  activeLast30Days:   number;
+  classesLast30Days:  number;
+  attendancePct:      number;   // weighted mean across members
+  practiceActive:     number;   // members with streak >= 1
+  /** Distribution of currentLevel inside the group. */
+  levelDistribution:  Record<string, number>;
+}
