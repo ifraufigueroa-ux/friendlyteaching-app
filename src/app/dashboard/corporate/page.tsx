@@ -27,6 +27,21 @@ export default function CorporateDashboardPage() {
   const { groups, loading: groupsLoading } = useOrganizationGroups(org?.id);
   const bundles = useGroupBundles(groups, roster);
 
+  // Classes-30d at the org level: when groups are defined, the real
+  // number is the total of weekly group sessions (and the per-group
+  // average alongside it), not the sum of individual attendances.
+  // Falls back to the roster's sum for orgs that haven't set up groups.
+  const orgClasses30d = groups.length > 0
+    ? bundles
+        .filter(b => b.group.id !== UNGROUPED_ID)
+        .reduce((s, b) => s + b.stats.classesLast30Days, 0)
+    : stats.classesLast30Days;
+  const orgClassesPerGroupLabel = groups.length > 0
+    ? `${(orgClasses30d / groups.length).toFixed(1)} por grupo`
+    : stats.totalStudents > 0
+      ? `${(stats.classesLast30Days / stats.totalStudents).toFixed(1)} por estudiante`
+      : '—';
+
   if (orgLoading) return <Shell><LoadingCard /></Shell>;
 
   if (!isCorporateAdmin) {
@@ -107,8 +122,8 @@ export default function CorporateDashboardPage() {
             emoji="📅"
             iconBg="#FEF3C7"
             label="Clases (30 días)"
-            value={stats.classesLast30Days.toString()}
-            sub={stats.totalStudents > 0 ? `${(stats.classesLast30Days / stats.totalStudents).toFixed(1)} por estudiante` : '—'}
+            value={orgClasses30d.toString()}
+            sub={orgClassesPerGroupLabel}
             mascot="/sidebar-icons/historial-clases.png"
             valueColor="#B45309"
           />
