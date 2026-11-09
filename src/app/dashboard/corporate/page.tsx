@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { ArrowRight, Building2, CalendarClock, Flame } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useMyOrganization } from '@/hooks/useOrganization';
-import { useOrganizationRoster } from '@/hooks/useOrganizationRoster';
+import { useOrganizationRoster, computeOrgImpact, type OrgImpact } from '@/hooks/useOrganizationRoster';
 import {
   useOrganizationGroups, useGroupBundles, UNGROUPED_ID,
   type GroupBundle,
@@ -26,6 +26,7 @@ export default function CorporateDashboardPage() {
   const { roster, stats, loading: rosterLoading } = useOrganizationRoster(org);
   const { groups, loading: groupsLoading } = useOrganizationGroups(org?.id);
   const bundles = useGroupBundles(groups, roster);
+  const impact = computeOrgImpact(roster, groups);
 
   // Classes-30d at the org level: when groups are defined, the real
   // number is the total of weekly group sessions (and the per-group
@@ -98,6 +99,9 @@ export default function CorporateDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Impact — program-level narrative, what Carolina shows upward */}
+        {roster.length > 0 && <ImpactSection impact={impact} totalStudents={stats.totalStudents} />}
 
         {/* Aggregate stats */}
         <div id="asistencia" className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -290,6 +294,106 @@ function levelDistributionLabel(dist: Record<string, number>): string {
   const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
   if (entries.length === 0) return 'Sin datos';
   return 'lecciones';
+}
+
+// ── Impact (program outcomes, upward-facing) ─────────────────
+
+function ImpactSection({ impact, totalStudents }: { impact: OrgImpact; totalStudents: number }) {
+  const namesPreview = impact.levelUpNames.slice(0, 2).join(' · ');
+  const extra = impact.levelUpNames.length - 2;
+  return (
+    <section className="space-y-4">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div className="space-y-1">
+          <p className="text-[11px] font-black uppercase tracking-[0.35em] text-[#9B7CB8]">
+            Resultados
+          </p>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold text-[#2D1B4E] leading-tight">
+            Impacto del programa
+          </h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <ImpactCard
+          emoji="🚀"
+          label="Avances de nivel"
+          value={impact.levelUpCount.toString()}
+          sub={
+            impact.levelUpCount > 0
+              ? `${namesPreview}${extra > 0 ? ` · +${extra} más` : ''}`
+              : 'Aún sin cambios de banda CEFR registrados'
+          }
+          accent="#5A3D7A"
+        />
+        <ImpactCard
+          emoji="⏱️"
+          label="Horas-persona · 30d"
+          value={impact.personHours30d.toString()}
+          sub={
+            impact.groupCount > 0
+              ? `${impact.groupCount} grupos activos`
+              : 'Entregadas en el periodo'
+          }
+          accent="#B45309"
+        />
+        <ImpactCard
+          emoji="🔥"
+          label="Engagement Daily Practice"
+          value={`${impact.practiceActivePct}%`}
+          sub={`${impact.practiceActiveCount} de ${totalStudents} con racha activa`}
+          accent="#C2410C"
+        />
+        <ImpactCard
+          emoji="🗓️"
+          label="Cobertura semanal"
+          value={impact.weekdayCoverage > 0 ? `${impact.weekdayCoverage} días` : '—'}
+          sub={
+            impact.groupCount > 0
+              ? `${impact.groupCount} grupos distribuidos en la semana`
+              : 'Aún sin grupos programados'
+          }
+          accent="#0F766E"
+        />
+      </div>
+    </section>
+  );
+}
+
+function ImpactCard({
+  emoji, label, value, sub, accent,
+}: {
+  emoji: string;
+  label: string;
+  value: string;
+  sub:   string;
+  accent?: string;
+}) {
+  return (
+    <div className="relative bg-white rounded-3xl border border-[#E8D5F0] shadow-[0_6px_18px_-10px_rgba(90,61,122,0.18)] p-5 overflow-hidden">
+      {/* Accent stripe on the left — ties the card to a semantic color
+          without screaming it. */}
+      <span
+        aria-hidden
+        className="absolute left-0 top-5 bottom-5 w-[3px] rounded-r-full"
+        style={{ background: accent ?? '#5A3D7A' }}
+      />
+      <div className="pl-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-lg leading-none" aria-hidden>{emoji}</span>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#9B7CB8] leading-tight">
+            {label}
+          </p>
+        </div>
+        <p
+          className="font-serif text-4xl md:text-[2.75rem] font-bold leading-none tracking-tight tabular-nums"
+          style={{ color: accent ?? '#2D1B4E' }}
+        >
+          {value}
+        </p>
+        <p className="text-[12px] text-[#5A3D7A]/75 leading-snug">{sub}</p>
+      </div>
+    </div>
+  );
 }
 
 // ── Groups overview ──────────────────────────────────────────

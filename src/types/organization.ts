@@ -63,6 +63,12 @@ export interface RosterEntry {
   latestPlacementLevel: LessonLevel | null;
   /** YYYY-MM-DD of latest placement test. */
   latestPlacementAt:  string | null;
+  /** CEFR level from the EARLIEST placement test on record. Used with
+   *  `currentLevel` to derive the "subió de nivel" count. Null if no
+   *  placement has ever been recorded. */
+  firstPlacementLevel: LessonLevel | null;
+  /** YYYY-MM-DD of the earliest placement — the program's starting line. */
+  firstPlacementAt:   string | null;
 }
 
 /** Aggregate dashboard numbers the corporate admin sees at the top. */

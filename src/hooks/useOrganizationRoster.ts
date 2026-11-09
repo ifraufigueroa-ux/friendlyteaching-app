@@ -96,6 +96,7 @@ async function buildEntry(uid: string): Promise<RosterEntry | null> {
       return bm - am;
     });
   const latestPlacement = placements[0] ?? null;
+  const firstPlacement  = placements[placements.length - 1] ?? null;
 
   return {
     uid:                 user.uid,
@@ -110,6 +111,8 @@ async function buildEntry(uid: string): Promise<RosterEntry | null> {
     practiceXp:          practice?.totalXp ?? 0,
     latestPlacementLevel: latestPlacement?.level ?? null,
     latestPlacementAt:   tsToDateStr(latestPlacement?.completedAt ?? latestPlacement?.createdAt ?? null),
+    firstPlacementLevel: firstPlacement?.level ?? null,
+    firstPlacementAt:    tsToDateStr(firstPlacement?.completedAt ?? firstPlacement?.createdAt ?? null),
   };
 }
 
@@ -183,4 +186,68 @@ export function useOrganizationRoster(org: Organization | null) {
   }, [roster]);
 
   return { roster, stats, loading };
+}
+
+// ─── Impact (program-level narrative stats) ─────────────────────
+//
+// The operational numbers (empleados activos, clases 30d) describe
+// delivery. These describe OUTCOMES — what Carolina shows upward: who
+// moved up a CEFR band, how many hours we delivered, how engaged the
+// team stays outside of class, and how broadly the program covers
+// the week.
+
+import type { LessonLevel } from '@/types/firebase';
+import type { OrgGroup } from '@/types/organization';
+
+const CEFR_RANK: Record<LessonLevel, number> = {
+  A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, C1: 5,
+};
+
+export interface OrgImpact {
+  /** Employees whose currentLevel is higher (CEFR-wise) than their
+   *  FIRST recorded placement. The "subió de nivel" count. */
+  levelUpCount:          number;
+  levelUpNames:          string[];
+  /** Person-hours of class delivered in the last 30 days (sum of
+   *  attended bookings across the roster — each class ≈ 1h). */
+  personHours30d:        number;
+  /** Members with an active Daily Practice streak this week. */
+  practiceActiveCount:   number;
+  practiceActivePct:     number;
+  /** How many distinct weekdays the program runs on (1–7). */
+  weekdayCoverage:       number;
+  groupCount:            number;
+}
+
+export function computeOrgImpact(
+  roster: RosterEntry[],
+  groups: OrgGroup[],
+): OrgImpact {
+  const rank = (lvl: LessonLevel | null): number =>
+    lvl ? (CEFR_RANK[lvl] ?? -1) : -1;
+
+  const levelUpStudents = roster.filter(r => {
+    const from = rank(r.firstPlacementLevel);
+    const to   = rank(r.currentLevel);
+    return from >= 0 && to > from;
+  });
+
+  const personHours30d = roster.reduce((s, r) => s + r.classesLast30Days, 0);
+  const practiceActiveCount = roster.filter(r => r.practiceStreak > 0).length;
+  const practiceActivePct = roster.length > 0
+    ? Math.round((practiceActiveCount / roster.length) * 100)
+    : 0;
+  const weekdayCoverage = new Set(
+    groups.map(g => g.dayOfWeek).filter((d): d is number => d != null),
+  ).size;
+
+  return {
+    levelUpCount:        levelUpStudents.length,
+    levelUpNames:        levelUpStudents.map(s => s.fullName),
+    personHours30d,
+    practiceActiveCount,
+    practiceActivePct,
+    weekdayCoverage,
+    groupCount:          groups.length,
+  };
 }
