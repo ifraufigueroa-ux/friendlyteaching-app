@@ -759,6 +759,15 @@ function SessionWritingModal({
                 <p className="text-2xl font-black tabular-nums text-[#5A3D7A]">{writingScore?.toFixed(1)}<span className="text-sm text-[#5A3D7A]/60">/6</span></p>
               </div>
             )}
+            <a
+              href={`/dashboard/teacher/toefl/sessions/${session.id}/writing-print`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full bg-[#5A3D7A] text-white hover:bg-[#2D1B4E] active:scale-95 transition-all shadow-sm inline-flex items-center gap-1.5"
+              title="Abre una vista imprimible y dispara el diálogo de guardar como PDF"
+            >
+              🖨️ PDF
+            </a>
             <button onClick={onClose} className="text-xl text-gray-400 hover:text-gray-600 px-2">✕</button>
           </div>
         </div>
