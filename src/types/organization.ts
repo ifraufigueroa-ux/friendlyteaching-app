@@ -106,6 +106,47 @@ export interface OrgGroup {
   updatedAt?: Timestamp;
 }
 
+// ─── Change requests ─────────────────────────────────────────────
+//
+// Corporate admins raise these from the Estudiantes tab when something
+// needs the teacher's attention: move someone to another group, re-run
+// placement, or swap an employee out. They land on a per-org queue the
+// teacher can resolve. No scheduling happens automatically — this is a
+// communication channel, not a self-serve action.
+
+export type ChangeRequestType =
+  | 'change-group'
+  | 'reevaluation'
+  | 'replacement';
+
+export type ChangeRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'declined'
+  | 'resolved';
+
+export interface ChangeRequest {
+  id:              string;
+  orgId:           string;
+  type:            ChangeRequestType;
+  studentUid:      string;
+  studentName:     string;
+  /** Group the student is currently in (null if unassigned). */
+  currentGroupId:  string | null;
+  currentGroupName: string | null;
+  /** Only set for `change-group`: where the admin wants them moved. */
+  targetGroupId?:  string | null;
+  targetGroupName?: string | null;
+  note:            string;
+  status:          ChangeRequestStatus;
+  createdByUid:    string;
+  createdByName:   string;
+  createdAt:       Timestamp;
+  resolvedAt?:     Timestamp;
+  resolvedByUid?:  string;
+  teacherNote?:    string;
+}
+
 /** Aggregate numbers derived from a group's RosterEntry members. */
 export interface GroupStats {
   size:               number;

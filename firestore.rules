@@ -497,6 +497,22 @@ service cloud.firestore {
                        || (isAuthenticated() && request.auth.uid in
                              get(/databases/$(database)/documents/organizations/$(orgId)).data.adminUids);
       }
+
+      // Change requests raised from the Estudiantes tab — admins create
+      // and read their own org's queue; teachers can read + update (to
+      // mark as resolved) once the admin-side flow lands.
+      match /changeRequests/{reqId} {
+        allow read: if isTeacher() || isMaster()
+                      || (isAuthenticated() && request.auth.uid in
+                            get(/databases/$(database)/documents/organizations/$(orgId)).data.adminUids);
+        allow create: if isAuthenticated()
+                        && request.auth.uid in
+                             get(/databases/$(database)/documents/organizations/$(orgId)).data.adminUids
+                        && request.resource.data.createdByUid == request.auth.uid
+                        && request.resource.data.status == 'pending';
+        allow update: if isTeacher() || isMaster();
+        allow delete: if isTeacher() || isMaster();
+      }
     }
 
     // ── Daily Practice progress ──────────────────────────────────
