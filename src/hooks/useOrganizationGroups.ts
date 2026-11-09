@@ -85,7 +85,7 @@ export function useGroupBundles(
       const members = (g.memberUids ?? [])
         .map(uid => { assigned.add(uid); return byUid.get(uid); })
         .filter((r): r is RosterEntry => !!r);
-      return { group: g, members, stats: aggregate(members) };
+      return { group: g, members, stats: aggregate(members, g.dayOfWeek) };
     });
 
     const ungrouped = roster.filter(r => !assigned.has(r.uid));
@@ -93,17 +93,42 @@ export function useGroupBundles(
       bundles.push({
         group: synthUngrouped(),
         members: ungrouped,
-        stats: aggregate(ungrouped),
+        // Individual classes don't share a weekly slot — fall back to
+        // the member-sum for the "Sin grupo" bucket.
+        stats: aggregate(ungrouped, null),
       });
     }
     return bundles;
   }, [groups, roster]);
 }
 
-function aggregate(members: RosterEntry[]): GroupStats {
+/** Weekday occurrences inside the trailing 30 days — a weekly slot lands
+ *  4 times in most months and 5 in a few. 1 = Monday … 7 = Sunday. */
+function weekdayCountLast30Days(dayOfWeek: number, today: Date = new Date()): number {
+  let count = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const js = d.getDay();           // 0=Sun … 6=Sat
+    const our = js === 0 ? 7 : js;   // 1=Mon … 7=Sun
+    if (our === dayOfWeek) count++;
+  }
+  return count;
+}
+
+export function computeGroupStats(members: RosterEntry[], dayOfWeek: number | null): GroupStats {
+  return aggregate(members, dayOfWeek);
+}
+
+function aggregate(members: RosterEntry[], dayOfWeek: number | null): GroupStats {
   const size = members.length;
   const activeLast30Days = members.filter(m => m.classesLast30Days > 0).length;
-  const classesLast30Days = members.reduce((s, m) => s + m.classesLast30Days, 0);
+  // Group classes meet weekly, so "clases 30d" is the count of weekly
+  // slots that landed in the last 30 days (usually 4). When the group
+  // has no fixed slot, fall back to the member-sum.
+  const classesLast30Days = dayOfWeek != null
+    ? weekdayCountLast30Days(dayOfWeek)
+    : members.reduce((s, m) => s + m.classesLast30Days, 0);
   const practiceActive = members.filter(m => m.practiceStreak > 0).length;
 
   // Weighted mean attendance — members with no recent classes contribute

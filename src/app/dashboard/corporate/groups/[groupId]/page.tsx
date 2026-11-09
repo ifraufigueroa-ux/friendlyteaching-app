@@ -13,6 +13,7 @@ import { ArrowRight, Building2, CalendarClock, Users } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { useMyOrganization } from '@/hooks/useOrganization';
 import { useOrganizationRoster } from '@/hooks/useOrganizationRoster';
+import { computeGroupStats } from '@/hooks/useOrganizationGroups';
 import { RosterTable } from '@/components/corporate/RosterTable';
 import type { OrgGroup } from '@/types/organization';
 
@@ -50,17 +51,12 @@ export default function CorporateGroupDetailPage({
     return roster.filter(r => uids.has(r.uid));
   }, [group, roster]);
 
-  const stats = useMemo(() => {
-    const size = members.length;
-    const activeLast30Days = members.filter(m => m.classesLast30Days > 0).length;
-    const classesLast30Days = members.reduce((s, m) => s + m.classesLast30Days, 0);
-    const practiceActive = members.filter(m => m.practiceStreak > 0).length;
-    const withClasses = members.filter(m => m.classesLast30Days > 0);
-    const attendancePct = withClasses.length
-      ? Math.round(withClasses.reduce((s, m) => s + m.attendancePct, 0) / withClasses.length)
-      : 0;
-    return { size, activeLast30Days, classesLast30Days, practiceActive, attendancePct };
-  }, [members]);
+  // Use the same aggregator as the landing's group cards — single source
+  // of truth so the group's classes-30d/attendance line up on both views.
+  const stats = useMemo(
+    () => computeGroupStats(members, group?.dayOfWeek ?? null),
+    [members, group?.dayOfWeek],
+  );
 
   if (orgLoading || groupLoading) return <Shell><LoadingCard /></Shell>;
 
@@ -163,7 +159,7 @@ export default function CorporateGroupDetailPage({
           <GroupHeroStat
             emoji="📅" iconBg="#FEF3C7" label="Clases 30d"
             value={stats.classesLast30Days.toString()}
-            sub={stats.size > 0 ? `${(stats.classesLast30Days / stats.size).toFixed(1)} por miembro` : '—'}
+            sub="sesiones grupales"
             valueColor="#B45309"
           />
           <GroupHeroStat
