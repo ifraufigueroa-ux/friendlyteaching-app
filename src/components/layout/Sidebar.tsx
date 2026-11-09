@@ -263,20 +263,19 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-[#5A3D7A]" />
               )}
 
-              {/* Icon container — en corporate forzamos el lucide icon
-                  dentro de una pastilla iconBg: los mascots PNG traen
-                  rectángulos con fondos de colores que no matchean el
-                  lavanda del sidebar corporativo (y algunos tienen texto
-                  embebido en la ilustración). Teacher y student siguen
-                  con mascots porque ahí el fondo blanco de la sidebar
-                  los absorbe sin disonancia. */}
-              {iconImg && !corporate ? (
-                <span className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-150 ${
+              {/* Icon container — usa imagen si iconImg está seteado, sino
+                  renderiza el icono lucide. Los mascots PNG traen bordes
+                  blancos y a veces texto embebido en la ilustración, así
+                  que los mostramos ampliados con object-cover + scale
+                  dentro de overflow-hidden — eso recorta los bordes y la
+                  mayoría del texto queda fuera del viewport del icono. */}
+              {iconImg ? (
+                <span className={`${corporate ? 'w-14 h-14 rounded-2xl' : 'w-8 h-8 rounded-lg'} overflow-hidden flex-shrink-0 transition-all duration-150 ${
                   isActive
-                    ? 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm'
-                    : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
+                    ? corporate ? 'shadow-sm' : 'ring-2 ring-[#5A3D7A] scale-105 shadow-sm'
+                    : corporate ? 'group-hover:scale-105' : 'group-hover:scale-105 group-hover:ring-1 group-hover:ring-[#C8A8DC]'
                 }`}>
-                  <Image src={iconImg} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                  <Image src={iconImg} alt="" width={corporate ? 56 : 32} height={corporate ? 56 : 32} className="w-full h-full object-cover scale-[1.35]" />
                 </span>
               ) : (
                 <span className={`${corporate ? 'w-14 h-14 rounded-2xl' : 'w-7 h-7 rounded-lg'} flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${

@@ -270,8 +270,14 @@ function StatCard({
         </p>
         <p className="text-[11px] text-[#5A3D7A]/70 leading-snug">{sub}</p>
       </div>
-      <div className="flex-shrink-0 w-20 h-20 select-none pointer-events-none">
-        <Image src={mascot} alt="" width={80} height={80} className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(90,61,122,0.18)]" />
+      {/* Mascot cropped — overflow-hidden + scaled image cuts the PNG's
+          outer white border and the embedded label text some assets
+          include, so only the illustration lands inside the tile. */}
+      <div
+        className="flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden select-none pointer-events-none flex items-center justify-center"
+        style={{ background: iconBg }}
+      >
+        <Image src={mascot} alt="" width={80} height={80} className="w-full h-full object-cover scale-[1.35]" />
       </div>
     </div>
   );
