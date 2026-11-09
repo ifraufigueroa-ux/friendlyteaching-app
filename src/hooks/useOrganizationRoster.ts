@@ -17,7 +17,9 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { FTUser, Booking, LessonLevel } from '@/types/firebase';
-import type { Organization, RosterEntry, OrganizationStats, WeeklyAttendance } from '@/types/organization';
+import type {
+  Organization, RosterEntry, OrganizationStats, WeeklyAttendance, OrgGroup,
+} from '@/types/organization';
 
 interface PracticeDoc {
   currentStreak?:  number;
@@ -243,9 +245,6 @@ export function useOrganizationRoster(org: Organization | null) {
 // moved up a CEFR band, how many hours we delivered, how engaged the
 // team stays outside of class, and how broadly the program covers
 // the week.
-
-import type { LessonLevel } from '@/types/firebase';
-import type { OrgGroup } from '@/types/organization';
 
 const CEFR_RANK: Record<LessonLevel, number> = {
   A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, C1: 5,

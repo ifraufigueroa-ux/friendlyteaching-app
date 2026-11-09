@@ -37,7 +37,7 @@ export function useOrganizationGroups(orgId: string | null | undefined) {
             ({ id: d.id, ...d.data() } as OrgGroup),
         );
         // Deterministic order: by day-of-week then hour, then name.
-        list.sort((a, b) => {
+        list.sort((a: OrgGroup, b: OrgGroup) => {
           const da = a.dayOfWeek ?? 99;
           const dbb = b.dayOfWeek ?? 99;
           if (da !== dbb) return da - dbb;

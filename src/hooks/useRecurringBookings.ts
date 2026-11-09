@@ -33,7 +33,7 @@ export function useRecurringBookings(teacherId: string) {
         const all = snap.docs
           // Hide Skechers demo bookings (see scripts/seed-skechers-demo.js)
           // from the teacher's recurring schedule view.
-          .filter((d) => !d.id.startsWith('demo-skechers-'))
+          .filter((d: QueryDocumentSnapshot<DocumentData>) => !d.id.startsWith('demo-skechers-'))
           .map(
             (d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Booking),
           );

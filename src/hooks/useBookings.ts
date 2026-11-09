@@ -48,7 +48,7 @@ export function useBookings(teacherId: string, weekStart: Date) {
       q,
       (snap: QuerySnapshot<DocumentData>) => {
         const all = snap.docs
-          .filter((d) => !isDemoBooking(d.id))
+          .filter((d: QueryDocumentSnapshot<DocumentData>) => !isDemoBooking(d.id))
           .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Booking));
         setAllBookings(all);
         setDebugInfo(`total:${all.length}`);

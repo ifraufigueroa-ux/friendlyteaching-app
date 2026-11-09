@@ -28,7 +28,7 @@ export function useChangeRequests(orgId: string | null | undefined) {
           (d: QueryDocumentSnapshot<DocumentData>) =>
             ({ id: d.id, ...d.data() } as ChangeRequest),
         );
-        list.sort((a, b) => {
+        list.sort((a: ChangeRequest, b: ChangeRequest) => {
           const ta = a.createdAt?.toMillis?.() ?? 0;
           const tb = b.createdAt?.toMillis?.() ?? 0;
           return tb - ta;
