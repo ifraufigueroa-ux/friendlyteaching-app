@@ -547,12 +547,23 @@ function SessionsTable({
                         </button>
                       )}
                       {hasWriting && (
-                        <button
-                          onClick={() => setWritingView(s)}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#5A3D7A]/40 text-[#5A3D7A] hover:bg-[#F0E5FF]"
-                        >
-                          ✍️ Ver
-                        </button>
+                        <>
+                          <button
+                            onClick={() => setWritingView(s)}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#5A3D7A]/40 text-[#5A3D7A] hover:bg-[#F0E5FF]"
+                          >
+                            ✍️ Ver
+                          </button>
+                          <a
+                            href={`/dashboard/teacher/toefl/sessions/${s.id}/writing-print`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#5A3D7A] text-white hover:bg-[#2D1B4E] inline-flex items-center gap-1"
+                            title="Descargar el feedback de Writing como PDF"
+                          >
+                            🖨️ PDF
+                          </a>
+                        </>
                       )}
                     </div>
                   </td>
