@@ -109,6 +109,83 @@ const STUDENTS = [
     level: 'A2',  startLevel: 'A2',  attendancePct: 0.68, practice: null,                                   improved: false },
   { email: 'sebastian.lopez@skechersdemo.cl',fullName: 'Sebastián López',    role: 'Logistics',
     level: 'A1',  startLevel: 'A1',  attendancePct: 0.45, practice: null,                                   improved: false },
+
+  // ── Cohorte ampliada (30 empleados adicionales) ────────────────
+  // Añadidos cuando el programa escaló a 40 personas en 10 grupos.
+  // Distribución de nivel pensada para armar grupos balanceados
+  // (ver `groups` más abajo): A1×8, A2×8, B1×8, B1+×4, B2×8, exec×4.
+
+  // A1 adicionales (para completar 2 grupos de A1)
+  { email: 'tomas.rodriguez@skechersdemo.cl',    fullName: 'Tomás Rodríguez',    role: 'Retail Alto Las Condes',
+    level: 'A1',  startLevel: 'A0',  attendancePct: 0.78, practice: { streak: 4,  longest: 8,  xp: 320  }, improved: true },
+  { email: 'nicolas.herrera@skechersdemo.cl',    fullName: 'Nicolás Herrera',    role: 'Warehouse',
+    level: 'A1',  startLevel: 'A1',  attendancePct: 0.60, practice: null,                                  improved: false },
+  { email: 'belen.paredes@skechersdemo.cl',      fullName: 'Belén Paredes',      role: 'Retail Mall Plaza',
+    level: 'A1',  startLevel: 'A0',  attendancePct: 0.82, practice: { streak: 11, longest: 11, xp: 710  }, improved: true },
+  { email: 'pia.gonzalez@skechersdemo.cl',       fullName: 'Pía González',       role: 'HR',
+    level: 'A1',  startLevel: 'A1',  attendancePct: 0.55, practice: null,                                  improved: false },
+  { email: 'benjamin.yanez@skechersdemo.cl',     fullName: 'Benjamín Yáñez',     role: 'Logistics',
+    level: 'A1',  startLevel: 'A1',  attendancePct: 0.70, practice: { streak: 2,  longest: 5,  xp: 140  }, improved: false },
+  { email: 'rocio.sepulveda@skechersdemo.cl',    fullName: 'Rocío Sepúlveda',    role: 'Retail Alto Las Condes',
+    level: 'A1',  startLevel: 'A0',  attendancePct: 0.88, practice: { streak: 16, longest: 16, xp: 980  }, improved: true },
+  { email: 'fernando.astudillo@skechersdemo.cl', fullName: 'Fernando Astudillo', role: 'Logistics',
+    level: 'A1',  startLevel: 'A1',  attendancePct: 0.50, practice: null,                                  improved: false },
+
+  // A2 adicionales
+  { email: 'catalina.riquelme@skechersdemo.cl',  fullName: 'Catalina Riquelme',  role: 'Marketing',
+    level: 'A2',  startLevel: 'A1',  attendancePct: 0.92, practice: { streak: 19, longest: 22, xp: 1340 }, improved: true },
+  { email: 'macarena.toro@skechersdemo.cl',      fullName: 'Macarena Toro',      role: 'E-commerce',
+    level: 'A2',  startLevel: 'A2',  attendancePct: 0.75, practice: { streak: 5,  longest: 9,  xp: 410  }, improved: false },
+  { email: 'ignacio.munoz@skechersdemo.cl',      fullName: 'Ignacio Muñoz',      role: 'IT',
+    level: 'A2',  startLevel: 'A1',  attendancePct: 0.85, practice: null,                                  improved: true },
+  { email: 'montserrat.baeza@skechersdemo.cl',   fullName: 'Montserrat Baeza',   role: 'HR',
+    level: 'A2',  startLevel: 'A2',  attendancePct: 0.70, practice: { streak: 6,  longest: 10, xp: 470  }, improved: false },
+  { email: 'lucas.bustos@skechersdemo.cl',       fullName: 'Lucas Bustos',       role: 'Operations',
+    level: 'A2',  startLevel: 'A1',  attendancePct: 0.95, practice: { streak: 23, longest: 23, xp: 1620 }, improved: true },
+
+  // B1 adicionales
+  { email: 'javier.solis@skechersdemo.cl',       fullName: 'Javier Solís',       role: 'Finance',
+    level: 'B1',  startLevel: 'A2',  attendancePct: 0.88, practice: { streak: 9,  longest: 14, xp: 820  }, improved: true },
+  { email: 'francisca.diaz@skechersdemo.cl',     fullName: 'Francisca Díaz',     role: 'Retail Alto Las Condes',
+    level: 'B1',  startLevel: 'B1',  attendancePct: 0.78, practice: null,                                  improved: false },
+  { email: 'vicente.ramirez@skechersdemo.cl',    fullName: 'Vicente Ramírez',    role: 'Finance',
+    level: 'B1',  startLevel: 'B1',  attendancePct: 0.82, practice: { streak: 12, longest: 17, xp: 940  }, improved: false },
+  { email: 'constanza.lagos@skechersdemo.cl',    fullName: 'Constanza Lagos',    role: 'Marketing',
+    level: 'B1',  startLevel: 'A2',  attendancePct: 0.90, practice: { streak: 18, longest: 18, xp: 1210 }, improved: true },
+  { email: 'antonia.reyes@skechersdemo.cl',      fullName: 'Antonia Reyes',      role: 'E-commerce',
+    level: 'B1',  startLevel: 'B1',  attendancePct: 0.65, practice: null,                                  improved: false },
+
+  // B1+ adicionales
+  { email: 'sebastian.carrasco@skechersdemo.cl', fullName: 'Sebastián Carrasco', role: 'IT',
+    level: 'B1+', startLevel: 'B1',  attendancePct: 0.95, practice: { streak: 25, longest: 25, xp: 1890 }, improved: true },
+  { email: 'daniela.molina@skechersdemo.cl',     fullName: 'Daniela Molina',     role: 'Store Manager Costanera',
+    level: 'B1+', startLevel: 'B1',  attendancePct: 0.98, practice: { streak: 30, longest: 30, xp: 2250 }, improved: true },
+  { email: 'cristobal.vega@skechersdemo.cl',     fullName: 'Cristóbal Vega',     role: 'Supply Chain',
+    level: 'B1+', startLevel: 'B1',  attendancePct: 0.88, practice: { streak: 8,  longest: 13, xp: 760  }, improved: false },
+
+  // B2 adicionales
+  { email: 'trinidad.figueroa@skechersdemo.cl',  fullName: 'Trinidad Figueroa',  role: 'HR Business Partner',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 0.92, practice: { streak: 13, longest: 20, xp: 1100 }, improved: false },
+  { email: 'pablo.ordenes@skechersdemo.cl',      fullName: 'Pablo Órdenes',      role: 'Operations',
+    level: 'B2',  startLevel: 'B1+', attendancePct: 0.90, practice: null,                                  improved: true },
+  { email: 'isidora.gatica@skechersdemo.cl',     fullName: 'Isidora Gatica',     role: 'Retail Parque Arauco',
+    level: 'B2',  startLevel: 'B1+', attendancePct: 0.85, practice: { streak: 11, longest: 16, xp: 880  }, improved: true },
+  { email: 'rodrigo.olivares@skechersdemo.cl',   fullName: 'Rodrigo Olivares',   role: 'IT',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 0.78, practice: null,                                  improved: false },
+  { email: 'alvaro.soto@skechersdemo.cl',        fullName: 'Álvaro Soto',        role: 'Finance',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 0.95, practice: { streak: 20, longest: 24, xp: 1430 }, improved: false },
+  { email: 'javiera.salinas@skechersdemo.cl',    fullName: 'Javiera Salinas',    role: 'HR',
+    level: 'B2',  startLevel: 'B1+', attendancePct: 0.88, practice: { streak: 7,  longest: 11, xp: 580  }, improved: true },
+
+  // Business executives (clase ejecutiva)
+  { email: 'esteban.cornejo@skechersdemo.cl',    fullName: 'Esteban Cornejo',    role: 'Store Manager Mall Sport',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 0.98, practice: { streak: 22, longest: 26, xp: 1680 }, improved: false },
+  { email: 'josefa.araya@skechersdemo.cl',       fullName: 'Josefa Araya',       role: 'Marketing Director',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 0.95, practice: null,                                  improved: false },
+  { email: 'diego.pavez@skechersdemo.cl',        fullName: 'Diego Pavez',        role: 'CFO',
+    level: 'B2',  startLevel: 'B2',  attendancePct: 1.00, practice: { streak: 31, longest: 31, xp: 2420 }, improved: false },
+  { email: 'catalina.fuenzalida@skechersdemo.cl',fullName: 'Catalina Fuenzalida',role: 'Marketing Digital',
+    level: 'B2',  startLevel: 'B1+', attendancePct: 0.92, practice: { streak: 14, longest: 18, xp: 1050 }, improved: true },
 ];
 
 const CLASS_TOPICS = [
@@ -409,53 +486,55 @@ function hashSeed(s) {
     isDemo: true,
   }, { merge: true });
 
-  // Groups — 3 clusters that mirror how a real cohort gets split: two
-  // group classes of 4-5 people by level, plus a boutique B2 pair for
-  // the senior profiles. Keyed by email so re-runs keep the same uids.
+  // Groups — 10 cohorts of 4 people each spread across the week. Each
+  // employee is in exactly one group. Kept keyed by email so re-runs
+  // keep the same uids and the stale ones are explicitly deleted first.
   console.log('→ Writing organizations/' + ORG_ID + '/groups/…');
   const uidByEmail = Object.fromEntries(STUDENTS.map((s, i) => [s.email, studentUids[i]]));
   const groups = [
-    {
-      id:         'grp-a2-martes-10',
-      name:       'A2 · Martes 10:00',
-      level:      'A2',
-      dayOfWeek:  2,
-      hour:       10,
-      memberEmails: [
-        'matias.vargas@skechersdemo.cl',
-        'fernanda.rios@skechersdemo.cl',
-        'antonia.silva@skechersdemo.cl',
-        'sebastian.lopez@skechersdemo.cl',
-      ],
-      notes: 'Primer ciclo. Nivel real mixto A1/A2 — Sebastián arrancó un paso atrás.',
-    },
-    {
-      id:         'grp-b1-miercoles-17',
-      name:       'B1 · Miércoles 17:00',
-      level:      'B1',
-      dayOfWeek:  3,
-      hour:       17,
-      memberEmails: [
-        'diego.sanchez@skechersdemo.cl',
-        'camila.rojas@skechersdemo.cl',
-        'felipe.morales@skechersdemo.cl',
-        'rodrigo.perez@skechersdemo.cl',
-      ],
-      notes: 'Grupo más consistente. Rodrigo ya roza B1+.',
-    },
-    {
-      id:         'grp-b2-ejecutivo-jueves-09',
-      name:       'B2 Ejecutivo · Jueves 09:00',
-      level:      'B2',
-      dayOfWeek:  4,
-      hour:        9,
-      memberEmails: [
-        'mjose.fuentes@skechersdemo.cl',
-        'valentina.castro@skechersdemo.cl',
-      ],
-      notes: 'Clase chica para perfiles senior — foco en negociación y presentaciones.',
-    },
+    { id: 'grp-a1-lunes-09',        name: 'A1 · Lunes 09:00',       level: 'A1',  dayOfWeek: 1, hour:  9,
+      memberEmails: ['sebastian.lopez@skechersdemo.cl', 'tomas.rodriguez@skechersdemo.cl', 'nicolas.herrera@skechersdemo.cl', 'belen.paredes@skechersdemo.cl'],
+      notes: 'Cohorte inicial. Primer contacto con el idioma — foco en confianza al hablar.' },
+    { id: 'grp-a1-lunes-18',        name: 'A1 · Lunes 18:00',       level: 'A1',  dayOfWeek: 1, hour: 18,
+      memberEmails: ['pia.gonzalez@skechersdemo.cl', 'benjamin.yanez@skechersdemo.cl', 'rocio.sepulveda@skechersdemo.cl', 'fernando.astudillo@skechersdemo.cl'],
+      notes: 'Grupo vespertino — fatiga del día, clases de ritmo más liviano.' },
+    { id: 'grp-a2-martes-10',       name: 'A2 · Martes 10:00',      level: 'A2',  dayOfWeek: 2, hour: 10,
+      memberEmails: ['matias.vargas@skechersdemo.cl', 'fernanda.rios@skechersdemo.cl', 'antonia.silva@skechersdemo.cl', 'catalina.riquelme@skechersdemo.cl'],
+      notes: 'Primer ciclo A2. Catalina ya empuja hacia B1.' },
+    { id: 'grp-a2-martes-17',       name: 'A2 · Martes 17:00',      level: 'A2',  dayOfWeek: 2, hour: 17,
+      memberEmails: ['macarena.toro@skechersdemo.cl', 'ignacio.munoz@skechersdemo.cl', 'montserrat.baeza@skechersdemo.cl', 'lucas.bustos@skechersdemo.cl'],
+      notes: 'Mezcla de retail + corporativo. Lucas lidera la racha de Daily Practice.' },
+    { id: 'grp-b1-miercoles-12',    name: 'B1 · Miércoles 12:00',   level: 'B1',  dayOfWeek: 3, hour: 12,
+      memberEmails: ['diego.sanchez@skechersdemo.cl', 'camila.rojas@skechersdemo.cl', 'felipe.morales@skechersdemo.cl', 'javier.solis@skechersdemo.cl'],
+      notes: 'Clase de almuerzo. Alta asistencia — el grupo más consistente del programa.' },
+    { id: 'grp-b1-miercoles-19',    name: 'B1 · Miércoles 19:00',   level: 'B1',  dayOfWeek: 3, hour: 19,
+      memberEmails: ['francisca.diaz@skechersdemo.cl', 'vicente.ramirez@skechersdemo.cl', 'constanza.lagos@skechersdemo.cl', 'antonia.reyes@skechersdemo.cl'],
+      notes: 'Grupo nocturno B1. Antonia Reyes necesita seguimiento extra.' },
+    { id: 'grp-b1plus-jueves-09',   name: 'B1+ · Jueves 09:00',     level: 'B1+', dayOfWeek: 4, hour:  9,
+      memberEmails: ['rodrigo.perez@skechersdemo.cl', 'sebastian.carrasco@skechersdemo.cl', 'daniela.molina@skechersdemo.cl', 'cristobal.vega@skechersdemo.cl'],
+      notes: 'Puente hacia B2 — foco en fluency y vocabulario técnico de cada área.' },
+    { id: 'grp-b2-jueves-18',       name: 'B2 · Jueves 18:00',      level: 'B2',  dayOfWeek: 4, hour: 18,
+      memberEmails: ['mjose.fuentes@skechersdemo.cl', 'valentina.castro@skechersdemo.cl', 'trinidad.figueroa@skechersdemo.cl', 'pablo.ordenes@skechersdemo.cl'],
+      notes: 'B2 consolidado. Prep para presentaciones ejecutivas en inglés.' },
+    { id: 'grp-b2-viernes-11',      name: 'B2 · Viernes 11:00',     level: 'B2',  dayOfWeek: 5, hour: 11,
+      memberEmails: ['isidora.gatica@skechersdemo.cl', 'rodrigo.olivares@skechersdemo.cl', 'alvaro.soto@skechersdemo.cl', 'javiera.salinas@skechersdemo.cl'],
+      notes: 'B2 de fin de semana. Rodrigo Olivares entró a mitad de ciclo.' },
+    { id: 'grp-business-viernes-16',name: 'Business · Viernes 16:00',level: 'B2', dayOfWeek: 5, hour: 16,
+      memberEmails: ['esteban.cornejo@skechersdemo.cl', 'josefa.araya@skechersdemo.cl', 'diego.pavez@skechersdemo.cl', 'catalina.fuenzalida@skechersdemo.cl'],
+      notes: 'Clase ejecutiva. Store managers y C-level — negociación y comunicación con HQ.' },
   ];
+
+  // Delete any stale group docs from previous versions of this seed
+  // (keeps the Firestore state in sync with the current group list).
+  const existingSnap = await db.collection('organizations').doc(ORG_ID).collection('groups').get();
+  const keep = new Set(groups.map(g => g.id));
+  for (const d of existingSnap.docs) {
+    if (!keep.has(d.id)) {
+      await d.ref.delete();
+      console.log(`  × ${d.id.padEnd(30)} (stale — removed)`);
+    }
+  }
+
   for (const g of groups) {
     const memberUids = g.memberEmails.map(e => uidByEmail[e]).filter(Boolean);
     if (memberUids.length !== g.memberEmails.length) {
@@ -488,11 +567,13 @@ function hashSeed(s) {
   console.log('  3. Aterriza directo en /dashboard/corporate');
   console.log('');
   console.log('Qué va a ver el cliente:');
-  console.log('  • 10 empleados con niveles A1 → B2');
+  console.log(`  • ${STUDENTS.length} empleados con niveles A1 → B2, agrupados en 10 clases de 4 personas`);
   console.log('  • Asistencia variada (45% al 100%) con barras de progreso');
-  console.log('  • 4 empleados con progresión visible (ej. María José Fuentes B1→B2)');
-  console.log('  • 6 empleados con racha de Daily Practice (3 a 28 días)');
-  console.log('  • Click en cualquier fila → ficha completa con timeline de placement + historial de clases');
+  console.log('  • Progresión visible (varios empleados subieron 1 banda CEFR)');
+  console.log('  • Mayoría con racha de Daily Practice (de 2 a 31 días)');
+  console.log('  • Grupos distribuidos Lun–Vie, mañana + tarde — mirror de un programa real');
+  console.log('  • Click en un grupo → detalle con stats agregadas + roster por persona');
+  console.log('  • Click en un alumno → ficha completa con timeline de placement + historial de clases');
   console.log('');
 })().catch(err => {
   console.error('');
