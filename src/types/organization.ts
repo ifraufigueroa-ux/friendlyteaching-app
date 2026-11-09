@@ -69,6 +69,17 @@ export interface RosterEntry {
   firstPlacementLevel: LessonLevel | null;
   /** YYYY-MM-DD of the earliest placement — the program's starting line. */
   firstPlacementAt:   string | null;
+  /** Per-week attendance for the trailing 12 weeks (most recent last).
+   *  'attended' / 'absent' when a booking was scheduled; 'none' when
+   *  the student had no scheduled class that week. Enables the weekly
+   *  heatmap on the Asistencia tab without re-fetching bookings. */
+  weeklyHistory:      WeeklyAttendance[];
+}
+
+/** One row of per-week attendance for a RosterEntry. */
+export interface WeeklyAttendance {
+  weekStart: string;                     // YYYY-MM-DD (Monday)
+  result:    'attended' | 'absent' | 'none';
 }
 
 /** Aggregate dashboard numbers the corporate admin sees at the top. */

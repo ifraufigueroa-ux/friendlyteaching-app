@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import type { FTUser, Booking, LessonLevel } from '@/types/firebase';
-import type { Organization, RosterEntry, OrganizationStats } from '@/types/organization';
+import type { Organization, RosterEntry, OrganizationStats, WeeklyAttendance } from '@/types/organization';
 
 interface PracticeDoc {
   currentStreak?:  number;
@@ -98,6 +98,9 @@ async function buildEntry(uid: string): Promise<RosterEntry | null> {
   const latestPlacement = placements[0] ?? null;
   const firstPlacement  = placements[placements.length - 1] ?? null;
 
+  // Last 12 weeks of attendance, keyed by the Monday of each week.
+  const weeklyHistory = buildWeeklyHistory(bookings, 12);
+
   return {
     uid:                 user.uid,
     fullName:            user.fullName,
@@ -113,7 +116,52 @@ async function buildEntry(uid: string): Promise<RosterEntry | null> {
     latestPlacementAt:   tsToDateStr(latestPlacement?.completedAt ?? latestPlacement?.createdAt ?? null),
     firstPlacementLevel: firstPlacement?.level ?? null,
     firstPlacementAt:    tsToDateStr(firstPlacement?.completedAt ?? firstPlacement?.createdAt ?? null),
+    weeklyHistory,
   };
+}
+
+/** Yields the Monday of a given date (00:00 local). */
+function mondayOf(d: Date): Date {
+  const out = new Date(d);
+  out.setHours(0, 0, 0, 0);
+  const day = out.getDay();                  // 0 = Sun, 1 = Mon…
+  const diff = day === 0 ? -6 : 1 - day;
+  out.setDate(out.getDate() + diff);
+  return out;
+}
+
+/** Turns a flat list of bookings into one entry per week for the last N
+ *  weeks (oldest → newest). Each week is 'attended', 'absent' or 'none'
+ *  depending on whether the student had a booking there and how it was
+ *  marked. When multiple bookings fall in the same week the harsher
+ *  signal wins ('absent' beats 'attended' so no-shows aren't buried). */
+function buildWeeklyHistory(bookings: Booking[], weeks: number): WeeklyAttendance[] {
+  const thisMonday = mondayOf(new Date());
+  const buckets: WeeklyAttendance[] = [];
+  for (let w = weeks - 1; w >= 0; w--) {
+    const d = new Date(thisMonday);
+    d.setDate(d.getDate() - w * 7);
+    buckets.push({ weekStart: tsToDateStr(Timestamp.fromDate(d)) ?? '', result: 'none' });
+  }
+  const idxByWeek = new Map(buckets.map((b, i) => [b.weekStart, i]));
+
+  for (const b of bookings) {
+    if (!b.weekStart) continue;
+    const key = tsToDateStr(b.weekStart) ?? '';
+    const i = idxByWeek.get(key);
+    if (i === undefined) continue;
+    const next: WeeklyAttendance['result'] =
+      b.attendance === 'absent' ? 'absent'
+      : b.attendance === 'attended' ? 'attended'
+      : b.status === 'completed' ? 'attended'
+      : b.status === 'cancelled' ? 'absent'
+      : buckets[i].result;
+    // Absent always wins over attended so no-shows aren't hidden.
+    if (buckets[i].result === 'absent') continue;
+    if (next === 'absent') buckets[i].result = 'absent';
+    else if (buckets[i].result === 'none') buckets[i].result = next;
+  }
+  return buckets;
 }
 
 /**

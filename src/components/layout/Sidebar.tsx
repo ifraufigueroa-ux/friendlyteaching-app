@@ -93,7 +93,7 @@ const TEACHER_NAV: NavItem[] = [
 const CORPORATE_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/corporate',               icon: Home,         label: 'Panel Principal',  iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/panel-principal.png' },
   { type: 'link', href: '/dashboard/corporate/students',      icon: Users,        label: 'Estudiantes',      iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/corporate/estudiante.png' },
-  { type: 'link', href: '/dashboard/corporate#asistencia',    icon: ClipboardList,label: 'Asistencia',       iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/corporate/asistencia.png' },
+  { type: 'link', href: '/dashboard/corporate/attendance',    icon: ClipboardList,label: 'Asistencia',       iconBg: 'bg-violet-100', iconColor: 'text-violet-600', iconImg: '/sidebar-icons/corporate/asistencia.png' },
   { type: 'link', href: '/dashboard/corporate#historial',     icon: BarChart3,    label: 'Historial de clases', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', iconImg: '/sidebar-icons/corporate/historial-clases.png' },
   { type: 'link', href: '/dashboard/teacher/help',            icon: LifeBuoy,     label: 'Tutoriales',       iconBg: 'bg-teal-100',   iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
