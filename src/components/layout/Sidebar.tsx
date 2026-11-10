@@ -28,6 +28,7 @@ import {
   Calendar,
   CalendarPlus,
   Flame,
+  Headphones,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -69,6 +70,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/history',     icon: ClipboardList, label: 'Class History',      iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
   { type: 'group', label: 'Content' },
   { type: 'link', href: '/dashboard/teacher/lessons',     icon: BookOpen,      label: 'Library',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
+  { type: 'link', href: '/dashboard/teacher/listenings',  icon: Headphones,    label: 'Friendlistenings®',  iconBg: 'bg-purple-100',  iconColor: 'text-purple-700' },
   { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: Download,      label: 'Import Lessons',     iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
   { type: 'link', href: '/dashboard/teacher/planner',     icon: FolderKanban,  label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/planner.png' },
   { type: 'group', label: 'Tracking' },
@@ -105,6 +107,7 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'My Lessons',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/student/music',       icon: Music,        label: 'Friendlyrics®',       iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
   { type: 'link', href: '/dashboard/student/texts',       icon: BookMarked,   label: 'FriendlyTales®',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
+  { type: 'link', href: '/dashboard/student/listenings',  icon: Headphones,   label: 'Friendlistenings®',   iconBg: 'bg-purple-100',  iconColor: 'text-purple-700' },
   { type: 'group', label: 'My Classes' },
   { type: 'link', href: '/dashboard/student/schedule',    icon: Calendar,     label: 'Schedule',            iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/student/book',        icon: CalendarPlus, label: 'Request Class',       iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
