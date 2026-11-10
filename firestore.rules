@@ -439,6 +439,16 @@ service cloud.firestore {
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
+    // Friendlistenings audio bindings — shared across students, so one audio
+    // per lesson for the whole platform. Any authenticated user can read
+    // (students stream the mp3); only teachers can write.
+    match /friendlisteningsAudios/{lessonId} {
+      allow read:   if isAuthenticated();
+      allow create: if isTeacher() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
     // ── COWORK (workspace del equipo docente) ─────────────────
     // Chat, anuncios y presencia — sólo profesores. Cada profe crea
     // sus propios docs (authorId == su uid) y puede editar/borrar los

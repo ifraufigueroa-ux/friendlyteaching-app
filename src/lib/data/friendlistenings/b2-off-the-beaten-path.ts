@@ -1,21 +1,21 @@
 // Friendlistenings® — B2 · Off the beaten path
 //
-// A 3-min podcast-style interview with a solo backpacker who just returned
-// from four months in Southeast Asia. The script is natural, conversational
-// and packed with reusable chunks a B2 student would hit in authentic
-// listening but might miss in a textbook — "end up —ing", "blow my mind",
-// "off the beaten path", "hit a wall", "a bit of both".
+// A ~3:30 podcast-style interview with a solo backpacker just back from four
+// months in Southeast Asia. The script is natural, conversational and packed
+// with reusable chunks a B2 student hits in authentic listening but tends to
+// miss in a textbook — "end up —ing", "blow my mind", "off the beaten path",
+// "hit a wall", "a bit of both".
 //
-// The 8-step arc is designed for a ~45-minute class slot (or self-study at
-// the student's pace):
-//   1. Lead-in     · 4 min — activate schema with solo-travel prompts
-//   2. Vocab       · 6 min — pre-teach 8 items + 3-question check
-//   3. Prediction  · 3 min — guess the content before pressing play
-//   4. Gist        · 6 min — first listen, big-picture
+// The 8-step arc fits a ~45-minute class slot (or self-study at the
+// student's pace):
+//   1. Lead-in     · 4 min  — activate schema with solo-travel prompts
+//   2. Vocab       · 6 min  — pre-teach 8 items + 3-question check
+//   3. Prediction  · 3 min  — guess the content before pressing play
+//   4. Gist        · 6 min  — first listen, big-picture
 //   5. Detail      · 10 min — second listen, specific info + transcript
-//   6. Awareness   · 6 min — notice-the-gap on 5 chunks
-//   7. Controlled  · 5 min — reuse the chunks in short tasks
-//   8. Production  · 5 min — 60 sec speaking using 3+ target chunks
+//   6. Awareness   · 6 min  — notice-the-gap on 5 chunks
+//   7. Controlled  · 5 min  — reuse the chunks in short tasks
+//   8. Production  · 5 min  — 60-sec speaking using 3+ target chunks
 
 import type { FLLesson } from '@/types/friendlistenings';
 
@@ -31,20 +31,20 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
   createdAt:    '2026-11-10',
 
   cover: {
-    accent: '#9B72B8',      // Carla-palette purple
+    accent: '#9B72B8',
     emoji:  '🎒',
   },
 
   audio: {
-    durationSec: 210,       // ~3 min 30
+    durationSec: 210,
     speakers: [
       {
         id: 'host', displayName: 'Marco', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'TBD', name: 'warm mid-30s male', note: 'podcast host, light NYC cadence' },
+        suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', note: 'ElevenLabs · warm younger male, podcast cadence' },
       },
       {
         id: 'guest', displayName: 'Luna', accent: 'US', gender: 'f',
-        suggestedVoice: { voiceId: 'TBD', name: 'bright late-20s female', note: 'Latinx English, warm and expressive' },
+        suggestedVoice: { voiceId: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', note: 'ElevenLabs · clear expressive female, late-20s' },
       },
     ],
     script: [
@@ -70,64 +70,67 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 1 · Lead-in ─────────────────────────────────────
     {
       kind:      'lead-in',
-      title:     'Antes de empezar',
-      intro:     'Pensá por un momento en viajar solo/a. No importa si nunca lo hiciste — el solo pensamiento ya trae imágenes, deseos, miedos. Hoy vamos a escuchar una entrevista con Luna, una viajera que acaba de volver de cuatro meses en el sudeste asiático.',
+      title:     'Before we start',
+      intro:     'Take a second and picture travelling solo. It doesn\'t matter if you never have — just thinking about it brings images, wishes, maybe some fears. Today you\'ll listen to an interview with Luna, a traveller who just got back from four months in Southeast Asia.',
       hookEmoji: '🎒',
       openQuestions: [
-        { id: 'li1', prompt: '¿Alguna vez viajaste solo/a? ¿A dónde? ¿Si no, por qué no?' },
-        { id: 'li2', prompt: 'Imaginá que tenés cuatro meses y presupuesto medio. ¿Qué parte del mundo elegirías? ¿Por qué?' },
-        { id: 'li3', prompt: '¿Qué te costaría más de viajar tanto tiempo solo/a: la logística, la soledad o el dinero?', hint: 'Pensá en los últimos días de un viaje largo que hayas hecho.' },
+        { id: 'li1', prompt: 'Have you ever travelled solo? Where to? If not, what\'s stopped you?' },
+        { id: 'li2', prompt: 'Imagine you had four months and a mid-range budget. Where in the world would you go — and why?' },
+        { id: 'li3', prompt: 'What would be the hardest part of travelling solo for that long: the logistics, the loneliness, or the money?', hint: 'Think about the last days of the longest trip you\'ve ever taken.' },
       ],
     },
 
     // ─── Step 2 · Vocab ───────────────────────────────────────
     {
       kind:  'vocab',
-      title: 'Vocabulario clave',
-      intro: 'Antes de escuchar, mirá estas 8 expresiones que Luna va a usar. Son chunks que un nativo suelta todo el tiempo y que son tu llave para entender a velocidad natural.',
+      title: 'Key vocabulary',
+      intro: 'Before you listen, look at these 8 expressions Luna uses. They\'re chunks native speakers drop all the time — your key to understanding at natural speed.',
       items: [
-        { id: 'v1', word: 'jet-lagged',        pos: 'adjective', translation: 'con jet lag, desfasado/a horariamente', example: 'I\'m jet-lagged but on cloud nine.',           soundsLike: 'JET-lagd' },
-        { id: 'v2', word: 'on cloud nine',     pos: 'idiom',     translation: 'feliz, "flotando"',                     example: 'On cloud nine after landing home.',             definition: 'extremely happy' },
-        { id: 'v3', word: 'end up —ing',       pos: 'phrase',    translation: 'terminar haciendo (algo no planeado)',  example: 'I ended up adding another stop.',               soundsLike: 'end UP' },
-        { id: 'v4', word: 'blow (sb\'s) mind', pos: 'idiom',     translation: 'volarle la cabeza a alguien, impactar', example: 'That village blew me away.',                    definition: 'to impress or amaze' },
-        { id: 'v5', word: 'off the beaten path',pos:'idiom',     translation: 'fuera de los circuitos turísticos',     example: 'A place that\'s really off the beaten path.',   definition: 'unusual, not visited by many tourists' },
-        { id: 'v6', word: 'to splurge',        pos: 'verb',      translation: 'darse un gusto caro',                   example: 'Every couple of weeks I\'d splurge.',           definition: 'to spend more than you usually do' },
-        { id: 'v7', word: 'to crash',          pos: 'verb',      translation: 'dormir (informal), caer rendido',       example: 'I\'d crash at hostel dorms.',                   definition: 'to sleep in a casual / tired way' },
-        { id: 'v8', word: 'to hit a wall',     pos: 'idiom',     translation: 'agotarse emocional/físicamente',        example: 'Around month three I hit a wall.',              definition: 'to reach a point of exhaustion' },
+        { id: 'v1', word: 'jet-lagged',         pos: 'adjective', translation: 'Tired and out of sync after a long flight across time zones.',       example: 'I\'m jet-lagged but on cloud nine.',           soundsLike: 'JET-lagd',       definition: 'suffering from jet lag' },
+        { id: 'v2', word: 'on cloud nine',      pos: 'idiom',     translation: 'Super happy — like you\'re floating.',                               example: 'On cloud nine after landing home.',             definition: 'extremely happy' },
+        { id: 'v3', word: 'end up —ing',        pos: 'phrase',    translation: 'To finish doing something you didn\'t originally plan.',             example: 'I ended up adding another stop.',               soundsLike: 'end UP',          definition: 'to reach a state or result you didn\'t plan' },
+        { id: 'v4', word: 'blow (sb\'s) mind',  pos: 'idiom',     translation: 'To completely amaze someone.',                                       example: 'That village blew me away.',                    definition: 'to impress or amaze someone' },
+        { id: 'v5', word: 'off the beaten path',pos: 'idiom',     translation: 'Away from the usual tourist routes.',                                example: 'A place that\'s really off the beaten path.',   definition: 'unusual, not visited by many tourists' },
+        { id: 'v6', word: 'to splurge',         pos: 'verb',      translation: 'To spend more than you normally would, as a treat.',                 example: 'Every couple of weeks I\'d splurge.',           definition: 'to spend more than you usually do' },
+        { id: 'v7', word: 'to crash',           pos: 'verb',      translation: 'Informal: to sleep, usually because you\'re exhausted.',             example: 'I\'d crash at hostel dorms.',                   definition: 'to sleep in a casual, exhausted way' },
+        { id: 'v8', word: 'to hit a wall',      pos: 'idiom',     translation: 'To suddenly run out of energy, physically or emotionally.',          example: 'Around month three I hit a wall.',              definition: 'to reach a point of exhaustion' },
       ],
       quiz: [
         {
+          kind: 'mcq',
           id: 'vq1',
-          prompt: 'Si alguien dice "I\'m on cloud nine", está…',
+          prompt: 'If someone says "I\'m on cloud nine," they are…',
           options: [
-            { id: 'a', text: 'muy triste' },
-            { id: 'b', text: 'extremadamente feliz' },
-            { id: 'c', text: 'confundida' },
+            { id: 'a', text: 'very sad' },
+            { id: 'b', text: 'extremely happy' },
+            { id: 'c', text: 'confused' },
           ],
           correct: 'b',
-          explain: 'On cloud nine = extremely happy. Clásica.',
+          explain: 'On cloud nine = extremely happy. A classic.',
         },
         {
+          kind: 'mcq',
           id: 'vq2',
-          prompt: '"I ended up buying a ticket" significa que…',
+          prompt: '"I ended up buying a ticket" means that…',
           options: [
-            { id: 'a', text: 'lo tenía planeado desde el principio' },
-            { id: 'b', text: 'terminó comprándolo aunque no era el plan' },
-            { id: 'c', text: 'no lo compró' },
+            { id: 'a', text: 'they had planned it from the start' },
+            { id: 'b', text: 'they bought it even though it wasn\'t the plan' },
+            { id: 'c', text: 'they didn\'t buy it' },
           ],
           correct: 'b',
-          explain: '"End up —ing" implica resultado NO planeado.',
+          explain: '"End up —ing" implies an UNPLANNED outcome.',
         },
         {
+          kind: 'mcq',
           id: 'vq3',
-          prompt: 'Un restaurant "off the beaten path" es…',
+          prompt: 'A restaurant that\'s "off the beaten path" is…',
           options: [
-            { id: 'a', text: 'muy famoso y lleno de turistas' },
-            { id: 'b', text: 'poco conocido, fuera del circuito turístico' },
-            { id: 'c', text: 'cerrado permanentemente' },
+            { id: 'a', text: 'very famous and packed with tourists' },
+            { id: 'b', text: 'little-known, outside the tourist circuit' },
+            { id: 'c', text: 'permanently closed' },
           ],
           correct: 'b',
-          explain: 'Es el opuesto a "tourist trap".',
+          explain: 'It\'s the opposite of a "tourist trap".',
         },
       ],
     },
@@ -135,36 +138,39 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 3 · Prediction ─────────────────────────────────
     {
       kind:  'prediction',
-      title: '¿Qué vas a escuchar?',
-      intro: 'Sin apretar play todavía — con el título "Off the Beaten Path" y sabiendo que Luna volvió de cuatro meses en el sudeste asiático, adiviná.',
+      title: 'What will you hear?',
+      intro: 'Don\'t press play yet — with the title "Off the Beaten Path" and knowing Luna\'s back from four months in Southeast Asia, take a guess.',
       questions: [
         {
+          kind: 'mcq',
           id: 'p1',
-          prompt: '¿Qué tema creés que Luna va a mencionar primero?',
+          prompt: 'Which topic do you think Luna will mention first?',
           options: [
-            { id: 'a', text: 'Lo cansada que está' },
-            { id: 'b', text: 'Un conflicto en un aeropuerto' },
-            { id: 'c', text: 'El precio del pasaje' },
+            { id: 'a', text: 'How tired she is' },
+            { id: 'b', text: 'A conflict at an airport' },
+            { id: 'c', text: 'The price of her ticket' },
           ],
           correct: 'a',
         },
         {
+          kind: 'mcq',
           id: 'p2',
-          prompt: '¿Qué momento creés que la impactó MÁS?',
+          prompt: 'Which moment do you think impressed her the MOST?',
           options: [
-            { id: 'a', text: 'Una cena cara en un restaurant famoso' },
-            { id: 'b', text: 'Un festival en un pueblo remoto' },
-            { id: 'c', text: 'Un museo arqueológico' },
+            { id: 'a', text: 'An expensive dinner at a famous restaurant' },
+            { id: 'b', text: 'A festival in a remote village' },
+            { id: 'c', text: 'An archaeological museum' },
           ],
           correct: 'b',
         },
         {
+          kind: 'mcq',
           id: 'p3',
-          prompt: '¿En qué momento del viaje creés que se sintió peor?',
+          prompt: 'At what point in the trip do you think she felt worst?',
           options: [
-            { id: 'a', text: 'La primera semana' },
-            { id: 'b', text: 'Alrededor del tercer mes' },
-            { id: 'c', text: 'El día de volver' },
+            { id: 'a', text: 'The first week' },
+            { id: 'b', text: 'Around the third month' },
+            { id: 'c', text: 'The day she came back' },
           ],
           correct: 'b',
         },
@@ -174,42 +180,45 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 4 · Gist ───────────────────────────────────────
     {
       kind:      'gist',
-      title:     'Escucha general',
-      intro:     'Apretá play y escuchá el audio completo UNA vez. No te preocupes por detalles — captá la idea principal.',
+      title:     'Listen for the gist',
+      intro:     'Press play and listen to the whole audio ONCE. Don\'t worry about details — just catch the big picture.',
       listenFor: [
-        'El tono general: ¿se arrepiente, está feliz, mixto?',
-        'La actitud de Luna frente al presupuesto',
-        'El mensaje final / consejo',
+        'The overall tone: does she regret it, is she happy, is it mixed?',
+        'Luna\'s attitude toward her budget',
+        'The closing message / advice',
       ],
       allowTranscript: false,
       questions: [
         {
+          kind: 'mcq',
           id: 'g1',
-          prompt: 'En general, ¿cómo describe Luna la experiencia?',
+          prompt: 'Overall, how does Luna describe the experience?',
           options: [
-            { id: 'a', text: 'Agotadora y arrepentida' },
-            { id: 'b', text: 'Transformadora y positiva, aunque no sin momentos duros' },
-            { id: 'c', text: 'Aburrida y predecible' },
+            { id: 'a', text: 'Exhausting and full of regret' },
+            { id: 'b', text: 'Transformative and positive, with some hard moments' },
+            { id: 'c', text: 'Boring and predictable' },
           ],
           correct: 'b',
         },
         {
+          kind: 'mcq',
           id: 'g2',
-          prompt: '¿Cuál es el mensaje central de Luna sobre viajar solo/a por mucho tiempo?',
+          prompt: 'What is Luna\'s core message about long solo travel?',
           options: [
-            { id: 'a', text: 'Hay que planificar cada día en detalle' },
-            { id: 'b', text: 'Dejar espacio para lo que no está planeado' },
-            { id: 'c', text: 'Es mejor viajar con amigos que solo/a' },
+            { id: 'a', text: 'You have to plan every single day' },
+            { id: 'b', text: 'Leave room for what you can\'t plan' },
+            { id: 'c', text: 'It\'s better to travel with friends than alone' },
           ],
           correct: 'b',
         },
         {
+          kind: 'mcq',
           id: 'g3',
-          prompt: '¿Cuál era el plan ORIGINAL de Luna?',
+          prompt: 'What was Luna\'s ORIGINAL plan?',
           options: [
-            { id: 'a', text: 'Viajar seis meses' },
-            { id: 'b', text: 'Tomarse seis semanas entre trabajos' },
-            { id: 'c', text: 'Mudarse definitivamente a Asia' },
+            { id: 'a', text: 'To travel for six months' },
+            { id: 'b', text: 'To take six weeks off between jobs' },
+            { id: 'c', text: 'To move to Asia permanently' },
           ],
           correct: 'b',
         },
@@ -219,63 +228,70 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 5 · Detail ─────────────────────────────────────
     {
       kind:             'detail',
-      title:            'Escucha detallada',
-      intro:            'Ahora escuchalo otra vez, pausando cuando necesites. Ya podés mirar el transcript si te ayuda.',
+      title:            'Listen for detail',
+      intro:            'Now listen again, pausing where you need to. Feel free to open the transcript if it helps.',
       allowTranscript:  true,
       questions: [
         {
+          kind:     'gap-fill',
           id:       'd1',
-          sentence: 'Luna pasó una semana en una aldea pequeña en el norte de ___.',
+          sentence: 'Luna spent a week in a tiny village in northern ___.',
           answers:  ['Laos'],
           alts:     [['laos']],
         },
         {
+          kind: 'mcq',
           id: 'd2',
-          prompt: 'Según Luna, ¿cómo pasaba la mayoría de los días a nivel comida?',
+          prompt: 'According to Luna, how did she spend most days when it came to food?',
           options: [
-            { id: 'a', text: 'Restaurantes caros con amigos' },
-            { id: 'b', text: 'Street food por dos dólares' },
-            { id: 'c', text: 'Cocinando en el hostel' },
+            { id: 'a', text: 'Expensive restaurants with friends' },
+            { id: 'b', text: 'Street food for two dollars' },
+            { id: 'c', text: 'Cooking at the hostel' },
           ],
           correct: 'b',
         },
         {
+          kind:     'gap-fill',
           id:       'd3',
-          sentence: 'Luna "hit a wall" alrededor del mes ___, en la ciudad de ___.',
+          sentence: 'Luna "hit a wall" around month ___, in the city of ___.',
           answers:  ['three', 'Bangkok'],
-          alts:     [['3', 'tres'], ['bangkok']],
+          alts:     [['3'], ['bangkok']],
         },
         {
+          kind: 'mcq',
           id: 'd4',
-          prompt: 'Cuando se sintió mal en Bangkok, ¿qué hizo al día siguiente?',
+          prompt: 'When she felt bad in Bangkok, what did she do the next day?',
           options: [
-            { id: 'a', text: 'Volvió a casa en avión' },
-            { id: 'b', text: 'Tomó un slow boat por el río Mekong' },
-            { id: 'c', text: 'Se quedó una semana más en Bangkok' },
+            { id: 'a', text: 'Flew home' },
+            { id: 'b', text: 'Took a slow boat down the Mekong river' },
+            { id: 'c', text: 'Stayed another week in Bangkok' },
           ],
           correct: 'b',
         },
         {
+          kind: 'mcq',
           id: 'd5',
-          prompt: '¿Cuál es el consejo de Luna sobre el dinero para alguien que viaja solo/a por primera vez?',
+          prompt: 'What is Luna\'s money advice for a first-time solo traveller?',
           options: [
-            { id: 'a', text: 'Llevá lo justo' },
-            { id: 'b', text: 'Doblá lo que creés que vas a necesitar' },
-            { id: 'c', text: 'Pedí prestado' },
+            { id: 'a', text: 'Pack just enough' },
+            { id: 'b', text: 'Double what you think you\'ll need' },
+            { id: 'c', text: 'Borrow money' },
           ],
           correct: 'b',
         },
         {
+          kind:     'true-false',
           id:       'd6',
-          prompt:   'Luna recomienda no planificar más allá de la primera semana del viaje.',
+          prompt:   'Luna recommends not planning past the first week of the trip.',
           correct:  'T',
-          explain:  'Textual: "don\'t plan past the first week."',
+          explain:  'Direct quote: "don\'t plan past the first week."',
         },
         {
+          kind:     'true-false',
           id:       'd7',
-          prompt:   'Luna viajó con un amigo todo el tiempo.',
+          prompt:   'Luna travelled with a friend the whole time.',
           correct:  'F',
-          explain:  'Es un podcast sobre viajar SOLO/A.',
+          explain:  'It\'s a podcast about SOLO travel.',
         },
       ],
     },
@@ -283,48 +299,48 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 6 · Language Awareness ─────────────────────────
     {
       kind:  'language-awareness',
-      title: 'Fijate en estas expresiones',
-      intro: 'Volvé al transcript y ubicá estas cinco expresiones. No son vocabulario aislado — son chunks que te permiten sonar natural sin pensar en gramática.',
+      title: 'Notice these expressions',
+      intro: 'Go back to the transcript and spot these five expressions. They\'re not isolated vocabulary — they\'re chunks that let you sound natural without thinking about grammar.',
       chunks: [
         {
           id:       'c1',
           chunk:    'to end up —ing',
           category: 'grammar-pattern',
-          gloss:    'terminar haciendo algo (resultado no planeado)',
+          gloss:    'to finish doing something you didn\'t plan',
           example:  '"I\'d just end up adding another stop."',
-          notice:   'Siempre + gerundio (-ing). Marca un resultado no planeado. Comparalo con "I decided to add another stop" — más intencional.',
+          notice:   'Always followed by a gerund (-ing). Marks an unplanned outcome. Compare with "I decided to add another stop" — much more intentional.',
         },
         {
           id:       'c2',
           chunk:    '(sth) blew my mind / away',
           category: 'idiom',
-          gloss:    'me voló la cabeza / me dejó impactado',
+          gloss:    'something completely amazed me',
           example:  '"That blew me away."',
-          notice:   'Pasado simple de "blow" → BLEW, no "blowed". Es casi siempre con "mind" o "away".',
+          notice:   'Simple past of "blow" → BLEW, not "blowed". Almost always with "mind" or "away".',
         },
         {
           id:       'c3',
           chunk:    'off the beaten path',
           category: 'idiom',
-          gloss:    'fuera de los circuitos turísticos',
+          gloss:    'away from the usual tourist routes',
           example:  '"The kind of place that\'s really off the beaten path."',
-          notice:   'Funciona como adjetivo (after a noun) o adverbio. Lo opuesto: "a tourist trap".',
+          notice:   'Works as an adjective (after a noun) or an adverb. Opposite: "a tourist trap".',
         },
         {
           id:       'c4',
           chunk:    'a bit of both',
           category: 'discourse-marker',
-          gloss:    'un poco de cada una / depende',
+          gloss:    'a mix of the two / it depends',
           example:  '"A bit of both."',
-          notice:   'Respuesta corta para cuando alguien te pregunta "¿A o B?" y las dos son parcialmente ciertas. Muy natural.',
+          notice:   'Short answer when someone asks "A or B?" and both are partly true. Very natural.',
         },
         {
           id:       'c5',
           chunk:    'I\'d [verb] + I\'d [verb]',
           category: 'grammar-pattern',
-          gloss:    '"would" para hábitos pasados',
-          example:  '"I\'d eat street food... I\'d crash at hostel dorms."',
-          notice:   '"Would" (= I\'d) describe hábitos del pasado, igual que "used to" pero más conversacional cuando ya estableciste el contexto temporal.',
+          gloss:    '"would" for past habits',
+          example:  '"I\'d eat street food… I\'d crash at hostel dorms."',
+          notice:   '"Would" (= I\'d) describes past habits, like "used to" but more conversational once the time frame is clear.',
         },
       ],
     },
@@ -332,24 +348,27 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 7 · Controlled Practice ────────────────────────
     {
       kind:  'controlled-practice',
-      title: 'Práctica guiada',
-      intro: 'Usá los chunks del paso anterior en estas mini-tareas.',
+      title: 'Guided practice',
+      intro: 'Use the chunks from the previous step in these mini-tasks.',
       activities: [
         {
+          kind:     'gap-fill',
           id:       'cp1',
           sentence: 'The concert last night ___ my mind — I\'ve never seen anything like it.',
           answers:  ['blew'],
-          hint:     'Pasado simple del verbo correspondiente.',
+          hint:     'Simple past of the verb.',
         },
         {
+          kind:     'gap-fill',
           id:       'cp2',
           sentence: 'We were going to stay one night, but we ___ up staying for a week.',
           answers:  ['ended'],
-          hint:     'Resultado no planeado.',
+          hint:     'Unplanned outcome.',
         },
         {
+          kind: 'mcq',
           id: 'cp3',
-          prompt: '"Were you happy with the hotel OR the beach?" → la mejor respuesta sonando natural es:',
+          prompt: '"Were you happy with the hotel OR the beach?" → the most natural-sounding answer is:',
           options: [
             { id: 'a', text: 'Yes, I was.' },
             { id: 'b', text: 'A bit of both.' },
@@ -358,19 +377,21 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           correct: 'b',
         },
         {
+          kind:     'gap-fill',
           id:       'cp4',
           sentence: 'Back in college, I ___ study at the library every night and ___ grab coffee on the way home.',
           answers:  ['would', 'would'],
           alts:     [['\'d'], ['\'d']],
-          hint:     'Hábito del pasado, contracted form OK.',
+          hint:     'Past habit — contracted form is fine.',
         },
         {
+          kind: 'mcq',
           id: 'cp5',
-          prompt: '¿Cuál de estos lugares es "off the beaten path"?',
+          prompt: 'Which of these places is "off the beaten path"?',
           options: [
-            { id: 'a', text: 'Times Square, Nueva York' },
-            { id: 'b', text: 'La Torre Eiffel' },
-            { id: 'c', text: 'Un pueblo pescador sin nombre en el mapa' },
+            { id: 'a', text: 'Times Square, New York' },
+            { id: 'b', text: 'The Eiffel Tower' },
+            { id: 'c', text: 'A fishing village with no name on the map' },
           ],
           correct: 'c',
         },
@@ -380,10 +401,10 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     // ─── Step 8 · Production ─────────────────────────────────
     {
       kind:         'production',
-      title:        'Ahora vos',
-      intro:        'Es tu turno de hablar como Luna. Vas a grabar 60 segundos — tratá de usar al menos 3 de los chunks de la lesson.',
+      title:        'Now you',
+      intro:        'Your turn to speak like Luna. You\'re going to record 60 seconds — try to use at least 3 of the chunks from this lesson.',
       mode:         'speaking',
-      prompt:       'Contá un viaje (real o inventado) donde terminaste haciendo algo que NO estaba planeado. ¿Qué pasó? ¿Cómo te sentiste? ¿Qué aprendiste? Minimo 60 segundos.',
+      prompt:       'Tell a travel story (real or invented) where you ended up doing something that WASN\'T planned. What happened? How did you feel? What did you learn? Minimum 60 seconds.',
       targetChunks: ['c1', 'c2', 'c3', 'c4', 'c5'],
       minSeconds:   60,
     },

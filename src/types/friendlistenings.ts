@@ -27,6 +27,7 @@ export interface FLOpenQuestion {
 /** Multiple-choice question (single-correct by default; set `multi`
  *  for multi-correct). */
 export interface FLMCQ {
+  kind:     'mcq';
   id:       string;
   prompt:   string;
   options:  { id: string; text: string }[];
@@ -38,6 +39,7 @@ export interface FLMCQ {
 /** Gap-fill: one sentence with `___` markers, one accepted answer per
  *  blank (plus alternates). */
 export interface FLGapFill {
+  kind:     'gap-fill';
   id:       string;
   sentence: string;                 // e.g. "She ___ up changing her flight."
   answers:  string[];               // one per blank, case-insensitive
@@ -47,11 +49,17 @@ export interface FLGapFill {
 
 /** True/False/Not-given for gist checks. */
 export interface FLTrueFalse {
+  kind:     'true-false';
   id:       string;
   prompt:   string;
   correct:  'T' | 'F' | 'NG';
   explain?: string;
 }
+
+/** Union of all gradable question shapes used inside gist / detail /
+ *  controlled-practice steps. The `kind` discriminator lets the runner
+ *  dispatch without brittle "in q" probes. */
+export type FLQuestion = FLMCQ | FLGapFill | FLTrueFalse;
 
 /** Vocab item for the pre-teach panel. */
 export interface FLVocabItem {

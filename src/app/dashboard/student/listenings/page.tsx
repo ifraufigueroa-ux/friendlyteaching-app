@@ -18,7 +18,7 @@ export default function FriendlisteningsStudentIndex() {
       <div className="max-w-5xl mx-auto px-6 pt-6 pb-16">
         <TopBar
           title="Friendlistenings®"
-          subtitle="Lecciones completas construidas alrededor de un audio real. Escuchá, notá, practicá, hablá."
+          subtitle="Full lessons built around a real audio. Listen, notice, practise, speak."
           breadcrumbs={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'Friendlistenings' },
@@ -33,7 +33,7 @@ export default function FriendlisteningsStudentIndex() {
 
         {FRIENDLISTENINGS_LESSONS.length === 0 && (
           <p className="text-center text-sm text-[#7A7387] mt-20">
-            Todavía no hay lessons publicadas.
+            No lessons published yet.
           </p>
         )}
       </div>
