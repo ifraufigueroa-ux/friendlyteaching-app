@@ -36,7 +36,7 @@ export default function FullscreenButton({
     }
   }
 
-  const label = isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa';
+  const label = isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen';
 
   if (variant === 'inline') {
     return (

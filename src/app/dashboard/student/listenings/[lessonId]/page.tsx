@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { getFriendlisteningsLesson } from '@/lib/data/friendlistenings';
 import { loadFriendlisteningsAudio } from '@/lib/friendlistenings/audioStore';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 import type {
   FLLesson, FLStep, FLStepLeadIn, FLStepVocab, FLStepPrediction,
   FLStepGist, FLStepDetail, FLStepLanguageAwareness,
@@ -884,6 +885,7 @@ function Tip({ children, tone }: { children: React.ReactNode; tone?: 'cyan' }) {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#E8D8F5] to-[#FFFDF5] text-[#2E2A33]">
+      <FullscreenButton />
       {children}
     </div>
   );
