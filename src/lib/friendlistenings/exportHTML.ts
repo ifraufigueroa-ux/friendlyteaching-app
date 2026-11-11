@@ -24,7 +24,10 @@ export async function exportLessonToHTML(
   let audioDataUri: string | null = null;
   if (audioUrl) {
     onProgress?.('Downloading audio…');
-    const res = await fetch(audioUrl);
+    // Firebase Storage blocks cross-origin fetches — route through our
+    // same-origin audio proxy so the browser actually hands us the bytes.
+    const proxied = `/api/audio-proxy?url=${encodeURIComponent(audioUrl)}`;
+    const res = await fetch(proxied);
     if (!res.ok) throw new Error(`Audio fetch failed: HTTP ${res.status}`);
     const blob = await res.blob();
     onProgress?.(`Encoding audio (${(blob.size / 1024 / 1024).toFixed(1)} MB)…`);
