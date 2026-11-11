@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight, Clock, Headphones, Sparkles,
-  Mic, CheckCircle2, AlertTriangle, RotateCcw,
+  Mic, CheckCircle2, AlertTriangle, RotateCcw, Download,
 } from 'lucide-react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -21,6 +21,7 @@ import { FRIENDLISTENINGS_LESSONS } from '@/lib/data/friendlistenings';
 import {
   loadFriendlisteningsAudio, saveFriendlisteningsAudio,
 } from '@/lib/friendlistenings/audioStore';
+import { exportLessonToHTML } from '@/lib/friendlistenings/exportHTML';
 import type { FLLesson, FLStepLanguageAwareness } from '@/types/friendlistenings';
 
 const LEVEL_TONE: Record<string, string> = {
@@ -119,7 +120,7 @@ function TeacherLessonCard({ lesson }: { lesson: FLLesson }) {
           {/* Audio panel — generate or play */}
           <AudioPanel lesson={lesson} audioUrl={audioUrl} onGenerated={setAudioUrl} />
 
-          <div className="pt-1 flex items-center gap-3">
+          <div className="pt-1 flex items-center gap-3 flex-wrap">
             <Link
               href={`/dashboard/student/listenings/${lesson.id}`}
               target="_blank"
@@ -128,6 +129,7 @@ function TeacherLessonCard({ lesson }: { lesson: FLLesson }) {
             >
               Preview <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
             </Link>
+            <DownloadHTMLButton lesson={lesson} audioUrl={audioUrl} />
             <span className="text-[11px] text-[#7A7387]">8 steps · audio {audioUrl ? 'ready' : 'pending'}</span>
           </div>
         </div>
@@ -250,6 +252,50 @@ function AudioPanel({ lesson, audioUrl, onGenerated }: {
         </button>
         {error && <p className="text-[11px] text-[#B23A5E] inline-flex items-center gap-1"><AlertTriangle className="w-3 h-3" />{error}</p>}
       </div>
+    </div>
+  );
+}
+
+// ─── Download standalone HTML ─────────────────────────────────
+
+function DownloadHTMLButton({ lesson, audioUrl }: { lesson: FLLesson; audioUrl: string | null }) {
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDownload = useCallback(async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      await exportLessonToHTML(lesson, audioUrl, msg => setStatus(msg));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+      setStatus('');
+    }
+  }, [lesson, audioUrl]);
+
+  return (
+    <div className="inline-flex flex-col items-start gap-0.5">
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={busy}
+        title={audioUrl
+          ? 'Download a standalone .html file with the audio embedded — send it to a student over WhatsApp / email.'
+          : 'Downloads the lesson HTML, but without audio (teacher hasn\'t generated it yet).'
+        }
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-black uppercase tracking-wider text-[#4A2060] bg-white border-2 border-[#E8D8F5] hover:border-[#9B72B8] active:scale-95 transition-all disabled:opacity-60"
+      >
+        <Download className="w-4 h-4" strokeWidth={2.5} />
+        {busy ? (status || 'Working…') : 'Download HTML'}
+      </button>
+      {error && (
+        <p className="text-[11px] text-[#B23A5E] inline-flex items-center gap-1 mt-0.5">
+          <AlertTriangle className="w-3 h-3" /> {error}
+        </p>
+      )}
     </div>
   );
 }
