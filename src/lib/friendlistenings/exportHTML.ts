@@ -152,6 +152,63 @@ button { font: inherit; cursor: pointer; }
 .audio-missing .m-title { font-size: 12px; font-weight: 700; color: #4A2060; margin: 0; }
 .audio-missing .m-sub   { font-size: 11px; color: #7A7387; margin: 2px 0 0; }
 
+/* speed pills (both inline and dock) */
+.speed-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.speed-row .label { font-size: 10px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; color: #4A2060; }
+.speed-pill {
+  padding: 2px 10px; border-radius: 999px; border: 1px solid #E8D8F5;
+  background: #fff; color: #4A2060; font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.speed-pill:hover { background: #F0E5FF; }
+.speed-pill.active { background: #9B72B8; color: #fff; border-color: #9B72B8; }
+
+/* floating audio dock */
+.dock {
+  position: fixed; top: 16px; left: 0; right: 0;
+  display: flex; justify-content: center; padding: 0 12px;
+  pointer-events: none; z-index: 30;
+  opacity: 0; transform: translateY(-8px); visibility: hidden;
+  transition: opacity .15s ease-out, transform .15s ease-out;
+}
+.dock.visible { opacity: 1; transform: translateY(0); visibility: visible; }
+.dock-inner {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; max-width: 760px;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 168, 220, 0.7);
+  background: rgba(240, 229, 255, 0.95);
+  box-shadow: 0 10px 25px -10px rgba(74, 32, 96, 0.35);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px 6px 6px;
+}
+.dock-play {
+  width: 36px; height: 36px; border-radius: 999px; border: 0;
+  background: #9B72B8; color: #fff; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.dock-play:hover { background: #4A2060; }
+.dock-time { font-size: 10px; color: #4A2060; width: 32px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.dock-time.end { color: rgba(74, 32, 96, 0.7); text-align: left; }
+.dock-scrub {
+  position: relative; flex: 1; min-width: 60px; height: 8px; border-radius: 999px;
+  background: rgba(155, 114, 184, 0.2); cursor: pointer;
+}
+.dock-scrub .bar { position: absolute; inset: 0; width: 0%; border-radius: 999px; background: #9B72B8; }
+.dock-scrub:focus { outline: 2px solid rgba(155, 114, 184, 0.4); outline-offset: 2px; }
+.dock-label {
+  font-size: 9px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase;
+  color: rgba(74, 32, 96, 0.8);
+  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex-shrink: 0;
+}
+.dock-speeds { display: flex; gap: 4px; flex-shrink: 0; }
+.dock-speeds .speed-pill { font-size: 10px; padding: 1px 8px; }
+@media (max-width: 640px) {
+  .dock-label, .dock-speeds { display: none; }
+}
+
 .body { padding: 24px 24px; }
 .body > * + * { margin-top: 20px; }
 .prose { font-size: 15px; margin: 0; }
@@ -460,6 +517,7 @@ function render() {
   container.insertAdjacentHTML('beforeend', renderNav(done));
 
   bind();
+  wireAudio();
 }
 
 function renderHeader() {
@@ -506,7 +564,17 @@ function renderStepCard(step) {
 
 function renderAudio() {
   if (AUDIO_URI) {
-    return '<div class="audio-slot"><audio controls preload="metadata" src="' + AUDIO_URI + '"></audio></div>';
+    return (
+      '<div class="audio-slot" id="audio-slot">' +
+        '<audio id="lesson-audio" controls preload="metadata" src="' + AUDIO_URI + '"></audio>' +
+        '<div class="speed-row">' +
+          '<span class="label">Speed</span>' +
+          '<button type="button" class="speed-pill" data-speed="0.75">0.75×</button>' +
+          '<button type="button" class="speed-pill" data-speed="0.85">0.85×</button>' +
+          '<button type="button" class="speed-pill active" data-speed="1">1×</button>' +
+        '</div>' +
+      '</div>'
+    );
   }
   return (
     '<div class="audio-missing">' +
@@ -1083,6 +1151,138 @@ window.addEventListener('keydown', function (e) {
   else if (e.key === 'Enter' && !typing && !done) { e.preventDefault(); go(idx + 1); }
 });
 
+// ─── audio dock (persistent across steps) ───
+function fmtClock(t) {
+  if (!isFinite(t) || t < 0) t = 0;
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60).toString().padStart(2, '0');
+  return m + ':' + s;
+}
+
+const playSvg  = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5v14l11-7-11-7z" fill="currentColor"/></svg>';
+const pauseSvg = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg>';
+
+function mountDock() {
+  if (document.getElementById('audio-dock')) return;
+  const dock = document.createElement('div');
+  dock.id = 'audio-dock';
+  dock.className = 'dock';
+  dock.setAttribute('aria-hidden', 'true');
+  dock.innerHTML =
+    '<div class="dock-inner">' +
+      '<button type="button" class="dock-play" aria-label="Play audio">' + playSvg + '</button>' +
+      '<span class="dock-time">0:00</span>' +
+      '<div class="dock-scrub" role="slider" tabindex="0" aria-label="Seek audio position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div class="bar"></div></div>' +
+      '<span class="dock-time end">0:00</span>' +
+      '<span class="dock-label">' + esc(LESSON.level + ' · ' + LESSON.title) + '</span>' +
+      '<div class="dock-speeds">' +
+        '<button type="button" class="speed-pill" data-dock-speed="0.75">0.75×</button>' +
+        '<button type="button" class="speed-pill" data-dock-speed="0.85">0.85×</button>' +
+        '<button type="button" class="speed-pill active" data-dock-speed="1">1×</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(dock);
+}
+
+let audioIO = null;   // IntersectionObserver instance, re-created per audio-slot mount
+
+function wireAudio() {
+  // Disconnect any previous observer — a step change recreates the slot.
+  if (audioIO) { audioIO.disconnect(); audioIO = null; }
+
+  const audio = document.getElementById('lesson-audio');
+  const slot  = document.getElementById('audio-slot');
+  const dock  = document.getElementById('audio-dock');
+  if (!dock) return;
+  if (!audio || !slot) { dock.classList.remove('visible'); dock.setAttribute('aria-hidden', 'true'); return; }
+
+  const playBtn = dock.querySelector('.dock-play');
+  const timeNow = dock.querySelector('.dock-time:not(.end)');
+  const timeEnd = dock.querySelector('.dock-time.end');
+  const scrub   = dock.querySelector('.dock-scrub');
+  const bar     = scrub.querySelector('.bar');
+
+  function paintPlayState() {
+    const playing = !audio.paused && !audio.ended;
+    playBtn.innerHTML = playing ? pauseSvg : playSvg;
+    playBtn.setAttribute('aria-label', playing ? 'Pause audio' : 'Play audio');
+  }
+  function paintTime() {
+    const cur = audio.currentTime || 0;
+    const dur = isFinite(audio.duration) ? audio.duration : 0;
+    timeNow.textContent = fmtClock(cur);
+    timeEnd.textContent = fmtClock(dur);
+    bar.style.width = (dur > 0 ? Math.min(100, (cur / dur) * 100) : 0) + '%';
+    scrub.setAttribute('aria-valuemax', Math.round(dur));
+    scrub.setAttribute('aria-valuenow', Math.round(cur));
+  }
+  function paintSpeed(rate) {
+    dock.querySelectorAll('[data-dock-speed]').forEach(function (el) {
+      el.classList.toggle('active', parseFloat(el.getAttribute('data-dock-speed')) === rate);
+    });
+    slot.querySelectorAll('[data-speed]').forEach(function (el) {
+      el.classList.toggle('active', parseFloat(el.getAttribute('data-speed')) === rate);
+    });
+  }
+
+  audio.addEventListener('play',         paintPlayState);
+  audio.addEventListener('pause',        paintPlayState);
+  audio.addEventListener('ended',        paintPlayState);
+  audio.addEventListener('timeupdate',   paintTime);
+  audio.addEventListener('loadedmetadata', paintTime);
+  audio.addEventListener('durationchange', paintTime);
+  audio.addEventListener('ratechange', function () { paintSpeed(audio.playbackRate); });
+
+  playBtn.onclick = function () {
+    if (audio.paused) audio.play().catch(function () {});
+    else audio.pause();
+  };
+
+  function seekFromClientX(clientX) {
+    const dur = isFinite(audio.duration) ? audio.duration : 0;
+    if (dur <= 0) return;
+    const rect = scrub.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * dur;
+  }
+  scrub.onclick = function (e) { seekFromClientX(e.clientX); };
+  scrub.onkeydown = function (e) {
+    const dur = isFinite(audio.duration) ? audio.duration : 0;
+    if (dur <= 0) return;
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 5); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(dur, audio.currentTime + 5); }
+  };
+
+  // Speed pills (inline + dock) both set audio.playbackRate;
+  // the 'ratechange' listener re-paints both rows.
+  slot.querySelectorAll('[data-speed]').forEach(function (el) {
+    el.onclick = function () {
+      const r = parseFloat(el.getAttribute('data-speed'));
+      audio.playbackRate = r;
+    };
+  });
+  dock.querySelectorAll('[data-dock-speed]').forEach(function (el) {
+    el.onclick = function () {
+      const r = parseFloat(el.getAttribute('data-dock-speed'));
+      audio.playbackRate = r;
+    };
+  });
+
+  paintPlayState();
+  paintTime();
+  paintSpeed(audio.playbackRate || 1);
+
+  // Dock materialises only once the inline card has scrolled off the top.
+  audioIO = new IntersectionObserver(function (entries) {
+    const entry = entries[0];
+    const show = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+    dock.classList.toggle('visible', show);
+    dock.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }, { root: null, threshold: 0, rootMargin: '0px' });
+  audioIO.observe(slot);
+}
+
 // ─── boot ───
+mountDock();
 render();
 `;

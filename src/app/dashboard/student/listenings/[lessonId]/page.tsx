@@ -22,6 +22,7 @@ import {
 import { getFriendlisteningsLesson } from '@/lib/data/friendlistenings';
 import { loadFriendlisteningsAudio } from '@/lib/friendlistenings/audioStore';
 import FullscreenButton from '@/components/ui/FullscreenButton';
+import AudioWithDock from '@/components/friendlistenings/AudioWithDock';
 import type {
   FLLesson, FLStep, FLStepLeadIn, FLStepVocab, FLStepPrediction,
   FLStepGist, FLStepDetail, FLStepLanguageAwareness,
@@ -238,8 +239,20 @@ function Runner({ lesson }: { lesson: FLLesson }) {
             </div>
           </div>
 
-          {/* Audio (when needed by this step) */}
-          {needsAudio && <AudioPlayer audioUrl={audioUrl} />}
+          {/* Audio (when needed by this step) — floating dock pins to the
+              viewport once this inline card has scrolled past. */}
+          {needsAudio && (
+            audioUrl ? (
+              <div className="px-6 py-4 bg-gradient-to-r from-[#E8D8F5] to-[#FBE7F1] border-b border-[#E8D8F5]">
+                <AudioWithDock
+                  src={audioUrl}
+                  floatingLabel={`${lesson.level} · ${lesson.title}`}
+                />
+              </div>
+            ) : (
+              <AudioPlayer audioUrl={null} />
+            )
+          )}
 
           {/* Step body */}
           <div className="p-6 md:p-7">
