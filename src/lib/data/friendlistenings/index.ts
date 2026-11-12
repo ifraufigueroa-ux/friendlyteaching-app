@@ -14,6 +14,7 @@ import { lessonB1LogisticsConsultancySprintSlip } from './b1-logistics-consultan
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonC1LastPromotion } from './c1-last-promotion';
+import { lessonC1SalmonVaccineTrial } from './c1-salmon-vaccine-trial';
 
 export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonA2TheNewNeighbor,
@@ -24,6 +25,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB2OffTheBeatenPath,
   lessonB2JobOfferDilemma,
   lessonC1LastPromotion,
+  lessonC1SalmonVaccineTrial,
 ];
 
 export function getFriendlisteningsLesson(id: string): FLLesson | undefined {
