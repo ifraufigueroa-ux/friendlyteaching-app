@@ -1,6 +1,6 @@
 // Friendlistenings® — B1 · My first week at a new job
 //
-// A ~2:30 café catch-up. Priya tells her friend Oscar how her first week at
+// A ~2:30 café catch-up. Leila tells her friend Oscar how her first week at
 // a new job went — the team, the open-plan office, the awful first commute,
 // an embarrassing moment with the CEO, and a clear "no regrets" verdict.
 //
@@ -28,7 +28,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
   subtitle:     'A café catch-up with a friend',
   level:        'B1',
   topic:        'Work · new beginnings · routines',
-  scenario:     'Priya meets her friend Oscar for coffee after her first week at a new job and tells him how it went.',
+  scenario:     'Leila meets her friend Oscar for coffee after her first week at a new job and tells him how it went.',
   estimatedMin: 45,
   tags:         ['work', 'past-narratives', 'present-perfect', 'chunks'],
   createdAt:    '2026-11-12',
@@ -43,28 +43,28 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
     speakers: [
       {
         id: 'oscar', displayName: 'Oscar', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', note: 'ElevenLabs · warm younger male, casual catch-up pace' },
+        suggestedVoice: { voiceId: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', note: 'ElevenLabs · deep US male, mid-30s — mature, casual catch-up tone' },
       },
       {
-        id: 'priya', displayName: 'Priya', accent: 'US', gender: 'f',
-        suggestedVoice: { voiceId: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', note: 'ElevenLabs · clear expressive female, late-20s' },
+        id: 'leila', displayName: 'Leila', accent: 'US', gender: 'f',
+        suggestedVoice: { voiceId: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', note: 'ElevenLabs · young expressive female, animated storyteller — fits café chat' },
       },
     ],
     script: [
       { speakerId: 'oscar', approxStartSec:   0, text: 'So, how was your first week? You look tired.' },
-      { speakerId: 'priya', approxStartSec:   5, text: 'Yeah, I am. But in a good way. Honestly, I think I made the right call switching jobs.' },
+      { speakerId: 'leila', approxStartSec:   5, text: 'Yeah, I am. But in a good way. Honestly, I think I made the right call switching jobs.' },
       { speakerId: 'oscar', approxStartSec:  13, text: 'Yeah? Tell me about the team.' },
-      { speakerId: 'priya', approxStartSec:  17, text: 'They\'re great, actually. The team\'s smaller than I expected — just six of us. My manager, Zara, picked me up from reception on Monday and walked me through everything. She\'s really hands-on, but not in a micromanaging way.' },
+      { speakerId: 'leila', approxStartSec:  17, text: 'They\'re great, actually. The team\'s smaller than I expected — just six of us. My manager, Zara, picked me up from reception on Monday and walked me through everything. She\'s really hands-on, but not in a micromanaging way.' },
       { speakerId: 'oscar', approxStartSec:  36, text: 'That\'s a good sign. What about the office itself?' },
-      { speakerId: 'priya', approxStartSec:  41, text: 'Open-plan, which I was a bit worried about — I\'m not great with noise — but they gave everyone noise-cancelling headphones, so it works. The coffee machine is better than the one at my old place, which already tells you everything.' },
+      { speakerId: 'leila', approxStartSec:  41, text: 'Open-plan, which I was a bit worried about — I\'m not great with noise — but they gave everyone noise-cancelling headphones, so it works. The coffee machine is better than the one at my old place, which already tells you everything.' },
       { speakerId: 'oscar', approxStartSec:  59, text: 'Ha! Priorities. And the commute?' },
-      { speakerId: 'priya', approxStartSec:  63, text: 'Awful at first. I took the bus on Monday and it was packed. By Tuesday I\'d figured out I could cycle in thirty minutes — much better. I\'ve been cycling the rest of the week.' },
+      { speakerId: 'leila', approxStartSec:  63, text: 'Awful at first. I took the bus on Monday and it was packed. By Tuesday I\'d figured out I could cycle in thirty minutes — much better. I\'ve been cycling the rest of the week.' },
       { speakerId: 'oscar', approxStartSec:  80, text: 'Nice. Any embarrassing moments?' },
-      { speakerId: 'priya', approxStartSec:  84, text: 'Oh, one. On day two I called the CEO "Miguel" in the kitchen. Super casual — "hey Miguel, mind if I grab the oat milk?" Turns out he\'s the CEO. He was really chill about it, but I wanted to disappear.' },
+      { speakerId: 'leila', approxStartSec:  84, text: 'Oh, one. On day two I called the CEO "Miguel" in the kitchen. Super casual — "hey Miguel, mind if I grab the oat milk?" Turns out he\'s the CEO. He was really chill about it, but I wanted to disappear.' },
       { speakerId: 'oscar', approxStartSec: 103, text: 'That\'s actually hilarious.' },
-      { speakerId: 'priya', approxStartSec: 106, text: 'Easy for you to say. Anyway — overall, it\'s been a great week. I\'ve learned a lot already, I\'ve met everyone on my floor, and nobody has given me the feeling I don\'t belong there.' },
+      { speakerId: 'leila', approxStartSec: 106, text: 'Easy for you to say. Anyway — overall, it\'s been a great week. I\'ve learned a lot already, I\'ve met everyone on my floor, and nobody has given me the feeling I don\'t belong there.' },
       { speakerId: 'oscar', approxStartSec: 123, text: 'So no regrets about leaving the old job?' },
-      { speakerId: 'priya', approxStartSec: 127, text: 'Zero. I should have done it a year ago.' },
+      { speakerId: 'leila', approxStartSec: 127, text: 'Zero. I should have done it a year ago.' },
     ],
   },
 
@@ -73,7 +73,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
     {
       kind:      'lead-in',
       title:     'Before we start',
-      intro:     'The first week at a new job is strange — you don\'t know the people, the coffee machine is weird, and you worry about stupid details. Today you\'ll listen to Priya tell her friend Oscar how her first week went.',
+      intro:     'The first week at a new job is strange — you don\'t know the people, the coffee machine is weird, and you worry about stupid details. Today you\'ll listen to Leila tell her friend Oscar how her first week went.',
       hookEmoji: '💼',
       openQuestions: [
         { id: 'li1', prompt: 'Have you ever started a new job or a new school? How was the first week?' },
@@ -141,12 +141,12 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
     {
       kind:  'prediction',
       title: 'What will you hear?',
-      intro: 'Priya just finished her first week at a new job and is meeting a friend for coffee. Make some guesses before pressing play.',
+      intro: 'Leila just finished her first week at a new job and is meeting a friend for coffee. Make some guesses before pressing play.',
       questions: [
         {
           kind: 'mcq',
           id: 'p1',
-          prompt: 'Overall, how do you think Priya will describe the week?',
+          prompt: 'Overall, how do you think Leila will describe the week?',
           options: [
             { id: 'a', text: 'A terrible disaster — she wants to quit' },
             { id: 'b', text: 'Tiring but positive — she made the right choice' },
@@ -185,7 +185,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
       title:     'Listen for the gist',
       intro:     'Press play and listen to the whole conversation ONCE. Don\'t pause. Catch the big picture — details come next.',
       listenFor: [
-        'Priya\'s overall verdict on the new job',
+        'Leila\'s overall verdict on the new job',
         'Her relationship with her manager',
         'Whether she regrets leaving the old job',
       ],
@@ -194,7 +194,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind: 'mcq',
           id: 'g1',
-          prompt: 'How does Priya describe her first week overall?',
+          prompt: 'How does Leila describe her first week overall?',
           options: [
             { id: 'a', text: 'Awful — she regrets switching' },
             { id: 'b', text: 'Tiring but great — she made the right call' },
@@ -216,7 +216,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind:    'true-false',
           id:      'g3',
-          prompt:  'Priya regrets leaving her old job.',
+          prompt:  'Leila regrets leaving her old job.',
           correct: 'F',
           explain: 'She says "zero regrets" and even that she should have done it a year ago.',
         },
@@ -233,7 +233,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind:     'gap-fill',
           id:       'd1',
-          sentence: 'The team is smaller than Priya expected — just ___ of them.',
+          sentence: 'The team is smaller than Leila expected — just ___ of them.',
           answers:  ['six'],
           alts:     [['6']],
         },
@@ -242,8 +242,8 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
           id: 'd2',
           prompt: 'Who is Zara?',
           options: [
-            { id: 'a', text: 'a colleague on the same level as Priya' },
-            { id: 'b', text: 'Priya\'s manager' },
+            { id: 'a', text: 'a colleague on the same level as Leila' },
+            { id: 'b', text: 'Leila\'s manager' },
             { id: 'c', text: 'the CEO' },
           ],
           correct: 'b',
@@ -251,7 +251,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind: 'mcq',
           id: 'd3',
-          prompt: 'What did Priya worry about regarding the office?',
+          prompt: 'What did Leila worry about regarding the office?',
           options: [
             { id: 'a', text: 'the lighting' },
             { id: 'b', text: 'the noise in the open-plan space' },
@@ -273,7 +273,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind:     'gap-fill',
           id:       'd5',
-          sentence: 'By Tuesday Priya had figured out she could cycle to work in ___ minutes.',
+          sentence: 'By Tuesday Leila had figured out she could cycle to work in ___ minutes.',
           answers:  ['thirty'],
           alts:     [['30']],
         },
@@ -282,9 +282,9 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
           id: 'd6',
           prompt: 'What happened on day two in the kitchen?',
           options: [
-            { id: 'a', text: 'Priya spilled coffee on her laptop' },
-            { id: 'b', text: 'Priya called the CEO by the wrong name' },
-            { id: 'c', text: 'Priya forgot her lunch' },
+            { id: 'a', text: 'Leila spilled coffee on her laptop' },
+            { id: 'b', text: 'Leila called the CEO by the wrong name' },
+            { id: 'c', text: 'Leila forgot her lunch' },
           ],
           correct: 'b',
         },
@@ -302,7 +302,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         {
           kind:    'true-false',
           id:      'd8',
-          prompt:  'Priya says she should have switched jobs a year ago.',
+          prompt:  'Leila says she should have switched jobs a year ago.',
           correct: 'T',
           explain: 'Direct quote: "I should have done it a year ago."',
         },
@@ -313,7 +313,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
     {
       kind:  'language-awareness',
       title: 'Notice these expressions',
-      intro: 'Go back to the transcript and spot these five chunks. They\'re the reason Priya sounds natural, not textbook.',
+      intro: 'Go back to the transcript and spot these five chunks. They\'re the reason Leila sounds natural, not textbook.',
       chunks: [
         {
           id:       'c1',
@@ -423,7 +423,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
     {
       kind:         'production',
       title:        'Now you',
-      intro:        'Your turn to tell a story like Priya. Record 60 seconds about your own "first week" experience — at a job, a school, a course, a gym, a new city. Try to use at least 3 of the chunks from this lesson.',
+      intro:        'Your turn to tell a story like Leila. Record 60 seconds about your own "first week" experience — at a job, a school, a course, a gym, a new city. Try to use at least 3 of the chunks from this lesson.',
       mode:         'speaking',
       prompt:       'Tell a 60-second story about your first week at a new job, school, or activity. Include: how you felt at first, one specific detail (a person, a place, a moment), one embarrassing or unexpected thing, and your overall verdict. Use at least 3 of: "I made the right call", "I was a bit worried about", "turns out", "I figured out", "I should have…".',
       targetChunks: ['c1', 'c2', 'c3', 'c4', 'c5'],

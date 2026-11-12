@@ -39,12 +39,12 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
     durationSec: 210,
     speakers: [
       {
-        id: 'host', displayName: 'Marco', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', note: 'ElevenLabs · warm younger male, podcast cadence' },
+        id: 'host', displayName: 'Marco', accent: 'AU', gender: 'm',
+        suggestedVoice: { voiceId: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', note: 'ElevenLabs · natural Australian male, casual podcast cadence' },
       },
       {
         id: 'guest', displayName: 'Luna', accent: 'US', gender: 'f',
-        suggestedVoice: { voiceId: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', note: 'ElevenLabs · clear expressive female, late-20s' },
+        suggestedVoice: { voiceId: 'jsCqWAovK2LkecY7zXl4', name: 'Freya', note: 'ElevenLabs · young expressive female, traveller energy — fits first-person stories' },
       },
     ],
     script: [

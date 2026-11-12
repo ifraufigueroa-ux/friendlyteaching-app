@@ -1,7 +1,7 @@
 // Friendlistenings® — A2 · The new neighbor
 //
-// A ~1:40 hallway conversation. Hannah has just moved into flat 4B and
-// bumps into Theo from 4A. They swap names, origin, jobs, and a quick
+// A ~1:40 hallway conversation. Camila has just moved into flat 4B and
+// bumps into Bruno from 4A. They swap names, origin, jobs, and a quick
 // comment about the building before agreeing to grab coffee.
 //
 // The 8-step arc targets a beginner A2 slot (~35 minutes):
@@ -22,7 +22,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
   subtitle:     'A hallway introduction',
   level:        'A2',
   topic:        'Introductions · routines · neighbors',
-  scenario:     'Hannah just moved into flat 4B and meets Theo from 4A in the hallway.',
+  scenario:     'Camila just moved into flat 4B and meets Bruno from 4A in the hallway.',
   estimatedMin: 35,
   tags:         ['introductions', 'routines', 'small-talk', 'everyday'],
   createdAt:    '2026-11-12',
@@ -36,32 +36,32 @@ export const lessonA2TheNewNeighbor: FLLesson = {
     durationSec: 100,
     speakers: [
       {
-        id: 'theo', displayName: 'Theo', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'Sq93GQT4X1lKDXsQcixO', name: 'Felix', note: 'ElevenLabs · warm, youthful male — clear for A2' },
+        id: 'bruno', displayName: 'Bruno', accent: 'US', gender: 'm',
+        suggestedVoice: { voiceId: 'nPczCjzI2devNBz1zQrb', name: 'Brian', note: 'ElevenLabs · deep confident male, clear and slow — ideal for A2' },
       },
       {
-        id: 'hannah', displayName: 'Hannah', accent: 'US', gender: 'f',
-        suggestedVoice: { voiceId: 'XB0fDUnXU5powFXDhCwa', name: 'Charlotte', note: 'ElevenLabs · warm clear female, friendly tone' },
+        id: 'camila', displayName: 'Camila', accent: 'US', gender: 'f',
+        suggestedVoice: { voiceId: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', note: 'ElevenLabs · warm friendly female, upbeat A2-friendly pace' },
       },
     ],
     script: [
-      { speakerId: 'theo',   approxStartSec:   0, text: 'Oh, hi! You must be the new neighbor. I\'m Theo. I live in 4A.' },
-      { speakerId: 'hannah', approxStartSec:   7, text: 'Hi Theo. Yes, I just moved in. My name is Hannah. Nice to meet you.' },
-      { speakerId: 'theo',   approxStartSec:  14, text: 'Nice to meet you too. Welcome to the building. Where are you from?' },
-      { speakerId: 'hannah', approxStartSec:  21, text: 'I\'m from Córdoba, in Argentina. But I lived in Madrid for two years before here. How about you?' },
-      { speakerId: 'theo',   approxStartSec:  31, text: 'I\'m from here, actually. From this city. My mum is Portuguese, though.' },
-      { speakerId: 'hannah', approxStartSec:  38, text: 'Oh, nice! Do you speak Portuguese?' },
-      { speakerId: 'theo',   approxStartSec:  42, text: 'A little. Not very well. What do you do, Hannah?' },
-      { speakerId: 'hannah', approxStartSec:  47, text: 'I\'m a graphic designer. I work from home on Mondays and Wednesdays, and I go to the office the other days. What about you?' },
-      { speakerId: 'theo',   approxStartSec:  59, text: 'I\'m a music teacher at the school on Green Street. I start early — I leave at seven every morning.' },
-      { speakerId: 'hannah', approxStartSec:  69, text: 'Seven? Wow, that\'s early for me.' },
-      { speakerId: 'theo',   approxStartSec:  73, text: 'I know. But I finish at three. That\'s the good part.' },
-      { speakerId: 'hannah', approxStartSec:  79, text: 'Nice. Hey, is the building quiet?' },
-      { speakerId: 'theo',   approxStartSec:  83, text: 'Very quiet. The neighbors are friendly. There\'s an older lady in 3B — she has a small dog. He barks sometimes, but not much.' },
-      { speakerId: 'hannah', approxStartSec:  93, text: 'Good to know. Well, I should finish unpacking. It was nice meeting you, Theo.' },
-      { speakerId: 'theo',   approxStartSec: 100, text: 'You too, Hannah. Hey, if you want, we can have a coffee next weekend. There\'s a lovely café on the corner.' },
-      { speakerId: 'hannah', approxStartSec: 109, text: 'Sure, I\'d love that. See you around!' },
-      { speakerId: 'theo',   approxStartSec: 113, text: 'See you!' },
+      { speakerId: 'bruno',  approxStartSec:   0, text: 'Oh, hi! You must be the new neighbor. I\'m Bruno. I live in 4A.' },
+      { speakerId: 'camila', approxStartSec:   7, text: 'Hi Bruno. Yes, I just moved in. My name is Camila. Nice to meet you.' },
+      { speakerId: 'bruno',  approxStartSec:  14, text: 'Nice to meet you too. Welcome to the building. Where are you from?' },
+      { speakerId: 'camila', approxStartSec:  21, text: 'I\'m from Córdoba, in Argentina. But I lived in Madrid for two years before here. How about you?' },
+      { speakerId: 'bruno',  approxStartSec:  31, text: 'I\'m from here, actually. From this city. My mum is Portuguese, though.' },
+      { speakerId: 'camila', approxStartSec:  38, text: 'Oh, nice! Do you speak Portuguese?' },
+      { speakerId: 'bruno',  approxStartSec:  42, text: 'A little. Not very well. What do you do, Camila?' },
+      { speakerId: 'camila', approxStartSec:  47, text: 'I\'m a graphic designer. I work from home on Mondays and Wednesdays, and I go to the office the other days. What about you?' },
+      { speakerId: 'bruno',  approxStartSec:  59, text: 'I\'m a music teacher at the school on Green Street. I start early — I leave at seven every morning.' },
+      { speakerId: 'camila', approxStartSec:  69, text: 'Seven? Wow, that\'s early for me.' },
+      { speakerId: 'bruno',  approxStartSec:  73, text: 'I know. But I finish at three. That\'s the good part.' },
+      { speakerId: 'camila', approxStartSec:  79, text: 'Nice. Hey, is the building quiet?' },
+      { speakerId: 'bruno',  approxStartSec:  83, text: 'Very quiet. The neighbors are friendly. There\'s an older lady in 3B — she has a small dog. He barks sometimes, but not much.' },
+      { speakerId: 'camila', approxStartSec:  93, text: 'Good to know. Well, I should finish unpacking. It was nice meeting you, Bruno.' },
+      { speakerId: 'bruno',  approxStartSec: 100, text: 'You too, Camila. Hey, if you want, we can have a coffee next weekend. There\'s a lovely café on the corner.' },
+      { speakerId: 'camila', approxStartSec: 109, text: 'Sure, I\'d love that. See you around!' },
+      { speakerId: 'bruno',  approxStartSec: 113, text: 'See you!' },
     ],
   },
 
@@ -70,7 +70,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
     {
       kind:      'lead-in',
       title:     'Before we start',
-      intro:     'Think about your neighbors for a moment. Do you know them? Do you say hi in the hallway? Today you will listen to two neighbors meeting for the first time.',
+      intro:     'Think about your neighbors for a moment. Do you know them? Do you say hi in the hallway? Today you will listen to Camila and Bruno, two neighbors meeting for the first time.',
       hookEmoji: '🏠',
       openQuestions: [
         { id: 'li1', prompt: 'Who are your neighbors? Are they friendly?' },
@@ -138,7 +138,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
     {
       kind:  'prediction',
       title: 'What will you hear?',
-      intro: 'You know Hannah just moved in and meets Theo. Before you press play, make a guess.',
+      intro: 'You know Camila just moved in and meets Bruno. Before you press play, make a guess.',
       questions: [
         {
           kind: 'mcq',
@@ -202,7 +202,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind: 'mcq',
           id: 'g2',
-          prompt: 'Do Hannah and Theo plan to meet again?',
+          prompt: 'Do Camila and Bruno plan to meet again?',
           options: [
             { id: 'a', text: 'Yes, for a coffee' },
             { id: 'b', text: 'No, they don\'t like each other' },
@@ -213,9 +213,9 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind:    'true-false',
           id:      'g3',
-          prompt:  'Both Hannah and Theo have jobs.',
+          prompt:  'Both Camila and Bruno have jobs.',
           correct: 'T',
-          explain: 'Hannah is a graphic designer; Theo is a music teacher.',
+          explain: 'Camila is a graphic designer; Bruno is a music teacher.',
         },
       ],
     },
@@ -230,14 +230,14 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind:     'gap-fill',
           id:       'd1',
-          sentence: 'Hannah is from ___, in Argentina.',
+          sentence: 'Camila is from ___, in Argentina.',
           answers:  ['Córdoba'],
           alts:     [['cordoba', 'córdoba']],
         },
         {
           kind: 'mcq',
           id: 'd2',
-          prompt: 'Where did Hannah live before this city?',
+          prompt: 'Where did Camila live before this city?',
           options: [
             { id: 'a', text: 'Madrid' },
             { id: 'b', text: 'Buenos Aires' },
@@ -248,7 +248,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind: 'mcq',
           id: 'd3',
-          prompt: 'What is Hannah\'s job?',
+          prompt: 'What is Camila\'s job?',
           options: [
             { id: 'a', text: 'music teacher' },
             { id: 'b', text: 'graphic designer' },
@@ -259,21 +259,21 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind:     'gap-fill',
           id:       'd4',
-          sentence: 'Hannah works from home on Mondays and ___.',
+          sentence: 'Camila works from home on Mondays and ___.',
           answers:  ['Wednesdays'],
           alts:     [['wednesday', 'wednesdays']],
         },
         {
           kind:     'gap-fill',
           id:       'd5',
-          sentence: 'Theo leaves home at ___ every morning and finishes at ___.',
+          sentence: 'Bruno leaves home at ___ every morning and finishes at ___.',
           answers:  ['seven', 'three'],
           alts:     [['7', '7:00', 'seven o\'clock'], ['3', '3:00', 'three o\'clock']],
         },
         {
           kind: 'mcq',
           id: 'd6',
-          prompt: 'Theo\'s mother is from…',
+          prompt: 'Bruno\'s mother is from…',
           options: [
             { id: 'a', text: 'Portugal' },
             { id: 'b', text: 'Spain' },
@@ -285,9 +285,9 @@ export const lessonA2TheNewNeighbor: FLLesson = {
         {
           kind:    'true-false',
           id:      'd7',
-          prompt:  'The building is noisy, according to Theo.',
+          prompt:  'The building is noisy, according to Bruno.',
           correct: 'F',
-          explain: 'Theo says the building is "very quiet".',
+          explain: 'Bruno says the building is "very quiet".',
         },
         {
           kind: 'mcq',
@@ -338,7 +338,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
           chunk:    'What do you do?',
           category: 'collocation',
           gloss:    '¿a qué te dedicás? / ¿en qué trabajás?',
-          example:  '"What do you do, Hannah?" — "I\'m a graphic designer."',
+          example:  '"What do you do, Camila?" — "I\'m a graphic designer."',
           notice:   'This is asking about your JOB, not what you\'re doing right now. For that, we say "What are you doing?".',
         },
         {
