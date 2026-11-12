@@ -38,6 +38,15 @@ const INTERNAL_TOOLS = [
     badge:       'Beta',
   },
   {
+    href:        '/dashboard/teacher/listenings',
+    icon:        '🎧',
+    title:       'Friendlistenings®',
+    description: 'CLT 8-step listening lessons around a single audio: Lead-in → Vocab → Prediction → Gist → Detail → Language Awareness → Controlled Practice → Production. ElevenLabs multi-voice audio.',
+    gradient:    'from-[#9B72B8] to-[#E87BAD]',
+    glow:        'shadow-purple-200/40',
+    badge:       'New',
+  },
+  {
     href:        '/dashboard/teacher/ielts',
     icon:        '🇬🇧',
     title:       'IELTS Simulator',
