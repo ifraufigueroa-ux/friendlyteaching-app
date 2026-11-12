@@ -47,6 +47,15 @@ const INTERNAL_TOOLS = [
     badge:       'New',
   },
   {
+    href:        '/dashboard/teacher/writing',
+    icon:        '✍️',
+    title:       'FriendlyWriting®',
+    description: 'CLT 6-step writing lessons scaffolded toward IELTS: Opening → Vocab → Brainstorm → Model → Practice → Wrap-up. Students submit, you review next class.',
+    gradient:    'from-[#7ECBF2] to-[#9B72B8]',
+    glow:        'shadow-sky-200/40',
+    badge:       'New',
+  },
+  {
     href:        '/dashboard/teacher/ielts',
     icon:        '🇬🇧',
     title:       'IELTS Simulator',

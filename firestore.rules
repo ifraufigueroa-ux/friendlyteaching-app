@@ -449,6 +449,16 @@ service cloud.firestore {
       allow delete: if isTeacher();
     }
 
+    // FriendlyWriting submissions — a student writes their own piece and
+    // hands it in; the teacher reads the whole inbox and can flip the
+    // `reviewed` flag after reading it in class.
+    match /friendlywritingSubmissions/{submissionId} {
+      allow read:   if isTeacher() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
     // ── COWORK (workspace del equipo docente) ─────────────────
     // Chat, anuncios y presencia — sólo profesores. Cada profe crea
     // sus propios docs (authorId == su uid) y puede editar/borrar los
