@@ -65,7 +65,7 @@ export type FLQuestion = FLMCQ | FLGapFill | FLTrueFalse;
 export interface FLVocabItem {
   id:          string;
   word:        string;                              // "off the beaten path"
-  pos?:        'noun' | 'verb' | 'adjective' | 'phrase' | 'idiom' | 'adverb';
+  pos?:        'noun' | 'verb' | 'adjective' | 'phrase' | 'idiom' | 'adverb' | 'phrasal-verb';
   translation: string;                              // LatAm Spanish gloss
   example:     string;                              // short EN sentence (ideally from the script)
   soundsLike?: string;                              // "oh-ff-the-BEE-ten path"
