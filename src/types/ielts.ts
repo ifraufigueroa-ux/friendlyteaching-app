@@ -113,7 +113,7 @@ export type ListeningQuestion =
 export interface ListeningSpeaker {
   id: string;                   // 'receptionist', 'tutor', 'student-1', etc.
   displayName: string;          // shown in transcript
-  accent: 'UK' | 'US' | 'AU' | 'NZ' | 'IE' | 'ZA';
+  accent: 'UK' | 'US' | 'AU' | 'NZ' | 'IE' | 'ZA' | 'IN';
   gender: 'f' | 'm';
   // Suggested ElevenLabs voice — the ID is what the dialogue-generation
   // endpoint actually consumes; name/note are for the teacher preview.
