@@ -101,11 +101,11 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           id: 'vq1',
           prompt: 'If someone says "I\'m on cloud nine," they are…',
           options: [
-            { id: 'a', text: 'very sad' },
-            { id: 'b', text: 'extremely happy' },
+            { id: 'a', text: 'extremely happy' },
+            { id: 'b', text: 'very sad' },
             { id: 'c', text: 'confused' },
           ],
-          correct: 'b',
+          correct: 'a',
           explain: 'On cloud nine = extremely happy. A classic.',
         },
         {
@@ -114,10 +114,10 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           prompt: '"I ended up buying a ticket" means that…',
           options: [
             { id: 'a', text: 'they had planned it from the start' },
-            { id: 'b', text: 'they bought it even though it wasn\'t the plan' },
-            { id: 'c', text: 'they didn\'t buy it' },
+            { id: 'b', text: 'they didn\'t buy it' },
+            { id: 'c', text: 'they bought it even though it wasn\'t the plan' },
           ],
-          correct: 'b',
+          correct: 'c',
           explain: '"End up —ing" implies an UNPLANNED outcome.',
         },
         {
@@ -146,22 +146,22 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           id: 'p1',
           prompt: 'Which topic do you think Luna will mention first?',
           options: [
-            { id: 'a', text: 'How tired she is' },
-            { id: 'b', text: 'A conflict at an airport' },
-            { id: 'c', text: 'The price of her ticket' },
+            { id: 'a', text: 'A conflict at an airport' },
+            { id: 'b', text: 'The price of her ticket' },
+            { id: 'c', text: 'How tired she is' },
           ],
-          correct: 'a',
+          correct: 'c',
         },
         {
           kind: 'mcq',
           id: 'p2',
           prompt: 'Which moment do you think impressed her the MOST?',
           options: [
-            { id: 'a', text: 'An expensive dinner at a famous restaurant' },
-            { id: 'b', text: 'A festival in a remote village' },
+            { id: 'a', text: 'A festival in a remote village' },
+            { id: 'b', text: 'An expensive dinner at a famous restaurant' },
             { id: 'c', text: 'An archaeological museum' },
           ],
-          correct: 'b',
+          correct: 'a',
         },
         {
           kind: 'mcq',
@@ -194,11 +194,11 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           id: 'g1',
           prompt: 'Overall, how does Luna describe the experience?',
           options: [
-            { id: 'a', text: 'Exhausting and full of regret' },
-            { id: 'b', text: 'Transformative and positive, with some hard moments' },
+            { id: 'a', text: 'Transformative and positive, with some hard moments' },
+            { id: 'b', text: 'Exhausting and full of regret' },
             { id: 'c', text: 'Boring and predictable' },
           ],
-          correct: 'b',
+          correct: 'a',
         },
         {
           kind: 'mcq',
@@ -206,10 +206,10 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           prompt: 'What is Luna\'s core message about long solo travel?',
           options: [
             { id: 'a', text: 'You have to plan every single day' },
-            { id: 'b', text: 'Leave room for what you can\'t plan' },
-            { id: 'c', text: 'It\'s better to travel with friends than alone' },
+            { id: 'b', text: 'It\'s better to travel with friends than alone' },
+            { id: 'c', text: 'Leave room for what you can\'t plan' },
           ],
-          correct: 'b',
+          correct: 'c',
         },
         {
           kind: 'mcq',
@@ -244,11 +244,11 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           id: 'd2',
           prompt: 'According to Luna, how did she spend most days when it came to food?',
           options: [
-            { id: 'a', text: 'Expensive restaurants with friends' },
-            { id: 'b', text: 'Street food for two dollars' },
+            { id: 'a', text: 'Street food for two dollars' },
+            { id: 'b', text: 'Expensive restaurants with friends' },
             { id: 'c', text: 'Cooking at the hostel' },
           ],
-          correct: 'b',
+          correct: 'a',
         },
         {
           kind:     'gap-fill',
@@ -263,10 +263,10 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           prompt: 'When she felt bad in Bangkok, what did she do the next day?',
           options: [
             { id: 'a', text: 'Flew home' },
-            { id: 'b', text: 'Took a slow boat down the Mekong river' },
-            { id: 'c', text: 'Stayed another week in Bangkok' },
+            { id: 'b', text: 'Stayed another week in Bangkok' },
+            { id: 'c', text: 'Took a slow boat down the Mekong river' },
           ],
-          correct: 'b',
+          correct: 'c',
         },
         {
           kind: 'mcq',
@@ -370,11 +370,11 @@ export const lessonB2OffTheBeatenPath: FLLesson = {
           id: 'cp3',
           prompt: '"Were you happy with the hotel OR the beach?" → the most natural-sounding answer is:',
           options: [
-            { id: 'a', text: 'Yes, I was.' },
-            { id: 'b', text: 'A bit of both.' },
+            { id: 'a', text: 'A bit of both.' },
+            { id: 'b', text: 'Yes, I was.' },
             { id: 'c', text: 'I don\'t know.' },
           ],
-          correct: 'b',
+          correct: 'a',
         },
         {
           kind:     'gap-fill',
