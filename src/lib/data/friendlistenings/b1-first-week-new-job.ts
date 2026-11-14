@@ -95,7 +95,7 @@ export const lessonB1FirstWeekNewJob: FLLesson = {
         { id: 'v5', word: 'the commute',           pos: 'noun',      translation: 'El trayecto diario al trabajo.',                                         example: 'And the commute?',                             soundsLike: 'kuh-MYOOT',     definition: 'the daily journey from home to work' },
         { id: 'v6', word: 'packed',                pos: 'adjective', translation: 'Lleno hasta el tope.',                                                   example: 'The bus was packed.',                          definition: 'very full of people' },
         { id: 'v7', word: 'to figure (sth) out',   pos: 'phrase',    translation: 'Darse cuenta de algo / resolver algo.',                                  example: 'I\'d figured out I could cycle.',              definition: 'to understand or solve something' },
-        { id: 'v8', word: 'chill',                 pos: 'adjective', translation: 'Relajado, piola (informal).',                                            example: 'He was really chill about it.',                definition: 'relaxed, easy-going (informal)' },
+        { id: 'v8', word: 'chill',                 pos: 'adjective', translation: 'Relajado, tranquilo (informal).',                                            example: 'He was really chill about it.',                definition: 'relaxed, easy-going (informal)' },
       ],
       quiz: [
         {

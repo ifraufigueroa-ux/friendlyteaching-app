@@ -85,7 +85,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
       title: 'Key vocabulary',
       intro: 'Look at these 8 words. You will hear all of them in the conversation.',
       items: [
-        { id: 'v1', word: 'neighbor',             pos: 'noun',      translation: 'Vecino/a — persona que vive cerca de vos.',                    example: 'You must be the new neighbor.',             soundsLike: 'NAY-ber',       definition: 'a person who lives next to or near you' },
+        { id: 'v1', word: 'neighbor',             pos: 'noun',      translation: 'Vecino/a — persona que vive cerca de ti.',                    example: 'You must be the new neighbor.',             soundsLike: 'NAY-ber',       definition: 'a person who lives next to or near you' },
         { id: 'v2', word: 'to move in',           pos: 'phrase',    translation: 'Mudarse (a una casa o departamento nuevo).',                    example: 'I just moved in.',                           soundsLike: 'MOOV in',       definition: 'to start living in a new home' },
         { id: 'v3', word: 'to work from home',    pos: 'phrase',    translation: 'Trabajar desde casa.',                                          example: 'I work from home on Mondays.',               definition: 'to do your job from your house' },
         { id: 'v4', word: 'graphic designer',     pos: 'noun',      translation: 'Diseñador/a gráfico/a.',                                        example: 'I\'m a graphic designer.',                   definition: 'a person who creates visual design' },
@@ -321,7 +321,7 @@ export const lessonA2TheNewNeighbor: FLLesson = {
           id:       'c2',
           chunk:    'Where are you from? / I\'m from…',
           category: 'collocation',
-          gloss:    'preguntar y decir de dónde sos',
+          gloss:    'preguntar y decir de dónde eres',
           example:  '"Where are you from?" — "I\'m from Córdoba."',
           notice:   'Say "from + city/country". "I\'m from Córdoba." / "I\'m from Argentina." NOT "I\'m Argentina".',
         },

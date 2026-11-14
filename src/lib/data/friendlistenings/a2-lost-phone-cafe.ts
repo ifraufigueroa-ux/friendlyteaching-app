@@ -93,7 +93,7 @@ export const lessonA2LostPhoneCafe: FLLesson = {
         { id: 'v4', word: 'to look like',             translation: 'Verse / parecer. Para describir cómo es algo físicamente.',                example: 'What does your phone look like?',                   definition: 'to have the appearance of', pos: 'phrase' },
         { id: 'v5', word: 'to find (found)',          translation: 'Encontrar. Verbo irregular: find → found.',                                example: 'Did anyone find it?',                               definition: 'to discover something lost', pos: 'verb' },
         { id: 'v6', word: 'worried',                  translation: 'Preocupado/a. "Was so worried" = estaba muy preocupada.',                  example: 'I was so worried!',                                 definition: 'feeling anxious or concerned', pos: 'adjective' },
-        { id: 'v7', word: 'Here you go / There you go', translation: 'Acá tenés. Se dice al entregar algo a alguien.',                          example: 'Here. Is this your phone?',                         definition: 'phrase used when handing someone something', pos: 'phrase' },
+        { id: 'v7', word: 'Here you go / There you go', translation: 'Aquí tienes. Se dice al entregar algo a alguien.',                          example: 'Here. Is this your phone?',                         definition: 'phrase used when handing someone something', pos: 'phrase' },
         { id: 'v8', word: 'I really appreciate it',    translation: 'Te lo agradezco mucho. Más fuerte que "thank you".',                      example: 'Thank you again. I really appreciate it.',          soundsLike: 'ap-PREE-shee-ate', definition: 'strong, sincere thanks', pos: 'phrase' },
       ],
       quiz: [
