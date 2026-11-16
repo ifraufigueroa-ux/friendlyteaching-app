@@ -11,6 +11,7 @@ import { lessonA2LostPhoneCafe } from './a2-lost-phone-cafe';
 import { lessonB1FirstWeekNewJob } from './b1-first-week-new-job';
 import { lessonB1SurpriseParty } from './b1-surprise-party';
 import { lessonB1LogisticsConsultancySprintSlip } from './b1-logistics-consultancy-sprint-slip';
+import { lessonB1WhichGymShouldIJoin } from './b1-which-gym-should-i-join';
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonC1LastPromotion } from './c1-last-promotion';
@@ -22,6 +23,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB1FirstWeekNewJob,
   lessonB1SurpriseParty,
   lessonB1LogisticsConsultancySprintSlip,
+  lessonB1WhichGymShouldIJoin,
   lessonB2OffTheBeatenPath,
   lessonB2JobOfferDilemma,
   lessonC1LastPromotion,
