@@ -776,3 +776,42 @@ export interface CoworkPresence {
   // Ruta que el profe está mirando ahora (para el futuro “¿Dónde está?”).
   currentPath?: string;
 }
+
+// ─── Friendly product assignments ─────────────────────────────
+//
+// Friendlistenings and FriendlyWriting lessons live as static files
+// (src/lib/data/friendlistenings/*.ts and friendlywriting/*.ts), not in
+// Firestore, so we can't put an `assignedTo[]` on each lesson doc the
+// way we do for music/text lessons. Instead, each assignment is a tiny
+// doc in a dedicated collection tying one student → one lessonId. The
+// student page filters by studentId and materialises the lesson from
+// the static catalog by lessonId.
+
+export type FriendlyAssignmentStatus = 'assigned' | 'in_progress' | 'completed';
+
+export interface FriendlisteningAssignment {
+  id: string;
+  studentId: string;        // uid of the student
+  teacherId: string;        // uid of the teacher who assigned
+  lessonId: string;         // id from FRIENDLISTENINGS_LESSONS
+  // Snapshot so lists can render without needing the catalog loaded.
+  lessonTitle: string;
+  lessonLevel?: string;
+  status: FriendlyAssignmentStatus;
+  assignedAt: Timestamp;
+  completedAt?: Timestamp;
+  bookingId?: string;       // optional tie-in to a specific class
+}
+
+export interface FriendlywritingAssignment {
+  id: string;
+  studentId: string;
+  teacherId: string;
+  lessonId: string;         // id from FRIENDLYWRITING_LESSONS
+  lessonTitle: string;
+  lessonLevel?: string;
+  status: FriendlyAssignmentStatus;
+  assignedAt: Timestamp;
+  completedAt?: Timestamp;
+  bookingId?: string;
+}

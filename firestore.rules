@@ -459,6 +459,29 @@ service cloud.firestore {
       allow delete: if isTeacher();
     }
 
+    // Friendly product assignments — Friendlistenings and FriendlyWriting
+    // lessons are static files, so each assignment lives as its own tiny
+    // doc. Same shape as studentAssignments: teacher owns and mutates;
+    // student reads only their own.
+    match /friendlisteningAssignments/{assignmentId} {
+      allow list:   if isTeacher() ||
+                      (request.auth != null && request.auth.uid != null);
+      allow get:    if isTeacher() ||
+                      (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+    match /friendlywritingAssignments/{assignmentId} {
+      allow list:   if isTeacher() ||
+                      (request.auth != null && request.auth.uid != null);
+      allow get:    if isTeacher() ||
+                      (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // ── COWORK (workspace del equipo docente) ─────────────────
     // Chat, anuncios y presencia — sólo profesores. Cada profe crea
     // sus propios docs (authorId == su uid) y puede editar/borrar los
