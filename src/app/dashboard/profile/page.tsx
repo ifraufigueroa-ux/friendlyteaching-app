@@ -302,7 +302,11 @@ export default function ProfilePage() {
           { label: 'Profile' },
         ]}
       />
-      <div className={`flex-1 p-6 overflow-auto ${isStudent ? 'max-w-5xl' : 'max-w-4xl'} mx-auto w-full`} style={isStudent ? { background: 'transparent' } : undefined}>
+      <div
+        className={`flex-1 overflow-auto`}
+        style={isStudent ? { backgroundColor: '#ede2fc' } : undefined}
+      >
+      <div className={`${isStudent ? 'max-w-7xl p-4 md:p-8' : 'max-w-4xl p-6'} mx-auto w-full`}>
 
         {/* ─── Teacher / non-student hero: classic avatar card ─── */}
         {!isStudent && (
@@ -331,7 +335,6 @@ export default function ProfilePage() {
         {isStudent && (
           <StudentGamifiedBoard
             firstName={firstName}
-            initials={initials}
             email={profile.email}
             level={level}
             memberSince={memberSince}
@@ -487,6 +490,7 @@ export default function ProfilePage() {
         </div>
 
       </div>
+      </div>
     </div>
   );
 }
@@ -500,7 +504,6 @@ export default function ProfilePage() {
 
 interface StudentGamifiedBoardProps {
   firstName: string;
-  initials: string;
   email: string;
   level: LessonLevel | undefined;
   memberSince: string | null;
@@ -553,10 +556,27 @@ function weekdayGrid(gamification: StudentGamification | null): boolean[] {
   return active;
 }
 
+function timeUntilMidnightLabel(): string {
+  const now = new Date();
+  const mid = new Date(now);
+  mid.setHours(24, 0, 0, 0);
+  const diff = Math.max(0, mid.getTime() - now.getTime());
+  const h = Math.floor(diff / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  return `${h}h ${m.toString().padStart(2, '0')}m`;
+}
+
 function StudentGamifiedBoard({
-  firstName, initials, email, level, memberSince, gamification,
+  firstName, email, level, memberSince, gamification,
   progress, skillScores, levelHistory,
 }: StudentGamifiedBoardProps) {
+  // Reset countdown — ticks every minute so "Resets in 4h 12m" stays honest.
+  const [resetLabel, setResetLabel] = useState(timeUntilMidnightLabel);
+  useEffect(() => {
+    const id = window.setInterval(() => setResetLabel(timeUntilMidnightLabel()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   // ── Derived data ──
   const totalXp = gamification?.totalXp ?? 0;
   const playerLevel = gamification?.level ?? 1;
@@ -618,38 +638,60 @@ function StudentGamifiedBoard({
 
   return (
     <>
+      {/* ── Header stat badges (streak + XP total) ──────────── */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-2xl border border-amber-200 shadow-sm">
+          <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+            <Flame className="w-3.5 h-3.5" strokeWidth={2.5} />
+          </div>
+          <span className="text-xs font-bold text-amber-700">
+            {currentStreak} day{currentStreak === 1 ? '' : 's'} streak
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-[#f5f0fb] px-3 py-1.5 rounded-2xl border border-[#ece3f7] shadow-sm">
+          <div className="w-6 h-6 rounded-lg bg-[#6e3fb0] text-white flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5" strokeWidth={2.5} />
+          </div>
+          <span className="text-xs font-bold text-[#583091]">{totalXp.toLocaleString()} XP total</span>
+        </div>
+      </div>
+
       {/* ── Welcome hero ─────────────────────────────────────── */}
-      <div className="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-5 border-2 border-[#d9c9f0]"
-           style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f5f0fb 45%, #ece3f7 100%)' }}>
-        <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full pointer-events-none"
-             style={{ background: 'rgba(191, 163, 228, 0.35)', filter: 'blur(40px)' }} />
-        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-5 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8352c7] to-[#462573] text-white flex items-center justify-center text-xl font-extrabold shadow-lg shadow-[#6e3fb0]/25 flex-shrink-0">
-              {initials}
+      <div
+        className="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-6 border-2 border-[#d9c9f0]"
+        style={{ background: 'linear-gradient(to right, #ffffff, #fcfbfe, #f5f0fb)' }}
+      >
+        <div
+          className="absolute -right-6 -bottom-6 w-40 h-40 rounded-full pointer-events-none"
+          style={{ background: 'rgba(236, 227, 247, 0.5)', filter: 'blur(32px)' }}
+        />
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+          <div className="space-y-3 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 bg-[#ece3f7]/80 px-3 py-1 rounded-full text-[#462573] text-xs font-extrabold">
+              <Crown className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.25} />
+              <span>Level {playerLevel}{level ? ` — ${levelLabel.split(' · ').slice(1).join(' · ') || level}` : ''}</span>
             </div>
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 bg-[#ece3f7] px-2.5 py-0.5 rounded-full text-[#462573] text-[11px] font-extrabold mb-1.5">
-                <Crown className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.25} />
-                <span>Level {playerLevel} · {levelLabel}</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-[#462573] tracking-tight leading-tight">
-                Hi, {firstName}! <span className="inline-block">🚀</span>
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">
-                {currentStreak > 0
-                  ? `Keep the streak alive — study a bit today to make it ${currentStreak + (wasActiveToday ? 0 : 1)}.`
-                  : 'Study a lesson today to start your streak.'}
-              </p>
-              <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-                <span className="truncate">{email}</span>
-                {memberSince && <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Since {memberSince}</span>}
-              </div>
+            <h1 className="text-2xl md:text-4xl font-extrabold text-[#462573] tracking-tight">
+              Hi, {firstName}! <span>🚀</span>
+            </h1>
+            <p className="text-sm text-slate-600 max-w-lg">
+              {currentStreak > 0
+                ? `Finish your daily missions to keep the streak alive and climb this week's league.`
+                : `Finish your daily missions to start your streak and climb this week's league.`}
+            </p>
+            <div className="flex items-center justify-center md:justify-start gap-3 text-[11px] text-slate-400 pt-1">
+              <span className="truncate">{email}</span>
+              {memberSince && (
+                <span className="inline-flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Since {memberSince}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* XP progress card */}
-          <div className="bg-white p-4 rounded-2xl border-2 border-[#ece3f7] shadow-md flex items-center gap-3 w-full md:w-auto">
+          {/* XP Progress card */}
+          <div className="bg-white p-5 rounded-3xl border-2 border-[#ece3f7] shadow-md flex items-center gap-4 w-full md:w-auto">
             <div className="relative w-16 h-16 flex items-center justify-center bg-[#f5f0fb] rounded-2xl text-[#6e3fb0] font-extrabold text-xl border-2 border-[#d9c9f0]">
               {Math.round(levelProgress * 100)}%
             </div>
@@ -668,11 +710,11 @@ function StudentGamifiedBoard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-[#462573] text-base inline-flex items-center gap-2">
+            <h3 className="font-extrabold text-[#462573] text-lg inline-flex items-center gap-2">
               <Target className="w-4 h-4 text-[#6e3fb0]" strokeWidth={2.25} />
               Daily missions
             </h3>
-            <span className="text-[11px] font-bold text-slate-400">Reset at midnight</span>
+            <span className="text-xs font-bold text-slate-400">Resets in {resetLabel}</span>
           </div>
 
           {missions.map((m) => {
@@ -706,22 +748,23 @@ function StudentGamifiedBoard({
         </div>
 
         {/* Streak + CTA column */}
-        <div className="space-y-3">
-          <div className="glass-card rounded-3xl p-5 text-center border-2 border-amber-300 bg-gradient-to-b from-amber-50/60 to-white shadow-md">
-            <div className={`w-14 h-14 rounded-3xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto mb-2 shadow-lg shadow-amber-500/30 ${currentStreak > 0 ? 'animate-bounce' : ''}`}>
-              <Flame className="w-7 h-7" strokeWidth={2.25} />
+        <div className="space-y-4">
+          <div className="glass-card rounded-3xl p-6 text-center border-2 border-amber-300 shadow-md"
+               style={{ background: 'linear-gradient(to bottom, rgba(254, 243, 199, 0.5), #ffffff)' }}>
+            <div className={`w-16 h-16 rounded-3xl bg-amber-500 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/30 ${currentStreak > 0 ? 'animate-bounce' : ''}`}>
+              <Flame className="w-8 h-8" strokeWidth={2.25} />
             </div>
-            <h3 className="text-xl font-extrabold text-amber-800 leading-tight">
+            <h3 className="text-2xl font-extrabold text-amber-800 leading-tight">
               {currentStreak} day{currentStreak === 1 ? '' : 's'} streak
             </h3>
-            <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+            <p className="text-xs text-slate-600 mt-1 leading-snug">
               {wasActiveToday
-                ? '🔥 Today is already counted. See you tomorrow!'
+                ? 'Today is already counted. See you tomorrow!'
                 : currentStreak > 0
                   ? 'Study today so you don\'t lose the flame.'
                   : 'Finish one mission today to light the flame.'}
             </p>
-            <div className="mt-4 pt-3 border-t border-amber-200 grid grid-cols-7 gap-1 text-[10px] font-bold">
+            <div className="mt-5 pt-4 border-t border-amber-200 grid grid-cols-7 gap-1 text-[10px] font-bold">
               {DAY_LABELS.map((d, i) => (
                 <div
                   key={i}
@@ -740,9 +783,9 @@ function StudentGamifiedBoard({
 
           <Link
             href="/dashboard/student/practice"
-            className="w-full py-3.5 bg-[#6e3fb0] hover:bg-[#583091] text-white font-extrabold rounded-2xl duo-btn text-sm flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[#6e3fb0] hover:bg-[#583091] text-white font-extrabold rounded-2xl duo-btn text-sm flex items-center justify-center gap-2"
           >
-            <Play className="w-4 h-4 fill-current" strokeWidth={2.25} />
+            <Play className="w-3 h-3 fill-current" strokeWidth={2.25} />
             Continue practice
           </Link>
         </div>
