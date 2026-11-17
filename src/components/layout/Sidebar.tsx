@@ -105,6 +105,7 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'group', label: 'Learning' },
   { type: 'link', href: '/dashboard/student/practice',    icon: Flame,        label: 'Daily Practice',      iconBg: 'bg-orange-100',  iconColor: 'text-orange-600' },
   { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'My Lessons',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'group', label: 'Extras' },
   { type: 'link', href: '/dashboard/student/music',       icon: Music,        label: 'Friendlyrics®',       iconBg: 'bg-pink-100',    iconColor: 'text-pink-600'   },
   { type: 'link', href: '/dashboard/student/texts',       icon: BookMarked,   label: 'FriendlyTales®',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-700'  },
   { type: 'link', href: '/dashboard/student/listenings',  icon: Headphones,   label: 'Friendlistenings®',   iconBg: 'bg-purple-100',  iconColor: 'text-purple-700' },
