@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { getFriendlisteningsLesson } from '@/lib/data/friendlistenings';
 import { loadFriendlisteningsAudio } from '@/lib/friendlistenings/audioStore';
+import { useAssignmentGate } from '@/hooks/useAssignmentGate';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import AudioWithDock from '@/components/friendlistenings/AudioWithDock';
 import type {
@@ -84,6 +85,11 @@ export default function FriendlisteningsRunner({
 }) {
   const { lessonId } = use(params);
   const lesson = getFriendlisteningsLesson(lessonId);
+
+  // Students only see this lesson if their teacher assigned it. Teachers
+  // (and anyone else previewing) pass through.
+  const { ready, allowed } = useAssignmentGate('listening', lessonId);
+  if (!ready || !allowed) return null;
 
   if (!lesson) {
     return (

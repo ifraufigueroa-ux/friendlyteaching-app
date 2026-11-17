@@ -13,14 +13,18 @@
 'use client';
 import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search } from 'lucide-react';
+import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search, Headphones, PenLine } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentAssignments } from '@/hooks/useStudentAssignments';
 import { useStudentMovieLessons } from '@/hooks/useMovieLessons';
 import { useStudentMusicLessons } from '@/hooks/useMusicLessons';
 import { useStudentTextLessons } from '@/hooks/useTextLessons';
 import { useStudentProgress } from '@/hooks/useProgress';
+import { useStudentListeningAssignments } from '@/hooks/useFriendlisteningAssignments';
+import { useStudentWritingAssignments } from '@/hooks/useFriendlywritingAssignments';
 import { detectMaterialType } from '@/components/planner/bookingUtils';
+import { FRIENDLISTENINGS_LESSONS } from '@/lib/data/friendlistenings';
+import { FRIENDLYWRITING_LESSONS } from '@/lib/data/friendlywriting';
 import type { MusicLesson, TextLesson, LessonLevel } from '@/types/firebase';
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -36,7 +40,7 @@ const LEVEL_COLORS: Record<string, string> = {
 const LEVELS_ORDER = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
 
 // ─── Unified card model ─────────────────────────────────────────
-type CardKind = 'ft-lesson' | 'ft-movie' | 'ft-music' | 'ft-text' | 'external';
+type CardKind = 'ft-lesson' | 'ft-movie' | 'ft-music' | 'ft-text' | 'ft-listening' | 'ft-writing' | 'external';
 interface UnifiedCard {
   key: string;
   kind: CardKind;
@@ -140,6 +144,8 @@ export default function StudentLessonsPage() {
   const { lessons: movieLessons, loading: mLoading } = useStudentMovieLessons(uid);
   const { lessons: musicLessons, loading: mmLoading } = useStudentMusicLessons(teacherUid, uid);
   const { lessons: textLessons, loading: tLoading } = useStudentTextLessons(uid);
+  const { assignments: listeningAssignments, loading: lLoading } = useStudentListeningAssignments(uid);
+  const { assignments: writingAssignments, loading: wLoading } = useStudentWritingAssignments(uid);
   const { progress } = useStudentProgress(uid);
 
   const [search, setSearch] = useState('');
@@ -233,8 +239,42 @@ export default function StudentLessonsPage() {
       });
     }
 
+    // 5) Friendlistenings — static catalog, hydrated from lessonId snapshot
+    for (const a of listeningAssignments) {
+      const catalog = FRIENDLISTENINGS_LESSONS.find(x => x.id === a.lessonId);
+      out.push({
+        key: `listening-${a.id}`,
+        kind: 'ft-listening',
+        title: a.lessonTitle || catalog?.title || 'Listening',
+        level: a.lessonLevel || catalog?.level,
+        href: `/dashboard/student/listenings/${a.lessonId}`,
+        badgeIcon: <Headphones className="w-2.5 h-2.5" strokeWidth={2.25} />,
+        badgeLabel: 'Friendlistenings',
+        isCompleted: a.status === 'completed',
+        isStarted: a.status === 'in_progress',
+        assignedAtMs: a.assignedAt?.toMillis?.() ?? 0,
+      });
+    }
+
+    // 6) FriendlyWriting — static catalog, hydrated from lessonId snapshot
+    for (const a of writingAssignments) {
+      const catalog = FRIENDLYWRITING_LESSONS.find(x => x.id === a.lessonId);
+      out.push({
+        key: `writing-${a.id}`,
+        kind: 'ft-writing',
+        title: a.lessonTitle || catalog?.title || 'Writing',
+        level: a.lessonLevel || catalog?.level,
+        href: `/dashboard/student/writing/${a.lessonId}`,
+        badgeIcon: <PenLine className="w-2.5 h-2.5" strokeWidth={2.25} />,
+        badgeLabel: 'FriendlyWriting',
+        isCompleted: a.status === 'completed',
+        isStarted: a.status === 'in_progress',
+        assignedAtMs: a.assignedAt?.toMillis?.() ?? 0,
+      });
+    }
+
     return out.sort((a, b) => b.assignedAtMs - a.assignedAtMs);
-  }, [assignments, movieLessons, musicLessons, textLessons, startedLessonIds, completedLessonIds]);
+  }, [assignments, movieLessons, musicLessons, textLessons, listeningAssignments, writingAssignments, startedLessonIds, completedLessonIds]);
 
   // ── Filters ────────────────────────────────────────────────────
   const availableLevels = useMemo(() => {
@@ -251,7 +291,7 @@ export default function StudentLessonsPage() {
     return true;
   });
 
-  const loading = aLoading || mLoading || mmLoading || tLoading;
+  const loading = aLoading || mLoading || mmLoading || tLoading || lLoading || wLoading;
 
   return (
     <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>

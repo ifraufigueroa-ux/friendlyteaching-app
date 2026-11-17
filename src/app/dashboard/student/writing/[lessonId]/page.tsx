@@ -24,6 +24,7 @@ import {
   MessageCircle, ScrollText, Send, RotateCcw,
 } from 'lucide-react';
 import { getFriendlywritingLesson } from '@/lib/data/friendlywriting';
+import { useAssignmentGate } from '@/hooks/useAssignmentGate';
 import type {
   FWLesson, FWStep,
   FWStepOpening, FWStepVocab, FWStepBrainstorm,
@@ -70,6 +71,10 @@ export default function FriendlywritingRunner(
   const { lessonId } = use(params);
   const router = useRouter();
   const lesson = getFriendlywritingLesson(lessonId);
+
+  // Students only see this lesson if their teacher assigned it. Teachers
+  // (and anyone else previewing) pass through.
+  const { ready, allowed } = useAssignmentGate('writing', lessonId);
 
   // ── Hooks declared unconditionally (no early return above) ──
   const [stepIdx, setStepIdx] = useState(0);
@@ -159,6 +164,9 @@ export default function FriendlywritingRunner(
   }, [lesson, user, draft, brainstorm, reflection, practiceStep, storageKey]);
 
   // ── Guards ──
+  // Gate must run after every hook above, since it itself is a hook chain
+  // and we want to preserve a stable hook order.
+  if (!ready || !allowed) return null;
   if (!lesson) {
     return (
       <div className="min-h-screen bg-[#FFFDF5] text-[#2E2A33] flex items-center justify-center p-8">
