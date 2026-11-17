@@ -29,7 +29,7 @@ import { useTeacherListeningAssignments } from '@/hooks/useFriendlisteningAssign
 import AssignFriendlyLessonModal from '@/components/teacher/AssignFriendlyLessonModal';
 
 const LEVEL_TONE: Record<string, string> = {
-  A1: '#7ED6E0', A2: '#7BC67E', B1: '#F4A261',
+  A1: '#7ED6E0', A2: '#7BC67E', B1: '#F4A261', 'B1+': '#E88C3F',
   B2: '#9B72B8', C1: '#E87BAD', C2: '#4A2060',
 };
 
