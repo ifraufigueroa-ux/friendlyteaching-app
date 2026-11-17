@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap,
+  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap, Clock,
 } from 'lucide-react';
 import type {
   Exercise, PracticeUnit,
@@ -27,6 +27,7 @@ import {
   isMuted, setMuted,
 } from '@/lib/soundEffects';
 import ConfettiBurst from './ConfettiBurst';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 
 interface Props {
   unit:        PracticeUnit;
@@ -54,10 +55,29 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
   const [correctCount, setCorrectCount] = useState(0);
   const [combo, setCombo] = useState(0);        // consecutive correct in this run
   const [bestCombo, setBestCombo] = useState(0);
+  const [milestone, setMilestone] = useState<number | null>(null);
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showXp, setShowXp] = useState(false);
   const [muted, setMutedState] = useState<boolean>(() => (typeof window === 'undefined' ? false : isMuted()));
+  const [elapsed, setElapsed] = useState(0);    // seconds since the session started
+
+  // Session timer — ticks every second while the runner is on-screen.
+  useEffect(() => {
+    if (done) return;
+    const started = Date.now();
+    const id = window.setInterval(() => {
+      setElapsed(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [done]);
+
+  // Clear the milestone overlay after ~1.8s (matches the keyframe).
+  useEffect(() => {
+    if (milestone === null) return;
+    const id = window.setTimeout(() => setMilestone(null), 1800);
+    return () => window.clearTimeout(id);
+  }, [milestone]);
 
   const total   = unit.exercises.length;
   const current = unit.exercises[idx];
@@ -91,6 +111,11 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
       } else {
         playCorrect();
       }
+      // Milestone celebration every 5 in a row — overlay pops in the
+      // middle of the screen with its own keyframe.
+      if (nextCombo > 0 && nextCombo % 5 === 0) {
+        setMilestone(nextCombo);
+      }
       // Trigger the floating +XP chip; it unmounts itself after the
       // keyframe finishes, but we flip state so it can re-trigger on
       // the next correct answer.
@@ -101,6 +126,12 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
       playWrong();
     }
     setVerdict(wasCorrect ? 'correct' : 'wrong');
+  }
+
+  function formatElapsed(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   async function handleNext() {
@@ -148,6 +179,7 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
         totalCount={total}
         xpEarned={xpEarned}
         bestCombo={bestCombo}
+        elapsedSec={elapsed}
       />
     );
   }
@@ -157,20 +189,21 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
     : verdict === 'wrong' ? 'bg-rose-50 border-rose-400'
     : 'bg-white border-transparent';
 
-  // Shake wrapper around the body on wrong, bounce on correct. The
-  // key swaps per verdict so the animation re-plays each time.
+  // Shake wrapper around the body on wrong, bounce on correct. On a
+  // fresh pending prompt the body fades in from below. The key swaps
+  // per verdict so the animation re-plays each time.
   const bodyAnim =
     verdict === 'wrong'   ? 'animate-ft-shake'
     : verdict === 'correct' ? 'animate-ft-pop'
-    : '';
+    : 'animate-ft-fade-in';
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#ede2fc' }}>
-      {/* ── Top bar: close · progress · hearts(combo) · mute ── */}
-      <div className="px-4 pt-4 flex items-center gap-3 flex-shrink-0">
+    <div className="min-h-screen flex flex-col ft-dot-canvas relative">
+      {/* ── Top bar: close · progress · combo · counter · timer · mute · fullscreen ── */}
+      <div className="px-4 pt-4 flex items-center gap-2 md:gap-3 flex-shrink-0">
         <Link
           href="/dashboard/student/practice"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[#6e3fb0]/70 hover:bg-white/60 hover:text-[#462573] transition text-lg font-bold"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6e3fb0]/80 hover:bg-white hover:text-[#462573] border border-[#d9c9f0]/60 bg-white/70 transition text-lg font-bold flex-shrink-0"
           aria-label="Leave lesson"
         >
           ×
@@ -186,24 +219,42 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
           />
         </div>
         {combo >= 2 && (
-          <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full text-[11px] font-black text-amber-700 shadow-sm">
+          <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full text-[11px] font-black text-amber-700 shadow-sm animate-ft-pop">
             <Flame className="w-3 h-3 text-amber-500" strokeWidth={2.5} /> {combo}×
           </span>
         )}
-        <span className="text-[10px] font-black uppercase tracking-widest text-[#583091] tabular-nums bg-white/70 px-2 py-1 rounded-full">
+        <span className="text-[10px] font-black uppercase tracking-widest text-[#583091] tabular-nums bg-white/80 border border-[#d9c9f0]/60 px-2 py-1 rounded-full">
           {idx + 1} / {total}
+        </span>
+        <span className="hidden sm:inline-flex items-center gap-1 bg-white/80 border border-[#d9c9f0]/60 px-2 py-1 rounded-full text-[11px] font-bold text-[#583091] tabular-nums">
+          <Clock className="w-3 h-3" strokeWidth={2.5} />
+          {formatElapsed(elapsed)}
         </span>
         <button
           onClick={toggleMute}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[#6e3fb0]/70 hover:bg-white/60 hover:text-[#462573] transition"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6e3fb0]/80 bg-white/70 border border-[#d9c9f0]/60 hover:bg-white hover:text-[#462573] transition flex-shrink-0"
           aria-label={muted ? 'Unmute sound' : 'Mute sound'}
           title={muted ? 'Unmute sound' : 'Mute sound'}
         >
           {muted ? <VolumeX className="w-4 h-4" strokeWidth={2.25} /> : <Volume2 className="w-4 h-4" strokeWidth={2.25} />}
         </button>
+        <FullscreenButton
+          variant="inline"
+          className="!w-9 !h-9 !rounded-xl !bg-white/70 !text-[#6e3fb0] !border-[#d9c9f0]/60 hover:!bg-white hover:!text-[#462573] active:!scale-100 flex-shrink-0"
+        />
       </div>
 
-      {/* ── Exercise body (shake / pop wrapper) ── */}
+      {/* ── Milestone overlay — fires every 5 in a row ── */}
+      {milestone !== null && (
+        <div className="pointer-events-none absolute left-1/2 top-24 z-40 animate-ft-milestone">
+          <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-white font-black uppercase tracking-wider text-sm shadow-xl border-2 border-white">
+            <Flame className="w-5 h-5" strokeWidth={2.5} />
+            {milestone} in a row!
+          </div>
+        </div>
+      )}
+
+      {/* ── Exercise body (shake / pop / fade-in wrapper) ── */}
       <div className="flex-1 flex items-center justify-center px-4 py-8 relative">
         <div key={`${idx}-${verdict}`} className={`w-full max-w-xl relative ${bodyAnim}`}>
           <p className="text-2xl md:text-3xl font-extrabold text-[#2D1B4E] leading-tight mb-6 text-center">
@@ -565,13 +616,14 @@ function MatchPairsBody({
 // ── End-of-lesson summary ────────────────────────────────────
 
 function SummaryCard({
-  unit, correctCount, totalCount, xpEarned, bestCombo,
+  unit, correctCount, totalCount, xpEarned, bestCombo, elapsedSec,
 }: {
   unit:         PracticeUnit;
   correctCount: number;
   totalCount:   number;
   xpEarned:     number;
   bestCombo:    number;
+  elapsedSec:   number;
 }) {
   const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
   const tone =
@@ -579,8 +631,12 @@ function SummaryCard({
   : accuracy >= 70 ? { label: 'Nice job!',     icon: '✨', text: 'text-[#462573]'   }
                    : { label: 'Keep at it.',   icon: '🌱', text: 'text-amber-800'   };
 
+  const mins = Math.floor(elapsedSec / 60);
+  const secs = elapsedSec % 60;
+  const timeLabel = `${mins}:${secs.toString().padStart(2, '0')}`;
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ backgroundColor: '#ede2fc' }}>
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden ft-dot-canvas">
       {/* Confetti burst — auto-unmounts after ~1.6s */}
       <ConfettiBurst active count={48} />
 
@@ -593,9 +649,10 @@ function SummaryCard({
           {unit.title} · {unit.level}
         </p>
 
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
           <SummaryStat label="Correct"  value={`${correctCount}/${totalCount}`} />
           <SummaryStat label="Accuracy" value={`${accuracy}%`} />
+          <SummaryStat label="Time"     value={timeLabel} />
           <SummaryStat
             label="XP"
             value={`+${xpEarned}`}

@@ -738,3 +738,30 @@ a.ff-glass-card:hover {
   50%      { box-shadow: 0 0 0 12px rgba(110, 63, 176, 0); }
 }
 .animate-ft-cta-pulse { animation: ft-cta-pulse 2.4s ease-out infinite; }
+
+/* Fade in from below — used when a new practice exercise mounts, so
+   the next prompt slides in instead of hard-cutting. */
+@keyframes ft-fade-in {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-ft-fade-in { animation: ft-fade-in 0.35s cubic-bezier(.22,.78,.3,1) both; }
+
+/* Milestone overlay — rises, stays, fades. Centered via parent. */
+@keyframes ft-milestone {
+  0%   { opacity: 0; transform: translate(-50%, 24px) scale(0.6); }
+  18%  { opacity: 1; transform: translate(-50%, 0)    scale(1.1);  }
+  28%  { opacity: 1; transform: translate(-50%, 0)    scale(1);    }
+  82%  { opacity: 1; transform: translate(-50%, 0)    scale(1);    }
+  100% { opacity: 0; transform: translate(-50%, -30px) scale(0.9); }
+}
+.animate-ft-milestone { animation: ft-milestone 1.8s ease-out forwards; }
+
+/* Soft purple dot pattern used as a subtle "arcade canvas" texture
+   on the runner body. Applied via class so the body stays clean. */
+.ft-dot-canvas {
+  background-color: #ede2fc;
+  background-image: radial-gradient(rgba(131, 82, 199, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: 0 0;
+}
