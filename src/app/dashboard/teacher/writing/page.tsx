@@ -17,11 +17,15 @@ import {
 import { db } from '@/lib/firebase/config';
 import {
   Clock, PenLine, ChevronDown, ChevronUp, Inbox,
-  CheckCircle2, Circle, ExternalLink,
+  CheckCircle2, Circle, ExternalLink, UserPlus,
 } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { FRIENDLYWRITING_LESSONS } from '@/lib/data/friendlywriting';
 import type { FWLesson, FWTaskType } from '@/types/friendlywriting';
+import { useAuthStore } from '@/store/authStore';
+import { useStudents } from '@/hooks/useStudents';
+import { useTeacherWritingAssignments } from '@/hooks/useFriendlywritingAssignments';
+import AssignFriendlyLessonModal from '@/components/teacher/AssignFriendlyLessonModal';
 
 const TASK_LABEL: Record<FWTaskType, string> = {
   'ielts-gt-t1-letter-informal':   'IELTS GT · Informal letter',
@@ -51,6 +55,24 @@ export default function FriendlywritingTeacherPage() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'reviewed'>('pending');
+
+  // ── Assignment wiring ──────────────────────────────────────
+  const { firebaseUser } = useAuthStore();
+  const teacherId = firebaseUser?.uid ?? '';
+  const { students } = useStudents();
+  const activeStudents = useMemo(
+    () => students
+      .filter(s => s.status === 'active' || s.status === 'approved')
+      .map(s => ({ uid: s.uid, fullName: s.fullName })),
+    [students],
+  );
+  const { assignments } = useTeacherWritingAssignments(teacherId);
+  const [modalLesson, setModalLesson] = useState<FWLesson | null>(null);
+  const assignedCountByLesson = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of assignments) m.set(a.lessonId, (m.get(a.lessonId) ?? 0) + 1);
+    return m;
+  }, [assignments]);
 
   useEffect(() => {
     const q = query(
@@ -111,7 +133,12 @@ export default function FriendlywritingTeacherPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {FRIENDLYWRITING_LESSONS.map(lesson => (
-              <TeacherLessonCard key={lesson.id} lesson={lesson} />
+              <TeacherLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                assignedCount={assignedCountByLesson.get(lesson.id) ?? 0}
+                onAssign={() => setModalLesson(lesson)}
+              />
             ))}
           </div>
         </section>
@@ -175,18 +202,30 @@ export default function FriendlywritingTeacherPage() {
           )}
         </section>
       </div>
+
+      {modalLesson && teacherId && (
+        <AssignFriendlyLessonModal
+          product="writing"
+          teacherId={teacherId}
+          lesson={{ id: modalLesson.id, title: modalLesson.title, level: modalLesson.level }}
+          students={activeStudents}
+          existingAssignments={assignments}
+          onClose={() => setModalLesson(null)}
+        />
+      )}
     </div>
   );
 }
 
-function TeacherLessonCard({ lesson }: { lesson: FWLesson }) {
+function TeacherLessonCard({ lesson, assignedCount, onAssign }: {
+  lesson: FWLesson;
+  assignedCount: number;
+  onAssign: () => void;
+}) {
   const from = lesson.cover.palette?.from ?? lesson.cover.accent;
   const to   = lesson.cover.palette?.to   ?? lesson.cover.accent;
   return (
-    <Link
-      href={`/dashboard/student/writing/${lesson.id}`}
-      className="group block bg-white rounded-2xl border border-black/5 shadow-[0_8px_24px_-14px_rgba(0,0,0,0.2)] hover:shadow-[0_16px_34px_-18px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 transition-all overflow-hidden"
-    >
+    <div className="group bg-white rounded-2xl border border-black/5 shadow-[0_8px_24px_-14px_rgba(0,0,0,0.2)] hover:shadow-[0_16px_34px_-18px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 transition-all overflow-hidden">
       <div
         className="h-24 relative px-5 flex items-center justify-between text-white"
         style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
@@ -206,12 +245,27 @@ function TeacherLessonCard({ lesson }: { lesson: FWLesson }) {
         <div className="mt-3 flex items-center gap-3 text-[11px] text-[#7A7387]">
           <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={2.5} /> {lesson.estimatedMin} min</span>
           <span className="inline-flex items-center gap-1"><PenLine className="w-3 h-3" strokeWidth={2.5} /> 6 steps</span>
-          <span className="inline-flex items-center gap-1 ml-auto font-semibold" style={{ color: lesson.cover.accent }}>
+        </div>
+        <div className="mt-4 flex items-center gap-2 flex-wrap">
+          <Link
+            href={`/dashboard/student/writing/${lesson.id}`}
+            target="_blank"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider text-white"
+            style={{ background: lesson.cover.accent }}
+          >
             Preview <ExternalLink className="w-3 h-3" strokeWidth={2.5} />
-          </span>
+          </Link>
+          <button
+            type="button"
+            onClick={onAssign}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider text-[#4A2060] bg-white border-2 border-[#E8D8F5] hover:border-[#9B72B8] transition-all"
+          >
+            <UserPlus className="w-3 h-3" strokeWidth={2.5} />
+            {assignedCount > 0 ? `Assigned · ${assignedCount}` : 'Assign'}
+          </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

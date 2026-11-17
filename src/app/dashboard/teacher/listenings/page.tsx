@@ -7,11 +7,11 @@
 // MP3 instead of each teacher paying for their own.
 
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight, Clock, Headphones, Sparkles,
-  Mic, CheckCircle2, AlertTriangle, RotateCcw, Download,
+  Mic, CheckCircle2, AlertTriangle, RotateCcw, Download, UserPlus,
 } from 'lucide-react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -23,6 +23,10 @@ import {
 } from '@/lib/friendlistenings/audioStore';
 import { exportLessonToHTML } from '@/lib/friendlistenings/exportHTML';
 import type { FLLesson, FLStepLanguageAwareness } from '@/types/friendlistenings';
+import { useAuthStore } from '@/store/authStore';
+import { useStudents } from '@/hooks/useStudents';
+import { useTeacherListeningAssignments } from '@/hooks/useFriendlisteningAssignments';
+import AssignFriendlyLessonModal from '@/components/teacher/AssignFriendlyLessonModal';
 
 const LEVEL_TONE: Record<string, string> = {
   A1: '#7ED6E0', A2: '#7BC67E', B1: '#F4A261',
@@ -30,6 +34,29 @@ const LEVEL_TONE: Record<string, string> = {
 };
 
 export default function FriendlisteningsTeacherIndex() {
+  const { firebaseUser } = useAuthStore();
+  const teacherId = firebaseUser?.uid ?? '';
+  const { students } = useStudents();
+  const activeStudents = useMemo(
+    () => students
+      .filter(s => s.status === 'active' || s.status === 'approved')
+      .map(s => ({ uid: s.uid, fullName: s.fullName })),
+    [students],
+  );
+  const { assignments } = useTeacherListeningAssignments(teacherId);
+  const [modalLesson, setModalLesson] = useState<FLLesson | null>(null);
+
+  // Build a per-lesson count of how many students currently have this
+  // lesson assigned — surfaces on each card so the teacher knows at a
+  // glance who is covered.
+  const assignedCountByLesson = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of assignments) {
+      m.set(a.lessonId, (m.get(a.lessonId) ?? 0) + 1);
+    }
+    return m;
+  }, [assignments]);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#E8D8F5] to-[#FFFDF5] text-[#2E2A33]">
       <div className="max-w-5xl mx-auto px-6 pt-6 pb-16">
@@ -44,7 +71,12 @@ export default function FriendlisteningsTeacherIndex() {
 
         <div className="mt-10 space-y-5">
           {FRIENDLISTENINGS_LESSONS.map(lesson => (
-            <TeacherLessonCard key={lesson.id} lesson={lesson} />
+            <TeacherLessonCard
+              key={lesson.id}
+              lesson={lesson}
+              assignedCount={assignedCountByLesson.get(lesson.id) ?? 0}
+              onAssign={() => setModalLesson(lesson)}
+            />
           ))}
         </div>
 
@@ -54,11 +86,26 @@ export default function FriendlisteningsTeacherIndex() {
           </p>
         )}
       </div>
+
+      {modalLesson && teacherId && (
+        <AssignFriendlyLessonModal
+          product="listening"
+          teacherId={teacherId}
+          lesson={{ id: modalLesson.id, title: modalLesson.title, level: modalLesson.level }}
+          students={activeStudents}
+          existingAssignments={assignments}
+          onClose={() => setModalLesson(null)}
+        />
+      )}
     </div>
   );
 }
 
-function TeacherLessonCard({ lesson }: { lesson: FLLesson }) {
+function TeacherLessonCard({ lesson, assignedCount, onAssign }: {
+  lesson: FLLesson;
+  assignedCount: number;
+  onAssign: () => void;
+}) {
   const tone = LEVEL_TONE[lesson.level] ?? '#9B72B8';
   const awareness = lesson.steps.find(s => s.kind === 'language-awareness') as FLStepLanguageAwareness | undefined;
   const [audioUrl, setAudioUrl] = useState<string | null>(lesson.audio.audioUrl ?? null);
@@ -129,6 +176,14 @@ function TeacherLessonCard({ lesson }: { lesson: FLLesson }) {
             >
               Preview <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
             </Link>
+            <button
+              type="button"
+              onClick={onAssign}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-black uppercase tracking-wider text-[#4A2060] bg-white border-2 border-[#E8D8F5] hover:border-[#9B72B8] active:scale-95 transition-all"
+            >
+              <UserPlus className="w-4 h-4" strokeWidth={2.5} />
+              {assignedCount > 0 ? `Assigned · ${assignedCount}` : 'Assign'}
+            </button>
             <DownloadHTMLButton lesson={lesson} audioUrl={audioUrl} />
             <span className="text-[11px] text-[#7A7387]">8 steps · audio {audioUrl ? 'ready' : 'pending'}</span>
           </div>
