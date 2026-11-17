@@ -657,3 +657,15 @@ a.ff-glass-card:hover {
   color: #FCA5A5 !important;
   border-color: #EF4444 !important;
 }
+
+/* Duolingo-style pressed button — bottom shadow that collapses on
+   active, used on the student profile's "Continue practice" CTA and
+   any other primary quest/action button that wants the arcade feel. */
+.duo-btn {
+  box-shadow: 0 4px 0 0 #583091;
+  transition: all 0.1s ease;
+}
+.duo-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 #583091;
+}

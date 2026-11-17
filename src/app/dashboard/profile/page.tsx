@@ -1,19 +1,24 @@
 // FriendlyTeaching.cl — Profile / Settings Page
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import {
   AlertTriangle,
   GraduationCap,
   Flame,
-  Trophy,
   Timer,
   Star,
-  BookOpen,
   TrendingUp,
   CalendarDays,
-  Sparkles,
+  Crown,
+  Target,
+  CheckCircle2,
+  PenTool,
+  Headphones,
+  Play,
+  Zap,
 } from 'lucide-react';
 import { db, auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
@@ -25,20 +30,13 @@ import { useLevelHistory } from '@/hooks/useLevelHistory';
 import { SkillRadarChart } from '@/components/students/SkillRadarChart';
 import { LevelTimeline } from '@/components/students/LevelTimeline';
 import BadgeGrid from '@/components/gamification/BadgeGrid';
-import XpBar from '@/components/gamification/XpBar';
 import TopBar from '@/components/layout/TopBar';
-import type { LessonLevel } from '@/types/firebase';
+import { xpForNextLevel, getTodayStr } from '@/lib/utils/gamification';
+import type { LessonLevel, Progress, SkillScores, LevelHistoryEntry, StudentGamification } from '@/types/firebase';
 
 type Msg = { text: string; kind: 'ok' | 'err' } | null;
 
 const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
-
-const LEVEL_COLORS: Record<string, string> = {
-  A0: 'bg-teal-100 text-teal-700', A1: 'bg-green-100 text-green-700',
-  A2: 'bg-emerald-100 text-emerald-700', B1: 'bg-yellow-100 text-yellow-700',
-  'B1+': 'bg-orange-100 text-orange-700', B2: 'bg-red-100 text-red-700',
-  C1: 'bg-purple-100 text-purple-700',
-};
 
 const LEVEL_LABELS: Record<LessonLevel, string> = {
   A0: 'A0 — Absolute beginner',
@@ -291,14 +289,8 @@ export default function ProfilePage() {
   const initials = profile.fullName
     ? profile.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
+  const firstName = profile.fullName?.split(' ')[0] ?? 'there';
   const memberSince = formatMemberSince(profile.studentData?.joinedAt ?? profile.createdAt);
-
-  // Student stats derived from progress
-  const completed = progress.filter((p) => p.status === 'completed');
-  const uniqueLessons = new Set(completed.map((p) => p.lessonId)).size;
-  const totalMinutes = completed.reduce((acc, p) => acc + (p.duration ?? 0), 0);
-  const scores = completed.map((p) => p.overallScore).filter((s): s is number => typeof s === 'number');
-  const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -310,128 +302,44 @@ export default function ProfilePage() {
           { label: 'Profile' },
         ]}
       />
-      <div className="flex-1 p-6 overflow-auto max-w-4xl mx-auto w-full">
+      <div className={`flex-1 p-6 overflow-auto ${isStudent ? 'max-w-5xl' : 'max-w-4xl'} mx-auto w-full`} style={isStudent ? { background: 'transparent' } : undefined}>
 
-        {/* Avatar + info summary */}
-        <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-6 text-white mb-5 flex items-center gap-5 shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-extrabold flex-shrink-0">
-            {initials}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xl font-extrabold leading-tight">{profile.fullName}</p>
-            <p className="text-sm text-white/70 mt-0.5 truncate">{profile.email}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-1.5">
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1">
-                <GraduationCap className="w-3.5 h-3.5" strokeWidth={2.25} /> {role === 'teacher' ? 'Teacher' : 'Student'}
-              </span>
-              {level && (
-                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${LEVEL_COLORS[level] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {level}
+        {/* ─── Teacher / non-student hero: classic avatar card ─── */}
+        {!isStudent && (
+          <div className="bg-gradient-to-br from-[#5A3D7A] to-[#8B5CF6] rounded-2xl p-6 text-white mb-5 flex items-center gap-5 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-extrabold flex-shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xl font-extrabold leading-tight">{profile.fullName}</p>
+              <p className="text-sm text-white/70 mt-0.5 truncate">{profile.email}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1">
+                  <GraduationCap className="w-3.5 h-3.5" strokeWidth={2.25} /> {role === 'teacher' ? 'Teacher' : 'Student'}
                 </span>
-              )}
-              {memberSince && (
-                <span className="text-[11px] text-white/70 inline-flex items-center gap-1">
-                  <CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Member since {memberSince}
-                </span>
-              )}
+                {memberSince && (
+                  <span className="text-[11px] text-white/70 inline-flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Member since {memberSince}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* ──────────── STUDENT-ONLY RICH PROFILE ──────────── */}
+        {/* ──────────── STUDENT-ONLY GAMIFIED PROFILE ──────────── */}
         {isStudent && (
-          <>
-            {/* CEFR level info */}
-            {level && (
-              <div className="bg-[#F0E5FF] rounded-2xl p-4 mb-5 flex items-center gap-3">
-                <span className={`text-sm font-bold px-3 py-1.5 rounded-full ${LEVEL_COLORS[level] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {level}
-                </span>
-                <div className="min-w-0">
-                  <p className="font-bold text-[#5A3D7A] text-sm">{LEVEL_LABELS[level]}</p>
-                  <p className="text-xs text-[#9B7CB8]">Your level is set by your teacher. Reach out to them if you think it should change.</p>
-                </div>
-              </div>
-            )}
-
-            {/* XP · streak · longest streak */}
-            {gamification && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5">
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#C8A8DC] to-[#9B7CB8] text-white mb-1">
-                      <Trophy className="w-4 h-4" strokeWidth={2.25} />
-                    </div>
-                    <p className="text-lg font-extrabold text-[#5A3D7A] leading-none">{gamification.level}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Player level</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-orange-100 text-orange-500 mb-1">
-                      <Flame className="w-4 h-4" strokeWidth={2.25} />
-                    </div>
-                    <p className="text-lg font-extrabold text-orange-600 leading-none">{gamification.currentStreak}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Day streak</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-amber-100 text-amber-600 mb-1">
-                      <Sparkles className="w-4 h-4" strokeWidth={2.25} />
-                    </div>
-                    <p className="text-lg font-extrabold text-amber-700 leading-none">{gamification.longestStreak}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">Longest streak</p>
-                  </div>
-                </div>
-                <XpBar totalXp={gamification.totalXp} level={gamification.level} />
-              </div>
-            )}
-
-            {/* Learning stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-              {[
-                { label: 'Completed lessons', value: uniqueLessons, Icon: GraduationCap, color: 'text-[#5A3D7A]' },
-                { label: 'Total time', value: formatDuration(totalMinutes), Icon: Timer, color: 'text-blue-600' },
-                { label: 'Avg. grade', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
-                { label: 'Total sessions', value: progress.length, Icon: BookOpen, color: 'text-green-600' },
-              ].map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center border border-gray-100">
-                  <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-5 h-5" strokeWidth={2.25} /></div>
-                  <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Skills radar + level timeline */}
-            {(skillScores || level) && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
-                <div className="px-4 pt-4 pb-2">
-                  <p className="font-bold text-gray-700 text-sm inline-flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} /> My English progress
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-                  {level && (
-                    <div className="px-4 py-4">
-                      <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-wider">CEFR level</p>
-                      <LevelTimeline history={levelHistory} currentLevel={level} />
-                    </div>
-                  )}
-                  {skillScores && (
-                    <div className="px-4 py-4">
-                      <p className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Skills</p>
-                      <SkillRadarChart scores={skillScores} compact />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Badges */}
-            {gamification && gamification.badges.length > 0 && (
-              <div className="mb-5">
-                <BadgeGrid earnedBadges={gamification.badges} />
-              </div>
-            )}
-          </>
+          <StudentGamifiedBoard
+            firstName={firstName}
+            initials={initials}
+            email={profile.email}
+            level={level}
+            memberSince={memberSince}
+            gamification={gamification}
+            progress={progress}
+            skillScores={skillScores}
+            levelHistory={levelHistory}
+          />
         )}
         {/* ──────────── /STUDENT-ONLY ──────────── */}
 
@@ -580,5 +488,313 @@ export default function ProfilePage() {
 
       </div>
     </div>
+  );
+}
+
+// ─── Student gamified board (Duolingo Arcade vibe) ─────────────
+//
+// Replaces the plain avatar hero + stats strip for students. Palette is
+// the FT purple family (#6e3fb0 primary) with amber accents for the
+// streak. Icons come from lucide to stay consistent with the rest of
+// the app — no font-awesome dependency.
+
+interface StudentGamifiedBoardProps {
+  firstName: string;
+  initials: string;
+  email: string;
+  level: LessonLevel | undefined;
+  memberSince: string | null;
+  gamification: StudentGamification | null;
+  progress: Progress[];
+  skillScores: SkillScores | null;
+  levelHistory: LevelHistoryEntry[];
+}
+
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; // Mon–Sun
+
+function startOfDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function todayCompletedLessons(progress: Progress[]): number {
+  const today = startOfDay(new Date()).getTime();
+  const tomorrow = today + 86400000;
+  return progress.filter((p) => {
+    if (p.status !== 'completed') return false;
+    const t = p.startedAt?.toDate?.().getTime() ?? 0;
+    return t >= today && t < tomorrow;
+  }).length;
+}
+
+function weekdayGrid(gamification: StudentGamification | null): boolean[] {
+  // Marks the last 7 days (Mon–Sun of current week) as active based on
+  // currentStreak + lastActivityDate. We only know the student was
+  // active today; everything else is inferred from the streak length.
+  const now = new Date();
+  const dayIdx = (now.getDay() + 6) % 7; // 0 = Mon … 6 = Sun
+  const active: boolean[] = Array(7).fill(false);
+  if (!gamification) return active;
+  const todayStr = getTodayStr();
+  const wasToday = gamification.lastActivityDate === todayStr;
+  const streak = gamification.currentStreak ?? 0;
+  if (!wasToday && streak === 0) return active;
+  // Walk back from today (or yesterday if not active today) and mark
+  // as many days as the streak covers — capped at days visible this
+  // week (Mon..today).
+  let cursor = wasToday ? dayIdx : dayIdx - 1;
+  let left = streak + (wasToday ? 0 : 0); // streak already reflects today when wasToday
+  while (cursor >= 0 && left > 0) {
+    active[cursor] = true;
+    cursor -= 1;
+    left -= 1;
+  }
+  return active;
+}
+
+function StudentGamifiedBoard({
+  firstName, initials, email, level, memberSince, gamification,
+  progress, skillScores, levelHistory,
+}: StudentGamifiedBoardProps) {
+  // ── Derived data ──
+  const totalXp = gamification?.totalXp ?? 0;
+  const playerLevel = gamification?.level ?? 1;
+  const { current: levelXp, needed: levelNeeded, progress: levelProgress } = xpForNextLevel(totalXp);
+  const xpToNext = Math.max(0, levelNeeded - levelXp);
+
+  const currentStreak = gamification?.currentStreak ?? 0;
+  const longestStreak = gamification?.longestStreak ?? 0;
+  const todayStr = getTodayStr();
+  const wasActiveToday = gamification?.lastActivityDate === todayStr;
+
+  const completed = progress.filter((p) => p.status === 'completed');
+  const uniqueLessons = new Set(completed.map((p) => p.lessonId)).size;
+  const totalMinutes = completed.reduce((acc, p) => acc + (p.duration ?? 0), 0);
+  const scores = completed.map((p) => p.overallScore).filter((s): s is number => typeof s === 'number');
+  const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : null;
+
+  // Daily mission state — derived from gamification + today's progress.
+  const todayLessons = todayCompletedLessons(progress);
+  const loggedInToday = wasActiveToday;
+  const wordDoneToday = wasActiveToday && (gamification?.wordStreak ?? 0) > 0;
+  const lessonDoneToday = todayLessons > 0;
+
+  const missions: {
+    key: string; title: string; icon: React.ReactNode; xp: number;
+    done: boolean; pct: number; tone: string;
+  }[] = [
+    {
+      key: 'login',
+      title: 'Open FriendlyTeaching today',
+      icon: <CheckCircle2 className="w-5 h-5" strokeWidth={2.25} />,
+      xp: 5,
+      done: loggedInToday,
+      pct: loggedInToday ? 100 : 0,
+      tone: 'emerald',
+    },
+    {
+      key: 'word',
+      title: 'Submit today\'s Word of the Day',
+      icon: <PenTool className="w-5 h-5" strokeWidth={2.25} />,
+      xp: 15,
+      done: wordDoneToday,
+      pct: wordDoneToday ? 100 : 0,
+      tone: 'ft',
+    },
+    {
+      key: 'lesson',
+      title: 'Complete 1 lesson today',
+      icon: <Headphones className="w-5 h-5" strokeWidth={2.25} />,
+      xp: 25,
+      done: lessonDoneToday,
+      pct: lessonDoneToday ? 100 : 0,
+      tone: 'amber',
+    },
+  ];
+
+  const weekGrid = weekdayGrid(gamification);
+  const levelLabel = level ? `${level} · ${LEVEL_LABELS[level].split('—')[1]?.trim() ?? ''}` : 'Level pending';
+
+  return (
+    <>
+      {/* ── Welcome hero ─────────────────────────────────────── */}
+      <div className="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-5 border-2 border-[#d9c9f0]"
+           style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f5f0fb 45%, #ece3f7 100%)' }}>
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full pointer-events-none"
+             style={{ background: 'rgba(191, 163, 228, 0.35)', filter: 'blur(40px)' }} />
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-5 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8352c7] to-[#462573] text-white flex items-center justify-center text-xl font-extrabold shadow-lg shadow-[#6e3fb0]/25 flex-shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 bg-[#ece3f7] px-2.5 py-0.5 rounded-full text-[#462573] text-[11px] font-extrabold mb-1.5">
+                <Crown className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.25} />
+                <span>Level {playerLevel} · {levelLabel}</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#462573] tracking-tight leading-tight">
+                Hi, {firstName}! <span className="inline-block">🚀</span>
+              </h1>
+              <p className="text-sm text-slate-600 mt-1">
+                {currentStreak > 0
+                  ? `Keep the streak alive — study a bit today to make it ${currentStreak + (wasActiveToday ? 0 : 1)}.`
+                  : 'Study a lesson today to start your streak.'}
+              </p>
+              <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                <span className="truncate">{email}</span>
+                {memberSince && <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Since {memberSince}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* XP progress card */}
+          <div className="bg-white p-4 rounded-2xl border-2 border-[#ece3f7] shadow-md flex items-center gap-3 w-full md:w-auto">
+            <div className="relative w-16 h-16 flex items-center justify-center bg-[#f5f0fb] rounded-2xl text-[#6e3fb0] font-extrabold text-xl border-2 border-[#d9c9f0]">
+              {Math.round(levelProgress * 100)}%
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Level progress</span>
+              <span className="text-sm font-extrabold text-[#462573]">{levelXp} / {levelNeeded} XP</span>
+              <span className="text-xs font-semibold text-[#8352c7] block mt-0.5">
+                {xpToNext > 0 ? `Only ${xpToNext} XP to Level ${playerLevel + 1}!` : 'Level up pending next activity'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Daily missions + streak ──────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+        <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-[#462573] text-base inline-flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#6e3fb0]" strokeWidth={2.25} />
+              Daily missions
+            </h3>
+            <span className="text-[11px] font-bold text-slate-400">Reset at midnight</span>
+          </div>
+
+          {missions.map((m) => {
+            const toneMap: Record<string, { leftBar: string; iconBg: string; iconFg: string; chipBg: string; chipFg: string; bar: string }> = {
+              emerald: { leftBar: 'border-l-emerald-500', iconBg: 'bg-emerald-100', iconFg: 'text-emerald-600', chipBg: 'bg-emerald-50 border-emerald-200', chipFg: 'text-emerald-700', bar: 'bg-emerald-500' },
+              ft:      { leftBar: 'border-l-[#6e3fb0]',  iconBg: 'bg-[#f5f0fb]',  iconFg: 'text-[#6e3fb0]',  chipBg: 'bg-[#f5f0fb] border-[#ece3f7]', chipFg: 'text-[#6e3fb0]', bar: 'bg-[#6e3fb0]' },
+              amber:   { leftBar: 'border-l-amber-500',  iconBg: 'bg-amber-100',  iconFg: 'text-amber-600',   chipBg: 'bg-amber-50 border-amber-200', chipFg: 'text-amber-700', bar: 'bg-amber-500' },
+            };
+            const t = toneMap[m.tone];
+            return (
+              <div key={m.key} className={`glass-card rounded-2xl p-4 flex items-center justify-between border-l-4 ${t.leftBar} shadow-sm`}>
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className={`w-11 h-11 rounded-2xl ${t.iconBg} ${t.iconFg} flex items-center justify-center flex-shrink-0`}>
+                    {m.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-sm truncate">{m.title}</h4>
+                    <div className="w-40 sm:w-56 bg-slate-100 h-2 rounded-full mt-1.5 overflow-hidden border border-slate-200">
+                      <div className={`${t.bar} h-full rounded-full transition-all`} style={{ width: `${m.pct}%` }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-3">
+                  <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-xl border ${t.chipBg} ${t.chipFg}`}>
+                    {m.done ? 'Done!' : `+${m.xp} XP`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Streak + CTA column */}
+        <div className="space-y-3">
+          <div className="glass-card rounded-3xl p-5 text-center border-2 border-amber-300 bg-gradient-to-b from-amber-50/60 to-white shadow-md">
+            <div className={`w-14 h-14 rounded-3xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto mb-2 shadow-lg shadow-amber-500/30 ${currentStreak > 0 ? 'animate-bounce' : ''}`}>
+              <Flame className="w-7 h-7" strokeWidth={2.25} />
+            </div>
+            <h3 className="text-xl font-extrabold text-amber-800 leading-tight">
+              {currentStreak} day{currentStreak === 1 ? '' : 's'} streak
+            </h3>
+            <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+              {wasActiveToday
+                ? '🔥 Today is already counted. See you tomorrow!'
+                : currentStreak > 0
+                  ? 'Study today so you don\'t lose the flame.'
+                  : 'Finish one mission today to light the flame.'}
+            </p>
+            <div className="mt-4 pt-3 border-t border-amber-200 grid grid-cols-7 gap-1 text-[10px] font-bold">
+              {DAY_LABELS.map((d, i) => (
+                <div
+                  key={i}
+                  className={`p-1 rounded-lg ${weekGrid[i] ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+            {longestStreak > 0 && (
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-amber-600/80">
+                Best · {longestStreak} days
+              </p>
+            )}
+          </div>
+
+          <Link
+            href="/dashboard/student/practice"
+            className="w-full py-3.5 bg-[#6e3fb0] hover:bg-[#583091] text-white font-extrabold rounded-2xl duo-btn text-sm flex items-center justify-center gap-2"
+          >
+            <Play className="w-4 h-4 fill-current" strokeWidth={2.25} />
+            Continue practice
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Learning stats strip ─────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        {[
+          { label: 'Total XP', value: totalXp.toLocaleString(), Icon: Zap, color: 'text-[#6e3fb0]' },
+          { label: 'Completed lessons', value: uniqueLessons, Icon: GraduationCap, color: 'text-emerald-600' },
+          { label: 'Total time', value: formatDuration(totalMinutes), Icon: Timer, color: 'text-blue-600' },
+          { label: 'Avg. grade', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center border border-[#ece3f7]">
+            <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-5 h-5" strokeWidth={2.25} /></div>
+            <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Skills radar + level timeline ────────────────────── */}
+      {(skillScores || level) && (
+        <div className="bg-white rounded-2xl shadow-sm border border-[#ece3f7] overflow-hidden mb-5">
+          <div className="px-4 pt-4 pb-2">
+            <p className="font-bold text-slate-700 text-sm inline-flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-[#6e3fb0]" strokeWidth={2.25} /> My English progress
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-[#ece3f7]">
+            {level && (
+              <div className="px-4 py-4">
+                <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">CEFR level</p>
+                <LevelTimeline history={levelHistory} currentLevel={level} />
+              </div>
+            )}
+            {skillScores && (
+              <div className="px-4 py-4">
+                <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Skills</p>
+                <SkillRadarChart scores={skillScores} compact />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Badges ───────────────────────────────────────────── */}
+      {gamification && gamification.badges.length > 0 && (
+        <div className="mb-5">
+          <BadgeGrid earnedBadges={gamification.badges} />
+        </div>
+      )}
+    </>
   );
 }
