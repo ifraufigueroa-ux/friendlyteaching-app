@@ -11,8 +11,10 @@
 //   4. musicLessons idem
 //   5. textLessons idem
 'use client';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase/config';
 import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search, Headphones, PenLine } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentAssignments } from '@/hooks/useStudentAssignments';
@@ -137,7 +139,14 @@ function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabe
 
 export default function StudentLessonsPage() {
   const { profile, firebaseUser } = useAuthStore();
-  const uid = firebaseUser?.uid ?? '';
+  // The auth store can rehydrate to null on first paint (see
+  // [[authstore-hydration-bug]]); fall back to a direct
+  // onAuthStateChanged subscription so the student's uid is always
+  // populated by the time useStudentAssignments subscribes, which
+  // otherwise bails on an empty uid and the list renders blank.
+  const [authUid, setAuthUid] = useState<string>(() => auth.currentUser?.uid ?? '');
+  useEffect(() => onAuthStateChanged(auth, (u) => setAuthUid(u?.uid ?? '')), []);
+  const uid = firebaseUser?.uid || authUid;
   const teacherUid = profile?.studentData?.approvedByTeacherId ?? '';
 
   const { assignments, loading: aLoading } = useStudentAssignments(uid);
