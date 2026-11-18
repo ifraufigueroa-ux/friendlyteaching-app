@@ -29,7 +29,7 @@ export default function PracticeLandingPage() {
   if (loading) {
     return (
       <Shell>
-        <p className="text-sm text-[#462573]/60 text-center py-20 font-semibold">Loading…</p>
+        <p className="text-sm text-[#4b3869]/60 text-center py-20 font-semibold">Loading…</p>
       </Shell>
     );
   }
@@ -37,8 +37,8 @@ export default function PracticeLandingPage() {
   if (!uid) {
     return (
       <Shell>
-        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-md border-2 border-[#d9c9f0] p-8 text-center">
-          <h2 className="text-2xl font-extrabold text-[#462573] mb-2">Sign in to practice</h2>
+        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-md border-2 border-[#e5d9f2] p-8 text-center">
+          <h2 className="text-2xl font-extrabold text-[#4b3869] mb-2">Sign in to practice</h2>
           <p className="text-sm text-slate-500">You need a student account to use Daily Practice.</p>
         </div>
       </Shell>
@@ -72,7 +72,7 @@ export default function PracticeLandingPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#ede2fc' }}>
+    <div className="min-h-screen bg-grid">
       <div className="p-6">
         <TopBar
           title="Daily Practice"
@@ -100,11 +100,11 @@ function OnboardingChoice({
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       <div className="text-center space-y-3">
-        <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#462573] bg-[#ece3f7] border border-[#d9c9f0] px-3 py-1.5 rounded-full">
+        <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-[#4b3869] bg-[#e5d9f2] border border-[#e5d9f2] px-3 py-1.5 rounded-full">
           <Sparkles className="w-3 h-3" strokeWidth={2.5} />
           First time here
         </span>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-[#462573] leading-tight tracking-tight">
+        <h2 className="font-fun text-3xl md:text-4xl font-bold text-[#4b3869] leading-tight tracking-tight">
           Where would you like to start?
         </h2>
         <p className="text-sm text-slate-600 max-w-md mx-auto">
@@ -115,30 +115,30 @@ function OnboardingChoice({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <button
           onClick={onStartFromScratch}
-          className="group text-left bg-white rounded-3xl border-2 border-[#d9c9f0] hover:border-[#6e3fb0] hover:shadow-xl transition-all p-6 space-y-3"
+          className="group text-left game-card rounded-3xl p-6 space-y-3"
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6e3fb0] to-[#8352c7] text-white flex items-center justify-center text-2xl shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#845ec2] to-[#9474c4] text-white flex items-center justify-center text-2xl shadow-md">
             🌱
           </div>
-          <h3 className="text-xl font-extrabold text-[#462573] leading-tight">
+          <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
             Start from A0
           </h3>
           <p className="text-sm text-slate-500 leading-snug">
             Begin from the very beginning. Greetings, numbers, the basics of English.
           </p>
-          <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#6e3fb0] group-hover:gap-2 transition-all">
+          <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#845ec2] group-hover:gap-2 transition-all">
             Start today <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
           </p>
         </button>
 
         <Link
           href="/dashboard/student/placement"
-          className="group text-left bg-white rounded-3xl border-2 border-[#d9c9f0] hover:border-amber-500 hover:shadow-xl transition-all p-6 space-y-3"
+          className="group text-left game-card rounded-3xl p-6 space-y-3"
         >
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
             🎯
           </div>
-          <h3 className="text-xl font-extrabold text-[#462573] leading-tight">
+          <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
             Take the placement
           </h3>
           <p className="text-sm text-slate-500 leading-snug">
@@ -191,59 +191,52 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
             {progress.currentStreak} {progress.currentStreak === 1 ? 'day' : 'days'} streak
           </span>
         </div>
-        <div className="flex items-center gap-1.5 bg-[#f5f0fb] px-3 py-1.5 rounded-2xl border border-[#ece3f7] shadow-sm">
-          <div className="w-6 h-6 rounded-lg bg-[#6e3fb0] text-white flex items-center justify-center">
+        <div className="flex items-center gap-1.5 bg-[#f3eefc] px-3 py-1.5 rounded-2xl border border-[#e5d9f2] shadow-sm">
+          <div className="w-6 h-6 rounded-lg bg-[#845ec2] text-white flex items-center justify-center">
             <Zap className="w-3.5 h-3.5" strokeWidth={2.5} />
           </div>
-          <span className="text-xs font-bold text-[#583091]">{progress.totalXp.toLocaleString()} XP</span>
+          <span className="text-xs font-bold text-[#6b4c9a]">{progress.totalXp.toLocaleString()} XP</span>
         </div>
-        <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border border-[#d9c9f0] shadow-sm">
-          <div className="w-6 h-6 rounded-lg bg-[#462573] text-white flex items-center justify-center text-[10px] font-black">
+        <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border border-[#e5d9f2] shadow-sm">
+          <div className="w-6 h-6 rounded-lg bg-[#4b3869] text-white flex items-center justify-center text-[10px] font-black">
             {progress.currentLevel}
           </div>
-          <span className="text-xs font-bold text-[#462573]">{levelTitle(progress.currentLevel)}</span>
+          <span className="text-xs font-bold text-[#4b3869]">{levelTitle(progress.currentLevel)}</span>
         </div>
       </div>
 
       {/* ── Today's workout hero CTA ─────────────────────── */}
       {nextUnit && (
-        <Link
-          href={`/dashboard/student/practice/lesson/${nextUnit.id}`}
-          className="group block rounded-3xl p-6 md:p-8 text-white active:scale-[0.995] transition-all relative overflow-hidden shadow-xl animate-ft-cta-pulse"
-          style={{
-            background: 'linear-gradient(135deg, #462573 0%, #6e3fb0 55%, #8352c7 100%)',
-          }}
-        >
+        <div className="game-card rounded-3xl p-6 md:p-8 relative overflow-hidden bg-gradient-to-r from-[#f3eefc] to-white">
           <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full pointer-events-none"
-               style={{ background: 'rgba(255,255,255,0.1)', filter: 'blur(32px)' }} />
-          <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
-
-          <div className="relative z-10 flex items-center gap-5">
-            <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-3xl shadow-inner border border-white/20">
-              {nextUnit.icon}
+               style={{ background: 'rgba(132,94,194,0.15)', filter: 'blur(40px)' }} />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-5">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-[#845ec2] text-white flex items-center justify-center text-3xl shadow-md border-2 border-white">
+                {nextUnit.icon}
+              </div>
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1.5 bg-[#845ec2] text-white px-3 py-1 rounded-full text-[10px] font-fun font-bold uppercase tracking-wider mb-1.5">
+                  <Crown className="w-3 h-3" strokeWidth={2.5} />
+                  Today&rsquo;s workout
+                </span>
+                <h3 className="font-fun text-2xl md:text-3xl font-bold leading-tight tracking-tight text-[#4b3869]">
+                  {nextUnit.title}
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  {nextUnit.level} · {nextUnit.exercises.length} exercises · {skillLabel(nextUnit.skill)}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/20 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white mb-1.5">
-                <Crown className="w-3 h-3 text-amber-300" strokeWidth={2.5} />
-                Today&rsquo;s workout
-              </span>
-              <h3 className="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight">
-                {nextUnit.title}
-              </h3>
-              <p className="text-sm text-white/75 mt-1">
-                {nextUnit.level} · {nextUnit.exercises.length} exercises · {skillLabel(nextUnit.skill)}
-              </p>
-            </div>
-            <div className="flex-shrink-0 hidden md:inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-[#462573] text-sm font-black uppercase tracking-wider shadow-lg group-hover:gap-3 transition-all">
+            <Link
+              href={`/dashboard/student/practice/lesson/${nextUnit.id}`}
+              className="btn-game inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-fun font-bold text-xs uppercase tracking-wider whitespace-nowrap shadow-md flex-shrink-0 md:self-center"
+            >
               <Play className="w-3.5 h-3.5 fill-current" strokeWidth={2.5} />
-              Start
-            </div>
+              Start now 🚀
+            </Link>
           </div>
-          <div className="md:hidden mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-[#462573] text-sm font-black uppercase tracking-wider shadow-lg">
-            <Play className="w-3.5 h-3.5 fill-current" strokeWidth={2.5} />
-            Start
-          </div>
-        </Link>
+        </div>
       )}
 
       {/* ── Secondary stats row ──────────────────────────── */}
@@ -285,10 +278,10 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                 <span className={`text-[11px] font-black uppercase tracking-[0.3em] px-2.5 py-1 rounded-full border ${levelPill(level)}`}>
                   {level}
                 </span>
-                <h3 className="text-lg font-extrabold text-[#462573]">
+                <h3 className="font-fun text-lg font-bold text-[#4b3869]">
                   {levelTitle(level)}
                 </h3>
-                <span className="text-[11px] font-bold text-[#8352c7]/70">
+                <span className="text-[11px] font-bold text-[#9474c4]/70">
                   {unitsAtLevel.length} {unitsAtLevel.length === 1 ? 'unit' : 'units'}
                 </span>
               </div>
@@ -302,16 +295,14 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                     <Link
                       key={u.id}
                       href={`/dashboard/student/practice/lesson/${u.id}`}
-                      className={`group bg-white rounded-2xl border-2 p-4 flex items-start gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all ${
-                        isNext ? 'border-[#6e3fb0] shadow-md ring-2 ring-[#6e3fb0]/15' : 'border-[#d9c9f0] hover:border-[#8352c7]'
-                      }`}
+                      className={`group game-card rounded-3xl p-4 flex items-start gap-3 ${isNext ? 'border-l-4 border-l-[#845ec2]' : ''}`}
                     >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#f5f0fb] border border-[#ece3f7] flex items-center justify-center text-2xl">
+                      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#f3eefc] border border-[#e5d9f2] flex items-center justify-center text-2xl">
                         {u.icon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#8352c7]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#9474c4]">
                             {skillLabel(u.skill)}
                           </p>
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${band.color}`}>
@@ -329,14 +320,14 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                             </span>
                           )}
                         </div>
-                        <p className="font-extrabold text-sm text-[#2D1B4E] leading-tight">
+                        <p className="font-fun text-sm font-bold text-[#4b3869] leading-tight">
                           {u.title}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5 leading-snug">
                           {u.description}
                         </p>
                       </div>
-                      <ArrowRight className="flex-shrink-0 w-4 h-4 text-[#8352c7] mt-1 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
+                      <ArrowRight className="flex-shrink-0 w-4 h-4 text-[#9474c4] mt-1 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
                     </Link>
                   );
                 })}
@@ -347,11 +338,11 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
       </div>
 
       {/* ── Footer note ─────────────────────────────────── */}
-      <div className="bg-white/70 rounded-2xl border border-dashed border-[#d9c9f0] p-4 text-center">
-        <p className="text-[10px] font-black text-[#462573]/60 uppercase tracking-[0.25em] mb-1 inline-flex items-center gap-1.5">
+      <div className="bg-white/70 rounded-2xl border border-dashed border-[#e5d9f2] p-4 text-center">
+        <p className="text-[10px] font-black text-[#4b3869]/60 uppercase tracking-[0.25em] mb-1 inline-flex items-center gap-1.5">
           <Target className="w-3 h-3" strokeWidth={2.5} /> Streak policy
         </p>
-        <p className="text-xs text-[#462573]/70">
+        <p className="text-xs text-[#4b3869]/70">
           Miss {STREAK_GRACE_DAYS} days in a row and the streak resets. Any lesson, any level counts.
         </p>
       </div>
@@ -372,16 +363,16 @@ function StatCard({
 }) {
   const palette = {
     orange: { bg: 'bg-gradient-to-br from-orange-400 to-rose-500', text: 'text-rose-700'   },
-    violet: { bg: 'bg-gradient-to-br from-[#6e3fb0] to-[#8352c7]', text: 'text-[#462573]' },
+    violet: { bg: 'bg-gradient-to-br from-[#845ec2] to-[#9474c4]', text: 'text-[#4b3869]' },
     amber:  { bg: 'bg-gradient-to-br from-amber-400 to-amber-600', text: 'text-amber-700'  },
   }[tone];
   return (
-    <div className="bg-white rounded-2xl border border-[#d9c9f0] p-4 flex items-start gap-3 shadow-sm">
+    <div className="bg-white rounded-2xl border border-[#e5d9f2] p-4 flex items-start gap-3 shadow-sm">
       <div className={`flex-shrink-0 w-10 h-10 rounded-xl ${palette.bg} text-white flex items-center justify-center shadow`}>
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#8352c7]/70 mb-0.5">
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#9474c4]/70 mb-0.5">
           {label}
         </p>
         <p className={`text-2xl font-extrabold leading-tight ${palette.text}`}>

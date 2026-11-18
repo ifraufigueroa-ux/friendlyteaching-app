@@ -765,3 +765,107 @@ a.ff-glass-card:hover {
   background-size: 22px 22px;
   background-position: 0 0;
 }
+
+/* ──────────────────────────────────────────────────────────── */
+/* Gemini-mockup gamified primitives                              */
+/* The gamified student surfaces (Daily Practice + the student    */
+/* profile) share a tighter design language than the rest of the  */
+/* app. These utilities implement it without fighting Tailwind.   */
+/* Palette:                                                       */
+/*   primary          #845ec2                                     */
+/*   primary-dark     #6b4c9a (border / shadow)                   */
+/*   ink              #4b3869                                     */
+/*   border           #e5d9f2                                     */
+/*   border-hover     #d0bdf4                                     */
+/*   accent-bg        #f3eefc                                     */
+/*   canvas           #f9f7fc                                     */
+/* ──────────────────────────────────────────────────────────── */
+
+/* Fredoka display family bound to its CSS variable. */
+.font-fun {
+  font-family: var(--font-fredoka), 'Fredoka', 'Inter', sans-serif;
+}
+
+/* Game-card: flat, playful card with a side-dropped shadow that
+   lifts on hover. Mirrors the Duolingo "chip" feel but applied to a
+   full card. Use with rounded-2xl/3xl. */
+.game-card {
+  background: #ffffff;
+  border: 2px solid #e5d9f2;
+  box-shadow: 0 4px 0 0 #e5d9f2;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #d0bdf4;
+  border-color: #d0bdf4;
+}
+.game-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #d0bdf4;
+}
+
+/* Game-card correctness states — thin accent overlay on top of the
+   base card. Pair with the base class, not instead of. */
+.game-card--correct {
+  border-color: #34d399;
+  box-shadow: 0 4px 0 0 #34d399;
+  background: #f0fdf4;
+}
+.game-card--wrong {
+  border-color: #fb7185;
+  box-shadow: 0 4px 0 0 #fb7185;
+  background: #fff1f2;
+}
+
+/* Btn-game: solid button with a bottom border that acts as a
+   drop-shadow. Collapses on :active for a satisfying press feel.
+   The mockup palette primary. */
+.btn-game {
+  background-color: #845ec2;
+  color: #ffffff;
+  border-bottom: 4px solid #6b4c9a;
+  transition: transform 0.08s ease, border-bottom-width 0.08s ease, background-color 0.12s ease;
+}
+.btn-game:hover {
+  background-color: #7a52bc;
+}
+.btn-game:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+.btn-game:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* Emerald variant — same mechanics, used in the "correct answer"
+   banner so success still feels tangible. */
+.btn-game--emerald {
+  background-color: #10b981;
+  border-bottom-color: #047857;
+}
+.btn-game--emerald:hover { background-color: #0ea372; }
+/* Rose variant — for the "wrong, continue" banner. */
+.btn-game--rose {
+  background-color: #f43f5e;
+  border-bottom-color: #9f1239;
+}
+.btn-game--rose:hover { background-color: #e02a4a; }
+/* Ghost variant — secondary actions on the gamified canvases. */
+.btn-game--ghost {
+  background-color: #f3eefc;
+  color: #4b3869;
+  border-bottom-color: #d0bdf4;
+}
+.btn-game--ghost:hover { background-color: #ece3f7; }
+
+/* Subtle 20px canvas grid. Used as the background for the gamified
+   screens so the surface isn't flat. Pairs cleanly with game-card
+   because the grid is 20% opacity and the cards are opaque. */
+.bg-grid {
+  background-color: #f9f7fc;
+  background-image:
+    linear-gradient(to right,  rgba(229, 217, 242, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(229, 217, 242, 0.5) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

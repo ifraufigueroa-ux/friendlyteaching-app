@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Fraunces, Cinzel, Plus_Jakarta_Sans } from 'next/font/google';
+import { Inter, Fraunces, Cinzel, Plus_Jakarta_Sans, Fredoka } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import PWAProvider from '@/components/pwa/PWAProvider';
@@ -36,6 +36,16 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-jakarta',
+  display: 'swap',
+});
+
+// Fredoka — rounded playful display used in the gamified student
+// surfaces (Daily Practice + the student profile). Consumed via the
+// `.font-fun` utility defined in globals.css.
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-fredoka',
   display: 'swap',
 });
 
@@ -83,7 +93,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-CL" className={`${inter.variable} ${fraunces.variable} ${cinzel.variable} ${jakarta.variable}`}>
+    <html lang="es-CL" className={`${inter.variable} ${fraunces.variable} ${cinzel.variable} ${jakarta.variable} ${fredoka.variable}`}>
       <body className="antialiased">
         <AuthProvider>
           {children}

@@ -198,22 +198,22 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
     : 'animate-ft-fade-in';
 
   return (
-    <div className="min-h-screen flex flex-col ft-dot-canvas relative">
+    <div className="min-h-screen flex flex-col bg-grid relative">
       {/* ── Top bar: close · progress · combo · counter · timer · mute · fullscreen ── */}
       <div className="px-4 pt-4 flex items-center gap-2 md:gap-3 flex-shrink-0">
         <Link
           href="/dashboard/student/practice"
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6e3fb0]/80 hover:bg-white hover:text-[#462573] border border-[#d9c9f0]/60 bg-white/70 transition text-lg font-bold flex-shrink-0"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#845ec2]/80 hover:bg-white hover:text-[#4b3869] border border-[#e5d9f2]/60 bg-white/70 transition text-lg font-bold flex-shrink-0"
           aria-label="Leave lesson"
         >
           ×
         </Link>
-        <div className="flex-1 h-3 bg-white/80 rounded-full overflow-hidden border border-[#d9c9f0] shadow-inner">
+        <div className="flex-1 h-3 bg-white/80 rounded-full overflow-hidden border border-[#e5d9f2] shadow-inner">
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${progress}%`,
-              background: 'linear-gradient(to right, #6e3fb0, #8352c7)',
+              background: 'linear-gradient(to right, #845ec2, #9474c4)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
             }}
           />
@@ -223,16 +223,16 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
             <Flame className="w-3 h-3 text-amber-500" strokeWidth={2.5} /> {combo}×
           </span>
         )}
-        <span className="text-[10px] font-black uppercase tracking-widest text-[#583091] tabular-nums bg-white/80 border border-[#d9c9f0]/60 px-2 py-1 rounded-full">
+        <span className="text-[10px] font-black uppercase tracking-widest text-[#6b4c9a] tabular-nums bg-white/80 border border-[#e5d9f2]/60 px-2 py-1 rounded-full">
           {idx + 1} / {total}
         </span>
-        <span className="hidden sm:inline-flex items-center gap-1 bg-white/80 border border-[#d9c9f0]/60 px-2 py-1 rounded-full text-[11px] font-bold text-[#583091] tabular-nums">
+        <span className="hidden sm:inline-flex items-center gap-1 bg-white/80 border border-[#e5d9f2]/60 px-2 py-1 rounded-full text-[11px] font-bold text-[#6b4c9a] tabular-nums">
           <Clock className="w-3 h-3" strokeWidth={2.5} />
           {formatElapsed(elapsed)}
         </span>
         <button
           onClick={toggleMute}
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6e3fb0]/80 bg-white/70 border border-[#d9c9f0]/60 hover:bg-white hover:text-[#462573] transition flex-shrink-0"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[#845ec2]/80 bg-white/70 border border-[#e5d9f2]/60 hover:bg-white hover:text-[#4b3869] transition flex-shrink-0"
           aria-label={muted ? 'Unmute sound' : 'Mute sound'}
           title={muted ? 'Unmute sound' : 'Mute sound'}
         >
@@ -240,7 +240,7 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
         </button>
         <FullscreenButton
           variant="inline"
-          className="!w-9 !h-9 !rounded-xl !bg-white/70 !text-[#6e3fb0] !border-[#d9c9f0]/60 hover:!bg-white hover:!text-[#462573] active:!scale-100 flex-shrink-0"
+          className="!w-9 !h-9 !rounded-xl !bg-white/70 !text-[#845ec2] !border-[#e5d9f2]/60 hover:!bg-white hover:!text-[#4b3869] active:!scale-100 flex-shrink-0"
         />
       </div>
 
@@ -257,9 +257,14 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
       {/* ── Exercise body (shake / pop / fade-in wrapper) ── */}
       <div className="flex-1 flex items-center justify-center px-4 py-8 relative">
         <div key={`${idx}-${verdict}`} className={`w-full max-w-xl relative ${bodyAnim}`}>
-          <p className="text-2xl md:text-3xl font-extrabold text-[#2D1B4E] leading-tight mb-6 text-center">
-            {current.prompt}
-          </p>
+          <div className="text-center mb-6">
+            <span className="inline-block bg-[#f3eefc] text-[#845ec2] text-[10px] font-fun font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
+              Daily challenge
+            </span>
+            <p className="font-fun text-2xl md:text-3xl font-bold text-[#4b3869] leading-tight">
+              {current.prompt}
+            </p>
+          </div>
           <ExerciseBody
             exercise={current}
             verdict={verdict}
@@ -282,7 +287,7 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
       <div className={`flex-shrink-0 border-t-2 transition-colors duration-200 ${bannerClasses}`}>
         <div className="max-w-xl mx-auto px-4 py-5">
           {verdict === 'pending' ? (
-            <p className="text-center text-xs font-bold text-[#6e3fb0]/60 uppercase tracking-widest">
+            <p className="text-center text-xs font-bold text-[#845ec2]/60 uppercase tracking-widest">
               Pick an answer to continue
             </p>
           ) : (
@@ -321,16 +326,14 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
                 )}
               </div>
 
-              {/* Continue — duo-btn variant that keys off verdict */}
+              {/* Continue — btn-game variant that keys off verdict */}
               <button
                 onClick={handleNext}
                 disabled={saving}
                 autoFocus
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-2xl text-[13px] font-black uppercase tracking-wider text-white active:scale-[0.98] transition-all ${
-                  verdict === 'correct'
-                    ? 'bg-emerald-500 hover:bg-emerald-600 duo-btn duo-btn--emerald'
-                    : 'bg-rose-500 hover:bg-rose-600 duo-btn duo-btn--rose'
-                } disabled:opacity-50`}
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-6 py-3 rounded-2xl text-[13px] font-fun font-bold uppercase tracking-wider btn-game ${
+                  verdict === 'correct' ? 'btn-game--emerald' : 'btn-game--rose'
+                }`}
               >
                 {saving ? 'Saving…' : idx + 1 < total ? 'Continue' : 'Finish'}
                 <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
@@ -381,31 +384,31 @@ function MultipleChoiceBody({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2.5">
+    <div className="grid grid-cols-1 gap-3">
       {ex.options.map((opt, i) => {
         const isPicked  = picked === i;
         const isCorrect = i === ex.correctIndex;
-        const tone =
+        const stateClass =
           !locked
-            ? 'border-2 border-[#d9c9f0] bg-white hover:border-[#8352c7] hover:bg-[#fcfbfe] hover:-translate-y-0.5'
+            ? ''
           : isCorrect
-            ? 'border-2 border-emerald-500 bg-emerald-50 ring-4 ring-emerald-500/20'
+            ? 'game-card--correct'
           : isPicked
-            ? 'border-2 border-rose-500 bg-rose-50 ring-4 ring-rose-500/20'
-            : 'border-2 border-[#ece3f7] bg-white opacity-50';
+            ? 'game-card--wrong'
+            : 'opacity-50';
         return (
           <button
             key={i}
             onClick={() => handlePick(i)}
             disabled={locked}
-            className={`text-left px-4 py-3 rounded-2xl text-[15px] font-semibold text-[#2D1B4E] transition-all shadow-sm ${tone}`}
+            className={`game-card ${stateClass} text-left px-4 py-3.5 rounded-2xl flex items-center justify-between`}
           >
-            <span className="inline-flex items-center gap-3">
-              <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[11px] font-black ${
-                !locked        ? 'border-[#d9c9f0] text-[#8352c7] bg-[#f5f0fb]'
-                : isCorrect    ? 'border-emerald-500 bg-emerald-500 text-white'
-                : isPicked     ? 'border-rose-500 bg-rose-500 text-white'
-                                : 'border-gray-200 text-gray-300'
+            <span className="inline-flex items-center gap-3 font-fun font-semibold text-[15px] text-[#4b3869]">
+              <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-[11px] font-fun font-bold ${
+                !locked        ? 'bg-[#f3eefc] text-[#845ec2]'
+                : isCorrect    ? 'bg-emerald-500 text-white'
+                : isPicked     ? 'bg-rose-500 text-white'
+                                : 'bg-gray-100 text-gray-300'
               }`}>
                 {locked && isCorrect   ? <Check className="w-4 h-4" strokeWidth={3} />
                  : locked && isPicked  ? <X className="w-4 h-4" strokeWidth={3} />
@@ -413,6 +416,11 @@ function MultipleChoiceBody({
               </span>
               {opt}
             </span>
+            {locked && isCorrect && (
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-lg">
+                +{PRACTICE_XP.perCorrect} XP
+              </span>
+            )}
           </button>
         );
       })}
@@ -463,7 +471,7 @@ function FillBlankBody({
                 disabled={locked}
                 autoFocus={i === 0}
                 className={`inline-block mx-1 min-w-[120px] px-2 py-0.5 text-center border-b-2 bg-transparent focus:outline-none ${
-                  !locked ? 'border-[#8352c7] focus:border-[#6e3fb0]'
+                  !locked ? 'border-[#9474c4] focus:border-[#845ec2]'
                   : verdict === 'correct' ? 'border-emerald-500 text-emerald-700'
                   : 'border-rose-500 text-rose-700'
                 }`}
@@ -477,7 +485,7 @@ function FillBlankBody({
           <button
             onClick={handleCheck}
             disabled={vals.some(v => !v.trim())}
-            className="px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-wider text-white bg-[#6e3fb0] hover:bg-[#583091] duo-btn disabled:opacity-40"
+            className="btn-game px-8 py-3 rounded-2xl text-sm font-fun font-bold uppercase tracking-wider"
           >
             Check
           </button>
@@ -547,10 +555,10 @@ function MatchPairsBody({
             const tone =
               !locked
                 ? isActive
-                  ? 'border-[#6e3fb0] bg-[#f5f0fb] text-[#462573]'
+                  ? 'border-[#845ec2] bg-[#f3eefc] text-[#4b3869]'
                   : assigned
-                    ? 'border-[#d9c9f0] bg-white text-[#462573]'
-                    : 'border-[#ece3f7] bg-white text-[#2D1B4E] hover:border-[#8352c7]'
+                    ? 'border-[#e5d9f2] bg-white text-[#4b3869]'
+                    : 'border-[#e5d9f2] bg-white text-[#2D1B4E] hover:border-[#9474c4]'
               : isCorrect ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
                           : isWrong ? 'border-rose-300 bg-rose-50 text-rose-800'
                                     : 'border-gray-100 bg-white text-gray-400';
@@ -563,7 +571,7 @@ function MatchPairsBody({
               >
                 {p.left}
                 {picks[i] !== null && (
-                  <span className="block text-xs text-[#8352c7] mt-0.5">
+                  <span className="block text-xs text-[#9474c4] mt-0.5">
                     → {shuffledRights[picks[i]!].right}
                   </span>
                 )}
@@ -581,8 +589,8 @@ function MatchPairsBody({
                 ? assigned
                   ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
                   : canPick
-                    ? 'border-[#8352c7] bg-white text-[#2D1B4E] hover:border-[#6e3fb0] hover:bg-[#f5f0fb]'
-                    : 'border-[#ece3f7] bg-white text-[#2D1B4E] opacity-80'
+                    ? 'border-[#9474c4] bg-white text-[#2D1B4E] hover:border-[#845ec2] hover:bg-[#f3eefc]'
+                    : 'border-[#e5d9f2] bg-white text-[#2D1B4E] opacity-80'
               : 'border-gray-100 bg-gray-50 text-gray-500';
             return (
               <button
@@ -603,7 +611,7 @@ function MatchPairsBody({
           <button
             onClick={handleCheck}
             disabled={picks.some(p => p === null)}
-            className="px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-wider text-white bg-[#6e3fb0] hover:bg-[#583091] duo-btn disabled:opacity-40"
+            className="btn-game px-8 py-3 rounded-2xl text-sm font-fun font-bold uppercase tracking-wider"
           >
             Check
           </button>
@@ -628,7 +636,7 @@ function SummaryCard({
   const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
   const tone =
     accuracy >= 90 ? { label: 'Great work!',   icon: '🌟', text: 'text-emerald-800' }
-  : accuracy >= 70 ? { label: 'Nice job!',     icon: '✨', text: 'text-[#462573]'   }
+  : accuracy >= 70 ? { label: 'Nice job!',     icon: '✨', text: 'text-[#4b3869]'   }
                    : { label: 'Keep at it.',   icon: '🌱', text: 'text-amber-800'   };
 
   const mins = Math.floor(elapsedSec / 60);
@@ -636,13 +644,13 @@ function SummaryCard({
   const timeLabel = `${mins}:${secs.toString().padStart(2, '0')}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden ft-dot-canvas">
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-grid">
       {/* Confetti burst — auto-unmounts after ~1.6s */}
       <ConfettiBurst active count={48} />
 
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border-2 border-[#d9c9f0] p-8 text-center relative z-10 animate-ft-pop">
+      <div className="w-full max-w-md game-card rounded-3xl p-8 text-center relative z-10 animate-ft-pop">
         <div className="text-5xl mb-3">{tone.icon}</div>
-        <h2 className={`text-3xl font-extrabold leading-tight mb-1 ${tone.text}`}>
+        <h2 className={`font-fun text-3xl font-bold leading-tight mb-1 ${tone.text}`}>
           {tone.label}
         </h2>
         <p className="text-sm text-slate-500 mb-6">
@@ -656,7 +664,7 @@ function SummaryCard({
           <SummaryStat
             label="XP"
             value={`+${xpEarned}`}
-            accent="text-[#6e3fb0]"
+            accent="text-[#845ec2]"
           />
         </div>
 
@@ -669,14 +677,14 @@ function SummaryCard({
         <div className="flex flex-col gap-2">
           <Link
             href={`/dashboard/student/practice/lesson/${unit.id}`}
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider text-white bg-[#6e3fb0] hover:bg-[#583091] duo-btn transition-all"
+            className="btn-game w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-fun font-bold uppercase tracking-wider"
           >
             <RotateCcw className="w-4 h-4" strokeWidth={2.5} />
             Practice again
           </Link>
           <Link
             href="/dashboard/student/practice"
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-[#462573] bg-[#f5f0fb] hover:bg-[#ece3f7] transition-colors"
+            className="btn-game btn-game--ghost w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-fun font-bold"
           >
             <Home className="w-4 h-4" strokeWidth={2.5} />
             Back to Practice
@@ -696,9 +704,9 @@ function SummaryCard({
 
 function SummaryStat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <div className="bg-[#f5f0fb] rounded-2xl py-3 border border-[#ece3f7]">
+    <div className="bg-[#f3eefc] rounded-2xl py-3 border border-[#e5d9f2]">
       <p className={`text-xl font-extrabold leading-none ${accent ?? 'text-[#2D1B4E]'}`}>{value}</p>
-      <p className="text-[10px] font-black uppercase tracking-widest text-[#8352c7] mt-1">{label}</p>
+      <p className="text-[10px] font-black uppercase tracking-widest text-[#9474c4] mt-1">{label}</p>
     </div>
   );
 }

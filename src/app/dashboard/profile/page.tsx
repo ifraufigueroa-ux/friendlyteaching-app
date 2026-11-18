@@ -303,8 +303,7 @@ export default function ProfilePage() {
         ]}
       />
       <div
-        className={`flex-1 overflow-auto`}
-        style={isStudent ? { backgroundColor: '#ede2fc' } : undefined}
+        className={`flex-1 overflow-auto${isStudent ? ' bg-grid' : ''}`}
       >
       <div className={`${isStudent ? 'max-w-7xl p-4 md:p-8' : 'max-w-4xl p-6'} mx-auto w-full`}>
 
@@ -498,7 +497,7 @@ export default function ProfilePage() {
 // ─── Student gamified board (Duolingo Arcade vibe) ─────────────
 //
 // Replaces the plain avatar hero + stats strip for students. Palette is
-// the FT purple family (#6e3fb0 primary) with amber accents for the
+// the FT purple family (#845ec2 primary) with amber accents for the
 // streak. Icons come from lucide to stay consistent with the rest of
 // the app — no font-awesome dependency.
 
@@ -648,18 +647,18 @@ function StudentGamifiedBoard({
             {currentStreak} day{currentStreak === 1 ? '' : 's'} streak
           </span>
         </div>
-        <div className="flex items-center gap-1.5 bg-[#f5f0fb] px-3 py-1.5 rounded-2xl border border-[#ece3f7] shadow-sm">
-          <div className="w-6 h-6 rounded-lg bg-[#6e3fb0] text-white flex items-center justify-center">
+        <div className="flex items-center gap-1.5 bg-[#f3eefc] px-3 py-1.5 rounded-2xl border border-[#e5d9f2] shadow-sm">
+          <div className="w-6 h-6 rounded-lg bg-[#845ec2] text-white flex items-center justify-center">
             <Zap className="w-3.5 h-3.5" strokeWidth={2.5} />
           </div>
-          <span className="text-xs font-bold text-[#583091]">{totalXp.toLocaleString()} XP total</span>
+          <span className="text-xs font-bold text-[#6b4c9a]">{totalXp.toLocaleString()} XP total</span>
         </div>
       </div>
 
       {/* ── Welcome hero ─────────────────────────────────────── */}
       <div
-        className="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-6 border-2 border-[#d9c9f0]"
-        style={{ background: 'linear-gradient(to right, #ffffff, #fcfbfe, #f5f0fb)' }}
+        className="game-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-6"
+        style={{ background: 'linear-gradient(to right, #ffffff, #fcfbfe, #f3eefc)' }}
       >
         <div
           className="absolute -right-6 -bottom-6 w-40 h-40 rounded-full pointer-events-none"
@@ -668,11 +667,11 @@ function StudentGamifiedBoard({
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 bg-[#ece3f7]/80 px-3 py-1 rounded-full text-[#462573] text-xs font-extrabold">
+            <div className="inline-flex items-center gap-2 bg-[#e5d9f2]/80 px-3 py-1 rounded-full text-[#4b3869] text-xs font-extrabold">
               <Crown className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.25} />
               <span>Level {playerLevel}{level ? ` — ${levelLabel.split(' · ').slice(1).join(' · ') || level}` : ''}</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold text-[#462573] tracking-tight">
+            <h1 className="font-fun text-2xl md:text-4xl font-bold text-[#4b3869] tracking-tight">
               Hi, {firstName}! <span>🚀</span>
             </h1>
             <p className="text-sm text-slate-600 max-w-lg">
@@ -691,14 +690,14 @@ function StudentGamifiedBoard({
           </div>
 
           {/* XP Progress card */}
-          <div className="bg-white p-5 rounded-3xl border-2 border-[#ece3f7] shadow-md flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-16 h-16 flex items-center justify-center bg-[#f5f0fb] rounded-2xl text-[#6e3fb0] font-extrabold text-xl border-2 border-[#d9c9f0]">
+          <div className="bg-white p-5 rounded-3xl border-2 border-[#e5d9f2] shadow-md flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-16 h-16 flex items-center justify-center bg-[#f3eefc] rounded-2xl text-[#845ec2] font-extrabold text-xl border-2 border-[#e5d9f2]">
               {Math.round(levelProgress * 100)}%
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Level progress</span>
-              <span className="text-sm font-extrabold text-[#462573]">{levelXp} / {levelNeeded} XP</span>
-              <span className="text-xs font-semibold text-[#8352c7] block mt-0.5">
+              <span className="text-sm font-extrabold text-[#4b3869]">{levelXp} / {levelNeeded} XP</span>
+              <span className="text-xs font-semibold text-[#9474c4] block mt-0.5">
                 {xpToNext > 0 ? `Only ${xpToNext} XP to Level ${playerLevel + 1}!` : 'Level up pending next activity'}
               </span>
             </div>
@@ -710,8 +709,8 @@ function StudentGamifiedBoard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <div className="lg:col-span-2 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-extrabold text-[#462573] text-lg inline-flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#6e3fb0]" strokeWidth={2.25} />
+            <h3 className="font-fun font-bold text-[#4b3869] text-lg inline-flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#845ec2]" strokeWidth={2.25} />
               Daily missions
             </h3>
             <span className="text-xs font-bold text-slate-400">Resets in {resetLabel}</span>
@@ -720,25 +719,25 @@ function StudentGamifiedBoard({
           {missions.map((m) => {
             const toneMap: Record<string, { leftBar: string; iconBg: string; iconFg: string; chipBg: string; chipFg: string; bar: string }> = {
               emerald: { leftBar: 'border-l-emerald-500', iconBg: 'bg-emerald-100', iconFg: 'text-emerald-600', chipBg: 'bg-emerald-50 border-emerald-200', chipFg: 'text-emerald-700', bar: 'bg-emerald-500' },
-              ft:      { leftBar: 'border-l-[#6e3fb0]',  iconBg: 'bg-[#f5f0fb]',  iconFg: 'text-[#6e3fb0]',  chipBg: 'bg-[#f5f0fb] border-[#ece3f7]', chipFg: 'text-[#6e3fb0]', bar: 'bg-[#6e3fb0]' },
+              ft:      { leftBar: 'border-l-[#845ec2]',  iconBg: 'bg-[#f3eefc]',  iconFg: 'text-[#845ec2]',  chipBg: 'bg-[#f3eefc] border-[#e5d9f2]', chipFg: 'text-[#845ec2]', bar: 'bg-[#845ec2]' },
               amber:   { leftBar: 'border-l-amber-500',  iconBg: 'bg-amber-100',  iconFg: 'text-amber-600',   chipBg: 'bg-amber-50 border-amber-200', chipFg: 'text-amber-700', bar: 'bg-amber-500' },
             };
             const t = toneMap[m.tone];
             return (
-              <div key={m.key} className={`glass-card rounded-2xl p-4 flex items-center justify-between border-l-4 ${t.leftBar} shadow-sm`}>
+              <div key={m.key} className={`game-card rounded-2xl p-4 flex items-center justify-between border-l-4 ${t.leftBar}`}>
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`w-11 h-11 rounded-2xl ${t.iconBg} ${t.iconFg} flex items-center justify-center flex-shrink-0`}>
                     {m.icon}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-extrabold text-slate-800 text-sm truncate">{m.title}</h4>
-                    <div className="w-40 sm:w-56 bg-slate-100 h-2 rounded-full mt-1.5 overflow-hidden border border-slate-200">
+                    <h4 className="font-fun font-bold text-[#4b3869] text-sm truncate">{m.title}</h4>
+                    <div className="w-40 sm:w-56 bg-[#f3eefc] h-2 rounded-full mt-1.5 overflow-hidden border border-[#e5d9f2]">
                       <div className={`${t.bar} h-full rounded-full transition-all`} style={{ width: `${m.pct}%` }} />
                     </div>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-3">
-                  <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-xl border ${t.chipBg} ${t.chipFg}`}>
+                  <span className={`text-[11px] font-fun font-bold px-2.5 py-1 rounded-xl border ${t.chipBg} ${t.chipFg}`}>
                     {m.done ? 'Done!' : `+${m.xp} XP`}
                   </span>
                 </div>
@@ -749,12 +748,12 @@ function StudentGamifiedBoard({
 
         {/* Streak + CTA column */}
         <div className="space-y-4">
-          <div className="glass-card rounded-3xl p-6 text-center border-2 border-amber-300 shadow-md"
-               style={{ background: 'linear-gradient(to bottom, rgba(254, 243, 199, 0.5), #ffffff)' }}>
+          <div className="game-card rounded-3xl p-6 text-center border-amber-300 shadow-md"
+               style={{ background: 'linear-gradient(to bottom, rgba(254, 243, 199, 0.5), #ffffff)', boxShadow: '0 4px 0 0 #fcd34d' }}>
             <div className={`w-16 h-16 rounded-3xl bg-amber-500 text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/30 ${currentStreak > 0 ? 'animate-bounce' : ''}`}>
               <Flame className="w-8 h-8" strokeWidth={2.25} />
             </div>
-            <h3 className="text-2xl font-extrabold text-amber-800 leading-tight">
+            <h3 className="font-fun text-2xl font-bold text-amber-800 leading-tight">
               {currentStreak} day{currentStreak === 1 ? '' : 's'} streak
             </h3>
             <p className="text-xs text-slate-600 mt-1 leading-snug">
@@ -783,9 +782,9 @@ function StudentGamifiedBoard({
 
           <Link
             href="/dashboard/student/practice"
-            className="w-full py-4 bg-[#6e3fb0] hover:bg-[#583091] text-white font-extrabold rounded-2xl duo-btn text-sm flex items-center justify-center gap-2"
+            className="btn-game w-full py-4 font-fun font-bold rounded-2xl text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
           >
-            <Play className="w-3 h-3 fill-current" strokeWidth={2.25} />
+            <Play className="w-3.5 h-3.5 fill-current" strokeWidth={2.25} />
             Continue practice
           </Link>
         </div>
@@ -794,28 +793,28 @@ function StudentGamifiedBoard({
       {/* ── Learning stats strip ─────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total XP', value: totalXp.toLocaleString(), Icon: Zap, color: 'text-[#6e3fb0]' },
+          { label: 'Total XP', value: totalXp.toLocaleString(), Icon: Zap, color: 'text-[#845ec2]' },
           { label: 'Completed lessons', value: uniqueLessons, Icon: GraduationCap, color: 'text-emerald-600' },
           { label: 'Total time', value: formatDuration(totalMinutes), Icon: Timer, color: 'text-blue-600' },
           { label: 'Avg. grade', value: avgScore ?? '—', Icon: Star, color: 'text-amber-600' },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm text-center border border-[#ece3f7]">
+          <div key={s.label} className="game-card rounded-2xl p-4 text-center">
             <div className={`mb-0.5 flex justify-center ${s.color}`}><s.Icon className="w-5 h-5" strokeWidth={2.25} /></div>
-            <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{s.label}</p>
+            <p className={`font-fun text-xl font-bold ${s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Skills radar + level timeline ────────────────────── */}
       {(skillScores || level) && (
-        <div className="bg-white rounded-2xl shadow-sm border border-[#ece3f7] overflow-hidden mb-5">
+        <div className="game-card rounded-2xl overflow-hidden mb-5">
           <div className="px-4 pt-4 pb-2">
-            <p className="font-bold text-slate-700 text-sm inline-flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-[#6e3fb0]" strokeWidth={2.25} /> My English progress
+            <p className="font-fun font-bold text-[#4b3869] text-sm inline-flex items-center gap-1.5">
+              <TrendingUp className="w-4 h-4 text-[#845ec2]" strokeWidth={2.25} /> My English progress
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-[#ece3f7]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-[#e5d9f2]">
             {level && (
               <div className="px-4 py-4">
                 <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">CEFR level</p>
