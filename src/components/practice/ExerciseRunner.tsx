@@ -15,13 +15,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap, Clock,
+  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap, Clock, Headphones, Star,
 } from 'lucide-react';
 import type {
   Exercise, PracticeUnit,
-  MultipleChoiceExercise, FillBlankExercise, MatchPairsExercise,
+  MultipleChoiceExercise, FillBlankExercise, MatchPairsExercise, ListenChooseExercise,
 } from '@/types/practice';
-import { PRACTICE_XP } from '@/types/practice';
+import { PRACTICE_XP, starsForAccuracy, STARS_MAX } from '@/types/practice';
 import {
   playCorrect, playWrong, playCombo, playComplete,
   isMuted, setMuted,
@@ -46,6 +46,7 @@ function getCorrectAnswer(ex: Exercise): string | null {
     case 'multiple-choice': return ex.options[ex.correctIndex] ?? null;
     case 'fill-blank':      return ex.answers.join(' / ');
     case 'match-pairs':     return null;
+    case 'listen-choose':   return ex.options[ex.correctIndex] ?? null;
   }
 }
 
@@ -362,7 +363,120 @@ function ExerciseBody({
       return <FillBlankBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
     case 'match-pairs':
       return <MatchPairsBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
+    case 'listen-choose':
+      return <ListenChooseBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
   }
+}
+
+// ── Listen + choose ──────────────────────────────────────────
+
+function ListenChooseBody({
+  ex, verdict, onGrade,
+}: {
+  ex: ListenChooseExercise;
+  verdict: Verdict;
+  onGrade: (correct: boolean) => void;
+}) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const locked = verdict !== 'pending';
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  function handlePlay() {
+    if (ex.audioUrl) {
+      const el = audioRef.current;
+      if (!el) return;
+      el.currentTime = 0;
+      el.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+      return;
+    }
+    // Browser SpeechSynthesis fallback for authoring before the
+    // ElevenLabs batch has shipped. Not great, but keeps the UX
+    // testable end-to-end.
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(ex.audioScript);
+    u.lang = 'en-US';
+    u.rate = 0.95;
+    u.onend = () => setPlaying(false);
+    setPlaying(true);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }
+
+  function handlePick(i: number) {
+    if (locked) return;
+    setPicked(i);
+    onGrade(i === ex.correctIndex);
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Play button */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={handlePlay}
+          disabled={locked && !ex.audioUrl}
+          className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-fun font-bold text-white bg-[#845ec2] shadow-md hover:bg-[#6b4c9a] active:scale-95 transition-all"
+        >
+          <Headphones className={`w-5 h-5 ${playing ? 'animate-pulse' : ''}`} strokeWidth={2.25} />
+          {playing ? 'Reproduciendo…' : 'Escuchar'}
+        </button>
+      </div>
+      {ex.audioUrl && (
+        <audio
+          ref={audioRef}
+          src={ex.audioUrl}
+          preload="auto"
+          onEnded={() => setPlaying(false)}
+          className="hidden"
+        />
+      )}
+      {!ex.audioUrl && (
+        <p className="text-center text-[10px] text-slate-400">
+          Audio pendiente de generación — usando TTS del navegador como fallback.
+        </p>
+      )}
+
+      {/* Options */}
+      <div className="grid grid-cols-1 gap-3">
+        {ex.options.map((opt, i) => {
+          const isPicked  = picked === i;
+          const isCorrect = i === ex.correctIndex;
+          const stateClass =
+            !locked
+              ? ''
+            : isCorrect
+              ? 'game-card--correct'
+            : isPicked
+              ? 'game-card--wrong'
+              : 'opacity-50';
+          return (
+            <button
+              key={i}
+              onClick={() => handlePick(i)}
+              disabled={locked}
+              className={`game-card ${stateClass} text-left px-4 py-3.5 rounded-2xl flex items-center justify-between`}
+            >
+              <span className="inline-flex items-center gap-3 font-fun font-semibold text-[15px] text-[#4b3869]">
+                <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-[11px] font-fun font-bold ${
+                  !locked        ? 'bg-[#f3eefc] text-[#845ec2]'
+                  : isCorrect    ? 'bg-emerald-500 text-white'
+                  : isPicked     ? 'bg-rose-500 text-white'
+                                  : 'bg-gray-100 text-gray-300'
+                }`}>
+                  {locked && isCorrect  ? <Check className="w-4 h-4" strokeWidth={3} />
+                   : locked && isPicked ? <X className="w-4 h-4" strokeWidth={3} />
+                                        : String.fromCharCode(65 + i)}
+                </span>
+                {opt}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // ── Multiple choice ──────────────────────────────────────────
@@ -653,9 +767,23 @@ function SummaryCard({
         <h2 className={`font-fun text-3xl font-bold leading-tight mb-1 ${tone.text}`}>
           {tone.label}
         </h2>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-slate-500 mb-4">
           {unit.title} · {unit.level}
         </p>
+
+        {/* 3-star earning display — same thresholds as starsForAccuracy */}
+        <div className="flex items-center justify-center gap-1.5 mb-6">
+          {Array.from({ length: STARS_MAX }).map((_, i) => {
+            const earned = i < starsForAccuracy(accuracy / 100);
+            return (
+              <Star
+                key={i}
+                className={`w-7 h-7 ${earned ? 'text-amber-400 fill-current' : 'text-gray-200 fill-current'}`}
+                strokeWidth={0}
+              />
+            );
+          })}
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
           <SummaryStat label="Correct"  value={`${correctCount}/${totalCount}`} />
@@ -669,8 +797,13 @@ function SummaryCard({
         </div>
 
         {bestCombo >= 3 && (
-          <p className="mb-5 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
+          <p className="mb-3 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
             <Flame className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.5} /> Best combo · {bestCombo}×
+          </p>
+        )}
+        {starsForAccuracy(accuracy / 100) < 2 && (
+          <p className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl">
+            Necesitás al menos 2 estrellas (70%) para desbloquear la siguiente unidad. ¡Reintentá!
           </p>
         )}
 

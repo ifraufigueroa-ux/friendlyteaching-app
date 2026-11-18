@@ -15,7 +15,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
 import {
   type PracticeProgress, type PracticeLevel, type PracticeSession,
-  PRACTICE_XP, nextStreak, todayStr,
+  PRACTICE_XP, nextStreak, todayStr, starsForAccuracy, toStars, STARS_MAX,
 } from '@/types/practice';
 
 // Default seed when the student doesn't have a progress doc yet.
@@ -106,13 +106,13 @@ export function useDailyPractice() {
       PRACTICE_XP.lessonCompletion +
       (accuracy >= 0.9 ? PRACTICE_XP.perfectBonus : 0);
 
-    // Mastery: +1 crown for 70%+, capped at 5. We leave the "repeat
-    // the same unit N times" grinding to a later pass — the first
-    // version just rewards attempts over time.
-    const newMastery = { ...prev.mastery };
-    if (accuracy >= 0.7) {
-      newMastery[opts.unitId] = Math.min(5, (newMastery[opts.unitId] ?? 0) + 1);
-    }
+    // Stars: 0-3 by accuracy, keep the best score ever. This replaces
+    // the old "crowns accumulate per attempt" model and powers the
+    // unlock gate (≥2 stars opens the next unit).
+    const earnedStars = starsForAccuracy(accuracy);
+    const prevStars   = toStars(prev.mastery[opts.unitId]);
+    const newMastery  = { ...prev.mastery };
+    newMastery[opts.unitId] = Math.min(STARS_MAX, Math.max(prevStars, earnedStars));
 
     const next: PracticeProgress = {
       ...prev,
@@ -142,7 +142,7 @@ export function useDailyPractice() {
       session,
     );
 
-    return { xpEarned, newStreak: streak.streak, isNewDay: streak.isNewDay };
+    return { xpEarned, newStreak: streak.streak, isNewDay: streak.isNewDay, starsEarned: earnedStars };
   }, [uid, progress]);
 
   return {
@@ -157,13 +157,16 @@ export function useDailyPractice() {
 
 // ── Mastery helper for other callers ─────────────────────────
 
-export function masteryBand(crowns: number): {
+/** Card chip for a unit based on its stars (0-3). Any legacy value
+ *  ≥3 lands in "Mastered" via toStars clamping in the type layer. */
+export function masteryBand(stars: number): {
   label: string; color: string;
 } {
-  if (crowns >= 5) return { label: 'Mastered', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
-  if (crowns >= 3) return { label: 'Confident', color: 'text-blue-700 bg-blue-50 border-blue-200' };
-  if (crowns >= 1) return { label: 'In progress', color: 'text-amber-700 bg-amber-50 border-amber-200' };
-  return { label: 'Not started', color: 'text-gray-500 bg-gray-50 border-gray-200' };
+  const s = toStars(stars);
+  if (s >= 3) return { label: 'Mastered',    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+  if (s >= 2) return { label: 'Passed',      color: 'text-blue-700 bg-blue-50 border-blue-200' };
+  if (s >= 1) return { label: 'Try again',   color: 'text-amber-700 bg-amber-50 border-amber-200' };
+  return         { label: 'Not started', color: 'text-gray-500 bg-gray-50 border-gray-200' };
 }
 
 // Timestamp exported for convenience when writing from client code.

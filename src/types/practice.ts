@@ -13,12 +13,12 @@ import type { Timestamp } from 'firebase/firestore';
 // ── CEFR + skills ─────────────────────────────────────────────
 
 /** Levels we commit to supporting on day one. C1/C2 come later. */
-export const PRACTICE_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2'] as const;
+export const PRACTICE_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'B2+'] as const;
 export type PracticeLevel = typeof PRACTICE_LEVELS[number];
 
 /** CEFR order used everywhere (sorting units, picking the next one…). */
 export const LEVEL_ORDER: Record<PracticeLevel, number> = {
-  A0: 0, A1: 1, A2: 2, B1: 3, B2: 4,
+  A0: 0, A1: 1, A2: 2, B1: 3, B2: 4, 'B2+': 5,
 };
 
 export const PRACTICE_SKILLS = [
@@ -61,10 +61,27 @@ export interface MatchPairsExercise extends BaseExercise {
   pairs: { left: string; right: string }[];
 }
 
+/** Short listening task: the student hears a 1-3 sentence clip and
+ *  picks the right answer. The `audioScript` is the text that was
+ *  (or will be) rendered to voice; `audioUrl` is the hosted MP3 once
+ *  the batch generator has uploaded it. When the URL is missing, the
+ *  runner falls back to the browser's SpeechSynthesis so authoring
+ *  can proceed before the audio batch is cut. */
+export interface ListenChooseExercise extends BaseExercise {
+  type:          'listen-choose';
+  audioScript:   string;
+  audioUrl?:     string;
+  /** Preferred ElevenLabs voice id for batch generation (optional). */
+  voiceId?:      string;
+  options:       string[];
+  correctIndex:  number;
+}
+
 export type Exercise =
   | MultipleChoiceExercise
   | FillBlankExercise
-  | MatchPairsExercise;
+  | MatchPairsExercise
+  | ListenChooseExercise;
 
 export type ExerciseType = Exercise['type'];
 
@@ -166,3 +183,41 @@ export const PRACTICE_XP = {
   /** Extra bonus when a lesson is finished with 90%+ accuracy. */
   perfectBonus:      25,
 } as const;
+
+// ── Stars + unlock gating ─────────────────────────────────────
+//
+// We grade each attempt into 0-3 stars by accuracy. The `mastery`
+// field on PracticeProgress stores the best stars ever achieved on
+// a unit. Reaching ≥ UNLOCK_MIN_STARS on a unit opens the next one
+// in CEFR + file order.
+
+export const STARS_MAX = 3;
+/** Minimum stars on a unit to unlock the next one. */
+export const UNLOCK_MIN_STARS = 2;
+
+/** Map an accuracy ratio (0-1) to 0-3 stars. */
+export function starsForAccuracy(accuracy: number): number {
+  if (accuracy >= 0.90) return 3;
+  if (accuracy >= 0.70) return 2;
+  if (accuracy >= 0.50) return 1;
+  return 0;
+}
+
+/** Clamp any legacy 0-5 crown value into the new 0-3 stars scale. */
+export function toStars(masteryValue: number | undefined): number {
+  if (!masteryValue || masteryValue <= 0) return 0;
+  return Math.min(STARS_MAX, masteryValue);
+}
+
+/** A unit is unlocked when its predecessor in the ordered list has
+ *  ≥ UNLOCK_MIN_STARS. The very first unit is always open. */
+export function isUnitUnlocked(
+  unitId: string,
+  orderedUnitIds: string[],
+  mastery: Record<string, number>,
+): boolean {
+  const idx = orderedUnitIds.indexOf(unitId);
+  if (idx <= 0) return true; // first unit or unknown → open
+  const prevId = orderedUnitIds[idx - 1];
+  return toStars(mastery[prevId]) >= UNLOCK_MIN_STARS;
+}

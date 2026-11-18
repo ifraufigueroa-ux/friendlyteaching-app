@@ -14,12 +14,13 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
 import {
-  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Crown, Zap, Play,
+  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star,
 } from 'lucide-react';
 import { useDailyPractice, masteryBand } from '@/hooks/useDailyPractice';
 import { PRACTICE_UNITS, unitsByLevel } from '@/lib/data/practice/general-english';
 import {
   PRACTICE_LEVELS, LEVEL_ORDER, STREAK_GRACE_DAYS, daysSince,
+  isUnitUnlocked, toStars, STARS_MAX,
   type PracticeLevel, type PracticeUnit, type PracticeProgress,
 } from '@/types/practice';
 
@@ -166,15 +167,33 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
     [],
   );
 
+  // Ordered unit ids used for unlock gating. Order matches CEFR + file
+  // position: the first A0 unit is always open, every other unit opens
+  // once the previous one has ≥2 stars.
+  const orderedUnits = useMemo(() => {
+    const ordered: PracticeUnit[] = [];
+    for (const lvl of levels) {
+      for (const u of (grouped[lvl] ?? [])) ordered.push(u);
+    }
+    return ordered;
+  }, [levels, grouped]);
+  const orderedUnitIds = useMemo(() => orderedUnits.map(u => u.id), [orderedUnits]);
+
   const nextUnit: PracticeUnit | null = useMemo(() => {
+    // Pick the first unlocked unit the student hasn't passed yet (<2 stars).
+    const firstUnlocked = orderedUnits.find(u => {
+      if (!isUnitUnlocked(u.id, orderedUnitIds, progress.mastery)) return false;
+      return toStars(progress.mastery[u.id]) < 2;
+    });
+    if (firstUnlocked) return firstUnlocked;
+    // Fall back to the stored nextUnitId then the stored level's first unit.
     if (progress.nextUnitId) {
       const picked = PRACTICE_UNITS.find(u => u.id === progress.nextUnitId);
       if (picked) return picked;
     }
     const atLevel = grouped[progress.currentLevel] ?? [];
-    const unmastered = atLevel.find(u => (progress.mastery[u.id] ?? 0) < 5);
-    return unmastered ?? atLevel[0] ?? PRACTICE_UNITS[0] ?? null;
-  }, [progress, grouped]);
+    return atLevel[0] ?? PRACTICE_UNITS[0] ?? null;
+  }, [progress, grouped, orderedUnits, orderedUnitIds]);
 
   const gap = daysSince(progress.lastPracticedAt);
   const streakLive = gap <= STREAK_GRACE_DAYS;
@@ -288,46 +307,71 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {unitsAtLevel.map(u => {
-                  const crowns  = progress.mastery[u.id] ?? 0;
-                  const band    = masteryBand(crowns);
-                  const isNext  = nextUnit?.id === u.id;
+                  const stars  = toStars(progress.mastery[u.id]);
+                  const band   = masteryBand(stars);
+                  const isNext = nextUnit?.id === u.id;
+                  const unlocked = isUnitUnlocked(u.id, orderedUnitIds, progress.mastery);
+                  const content = (
+                    <>
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl ${unlocked ? 'bg-[#f3eefc] border-[#e5d9f2]' : 'bg-slate-100 border-slate-200 grayscale'}`}>
+                        {unlocked ? u.icon : <Lock className="w-5 h-5 text-slate-400" strokeWidth={2.25} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <p className={`text-[10px] font-black uppercase tracking-widest ${unlocked ? 'text-[#9474c4]' : 'text-slate-400'}`}>
+                            {skillLabel(u.skill)}
+                          </p>
+                          {unlocked ? (
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${band.color}`}>
+                              {band.label}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-500 inline-flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5" strokeWidth={2.5} /> Bloqueada
+                            </span>
+                          )}
+                          {unlocked && stars > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-amber-400">
+                              {Array.from({ length: STARS_MAX }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3.5 h-3.5 ${i < stars ? 'fill-current' : 'opacity-30'}`}
+                                  strokeWidth={0}
+                                />
+                              ))}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`font-fun text-sm font-bold leading-tight ${unlocked ? 'text-[#4b3869]' : 'text-slate-400'}`}>
+                          {u.title}
+                        </p>
+                        <p className={`text-xs mt-0.5 leading-snug ${unlocked ? 'text-slate-500' : 'text-slate-400'}`}>
+                          {unlocked ? u.description : 'Terminá la unidad anterior con 2★ o más para desbloquearla.'}
+                        </p>
+                      </div>
+                      {unlocked && (
+                        <ArrowRight className="flex-shrink-0 w-4 h-4 text-[#9474c4] mt-1 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
+                      )}
+                    </>
+                  );
+                  if (!unlocked) {
+                    return (
+                      <div
+                        key={u.id}
+                        className="group game-card rounded-3xl p-4 flex items-start gap-3 opacity-80 cursor-not-allowed"
+                        aria-disabled="true"
+                      >
+                        {content}
+                      </div>
+                    );
+                  }
                   return (
                     <Link
                       key={u.id}
                       href={`/dashboard/student/practice/lesson/${u.id}`}
                       className={`group game-card rounded-3xl p-4 flex items-start gap-3 ${isNext ? 'border-l-4 border-l-[#845ec2]' : ''}`}
                     >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#f3eefc] border border-[#e5d9f2] flex items-center justify-center text-2xl">
-                        {u.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[#9474c4]">
-                            {skillLabel(u.skill)}
-                          </p>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${band.color}`}>
-                            {band.label}
-                          </span>
-                          {crowns > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-amber-500">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Crown
-                                  key={i}
-                                  className={`w-3 h-3 ${i < crowns ? 'fill-current' : 'opacity-30'}`}
-                                  strokeWidth={2.5}
-                                />
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-fun text-sm font-bold text-[#4b3869] leading-tight">
-                          {u.title}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-snug">
-                          {u.description}
-                        </p>
-                      </div>
-                      <ArrowRight className="flex-shrink-0 w-4 h-4 text-[#9474c4] mt-1 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
+                      {content}
                     </Link>
                   );
                 })}
@@ -388,21 +432,23 @@ function StatCard({
 
 function levelPill(level: PracticeLevel): string {
   switch (level) {
-    case 'A0': return 'border-slate-300 bg-slate-50 text-slate-700';
-    case 'A1': return 'border-sky-300 bg-sky-50 text-sky-700';
-    case 'A2': return 'border-teal-300 bg-teal-50 text-teal-700';
-    case 'B1': return 'border-violet-300 bg-violet-50 text-violet-700';
-    case 'B2': return 'border-rose-300 bg-rose-50 text-rose-700';
+    case 'A0':  return 'border-slate-300 bg-slate-50 text-slate-700';
+    case 'A1':  return 'border-sky-300 bg-sky-50 text-sky-700';
+    case 'A2':  return 'border-teal-300 bg-teal-50 text-teal-700';
+    case 'B1':  return 'border-violet-300 bg-violet-50 text-violet-700';
+    case 'B2':  return 'border-rose-300 bg-rose-50 text-rose-700';
+    case 'B2+': return 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700';
   }
 }
 
 function levelTitle(level: PracticeLevel): string {
   switch (level) {
-    case 'A0': return 'Starter — pre-A1';
-    case 'A1': return 'Beginner';
-    case 'A2': return 'Elementary';
-    case 'B1': return 'Intermediate';
-    case 'B2': return 'Upper-Intermediate';
+    case 'A0':  return 'Starter — pre-A1';
+    case 'A1':  return 'Beginner';
+    case 'A2':  return 'Elementary';
+    case 'B1':  return 'Intermediate';
+    case 'B2':  return 'Upper-Intermediate';
+    case 'B2+': return 'Advanced Intermediate';
   }
 }
 
