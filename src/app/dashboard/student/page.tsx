@@ -1,8 +1,8 @@
 // FriendlyTeaching.cl — Student Dashboard (full rebuild with real data)
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Clock, Mail, Tv, ClipboardList, Flame, BookOpen, Calendar, Repeat, Pin, TrendingUp } from 'lucide-react';
+import { Clock, Mail, Tv, ClipboardList, Flame, BookOpen, Calendar, TrendingUp, Video, Play, Lock } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentProgress } from '@/hooks/useProgress';
 import { useStudentHomework } from '@/hooks/useHomework';
@@ -202,33 +202,13 @@ export default function StudentDashboardPage() {
         <div className="glass-card rounded-2xl p-4 flex flex-col justify-between">
           <p className="text-xs font-bold text-[#9B7CB8] uppercase tracking-wider mb-2">Next class</p>
           {nextBooking ? (
-            <>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-[#5A3D7A]">
-                  {DAY_NAMES[nextBooking.dayOfWeek]}
-                </p>
-                <p className="text-lg font-extrabold text-[#5A3D7A]">
-                  {nextBooking.hour}:00 – {nextBooking.hour + 1}:00
-                </p>
-                {nextBooking.lessonId && (() => {
-                  const l = lessons.find(x => x.id === nextBooking.lessonId);
-                  return l ? (
-                    <p className="text-xs text-gray-500 mt-1 truncate inline-flex items-center gap-1"><BookOpen className="w-3 h-3" strokeWidth={2.25} /> {l.code} · {l.title}</p>
-                  ) : null;
-                })()}
-                <p className="text-[10px] text-gray-400 mt-1 inline-flex items-center gap-1">
-                  {nextBooking.isRecurring ? <><Repeat className="w-2.5 h-2.5" strokeWidth={2.25} /> Recurring</> : <><Pin className="w-2.5 h-2.5" strokeWidth={2.25} /> One-off class</>}
-                </p>
-              </div>
-              {nextBooking.lessonId && (
-                <Link
-                  href={`/classroom/${nextBooking.lessonId}`}
-                  className="mt-3 w-full text-center px-3 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
-                >
-                  Enter →
-                </Link>
-              )}
-            </>
+            <NextClassCardBody
+              booking={nextBooking}
+              lessonTitle={nextBooking.lessonId ? (() => {
+                const l = lessons.find(x => x.id === nextBooking.lessonId);
+                return l ? `${l.code} · ${l.title}` : null;
+              })() : null}
+            />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-2">
               <Calendar className="w-6 h-6 mb-1 text-[#9B7CB8]" strokeWidth={2.25} />
@@ -296,5 +276,116 @@ export default function StudentDashboardPage() {
       {/* Badge unlock toast */}
       <BadgeUnlockToast badgeIds={newBadges} onDismiss={dismissBadges} />
     </div>
+  );
+}
+
+// ─── Next Class card body ────────────────────────────────────
+//
+// Two actions: Join Meeting (Google Meet link, activates exactly 1
+// minute before class start, stays active for the hour of class) and
+// Join Lesson (open the classroom lesson). Replaces the old
+// Recurring / One-off label row.
+
+const MEET_URL = 'https://meet.google.com/rhq-agda-ajs';
+const MEET_EARLY_MS = 60_000;       // can join 1 min before start
+const MEET_LATE_MS  = 60 * 60_000;  // keep active for 1h after start
+
+function computeClassStart(booking: Booking): Date | null {
+  const ws = booking.weekStart?.toDate?.();
+  if (!ws) return null;
+  const d = new Date(ws);
+  // weekStart is Monday 00:00; dayOfWeek is 1 (Mon) .. 6 (Sat).
+  d.setDate(d.getDate() + (booking.dayOfWeek - 1));
+  d.setHours(booking.hour ?? 0, booking.minute ?? 0, 0, 0);
+  return d;
+}
+
+function NextClassCardBody({ booking, lessonTitle }: { booking: Booking; lessonTitle: string | null }) {
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    // Tick every 15s so the 1-minute gate flips to active without the
+    // student needing to refresh.
+    const id = window.setInterval(() => setNow(Date.now()), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const start = computeClassStart(booking);
+  const msUntilStart = start ? start.getTime() - now : Infinity;
+  const meetingActive = msUntilStart <= MEET_EARLY_MS && msUntilStart >= -MEET_LATE_MS;
+
+  // Friendly countdown for the hint row
+  const countdown = (() => {
+    if (!start)                   return null;
+    if (msUntilStart < -MEET_LATE_MS) return 'Clase finalizada';
+    if (meetingActive)            return 'Reunión disponible';
+    if (msUntilStart < 60 * 60_000) {
+      const mins = Math.max(0, Math.round(msUntilStart / 60_000));
+      return `Disponible en ${mins} min`;
+    }
+    const hrs = Math.floor(msUntilStart / 3_600_000);
+    if (hrs < 24) return `Disponible en ${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `Disponible en ${days}d`;
+  })();
+
+  return (
+    <>
+      <div className="flex-1">
+        <p className="text-sm font-bold text-[#5A3D7A]">
+          {DAY_NAMES[booking.dayOfWeek]}
+        </p>
+        <p className="text-lg font-extrabold text-[#5A3D7A]">
+          {booking.hour}:00 – {booking.hour + 1}:00
+        </p>
+        {lessonTitle && (
+          <p className="text-xs text-gray-500 mt-1 truncate inline-flex items-center gap-1">
+            <BookOpen className="w-3 h-3" strokeWidth={2.25} /> {lessonTitle}
+          </p>
+        )}
+        {countdown && (
+          <p className="text-[10px] text-gray-400 mt-1 inline-flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> {countdown}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-3 space-y-1.5">
+        <a
+          href={meetingActive ? MEET_URL : undefined}
+          target={meetingActive ? '_blank' : undefined}
+          rel="noopener noreferrer"
+          aria-disabled={!meetingActive}
+          onClick={(e) => { if (!meetingActive) e.preventDefault(); }}
+          title={meetingActive ? 'Abrir Google Meet' : 'Se activa 1 minuto antes de la clase'}
+          className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+            meetingActive
+              ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          {meetingActive ? (
+            <><Video className="w-3.5 h-3.5" strokeWidth={2.25} /> Join Meeting</>
+          ) : (
+            <><Lock className="w-3 h-3" strokeWidth={2.25} /> Join Meeting</>
+          )}
+        </a>
+
+        {booking.lessonId ? (
+          <Link
+            href={`/classroom/${booking.lessonId}`}
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-[#5A3D7A] to-[#8B5CF6] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
+          >
+            <Play className="w-3 h-3 fill-current" strokeWidth={2.25} /> Join Lesson
+          </Link>
+        ) : (
+          <span
+            title="El profe aún no asignó una lección para esta clase"
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-400 rounded-xl text-xs font-bold cursor-not-allowed"
+          >
+            <Play className="w-3 h-3 fill-current" strokeWidth={2.25} /> Join Lesson
+          </span>
+        )}
+      </div>
+    </>
   );
 }

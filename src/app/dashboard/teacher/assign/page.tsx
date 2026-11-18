@@ -8,17 +8,20 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen, Link2, FileText, Headphones, PenLine, Music, BookMarked,
-  Clapperboard, ArrowRight, Sparkles,
+  Clapperboard, ArrowRight, Sparkles, History, Inbox, ExternalLink,
 } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { useAuthStore } from '@/store/authStore';
 import AssignFromLibraryModal     from '@/components/teacher/AssignFromLibraryModal';
 import AssignExternalModal        from '@/components/teacher/AssignExternalModal';
 import UploadAndAssignHtmlModal   from '@/components/teacher/UploadAndAssignHtmlModal';
+import { useTeacherAssignments }  from '@/hooks/useStudentAssignments';
+import { useStudents }            from '@/hooks/useStudents';
+import type { StudentAssignment } from '@/types/firebase';
 
 type Modal = 'library' | 'external' | 'html' | null;
 
@@ -123,6 +126,9 @@ export default function AssignLessonPage() {
             </div>
           </section>
 
+          {/* ── Assignment history ─────────────────────── */}
+          <AssignmentHistory teacherId={teacherId} />
+
           {/* ── Footer hint ──────────────────────────────── */}
           <div className="bg-white/60 rounded-2xl border border-dashed border-[#E8D5F0] p-4 text-center">
             <p className="text-xs text-[#5A3D7A]/70">
@@ -196,5 +202,149 @@ function AssignCard({
         {cta} <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
       </p>
     </button>
+  );
+}
+
+// ─── Assignment history ──────────────────────────────────────
+
+function formatAssignedAgo(a: StudentAssignment): string {
+  const d = a.createdAt?.toDate?.();
+  if (!d) return '—';
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1)  return 'recién';
+  if (mins < 60) return `hace ${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `hace ${days}d`;
+  return d.toLocaleDateString('es-CL', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+
+function AssignmentHistory({ teacherId }: { teacherId: string }) {
+  const { assignments, loading } = useTeacherAssignments(teacherId);
+  const { students } = useStudents();
+  const [studentFilter, setStudentFilter] = useState<string>('all');
+
+  const nameByUid = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const s of students) m.set(s.uid, s.fullName);
+    return m;
+  }, [students]);
+
+  // Only show students that actually have an assignment, sorted by name.
+  const assignedStudentUids = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of assignments) set.add(a.studentId);
+    return [...set].sort((a, b) =>
+      (nameByUid.get(a) ?? a).localeCompare(nameByUid.get(b) ?? b),
+    );
+  }, [assignments, nameByUid]);
+
+  const filtered = useMemo(() => {
+    const pool = studentFilter === 'all'
+      ? assignments
+      : assignments.filter(a => a.studentId === studentFilter);
+    return [...pool].sort((a, b) =>
+      (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
+    );
+  }, [assignments, studentFilter]);
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#9B7CB8]">Historial</p>
+          <h2 className="font-bold text-[#5A3D7A] text-lg inline-flex items-center gap-1.5">
+            <History className="w-4 h-4 text-[#9B7CB8]" strokeWidth={2.25} />
+            Asignaciones recientes
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] font-semibold text-gray-500">Estudiante</label>
+          <select
+            value={studentFilter}
+            onChange={(e) => setStudentFilter(e.target.value)}
+            className="px-3 py-1.5 border border-[#E8D5F0] rounded-xl text-xs font-semibold text-[#5A3D7A] bg-white focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+          >
+            <option value="all">Todos ({assignments.length})</option>
+            {assignedStudentUids.map(uid => (
+              <option key={uid} value={uid}>
+                {nameByUid.get(uid) ?? uid}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <div className="w-6 h-6 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white/60 rounded-2xl border border-dashed border-[#E8D5F0] py-10 text-center">
+          <Inbox className="w-7 h-7 text-[#C8A8DC] mx-auto mb-2.5" strokeWidth={1.8} />
+          <p className="text-sm font-semibold text-[#5A3D7A]">
+            {studentFilter === 'all'
+              ? 'Todavía no asignaste material a nadie.'
+              : 'Este estudiante no tiene asignaciones aún.'}
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {filtered.map((a) => {
+            const isFT  = a.source === 'lesson';
+            const href  = isFT
+              ? (a.refId ? `/classroom/${a.refId}` : null)
+              : (a.externalUrl ?? null);
+            const SourceIcon = isFT ? BookOpen : Link2;
+            return (
+              <li key={a.id} className="bg-white rounded-xl border border-[#E8D5F0] p-3 hover:border-[#C8A8DC] transition-colors">
+                <div className="flex items-start gap-3">
+                  <span className={`w-9 h-9 rounded-lg flex-shrink-0 flex items-center justify-center ${isFT ? 'bg-[#F0E5FF] text-[#5A3D7A]' : 'bg-sky-100 text-sky-700'}`}>
+                    <SourceIcon className="w-4 h-4" strokeWidth={2.25} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#2D1B4E] truncate">{a.title}</p>
+                    <p className="text-[11px] text-gray-500 inline-flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <span className="font-semibold text-[#5A3D7A]">{nameByUid.get(a.studentId) ?? a.studentId}</span>
+                      <span>·</span>
+                      <span>{isFT ? 'FT Library' : 'Externo'}</span>
+                      {a.level && <><span>·</span><span>{a.level}</span></>}
+                      <span>·</span>
+                      <span>{formatAssignedAgo(a)}</span>
+                    </p>
+                    {a.notes && (
+                      <p className="text-[11px] text-gray-500 italic mt-1 line-clamp-2">“{a.notes}”</p>
+                    )}
+                  </div>
+                  {href && (
+                    isFT ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-[#5A3D7A] hover:underline inline-flex items-center gap-0.5 flex-shrink-0"
+                      >
+                        Abrir <ExternalLink className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      </a>
+                    ) : (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-sky-700 hover:underline inline-flex items-center gap-0.5 flex-shrink-0"
+                      >
+                        Link <ExternalLink className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      </a>
+                    )
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
