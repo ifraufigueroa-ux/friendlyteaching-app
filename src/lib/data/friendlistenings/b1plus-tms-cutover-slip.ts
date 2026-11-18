@@ -358,7 +358,7 @@ export const lessonB1PlusTmsCutoverSlip: FLLesson = {
         {
           id:       'c4',
           chunk:    'to walk (something) back to (someone)',
-          category: 'phrase',
+          category: 'phrasal-verb',
           gloss:    'Llevar algo de vuelta / presentar algo cara a cara al stakeholder',
           example:  '"We can walk it back to them with a roadmap."',
           notice:   'Always "walk X back to Y" — Y is the person upstream (warehouse ops, CEO, CFO). Signals an owned, face-to-face handover of information, not a cold email.',
