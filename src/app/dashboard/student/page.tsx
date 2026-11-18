@@ -12,6 +12,8 @@ import { useStudentAssignments } from '@/hooks/useStudentAssignments';
 import { useStudentMovieLessons } from '@/hooks/useMovieLessons';
 import { useStudentMusicLessons } from '@/hooks/useMusicLessons';
 import { useStudentTextLessons } from '@/hooks/useTextLessons';
+import { useStudentListeningAssignments } from '@/hooks/useFriendlisteningAssignments';
+import { useStudentWritingAssignments } from '@/hooks/useFriendlywritingAssignments';
 import { useStudentActiveSessions } from '@/hooks/useLiveSession';
 import { useSkillAssessments } from '@/hooks/useSkillAssessments';
 import { useLevelHistory } from '@/hooks/useLevelHistory';
@@ -63,6 +65,8 @@ export default function StudentDashboardPage() {
   const { lessons: myMovieLessons }    = useStudentMovieLessons(uid);
   const { lessons: myMusicLessons }    = useStudentMusicLessons(teacherUid, uid);
   const { lessons: myTextLessons }     = useStudentTextLessons(uid);
+  const { assignments: myListeningAssignments } = useStudentListeningAssignments(uid);
+  const { assignments: myWritingAssignments }   = useStudentWritingAssignments(uid);
   // Skill gap analysis + level history — uses teacher UID as second param
   const { averageScores: skillScores } = useSkillAssessments(uid, teacherUid);
   const { history: levelHistory } = useLevelHistory(uid, teacherUid);
@@ -76,7 +80,22 @@ export default function StudentDashboardPage() {
   const isPending = profile?.status === 'pending';
   const firstName = profile?.fullName?.split(' ')[0] ?? 'Student';
 
-  const completedLessons = new Set(progress.filter(p => p.status === 'completed').map(p => p.lessonId)).size;
+  // Completed lessons — union across every surface that can mark
+  // a lesson done, deduplicated per FT lesson id so an assignment and
+  // a progress record pointing at the same lesson don't double-count.
+  // Previous build only read `progress`, so lessons marked completed
+  // via the assignment status (common for listenings/writings and for
+  // FT-library assignments without classroom progress) read as zero.
+  const completedFTLessonIds = new Set<string>();
+  for (const p of progress) if (p.status === 'completed') completedFTLessonIds.add(p.lessonId);
+  for (const a of myAssignments) {
+    if (a.source === 'lesson' && a.status === 'completed' && a.refId) completedFTLessonIds.add(a.refId);
+  }
+  const completedExternal   = myAssignments.filter(a => a.source !== 'lesson' && a.status === 'completed').length;
+  const completedListenings = myListeningAssignments.filter(a => a.status === 'completed').length;
+  const completedWritings   = myWritingAssignments.filter(a => a.status === 'completed').length;
+  const completedLessons = completedFTLessonIds.size + completedExternal + completedListenings + completedWritings;
+
   const pendingHomework = homework.filter(h => h.status === 'assigned' || h.status === 'pending').length;
 
   const myBookings = bookings.filter(b => b.studentId === uid || b.studentEmail === profile?.email);
@@ -84,11 +103,15 @@ export default function StudentDashboardPage() {
     .filter(b => b.status === 'confirmed' || b.status === 'pending')
     .sort((a: Booking, b: Booking) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour)[0] as Booking | undefined;
 
-  // Total de material efectivamente asignado — reemplaza al conteo
-  // anterior que mostraba TODAS las lecciones publicadas hasta el nivel
-  // del estudiante (que no era una asignación real).
+  // Total de material efectivamente asignado — mismo conjunto de fuentes
+  // que /dashboard/student/lessons, para que ambos contadores coincidan.
   const totalAssignedLessons =
-    myAssignments.length + myMovieLessons.length + myMusicLessons.length + myTextLessons.length;
+    myAssignments.length
+    + myMovieLessons.length
+    + myMusicLessons.length
+    + myTextLessons.length
+    + myListeningAssignments.length
+    + myWritingAssignments.length;
 
   if (isPending) {
     return (
