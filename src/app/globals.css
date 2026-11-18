@@ -786,6 +786,23 @@ a.ff-glass-card:hover {
   font-family: var(--font-fredoka), 'Fredoka', 'Inter', sans-serif;
 }
 
+/* Fraunces family — the editorial serif already loaded platform-wide.
+   Bind it to a utility so descriptive copy (hero taglines, curriculum
+   subtitles, card blurbs on gradient banners) can lean on its SOFT
+   axis instead of defaulting to flat Inter 400, which reads as a Word
+   document on richly coloured surfaces. */
+.font-editorial {
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-feature-settings: 'ss01' on, 'ss02' on;
+  letter-spacing: -0.005em;
+}
+.font-editorial-italic {
+  font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-feature-settings: 'ss01' on;
+  letter-spacing: -0.005em;
+}
+
 /* Game-card: flat, playful card with a side-dropped shadow that
    lifts on hover. Mirrors the Duolingo "chip" feel but applied to a
    full card. Use with rounded-2xl/3xl. */

@@ -771,10 +771,10 @@ function SetupScreen({
             <span>{simulation.icon}</span>
             <span>{t('brand.tag')}</span>
           </p>
-          <h1 className="text-3xl font-extrabold text-white mb-1">
+          <h1 className="text-3xl font-extrabold text-white mb-1.5 tracking-tight">
             {(lang === 'en' && simulation.titleEn) ? simulation.titleEn : simulation.title}
           </h1>
-          <p className="text-white/60 text-sm mb-4">
+          <p className="font-editorial text-white/75 text-[15px] leading-relaxed max-w-2xl mb-4">
             {(lang === 'en' && simulation.descriptionEn) ? simulation.descriptionEn : simulation.description}
           </p>
 

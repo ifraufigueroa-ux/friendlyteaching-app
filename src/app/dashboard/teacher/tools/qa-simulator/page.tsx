@@ -21,8 +21,8 @@ export default function QASimulatorIndexPage() {
             ← Herramientas
           </Link>
           <p className="text-[#C8A8DC] text-xs font-bold uppercase tracking-widest mb-1">🎯 Q&A Simulator</p>
-          <h1 className="text-3xl font-extrabold text-white mb-1">Biblioteca de simulaciones</h1>
-          <p className="text-white/60 text-sm">Elige una simulación para practicar preguntas tipo foro internacional.</p>
+          <h1 className="text-3xl font-extrabold text-white mb-1.5 tracking-tight">Biblioteca de simulaciones</h1>
+          <p className="font-editorial text-white/75 text-[15px] leading-relaxed max-w-xl">Elige una simulación para practicar preguntas tipo foro internacional.</p>
         </div>
       </div>
 
@@ -58,7 +58,7 @@ export default function QASimulatorIndexPage() {
                     {sim.studentName && (
                       <p className="text-[11px] font-semibold text-[#9B7CB8] mb-1.5">para {sim.studentName}</p>
                     )}
-                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{sim.description}</p>
+                    <p className="font-editorial text-[13px] text-gray-500 leading-relaxed line-clamp-3">{sim.description}</p>
                   </div>
 
                   {/* Category chips */}
