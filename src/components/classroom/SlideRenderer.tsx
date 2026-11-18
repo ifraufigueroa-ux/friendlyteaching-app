@@ -61,10 +61,14 @@ interface Props {
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void;
   youtubeUrl?: string;
   brand?: LessonBrand;
+  /** Needed so HtmlContentSlide can persist student input into
+   *  htmlLessonResponses. Pass from the viewer / runner. */
+  lessonId?: string;
+  teacherId?: string;
 }
 
-export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand }: Props) {
-  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand);
+export default function SlideRenderer({ slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand, lessonId, teacherId }: Props) {
+  const slideContent = renderSlide(slide, courseTitle, isTeacher, slideIndex, onAnswer, youtubeUrl, brand, lessonId, teacherId);
 
   // Wrap with audio player if the slide has an audioUrl
   if (slide.audioUrl) {
@@ -89,6 +93,8 @@ function renderSlide(
   onAnswer?: (slideIndex: number, isCorrect: boolean) => void,
   youtubeUrl?: string,
   brand?: LessonBrand,
+  lessonId?: string,
+  teacherId?: string,
 ) {
   switch (slide.type) {
     case 'cover':
@@ -183,7 +189,7 @@ function renderSlide(
       return <FriendlytextEndSlide slide={slide} />;
     // ─── Free-form HTML canvas ───────────────────────────────────
     case 'html_content':
-      return <HtmlContentSlide slide={slide} isTeacher={isTeacher} />;
+      return <HtmlContentSlide slide={slide} isTeacher={isTeacher} lessonId={lessonId} teacherId={teacherId} />;
     default:
       return (
         <div className="flex items-center justify-center h-full text-gray-400">

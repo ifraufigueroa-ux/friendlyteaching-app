@@ -404,6 +404,8 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
                     isTeacher={isTeacher}
                     slideIndex={currentIndex}
                     onAnswer={isTeacher ? undefined : handleAnswer}
+                    lessonId={lesson?.id}
+                    teacherId={lesson?.teacherId}
                   />
                 </SlideErrorBoundary>
               )}

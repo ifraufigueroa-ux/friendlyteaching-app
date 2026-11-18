@@ -803,6 +803,30 @@ export interface FriendlisteningAssignment {
   bookingId?: string;       // optional tie-in to a specific class
 }
 
+// ─── HTML lesson responses ───────────────────────────────────
+//
+// For lessons with source==='html' / 'html-hosted' that contain
+// form-like inputs (text boxes, textareas, radios, checkboxes,
+// selects), the student's values are auto-saved to this collection
+// — one doc per student per lesson, upserted on change. The HTML
+// slide renderer handles wiring; nothing in the uploaded HTML needs
+// to change for this to work.
+//
+// `answers` keys are derived from each input's name|id|data-key,
+// falling back to a stable position-based key so inputs without
+// explicit identifiers still get captured.
+
+export interface HtmlLessonResponse {
+  id:         string;             // doc id — composite ${lessonId}_${studentId}
+  lessonId:   string;
+  studentId:  string;
+  teacherId?: string;              // owner of the lesson, denormalised for teacher list queries
+  answers:    Record<string, string>; // field key → stringified value
+  startedAt:  Timestamp;
+  updatedAt:  Timestamp;
+  submittedAt?: Timestamp;         // optional — only set when the student explicitly "turns it in"
+}
+
 export interface FriendlywritingAssignment {
   id: string;
   studentId: string;
