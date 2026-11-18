@@ -468,8 +468,9 @@ service cloud.firestore {
     // the whole collection (narrowed by teacherId in queries) and read
     // any doc that belongs to one of their lessons.
     match /htmlLessonResponses/{responseId} {
-      allow list:   if isTeacher() ||
-                      (request.auth != null && request.auth.uid != null);
+      // Only teachers can enumerate the collection; students don't need
+      // list access — their own doc is addressed by composite id.
+      allow list:   if isTeacher();
       allow get:    if isTeacher() ||
                       (request.auth != null && resource.data.studentId == request.auth.uid);
       allow create: if request.auth != null

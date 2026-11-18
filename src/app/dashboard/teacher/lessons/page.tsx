@@ -20,6 +20,7 @@ import {
   Palette,
   Search,
   Sparkles,
+  Users,
 } from 'lucide-react';
 import { useLessons, useCourses, toggleLessonPublished, deleteLesson, duplicateLesson, createLesson, createLessonFromAI, createCourse, updateCourse, uploadCourseCover, deleteCourse, reorderCourses } from '@/hooks/useLessons';
 import { useAuthStore } from '@/store/authStore';
@@ -28,6 +29,7 @@ import TopBar from '@/components/layout/TopBar';
 import CreateFromPresentationModal from '@/components/teacher/CreateFromPresentationModal';
 import UploadHtmlLessonModal from '@/components/teacher/UploadHtmlLessonModal';
 import UploadAndAssignHtmlModal from '@/components/teacher/UploadAndAssignHtmlModal';
+import HtmlLessonResponsesModal from '@/components/teacher/HtmlLessonResponsesModal';
 import AILessonWizard from '@/components/editor/AILessonWizard';
 import type { AILessonResponse } from '@/app/api/ai-lesson/route';
 import type { Lesson, LessonLevel, Slide, Course } from '@/types/firebase';
@@ -247,6 +249,8 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
   const [duplicating, setDuplicating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showResponses, setShowResponses] = useState(false);
+  const isHtmlLesson = lesson.source === 'html' || lesson.source === 'html-hosted';
 
   async function handleDuplicate() {
     setDuplicating(true);
@@ -342,6 +346,16 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           <Eye className="w-3.5 h-3.5" strokeWidth={2.5} /> Vista previa del estudiante
         </Link>
 
+        {isHtmlLesson && (
+          <button
+            onClick={() => setShowResponses(true)}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold mb-2 bg-[#F0E5FF] text-[#5A3D7A] border border-[#D0B8E8] hover:bg-[#E5D3F0] transition-colors"
+            title="Revisar lo que los alumnos escribieron en los inputs del HTML"
+          >
+            <Users className="w-3.5 h-3.5" strokeWidth={2.5} /> Ver respuestas de alumnos
+          </button>
+        )}
+
         <div className="flex gap-2">
           <Link
             href={`/classroom/${lesson.id}`}
@@ -383,6 +397,14 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           </button>
         )}
       </div>
+
+      {showResponses && (
+        <HtmlLessonResponsesModal
+          lessonId={lesson.id}
+          lessonTitle={lesson.title}
+          onClose={() => setShowResponses(false)}
+        />
+      )}
     </div>
   );
 }

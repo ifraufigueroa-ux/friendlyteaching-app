@@ -55,6 +55,46 @@ export function useHtmlLessonResponse(studentId: string, lessonId: string) {
   return { response, loading };
 }
 
+/** Teacher-side: subscribe to every response for one specific lesson.
+ *  Used by the "Ver respuestas" modal — narrower than the catch-all hook
+ *  so we don't ship the whole backlog over the wire. */
+export function useLessonHtmlResponses(lessonId: string) {
+  const [responses, setResponses] = useState<HtmlLessonResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!lessonId) { setLoading(false); return; }
+    const q = query(
+      collection(db, 'htmlLessonResponses'),
+      where('lessonId', '==', lessonId),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap: QuerySnapshot<DocumentData>) => {
+        const rows = snap.docs.map(
+          (d: QueryDocumentSnapshot<DocumentData>) =>
+            ({ id: d.id, ...(d.data() as Omit<HtmlLessonResponse, 'id'>) }),
+        );
+        // Sort client-side by updatedAt desc — avoids needing a composite index.
+        rows.sort((a, b) => {
+          const am = a.updatedAt?.toMillis?.() ?? 0;
+          const bm = b.updatedAt?.toMillis?.() ?? 0;
+          return bm - am;
+        });
+        setResponses(rows);
+        setLoading(false);
+      },
+      (err: FirestoreError) => {
+        console.warn('[useLessonHtmlResponses]', err.message);
+        setLoading(false);
+      },
+    );
+    return unsub;
+  }, [lessonId]);
+
+  return { responses, loading };
+}
+
 /** Teacher-side: list every HTML response for this teacher's lessons. */
 export function useTeacherHtmlLessonResponses(teacherId: string) {
   const [responses, setResponses] = useState<HtmlLessonResponse[]>([]);
