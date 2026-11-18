@@ -20,14 +20,19 @@ import {
   AlertTriangle,
   CheckCircle2,
   FileText,
+  Inbox,
+  Link2,
+  Package,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 import { useSkillAssessments } from '@/hooks/useSkillAssessments';
 import { useLevelHistory } from '@/hooks/useLevelHistory';
 import { useExportReport } from '@/hooks/useExportReport';
+import { useStudentAssignments } from '@/hooks/useStudentAssignments';
 import { SkillRadarChart } from './SkillRadarChart';
 import { LevelTimeline } from './LevelTimeline';
-import type { FTUser, SkillScores } from '@/types/firebase';
+import type { FTUser, SkillScores, StudentAssignment } from '@/types/firebase';
 import type { ProgressReportData } from '@/app/api/export-report/route';
 
 const SKILL_KEYS: (keyof SkillScores)[] = [
@@ -280,7 +285,8 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
   );
   const { history: levelHistory, loading: levelLoading } = useLevelHistory(student.uid, teacherId);
   const { exportReport, loading: exporting, error: exportError } = useExportReport();
-  const [view, setView] = useState<'chart' | 'history' | 'level' | 'new'>('chart');
+  const { assignments: studentAssignments, loading: assignmentsLoading } = useStudentAssignments(student.uid);
+  const [view, setView] = useState<'chart' | 'history' | 'level' | 'material' | 'new'>('chart');
 
   function handleExportProgress() {
     const now = new Date();
@@ -349,10 +355,11 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
         {/* Tab bar */}
         <div className="flex border-b border-gray-100 flex-shrink-0">
           {([
-            ['chart',   BarChart3,      'Análisis'],
-            ['history', ClipboardList,  'Historial'],
-            ['level',   TrendingUp,     'Nivel'],
-            ['new',     Plus,           'Evaluar'],
+            ['chart',    BarChart3,      'Análisis'],
+            ['history',  ClipboardList,  'Historial'],
+            ['level',    TrendingUp,     'Nivel'],
+            ['material', Package,        'Material'],
+            ['new',      Plus,           'Evaluar'],
           ] as const).map(([tab, Icon, label]) => (
             <button
               key={tab}
@@ -499,6 +506,14 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
             />
           )}
 
+          {/* ── Assigned material view ── */}
+          {view === 'material' && (
+            <AssignedMaterialList
+              assignments={studentAssignments}
+              loading={assignmentsLoading}
+            />
+          )}
+
           {/* ── New assessment view ── */}
           {view === 'new' && (
             <AssessmentForm
@@ -512,5 +527,121 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Assigned material list ───────────────────────────────────────────────────
+
+function formatAssignedAgo(a: StudentAssignment): string {
+  const ts = a.createdAt;
+  const d = ts?.toDate?.();
+  if (!d) return '—';
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1)  return 'recién';
+  if (mins < 60) return `hace ${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `hace ${days}d`;
+  return d.toLocaleDateString('es-CL', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+
+function statusChip(a: StudentAssignment): { label: string; className: string } {
+  const s = a.status ?? 'assigned';
+  if (s === 'completed') return { label: 'Completado',   className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+  if (s === 'in_progress') return { label: 'En curso',    className: 'bg-amber-50 text-amber-700 border-amber-200' };
+  return                        { label: 'Asignado',     className: 'bg-[#F0E5FF] text-[#5A3D7A] border-[#D0B8E8]' };
+}
+
+function AssignedMaterialList({
+  assignments, loading,
+}: {
+  assignments: StudentAssignment[];
+  loading:     boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-6 h-6 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (assignments.length === 0) {
+    return (
+      <div className="bg-[#FAFAFF] border border-[#F0E5FF] rounded-2xl py-10 text-center">
+        <Inbox className="w-7 h-7 text-[#C8A8DC] mx-auto mb-2.5" strokeWidth={1.8} />
+        <p className="text-sm font-semibold text-[#5A3D7A]">Nada asignado todavía.</p>
+        <p className="text-xs text-gray-400 mt-1">Asigná una lección desde la pestaña <span className="font-semibold">Assign Lesson</span> del sidebar o desde las class notes.</p>
+      </div>
+    );
+  }
+
+  const sorted = [...assignments].sort((a, b) => {
+    const am = a.createdAt?.toMillis?.() ?? 0;
+    const bm = b.createdAt?.toMillis?.() ?? 0;
+    return bm - am;
+  });
+
+  return (
+    <ul className="space-y-2">
+      {sorted.map((a) => {
+        const chip  = statusChip(a);
+        const isFT  = a.source === 'lesson';
+        const href  = isFT
+          ? (a.refId ? `/classroom/${a.refId}` : null)
+          : (a.externalUrl ?? null);
+        const SourceIcon = isFT ? BookOpen : Link2;
+        const sourceLabel = isFT ? 'FT Library' : 'Externo';
+
+        return (
+          <li key={a.id} className="border border-[#E8D5F0] rounded-xl p-3 hover:bg-[#FAFAFF] transition-colors">
+            <div className="flex items-start gap-3">
+              <span className={`w-9 h-9 rounded-lg flex-shrink-0 flex items-center justify-center ${isFT ? 'bg-[#F0E5FF] text-[#5A3D7A]' : 'bg-sky-100 text-sky-700'}`}>
+                <SourceIcon className="w-4 h-4" strokeWidth={2.25} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#2D1B4E] truncate">{a.title}</p>
+                <p className="text-[11px] text-gray-500 inline-flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <span className="font-semibold text-[#9B7CB8]">{sourceLabel}</span>
+                  {a.level && <><span>·</span><span>{a.level}</span></>}
+                  <span>·</span>
+                  <span>Asignado {formatAssignedAgo(a)}</span>
+                </p>
+                {a.notes && (
+                  <p className="text-[11px] text-gray-500 italic mt-1 line-clamp-2">“{a.notes}”</p>
+                )}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${chip.className}`}>
+                    {chip.label}
+                  </span>
+                  {href && (
+                    isFT ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-semibold text-[#5A3D7A] hover:underline inline-flex items-center gap-0.5"
+                      >
+                        Abrir en classroom <ExternalLink className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      </a>
+                    ) : (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-semibold text-sky-700 hover:underline inline-flex items-center gap-0.5 truncate max-w-[180px]"
+                      >
+                        Abrir link <ExternalLink className="w-2.5 h-2.5" strokeWidth={2.5} />
+                      </a>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -2,7 +2,7 @@
 // FriendlyTeaching.cl — Class Notes Modal
 // Guided post-class notes template. Called after recording a class session.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Sparkles,
   Smile,
@@ -16,9 +16,18 @@ import {
   ClipboardList,
   Target,
   Save,
+  UserPlus,
+  Link2,
   type LucideIcon,
 } from 'lucide-react';
 import type { ClassNotes, ClassMood } from '@/hooks/useClassHistory';
+import { useAuthStore } from '@/store/authStore';
+import { useStudents } from '@/hooks/useStudents';
+import AssignFromLibraryModal from '@/components/teacher/AssignFromLibraryModal';
+import AssignExternalModal from '@/components/teacher/AssignExternalModal';
+import UploadAndAssignHtmlModal from '@/components/teacher/UploadAndAssignHtmlModal';
+
+type AssignKind = 'library' | 'html' | 'external' | null;
 
 const MOOD_OPTIONS: { value: ClassMood; label: string; Icon: LucideIcon; color: string }[] = [
   { value: 'great', label: 'Great', Icon: Sparkles, color: 'border-green-400 bg-green-50 text-green-700' },
@@ -44,6 +53,33 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
   const [mood, setMood] = useState<ClassMood | null>(null);
   const [attendance, setAttendance] = useState<AttendanceValue | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Resolve the student uid by display name — the pendingClassNotes
+  // trigger only passes the name through, and refactoring all call
+  // sites to also carry the uid is more surface area than it's
+  // worth. When we can't find a match (empty students list before
+  // load, or an unusual name), we just hide the "Assign Lesson"
+  // affordance rather than guessing.
+  const { firebaseUser } = useAuthStore();
+  const teacherId = firebaseUser?.uid ?? '';
+  const { students } = useStudents();
+  const matchedStudent = useMemo(
+    () => students.find(s => s.fullName === studentName),
+    [students, studentName],
+  );
+  const [assignMenuOpen, setAssignMenuOpen] = useState(false);
+  const [assignKind, setAssignKind] = useState<AssignKind>(null);
+  const [assignToast, setAssignToast] = useState<string | null>(null);
+
+  function openAssign(kind: AssignKind) {
+    setAssignKind(kind);
+    setAssignMenuOpen(false);
+  }
+
+  function handleAssignSaved(label: string) {
+    setAssignToast(label);
+    window.setTimeout(() => setAssignToast(null), 3500);
+  }
 
   const canProceed = !requireAttendance || attendance !== null;
 
@@ -190,6 +226,55 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
             />
           </div>
 
+          {/* Assign a lesson to this student */}
+          {matchedStudent && teacherId && (
+            <div className="relative">
+              <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
+                <UserPlus className="w-3.5 h-3.5" strokeWidth={2.5} /> Assign a lesson (optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => setAssignMenuOpen(v => !v)}
+                className="w-full py-2.5 border border-[#C8A8DC] text-[#5A3D7A] rounded-xl text-sm font-semibold hover:bg-[#F0E5FF] transition-colors inline-flex items-center justify-center gap-1.5"
+              >
+                <UserPlus className="w-4 h-4" strokeWidth={2.25} /> Asignar material a {matchedStudent.fullName.split(' ')[0]}
+              </button>
+              {assignMenuOpen && (
+                <div className="mt-2 border border-[#E8D5F0] rounded-xl bg-white shadow-md overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => openAssign('library')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm text-[#2D1B4E] hover:bg-[#F0E5FF]/60 transition-colors"
+                  >
+                    <BookOpen className="w-4 h-4 text-[#5A3D7A]" strokeWidth={2.25} />
+                    <span className="flex-1">Desde la Librería FT</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openAssign('html')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm text-[#2D1B4E] hover:bg-[#F0E5FF]/60 transition-colors border-t border-[#F0E5FF]"
+                  >
+                    <FileText className="w-4 h-4 text-emerald-600" strokeWidth={2.25} />
+                    <span className="flex-1">Subir un HTML</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openAssign('external')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm text-[#2D1B4E] hover:bg-[#F0E5FF]/60 transition-colors border-t border-[#F0E5FF]"
+                  >
+                    <Link2 className="w-4 h-4 text-sky-700" strokeWidth={2.25} />
+                    <span className="flex-1">Link externo (Ellii, Off2Class…)</span>
+                  </button>
+                </div>
+              )}
+              {assignToast && (
+                <p className="mt-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                  {assignToast}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Next class */}
           <div>
             <label className="text-xs font-bold text-[#5A3D7A] uppercase tracking-wider block mb-1.5 inline-flex items-center gap-1.5">
@@ -223,6 +308,41 @@ export function ClassNotesModal({ studentName, requireAttendance, onSave, onSkip
           </button>
         </div>
       </div>
+
+      {/* Scoped assign modals — opened from the "Assign a lesson" row */}
+      {assignKind === 'library' && matchedStudent && teacherId && (
+        <AssignFromLibraryModal
+          teacherId={teacherId}
+          lockedStudentId={matchedStudent.uid}
+          lockedStudentName={matchedStudent.fullName}
+          onClose={() => setAssignKind(null)}
+          onSaved={({ assignedCount }) =>
+            handleAssignSaved(`Lección asignada a ${matchedStudent.fullName.split(' ')[0]}${assignedCount ? '' : ' (0 escrituras)'}.`)
+          }
+        />
+      )}
+      {assignKind === 'html' && matchedStudent && teacherId && (
+        <UploadAndAssignHtmlModal
+          teacherId={teacherId}
+          lockedStudentId={matchedStudent.uid}
+          lockedStudentName={matchedStudent.fullName}
+          onClose={() => setAssignKind(null)}
+          onSaved={({ assignedCount }) =>
+            handleAssignSaved(`HTML asignado a ${matchedStudent.fullName.split(' ')[0]}${assignedCount ? '' : ' (0 escrituras)'}.`)
+          }
+        />
+      )}
+      {assignKind === 'external' && matchedStudent && teacherId && (
+        <AssignExternalModal
+          teacherId={teacherId}
+          lockedStudentId={matchedStudent.uid}
+          lockedStudentName={matchedStudent.fullName}
+          onClose={() => setAssignKind(null)}
+          onSaved={({ assignedCount }) =>
+            handleAssignSaved(`Link asignado a ${matchedStudent.fullName.split(' ')[0]}${assignedCount ? '' : ' (0 escrituras)'}.`)
+          }
+        />
+      )}
     </div>
   );
 }

@@ -25,6 +25,8 @@ interface Props {
   teacherId: string;
   onClose: () => void;
   onSaved?: (summary: { lessonId: string; assignedCount: number }) => void;
+  lockedStudentId?:   string;
+  lockedStudentName?: string;
 }
 
 function extractTitleFromHtml(html: string): string | null {
@@ -46,14 +48,16 @@ function generateAutoCode(): string {
   return `HTM-${rand}`;
 }
 
-export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved }: Props) {
+export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved, lockedStudentId, lockedStudentName }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [html, setHtml] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [code, setCode] = useState('');
   const [level, setLevel] = useState<LessonLevel>('A1');
-  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [picked, setPicked] = useState<Set<string>>(
+    () => lockedStudentId ? new Set([lockedStudentId]) : new Set(),
+  );
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState('');
@@ -276,6 +280,15 @@ export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved }
 
           {/* ── Step 3 · Student picker ─────────────────────────── */}
           <section className="space-y-2">
+            {lockedStudentId ? (
+              <>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">3 · Asignar a estudiante</p>
+                <div className="rounded-xl border border-[#E8D5F0] bg-[#F0E5FF]/50 px-3 py-2 text-sm font-semibold text-[#5A3D7A]">
+                  {lockedStudentName ?? lockedStudentId}
+                </div>
+              </>
+            ) : (
+            <>
             <div className="flex items-end justify-between gap-2">
               <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">
                 3 · Asignar a estudiantes
@@ -331,6 +344,8 @@ export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved }
                 ))
               )}
             </div>
+            </>
+            )}
           </section>
 
           {/* ── Footer ─────────────────────────────────────────── */}

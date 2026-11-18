@@ -30,6 +30,7 @@ import CreateFromPresentationModal from '@/components/teacher/CreateFromPresenta
 import UploadHtmlLessonModal from '@/components/teacher/UploadHtmlLessonModal';
 import UploadAndAssignHtmlModal from '@/components/teacher/UploadAndAssignHtmlModal';
 import HtmlLessonResponsesModal from '@/components/teacher/HtmlLessonResponsesModal';
+import LessonAssigneesModal from '@/components/teacher/LessonAssigneesModal';
 import AILessonWizard from '@/components/editor/AILessonWizard';
 import type { AILessonResponse } from '@/app/api/ai-lesson/route';
 import type { Lesson, LessonLevel, Slide, Course } from '@/types/firebase';
@@ -250,6 +251,7 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
+  const [showAssignees, setShowAssignees] = useState(false);
   const isHtmlLesson = lesson.source === 'html' || lesson.source === 'html-hosted';
 
   async function handleDuplicate() {
@@ -346,6 +348,14 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           <Eye className="w-3.5 h-3.5" strokeWidth={2.5} /> Vista previa del estudiante
         </Link>
 
+        <button
+          onClick={() => setShowAssignees(true)}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold mb-2 bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors"
+          title="Ver qué estudiantes tienen esta lección asignada y en qué estado"
+        >
+          <Users className="w-3.5 h-3.5" strokeWidth={2.5} /> Asignada a…
+        </button>
+
         {isHtmlLesson && (
           <button
             onClick={() => setShowResponses(true)}
@@ -403,6 +413,15 @@ function LessonCard({ lesson, teacherId, onRefresh }: { lesson: Lesson; teacherI
           lessonId={lesson.id}
           lessonTitle={lesson.title}
           onClose={() => setShowResponses(false)}
+        />
+      )}
+
+      {showAssignees && (
+        <LessonAssigneesModal
+          lessonId={lesson.id}
+          lessonTitle={lesson.title}
+          teacherId={teacherId}
+          onClose={() => setShowAssignees(false)}
         />
       )}
     </div>

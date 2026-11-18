@@ -20,6 +20,8 @@ interface Props {
   teacherId: string;
   onClose:   () => void;
   onSaved?:  (summary: { assignedCount: number }) => void;
+  lockedStudentId?:   string;
+  lockedStudentName?: string;
 }
 
 function normaliseUrl(input: string): string | null {
@@ -29,12 +31,14 @@ function normaliseUrl(input: string): string | null {
   return `https://${trimmed}`;
 }
 
-export default function AssignExternalModal({ teacherId, onClose, onSaved }: Props) {
+export default function AssignExternalModal({ teacherId, onClose, onSaved, lockedStudentId, lockedStudentName }: Props) {
   const [url, setUrl]       = useState('');
   const [title, setTitle]   = useState('');
   const [level, setLevel]   = useState<LessonLevel>('B1');
   const [notes, setNotes]   = useState('');
-  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [picked, setPicked] = useState<Set<string>>(
+    () => lockedStudentId ? new Set([lockedStudentId]) : new Set(),
+  );
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState('');
@@ -168,52 +172,63 @@ export default function AssignExternalModal({ teacherId, onClose, onSaved }: Pro
 
           {/* ── 2 · Students ──────────────────────────────── */}
           <section className="space-y-2">
-            <div className="flex items-end justify-between gap-2">
-              <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">
-                2 · Estudiantes
-                <span className="ml-2 text-[11px] font-bold text-[#9B7CB8] normal-case tracking-normal">
-                  · {picked.size} seleccionado{picked.size === 1 ? '' : 's'}
-                </span>
-              </p>
-              <div className="flex gap-2 text-[10px] font-bold">
-                <button type="button" onClick={() => setPicked(new Set(filtered.map(s => s.uid)))} className="text-[#5A3D7A] hover:underline">
-                  Seleccionar visibles
-                </button>
-                <span className="text-gray-300">·</span>
-                <button type="button" onClick={() => setPicked(new Set())} className="text-gray-500 hover:underline">
-                  Limpiar
-                </button>
-              </div>
-            </div>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar estudiante…"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
-            />
-            <div className="max-h-56 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
-              {filtered.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-8">Ningún estudiante activo.</p>
-              ) : (
-                filtered.map(s => (
-                  <label key={s.uid} className="flex items-center gap-3 px-3 py-2 hover:bg-[#F0E5FF]/40 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={picked.has(s.uid)}
-                      onChange={() => toggle(s.uid)}
-                      className="accent-[#5A3D7A] w-4 h-4"
-                    />
-                    <span className="text-sm text-gray-700 flex-1 truncate">{s.fullName}</span>
-                    {s.studentData?.level && (
-                      <span className="text-[10px] font-bold text-[#5A3D7A] bg-[#F0E5FF] px-2 py-0.5 rounded-full">
-                        {s.studentData.level}
-                      </span>
-                    )}
-                  </label>
-                ))
-              )}
-            </div>
+            {lockedStudentId ? (
+              <>
+                <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">2 · Estudiante</p>
+                <div className="rounded-xl border border-[#E8D5F0] bg-[#F0E5FF]/50 px-3 py-2 text-sm font-semibold text-[#5A3D7A]">
+                  {lockedStudentName ?? lockedStudentId}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-end justify-between gap-2">
+                  <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">
+                    2 · Estudiantes
+                    <span className="ml-2 text-[11px] font-bold text-[#9B7CB8] normal-case tracking-normal">
+                      · {picked.size} seleccionado{picked.size === 1 ? '' : 's'}
+                    </span>
+                  </p>
+                  <div className="flex gap-2 text-[10px] font-bold">
+                    <button type="button" onClick={() => setPicked(new Set(filtered.map(s => s.uid)))} className="text-[#5A3D7A] hover:underline">
+                      Seleccionar visibles
+                    </button>
+                    <span className="text-gray-300">·</span>
+                    <button type="button" onClick={() => setPicked(new Set())} className="text-gray-500 hover:underline">
+                      Limpiar
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar estudiante…"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+                />
+                <div className="max-h-56 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
+                  {filtered.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-8">Ningún estudiante activo.</p>
+                  ) : (
+                    filtered.map(s => (
+                      <label key={s.uid} className="flex items-center gap-3 px-3 py-2 hover:bg-[#F0E5FF]/40 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={picked.has(s.uid)}
+                          onChange={() => toggle(s.uid)}
+                          className="accent-[#5A3D7A] w-4 h-4"
+                        />
+                        <span className="text-sm text-gray-700 flex-1 truncate">{s.fullName}</span>
+                        {s.studentData?.level && (
+                          <span className="text-[10px] font-bold text-[#5A3D7A] bg-[#F0E5FF] px-2 py-0.5 rounded-full">
+                            {s.studentData.level}
+                          </span>
+                        )}
+                      </label>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </section>
 
           {saving && progress && (
