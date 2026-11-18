@@ -25,6 +25,7 @@ import { updateDoc, doc, addDoc, collection, serverTimestamp } from 'firebase/fi
 import { db } from '@/lib/firebase/config';
 import type { FTUser, LessonLevel } from '@/types/firebase';
 import { StudentDetailModal } from '@/components/students/StudentDetailModal';
+import LinkHistoryModal from '@/components/students/LinkHistoryModal';
 import { StudentsListSkeleton } from '@/components/ui/Skeleton';
 import AssignMaterialModal from '@/components/teacher/AssignMaterialModal';
 import TopBar from '@/components/layout/TopBar';
@@ -544,6 +545,7 @@ function StudentRow({
   const [showEdit,    setShowEdit]    = useState(false);
   const [showDetail,  setShowDetail]  = useState(false);
   const [showAssign,  setShowAssign]  = useState(false);
+  const [showLink,    setShowLink]    = useState(false);
   const [archiving,   setArchiving]   = useState(false);
   const level = student.studentData?.level;
 
@@ -663,6 +665,13 @@ function StudentRow({
             <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} /> Assign
           </button>
           <button
+            onClick={() => setShowLink(true)}
+            className="px-3 py-1.5 bg-[#FFF4E0] hover:bg-[#FFE7B8] text-[#92590C] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1"
+            title="Link previous bookings and class history to this account"
+          >
+            <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Link history
+          </button>
+          <button
             onClick={() => setShowEdit(true)}
             className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
             title="Edit student"
@@ -709,6 +718,14 @@ function StudentRow({
           studentName={student.fullName}
           teacherId={teacherId}
           onClose={() => setShowAssign(false)}
+        />
+      )}
+      {showLink && (
+        <LinkHistoryModal
+          studentId={student.uid}
+          studentFullName={student.fullName}
+          teacherId={teacherId}
+          onClose={() => setShowLink(false)}
         />
       )}
     </>

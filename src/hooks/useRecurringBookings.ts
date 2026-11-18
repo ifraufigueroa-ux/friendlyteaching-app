@@ -113,3 +113,48 @@ export async function linkBookingsByName(
   await batch.commit();
   return toLink.length;
 }
+
+/**
+ * Link ALL unlinked bookings (recurring or one-off, past or future) for a
+ * teacher whose studentName is one of `candidateNames` to `studentId`, and
+ * normalize their studentName to `studentFullName` for display consistency.
+ * Returns the number of booking documents updated.
+ *
+ * Used by Students → "Link history": a teacher who registered an account
+ * manually can pick aliases from schedule/history and bind them to the
+ * registered student in one go.
+ */
+export async function linkBookingsByNames(
+  teacherId: string,
+  studentId: string,
+  studentFullName: string,
+  candidateNames: string[],
+): Promise<number> {
+  if (candidateNames.length === 0) return 0;
+  const nameSet = new Set(candidateNames);
+  const snap = await getDocs(
+    query(collection(db, 'bookings'), where('teacherId', '==', teacherId)),
+  );
+
+  const toLink = snap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => {
+    const data = d.data();
+    return !data.studentId && typeof data.studentName === 'string' && nameSet.has(data.studentName);
+  });
+
+  if (toLink.length === 0) return 0;
+
+  let total = 0;
+  for (let i = 0; i < toLink.length; i += 500) {
+    const batch = writeBatch(db);
+    toLink.slice(i, i + 500).forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+      batch.update(d.ref, {
+        studentId,
+        studentName: studentFullName,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    total += Math.min(500, toLink.length - i);
+  }
+  return total;
+}

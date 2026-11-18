@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
-import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search, Headphones, PenLine } from 'lucide-react';
+import { BookMarked, BookOpen, Link2, Clapperboard, Music, Check, Clock, Inbox, Search, Headphones, PenLine, LayoutGrid, List as ListIcon, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentAssignments } from '@/hooks/useStudentAssignments';
 import { useStudentMovieLessons } from '@/hooks/useMovieLessons';
@@ -71,13 +71,68 @@ interface CardShellProps {
   isCompleted?: boolean;
   pct?: number | null;
   notes?: string;
+  variant?: 'grid' | 'list';
 }
 
-function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabel, isStarted, isCompleted, pct, notes }: CardShellProps) {
+function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabel, isStarted, isCompleted, pct, notes, variant = 'grid' }: CardShellProps) {
   const levelColor = LEVEL_COLORS[level ?? ''] ?? 'bg-gray-100 text-gray-600';
+  const accent = isCompleted ? 'bg-green-400' : isStarted ? 'bg-amber-400' : externalUrl ? 'bg-sky-300' : 'bg-[#C8A8DC]';
+  const statusLabel = isCompleted ? 'Completed' : isStarted ? 'In progress' : externalUrl ? 'External' : 'New';
+  const statusPill =
+    isCompleted ? 'bg-green-100 text-green-700' :
+    isStarted ? 'bg-amber-100 text-amber-700' :
+    externalUrl ? 'bg-sky-100 text-sky-700' :
+    'bg-[#F0E5FF] text-[#5A3D7A]';
+
+  if (variant === 'list') {
+    const listInner = (
+      <div className="w-full card-interactive rounded-2xl overflow-hidden flex bg-white">
+        <div className={`w-1.5 flex-shrink-0 ${accent}`} />
+        <div className="flex-1 p-3 flex items-center gap-3 min-w-0">
+          <span className="w-7 h-7 rounded-full bg-[#F0E5FF] text-[#5A3D7A] flex items-center justify-center flex-shrink-0">
+            {badgeIcon}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] text-gray-400 font-medium truncate">
+              {badgeLabel}{code ? ` · ${code}` : ''}
+            </p>
+            <p className="text-sm font-bold text-[#5A3D7A] truncate leading-tight">{title}</p>
+            {notes && <p className="text-[10px] text-gray-500 italic truncate">{notes}</p>}
+          </div>
+          {pct != null && !isCompleted && (
+            <span className="text-[10px] text-amber-500 font-semibold flex-shrink-0 hidden sm:inline">{pct}%</span>
+          )}
+          {level && (
+            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${levelColor}`}>{level}</span>
+          )}
+          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 hidden sm:inline-flex items-center gap-1 ${statusPill}`}>
+            {isCompleted ? <Check className="w-2.5 h-2.5" strokeWidth={2.5} />
+              : isStarted ? <Clock className="w-2.5 h-2.5" strokeWidth={2.25} />
+              : externalUrl ? <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />
+              : <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} />}
+            {statusLabel}
+          </span>
+          <ArrowRight className="w-4 h-4 text-[#9B7CB8] group-hover:text-[#5A3D7A] flex-shrink-0 transition-colors" />
+        </div>
+      </div>
+    );
+    if (externalUrl) {
+      return (
+        <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="block w-full group">
+          {listInner}
+        </a>
+      );
+    }
+    return (
+      <Link href={href ?? '#'} className="block w-full group">
+        {listInner}
+      </Link>
+    );
+  }
+
   const topBar = isStarted && !isCompleted && pct != null
     ? <div className="h-1.5 w-full bg-gray-100"><div className="h-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} /></div>
-    : <div className={`h-1.5 w-full ${isCompleted ? 'bg-green-400' : externalUrl ? 'bg-sky-300' : 'bg-[#C8A8DC]'}`} />;
+    : <div className={`h-1.5 w-full ${accent}`} />;
 
   const inner = (
     <div className="w-full h-full card-interactive rounded-2xl overflow-hidden flex flex-col bg-white">
@@ -102,21 +157,16 @@ function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabe
           <p className="text-[10px] text-amber-500 font-semibold mb-2">{pct}% visto</p>
         )}
         <div className="mt-auto">
-          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full block text-center mb-2 ${
-            isCompleted ? 'bg-green-100 text-green-700' :
-            isStarted ? 'bg-amber-100 text-amber-700' :
-            externalUrl ? 'bg-sky-100 text-sky-700' :
-            'bg-[#F0E5FF] text-[#5A3D7A]'
-          }`}>
+          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full block text-center mb-2 ${statusPill}`}>
             <span className="inline-flex items-center gap-1 justify-center">
-              {isCompleted ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Completada</>
-                : isStarted ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> En progreso</>
-                : externalUrl ? <><Link2 className="w-2.5 h-2.5" strokeWidth={2.25} /> Externa</>
-                : <><BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} /> Nueva</>}
+              {isCompleted ? <><Check className="w-2.5 h-2.5" strokeWidth={2.5} /> Completed</>
+                : isStarted ? <><Clock className="w-2.5 h-2.5" strokeWidth={2.25} /> In progress</>
+                : externalUrl ? <><Link2 className="w-2.5 h-2.5" strokeWidth={2.25} /> External</>
+                : <><BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} /> New</>}
             </span>
           </span>
           <span className="block w-full text-center px-2 py-1.5 bg-[#C8A8DC] group-hover:bg-[#9B7CB8] text-white rounded-xl text-[10px] font-bold transition-colors">
-            {externalUrl ? 'Abrir ↗' : isCompleted ? 'Repasar' : isStarted ? 'Continuar' : 'Abrir'}
+            {externalUrl ? 'Open ↗' : isCompleted ? 'Review' : isStarted ? 'Continue' : 'Open'}
           </span>
         </div>
       </div>
@@ -125,13 +175,13 @@ function CardShell({ href, externalUrl, title, code, level, badgeIcon, badgeLabe
 
   if (externalUrl) {
     return (
-      <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="w-48 flex-shrink-0 snap-start group">
+      <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full group">
         {inner}
       </a>
     );
   }
   return (
-    <Link href={href ?? '#'} className="w-48 flex-shrink-0 snap-start group">
+    <Link href={href ?? '#'} className="block w-full h-full group">
       {inner}
     </Link>
   );
@@ -160,6 +210,18 @@ export default function StudentLessonsPage() {
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('');
   const [kindFilter, setKindFilter] = useState<'all' | 'ft' | 'external'>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Hydrate preferred view from localStorage so switching modes sticks
+  // across sessions on the same device.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('ft-my-lessons-view');
+      if (saved === 'grid' || saved === 'list') setViewMode(saved);
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    try { window.localStorage.setItem('ft-my-lessons-view', viewMode); } catch { /* ignore */ }
+  }, [viewMode]);
 
   const startedLessonIds = new Set(progress.map(p => p.lessonId));
   const completedLessonIds = new Set(progress.filter(p => p.status === 'completed').map(p => p.lessonId));
@@ -327,7 +389,7 @@ export default function StudentLessonsPage() {
             placeholder="Search lessons…"
             className="w-full px-4 py-2 border border-white/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] bg-white/70 backdrop-blur-sm shadow-glass"
           />
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex gap-1.5 flex-wrap items-center">
             {(['all', 'ft', 'external'] as const).map(k => (
               <button
                 key={k}
@@ -339,6 +401,28 @@ export default function StudentLessonsPage() {
                 {k === 'all' ? 'All' : k === 'ft' ? 'FriendlyTeaching' : 'External'}
               </button>
             ))}
+            <div className="ml-auto inline-flex items-center gap-0.5 bg-white border border-gray-200 rounded-full p-0.5">
+              <button
+                onClick={() => setViewMode('grid')}
+                title="Vista mosaico"
+                aria-label="Vista mosaico"
+                className={`p-1.5 rounded-full transition-colors ${
+                  viewMode === 'grid' ? 'bg-[#5A3D7A] text-white' : 'text-gray-500 hover:text-[#5A3D7A]'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" strokeWidth={2.25} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                title="Vista lista"
+                aria-label="Vista lista"
+                className={`p-1.5 rounded-full transition-colors ${
+                  viewMode === 'list' ? 'bg-[#5A3D7A] text-white' : 'text-gray-500 hover:text-[#5A3D7A]'
+                }`}
+              >
+                <ListIcon className="w-3.5 h-3.5" strokeWidth={2.25} />
+              </button>
+            </div>
           </div>
           {availableLevels.length > 1 && (
             <div className="flex gap-1.5 flex-wrap">
@@ -389,8 +473,35 @@ export default function StudentLessonsPage() {
             Clear filters
           </button>
         </div>
+      ) : viewMode === 'list' ? (
+        <div className="flex flex-col gap-2 max-w-3xl">
+          {filtered.map(c => {
+            const pct = c.kind === 'ft-lesson'
+              ? (() => {
+                  const a = assignments.find(x => `assign-${x.id}` === c.key);
+                  if (!a?.refId) return null;
+                  return c.isStarted && !c.isCompleted ? slidePercent(a.refId, 999) : null;
+                })()
+              : null;
+            return (
+              <CardShell
+                key={c.key}
+                variant="list"
+                href={c.href}
+                externalUrl={c.externalUrl}
+                title={c.title}
+                level={c.level ? String(c.level) : undefined}
+                badgeIcon={c.badgeIcon}
+                badgeLabel={c.badgeLabel}
+                isStarted={c.isStarted}
+                isCompleted={c.isCompleted}
+                pct={pct}
+              />
+            );
+          })}
+        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
           {filtered.map(c => {
             const pct = c.kind === 'ft-lesson'
               ? (() => {

@@ -230,6 +230,52 @@ export function useClassHistory(teacherId: string, limitDays = 90) {
 }
 
 /**
+ * Links all classHistory entries whose studentName is in `candidateNames` AND
+ * have no studentId yet to `studentId`, also normalizing studentName to
+ * `studentFullName` so the roster stays consistent.
+ * Returns the number of documents updated.
+ */
+export async function linkClassHistoryByNames(
+  teacherId: string,
+  studentId: string,
+  studentFullName: string,
+  candidateNames: string[],
+): Promise<number> {
+  if (candidateNames.length === 0) return 0;
+  const CHUNK = 30;
+  let total = 0;
+
+  for (let i = 0; i < candidateNames.length; i += CHUNK) {
+    const chunk = candidateNames.slice(i, i + CHUNK);
+    const q = query(
+      collection(db, 'classHistory'),
+      where('teacherId', '==', teacherId),
+      where('studentName', 'in', chunk),
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) continue;
+
+    const docs = snap.docs.filter(
+      (d: QueryDocumentSnapshot<DocumentData>) => !d.data().studentId,
+    );
+    for (let j = 0; j < docs.length; j += 500) {
+      const batch = writeBatch(db);
+      docs.slice(j, j + 500).forEach((d: QueryDocumentSnapshot<DocumentData>) => {
+        batch.update(d.ref, {
+          studentId,
+          studentName: studentFullName,
+          updatedAt: serverTimestamp(),
+        });
+      });
+      await batch.commit();
+      total += Math.min(500, docs.length - j);
+    }
+  }
+
+  return total;
+}
+
+/**
  * Renames all classHistory entries for a teacher whose studentName is in
  * `fromNames` to `toName`. Runs as batched writes (max 500 per batch).
  * Returns the number of documents updated.
