@@ -27,6 +27,7 @@ import { auth } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import CreateFromPresentationModal from '@/components/teacher/CreateFromPresentationModal';
 import UploadHtmlLessonModal from '@/components/teacher/UploadHtmlLessonModal';
+import UploadAndAssignHtmlModal from '@/components/teacher/UploadAndAssignHtmlModal';
 import AILessonWizard from '@/components/editor/AILessonWizard';
 import type { AILessonResponse } from '@/app/api/ai-lesson/route';
 import type { Lesson, LessonLevel, Slide, Course } from '@/types/firebase';
@@ -519,7 +520,9 @@ export default function LessonsLibraryPage() {
   const [showNewLesson, setShowNewLesson] = useState(false);
   const [showFromPresentation, setShowFromPresentation] = useState(false);
   const [showUploadHtml, setShowUploadHtml] = useState(false);
+  const [showUploadAndAssign, setShowUploadAndAssign] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
+  const [uploadAssignToast, setUploadAssignToast] = useState<string | null>(null);
   // If filtering by course → use course mode; otherwise fetch all teacher's lessons
   const { lessons, loading } = useLessons(
     selectedCourse || (teacherUid ?? undefined),
@@ -735,6 +738,13 @@ export default function LessonsLibraryPage() {
               <FileText className="w-4 h-4" strokeWidth={2.25} /> Desde HTML
             </button>
             <button
+              onClick={() => setShowUploadAndAssign(true)}
+              className="px-4 py-2 bg-white border border-[#5A3D7A] text-[#5A3D7A] hover:bg-purple-50 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
+              title="Subir un HTML y asignarlo directamente a uno o más estudiantes en un solo paso."
+            >
+              <FileText className="w-4 h-4" strokeWidth={2.25} /> HTML + Asignar
+            </button>
+            <button
               onClick={() => setShowNewLesson(true)}
               className="px-4 py-2 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
             >
@@ -845,6 +855,25 @@ export default function LessonsLibraryPage() {
           teacherId={teacherUid}
           onClose={() => setShowUploadHtml(false)}
         />
+      )}
+
+      {showUploadAndAssign && (
+        <UploadAndAssignHtmlModal
+          teacherId={teacherUid}
+          onClose={() => setShowUploadAndAssign(false)}
+          onSaved={({ assignedCount }) => {
+            setUploadAssignToast(
+              `Lección creada y asignada a ${assignedCount} estudiante${assignedCount === 1 ? '' : 's'}.`,
+            );
+            window.setTimeout(() => setUploadAssignToast(null), 4000);
+          }}
+        />
+      )}
+
+      {uploadAssignToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#5A3D7A] text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-lg animate-ft-pop">
+          {uploadAssignToast}
+        </div>
       )}
 
       {showAIWizard && (
