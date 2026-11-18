@@ -15,6 +15,7 @@ import { lessonB1WhichGymShouldIJoin } from './b1-which-gym-should-i-join';
 import { lessonB1PlusTmsCutoverSlip } from './b1plus-tms-cutover-slip';
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
+import { lessonB2PlusDevSupplyChainAttack } from './b2plus-dev-supply-chain-attack';
 import { lessonC1LastPromotion } from './c1-last-promotion';
 import { lessonC1SalmonVaccineTrial } from './c1-salmon-vaccine-trial';
 
@@ -28,6 +29,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB1PlusTmsCutoverSlip,
   lessonB2OffTheBeatenPath,
   lessonB2JobOfferDilemma,
+  lessonB2PlusDevSupplyChainAttack,
   lessonC1LastPromotion,
   lessonC1SalmonVaccineTrial,
 ];

@@ -30,7 +30,7 @@ import AssignFriendlyLessonModal from '@/components/teacher/AssignFriendlyLesson
 
 const LEVEL_TONE: Record<string, string> = {
   A1: '#7ED6E0', A2: '#7BC67E', B1: '#F4A261', 'B1+': '#E88C3F',
-  B2: '#9B72B8', C1: '#E87BAD', C2: '#4A2060',
+  B2: '#9B72B8', 'B2+': '#845ec2', C1: '#E87BAD', C2: '#4A2060',
 };
 
 export default function FriendlisteningsTeacherIndex() {

@@ -12,7 +12,7 @@
 
 import type { ListeningSpeaker, ListeningScriptLine } from './ielts';
 
-export type FLLevel = 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1' | 'C2';
+export type FLLevel = 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'B2+' | 'C1' | 'C2';
 
 // ─── Primitive activity shapes ──────────────────────────────
 
