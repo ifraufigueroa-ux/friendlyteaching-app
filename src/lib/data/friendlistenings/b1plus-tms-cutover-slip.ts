@@ -251,10 +251,10 @@ export const lessonB1PlusTmsCutoverSlip: FLLesson = {
           prompt: 'What file format are those two carriers supposed to be sending?',
           options: [
             { id: 'a', text: 'A weekly PDF report' },
-            { id: 'b', text: 'An EDI 214 status update' },
-            { id: 'c', text: 'A quarterly spreadsheet' },
+            { id: 'b', text: 'A quarterly spreadsheet' },
+            { id: 'c', text: 'An EDI 214 status update' },
           ],
-          correct: 'b',
+          correct: 'c',
         },
         {
           kind:     'gap-fill',
@@ -279,11 +279,11 @@ export const lessonB1PlusTmsCutoverSlip: FLLesson = {
           id: 'd5',
           prompt: 'What is Rohan\'s proposed fallback for the two slow carriers?',
           options: [
-            { id: 'a', text: 'Drop them from the carrier list' },
-            { id: 'b', text: 'Keep the current tracking portal running' },
+            { id: 'a', text: 'Keep the current tracking portal running' },
+            { id: 'b', text: 'Drop them from the carrier list' },
             { id: 'c', text: 'Pay them more to speed things up' },
           ],
-          correct: 'b',
+          correct: 'a',
         },
         {
           kind: 'mcq',
@@ -400,10 +400,10 @@ export const lessonB1PlusTmsCutoverSlip: FLLesson = {
           prompt: '"I\'m not loving the timeline" is used to…',
           options: [
             { id: 'a', text: 'reject the timeline angrily' },
-            { id: 'b', text: 'politely signal disagreement with it' },
-            { id: 'c', text: 'celebrate the timeline' },
+            { id: 'b', text: 'celebrate the timeline' },
+            { id: 'c', text: 'politely signal disagreement with it' },
           ],
-          correct: 'b',
+          correct: 'c',
           explain: 'Softened disapproval — mature, direct, not aggressive.',
         },
         {
