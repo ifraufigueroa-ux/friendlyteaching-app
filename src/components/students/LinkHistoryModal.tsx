@@ -26,10 +26,15 @@ interface Candidate {
   lastActivityMs: number; // for sorting
 }
 
-async function loadCandidates(teacherId: string, excludeName: string): Promise<Candidate[]> {
+async function loadCandidates(teacherId: string): Promise<Candidate[]> {
   // Pull everything unlinked in one go. A teacher's roster is small enough
   // that scanning the full bookings + classHistory collections for them is
   // cheap, and it means we don't miss one-off bookings or long-tail aliases.
+  //
+  // Note: we DO NOT exclude rows whose studentName matches the current
+  // student's fullName. The most common case is "bookings under the exact
+  // same name but studentId never set" — excluding them hides the records
+  // the teacher is here to link.
   const [bookingsSnap, historySnap] = await Promise.all([
     getDocs(query(collection(db, 'bookings'), where('teacherId', '==', teacherId))),
     getDocs(query(collection(db, 'classHistory'), where('teacherId', '==', teacherId))),
@@ -39,7 +44,6 @@ async function loadCandidates(teacherId: string, excludeName: string): Promise<C
   const bump = (name: string, kind: 'bookings' | 'classes', ms: number) => {
     const trimmed = (name ?? '').trim();
     if (!trimmed) return;
-    if (trimmed.toLowerCase() === excludeName.trim().toLowerCase()) return;
     const prev = map.get(trimmed) ?? { name: trimmed, bookings: 0, classes: 0, lastActivityMs: 0 };
     prev[kind] += 1;
     if (ms > prev.lastActivityMs) prev.lastActivityMs = ms;
@@ -104,14 +108,14 @@ export default function LinkHistoryModal({
     let cancelled = false;
     (async () => {
       try {
-        const list = await loadCandidates(teacherId, studentFullName);
+        const list = await loadCandidates(teacherId);
         if (!cancelled) setCandidates(list);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       }
     })();
     return () => { cancelled = true; };
-  }, [teacherId, studentFullName]);
+  }, [teacherId]);
 
   const filtered = useMemo(() => {
     if (!candidates) return [];
