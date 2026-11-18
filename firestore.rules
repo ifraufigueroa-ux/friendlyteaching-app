@@ -459,6 +459,15 @@ service cloud.firestore {
       allow delete: if isTeacher();
     }
 
+    // Practice audios — seeded by scripts/generate-practice-audios.js
+    // with one doc per listen-choose exercise. Student reads only (the
+    // URL is public-ish, served from Storage); writes are admin-only
+    // (service account via the script).
+    match /practiceAudios/{exerciseId} {
+      allow read:   if isAuthenticated();
+      allow write:  if isTeacher();
+    }
+
     // HTML lesson responses — when the HTML slide renderer auto-wires
     // <input>/<textarea>/<select>/<radio>/<checkbox> and persists what
     // the student types, each (student, lesson) pair upserts one doc

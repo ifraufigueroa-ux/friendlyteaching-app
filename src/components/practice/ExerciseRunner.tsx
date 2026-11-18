@@ -28,6 +28,7 @@ import {
 } from '@/lib/soundEffects';
 import ConfettiBurst from './ConfettiBurst';
 import FullscreenButton from '@/components/ui/FullscreenButton';
+import { usePracticeAudios } from '@/hooks/usePracticeAudios';
 
 interface Props {
   unit:        PracticeUnit;
@@ -51,6 +52,10 @@ function getCorrectAnswer(ex: Exercise): string | null {
 }
 
 export function ExerciseRunner({ unit, onComplete }: Props) {
+  // Hosted audio URLs for every listen-choose exercise in this unit,
+  // seeded by scripts/generate-practice-audios.js. Empty object until
+  // the batch runs — ListenChooseBody falls back to SpeechSynthesis.
+  const audiosByExerciseId = usePracticeAudios(unit.id);
   const [idx, setIdx] = useState(0);
   const [verdict, setVerdict] = useState<Verdict>('pending');
   const [correctCount, setCorrectCount] = useState(0);
@@ -270,6 +275,7 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
             exercise={current}
             verdict={verdict}
             onGrade={handleGrade}
+            audioUrl={audiosByExerciseId[current.id]}
           />
 
           {/* Floating +XP chip — centered horizontally above the body */}
@@ -350,11 +356,12 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
 // ── Exercise body dispatcher ─────────────────────────────────
 
 function ExerciseBody({
-  exercise, verdict, onGrade,
+  exercise, verdict, onGrade, audioUrl,
 }: {
   exercise: Exercise;
   verdict:  Verdict;
   onGrade:  (correct: boolean) => void;
+  audioUrl?: string;
 }) {
   switch (exercise.type) {
     case 'multiple-choice':
@@ -364,26 +371,30 @@ function ExerciseBody({
     case 'match-pairs':
       return <MatchPairsBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
     case 'listen-choose':
-      return <ListenChooseBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
+      return <ListenChooseBody ex={exercise} verdict={verdict} onGrade={onGrade} audioUrl={audioUrl} />;
   }
 }
 
 // ── Listen + choose ──────────────────────────────────────────
 
 function ListenChooseBody({
-  ex, verdict, onGrade,
+  ex, verdict, onGrade, audioUrl,
 }: {
   ex: ListenChooseExercise;
   verdict: Verdict;
   onGrade: (correct: boolean) => void;
+  /** Resolved URL from Firestore via usePracticeAudios; wins over
+   *  ex.audioUrl because the data file rarely carries it. */
+  audioUrl?: string;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const locked = verdict !== 'pending';
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const resolvedUrl = audioUrl || ex.audioUrl;
 
   function handlePlay() {
-    if (ex.audioUrl) {
+    if (resolvedUrl) {
       const el = audioRef.current;
       if (!el) return;
       el.currentTime = 0;
@@ -416,23 +427,23 @@ function ListenChooseBody({
         <button
           type="button"
           onClick={handlePlay}
-          disabled={locked && !ex.audioUrl}
+          disabled={locked && !resolvedUrl}
           className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-fun font-bold text-white bg-[#845ec2] shadow-md hover:bg-[#6b4c9a] active:scale-95 transition-all"
         >
           <Headphones className={`w-5 h-5 ${playing ? 'animate-pulse' : ''}`} strokeWidth={2.25} />
           {playing ? 'Reproduciendo…' : 'Escuchar'}
         </button>
       </div>
-      {ex.audioUrl && (
+      {resolvedUrl && (
         <audio
           ref={audioRef}
-          src={ex.audioUrl}
+          src={resolvedUrl}
           preload="auto"
           onEnded={() => setPlaying(false)}
           className="hidden"
         />
       )}
-      {!ex.audioUrl && (
+      {!resolvedUrl && (
         <p className="text-center text-[10px] text-slate-400">
           Audio pendiente de generación — usando TTS del navegador como fallback.
         </p>

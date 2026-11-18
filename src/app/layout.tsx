@@ -58,6 +58,15 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'FriendlyTeaching',
+    // iOS Safari uses this icon for "Add to Home Screen" — the
+    // manifest icons are ignored there. Points at the same logo
+    // served from /public so no new asset needed.
+    startupImage: ['/logo-friendlyteaching.jpg'],
+  },
+  icons: {
+    icon:            '/logo-friendlyteaching.jpg',
+    apple:           '/logo-friendlyteaching.jpg',
+    shortcut:        '/logo-friendlyteaching.jpg',
   },
   openGraph: {
     title: 'FriendlyTeaching.cl',
