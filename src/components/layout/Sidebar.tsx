@@ -79,7 +79,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/admin/leads',  icon: Mail,         label: 'Leads',              iconBg: 'bg-rose-100',    iconColor: 'text-rose-600',   iconImg: '/sidebar-icons/leads.png' },
   { type: 'link', href: '/dashboard/teacher/reminders',   icon: Bell,          label: 'Reminders',          iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
   { type: 'link', href: '/dashboard/teacher/billing',     icon: CreditCard,    label: 'Billing',            iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
-  { type: 'link', href: '/dashboard/teacher/assign',      icon: UserPlus,      label: 'Assign Lesson',      iconBg: 'bg-slate-100',   iconColor: 'text-slate-500' },
+  { type: 'link', href: '/dashboard/teacher/assign',      icon: UserPlus,      label: 'Assignments',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500' },
   { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Tools',              iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
   { type: 'group', label: 'Help' },
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
