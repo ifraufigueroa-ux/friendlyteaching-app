@@ -14,7 +14,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
 import {
-  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star,
+  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown,
 } from 'lucide-react';
 import { useDailyPractice, masteryBand } from '@/hooks/useDailyPractice';
 import { PRACTICE_UNITS, unitsByLevel } from '@/lib/data/practice/general-english';
