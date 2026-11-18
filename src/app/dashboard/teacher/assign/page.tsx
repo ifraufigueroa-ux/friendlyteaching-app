@@ -139,7 +139,7 @@ export default function AssignmentsHubPage() {
             cta="Choose material"
           />
           <LaneTile
-            href="/dashboard/teacher/homework"
+            href="/dashboard/teacher/assign/homework"
             title="Assign Homework"
             blurb="Deliverables your student turns in — with slides for internal tasks, or an Off2Class / Ellii link. You review, grade, and give feedback."
             Icon={FileText}

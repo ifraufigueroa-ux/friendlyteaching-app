@@ -151,18 +151,27 @@ export default function TeacherHomeworkPage() {
     <div className="min-h-screen p-6">
       <TopBar
         title="Homework"
-        subtitle="Assign and review your students' homework"
+        subtitle="Review your students' homework"
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Assignments', href: '/dashboard/teacher/assign' },
           { label: 'Homework' }
         ]}
         actions={
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-5 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
-          >
-            + New homework
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-4 py-2 border border-[#C8A8DC] text-[#5A3D7A] hover:bg-[#F0E5FF] rounded-xl text-sm font-bold transition-colors"
+            >
+              Quick form
+            </button>
+            <a
+              href="/dashboard/teacher/assign/homework"
+              className="px-5 py-2.5 bg-[#C8A8DC] hover:bg-[#9B7CB8] text-white rounded-xl text-sm font-bold transition-colors"
+            >
+              + Assign homework
+            </a>
+          </div>
         }
       />
 

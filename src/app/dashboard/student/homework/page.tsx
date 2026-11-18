@@ -177,6 +177,17 @@ export default function StudentHomeworkPage() {
             const dueSoon = isDueSoon(hw.dueDate) && hw.status !== 'submitted' && hw.status !== 'reviewed';
 
             const isExternal = !!hw.externalUrl;
+            // Homework linked to an FT Library lesson: treat the lesson route
+            // as the "open" target, and use the same "mark as done" flow as
+            // external links so the student doesn't have to paste their work
+            // in a textarea (the lesson itself captures their progress).
+            const isLibraryLink = !isExternal && !!hw.lessonId;
+            const openHref = isExternal
+              ? hw.externalUrl
+              : isLibraryLink
+                ? `/classroom/${hw.lessonId}`
+                : undefined;
+            const openInNewTab = isExternal;
             const platform = isExternal ? EXTERNAL_PLATFORMS[hw.externalPlatform ?? 'other'] : null;
             const PlatformIcon = platform?.Icon;
             const canAct = hw.status === 'assigned' || hw.status === 'pending';
@@ -217,18 +228,23 @@ export default function StudentHomeworkPage() {
 
                   {/* CTAs */}
                   <div className="flex flex-col gap-2 flex-shrink-0">
-                    {isExternal && (
+                    {openHref && (
                       <a
-                        href={hw.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href={openHref}
+                        target={openInNewTab ? '_blank' : undefined}
+                        rel={openInNewTab ? 'noopener noreferrer' : undefined}
                         className="px-4 py-2 bg-[#F0E5FF] hover:bg-[#E0CCFF] text-[#5A3D7A] rounded-xl text-sm font-bold transition-colors text-center inline-flex items-center justify-center gap-1.5"
                       >
-                        {PlatformIcon && <PlatformIcon className="w-3.5 h-3.5" strokeWidth={2.25} />} Open
+                        {PlatformIcon
+                          ? <PlatformIcon className="w-3.5 h-3.5" strokeWidth={2.25} />
+                          : isLibraryLink
+                            ? <BookOpen className="w-3.5 h-3.5" strokeWidth={2.25} />
+                            : null}
+                        Open {isLibraryLink ? 'lesson' : ''}
                       </a>
                     )}
                     {canAct && (
-                      isExternal ? (
+                      isExternal || isLibraryLink ? (
                         <button
                           onClick={() => handleMarkExternalDone(hw)}
                           disabled={markingId === hw.id}
