@@ -136,43 +136,27 @@ export default function ClassroomPage({ params }: PageProps) {
 
       {/* ── HTML upload: render the HTML page directly ─────────
           An HTML upload is always a single `html_content` slide wrapped
-          in a lesson doc. Showing the full SlideViewer (phase indicator,
-          progress chips, prev/next, scoring screen) is noise on top of
-          what the student actually needs — the HTML itself. Branch here
-          and render just that slide full-bleed with an explicit "Mark as
+          in a lesson doc. The HTML author usually adds their own title
+          and internal navigation, so we get out of the way: full-width
+          canvas, no FT header duplication, and a floating "Mark as
           complete" button for the student. */}
       {(lesson.source === 'html' || lesson.source === 'html-hosted') &&
        (lesson.slides?.length ?? 0) === 1 ? (
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto p-4 sm:p-6">
-            <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8">
-              {/* Lesson title header, since the slide itself may not repeat it */}
-              <div className="mb-4 pb-3 border-b border-gray-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#9B7CB8]">
-                  {lesson.code} · {lesson.level}
-                </p>
-                <h1 className="text-xl font-extrabold text-[#5A3D7A] leading-tight mt-0.5">
-                  {lesson.title}
-                </h1>
-              </div>
-              <HtmlContentSlide
-                slide={lesson.slides![0]}
-                isTeacher={role === 'teacher' && !isPreview}
-                lessonId={lesson.id}
-                teacherId={lesson.teacherId}
-              />
-              {(role === 'student' || isPreview) && (
-                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
-                  <button
-                    onClick={() => handleLessonComplete()}
-                    className="px-5 py-2.5 bg-[#5A3D7A] hover:bg-[#3D1F6B] text-white rounded-xl text-sm font-semibold shadow-[0_6px_18px_-6px_rgba(90,61,122,0.45)] transition-colors"
-                  >
-                    ✓ Mark as complete
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="flex-1 overflow-y-auto relative">
+          <HtmlContentSlide
+            slide={lesson.slides![0]}
+            isTeacher={role === 'teacher' && !isPreview}
+            lessonId={lesson.id}
+            teacherId={lesson.teacherId}
+          />
+          {(role === 'student' || isPreview) && (
+            <button
+              onClick={() => handleLessonComplete()}
+              className="fixed bottom-6 right-6 z-20 px-5 py-3 bg-[#5A3D7A] hover:bg-[#3D1F6B] text-white rounded-full text-sm font-semibold shadow-[0_10px_28px_-10px_rgba(90,61,122,0.6)] transition-colors inline-flex items-center gap-2"
+            >
+              ✓ Mark as complete
+            </button>
+          )}
         </div>
       ) : (
         /* Slide viewer */
