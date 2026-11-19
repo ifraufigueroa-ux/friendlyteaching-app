@@ -480,8 +480,14 @@ service cloud.firestore {
       // Only teachers can enumerate the collection; students don't need
       // list access — their own doc is addressed by composite id.
       allow list:   if isTeacher();
+      // Allow get on a non-existent doc so the student's onSnapshot can
+      // subscribe before the first write. When the doc exists, the
+      // student can only read their own.
       allow get:    if isTeacher() ||
-                      (request.auth != null && resource.data.studentId == request.auth.uid);
+                      (request.auth != null && (
+                        resource == null ||
+                        resource.data.studentId == request.auth.uid
+                      ));
       allow create: if request.auth != null
                       && request.resource.data.studentId == request.auth.uid;
       allow update: if request.auth != null
