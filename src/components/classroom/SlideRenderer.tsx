@@ -154,7 +154,7 @@ function renderSlide(
     case 'clip_production':
       return <ClipPredictionsSlide slide={slide} />;
     case 'friendlyflix_end':
-      return <FriendlyricsEndSlide slide={slide} />;
+      return <FriendlyricsEndSlide slide={slide} brand="Friendlyflix" />;
     // ─── Friendlyrics (music lessons) ────────────────────────────
     case 'song_cover':
       return <SongCoverSlide slide={slide} />;
