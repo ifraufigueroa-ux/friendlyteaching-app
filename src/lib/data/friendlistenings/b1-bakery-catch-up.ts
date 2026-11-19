@@ -55,7 +55,7 @@ export const lessonB1BakeryCatchUp: FLLesson = {
     speakers: [
       {
         id: 'leo', displayName: 'Leo', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'ErXwobaYiN019PkySvjV', name: 'Antoni', note: 'ElevenLabs · warm US male, mid-20s — clear, friendly, comfortable at a bridge pace' },
+        suggestedVoice: { voiceId: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', note: 'ElevenLabs · young US male, mid-20s — bright, casual, catch-up energy; fresh pairing with Jessica (teacher feedback: Antoni read too polished for a bakery scene)' },
       },
       {
         id: 'nora', displayName: 'Nora', accent: 'US', gender: 'f',
