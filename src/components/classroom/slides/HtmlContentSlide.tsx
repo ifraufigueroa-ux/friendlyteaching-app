@@ -84,7 +84,16 @@ function writeValue(el: AnyFormEl, stored: string): void {
   el.value = stored;
 }
 
+// Bumped when we change the render strategy — a loud marker so we can tell
+// at a glance whether a given client is running the latest code (iframe)
+// or an old cached chunk (inline innerHTML).
+const HTML_SLIDE_BUILD = 'iframe-v1-2026-11-19';
+
 export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId }: Props) {
+  useEffect(() => {
+    console.log('[HtmlContentSlide] build =', HTML_SLIDE_BUILD);
+  }, []);
+
   const [hostedHtml, setHostedHtml] = useState<string | null>(null);
   const [hostedError, setHostedError] = useState<string | null>(null);
 
