@@ -391,18 +391,21 @@ function VocabCard({ item, flipped, onFlip }: { item: FLVocabItem; flipped: bool
           </p>
           {item.pos && <p className="text-[10px] font-black uppercase tracking-widest text-[#9B72B8]">{item.pos}</p>}
         </div>
-        <span className="text-[10px] text-[#7A7387]">{flipped ? 'example ↓' : 'meaning ↓'}</span>
+        <span className="text-[10px] text-[#7A7387]">{flipped ? 'translation ↓' : 'definition ↓'}</span>
       </div>
       {!flipped ? (
+        // Default face: English definition + example. The Spanish
+        // translation sits on the flipped side so students read in
+        // English first and only reach for the L1 if they need it.
+        <div className="mt-2 space-y-1">
+          {item.definition && <p className="text-sm text-[#2E2A33] leading-snug">{item.definition}</p>}
+          <p className="text-[12px] text-[#7A7387] italic leading-snug">&ldquo;{item.example}&rdquo;</p>
+          {item.soundsLike && <p className="text-[11px] text-[#9B72B8] font-semibold">🔊 {item.soundsLike}</p>}
+        </div>
+      ) : (
         <p className="text-sm text-[#2E2A33] mt-2 leading-snug">
           {item.translation}
         </p>
-      ) : (
-        <div className="mt-2 space-y-1">
-          <p className="text-sm text-[#2E2A33] italic leading-snug">&ldquo;{item.example}&rdquo;</p>
-          {item.definition && <p className="text-[12px] text-[#7A7387] leading-snug">{item.definition}</p>}
-          {item.soundsLike && <p className="text-[11px] text-[#9B72B8] font-semibold">🔊 {item.soundsLike}</p>}
-        </div>
       )}
     </button>
   );
