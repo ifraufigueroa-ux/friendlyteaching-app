@@ -280,11 +280,13 @@ service cloud.firestore {
     // every clip lesson, any teacher updates assignedTo, only owner
     // edits or deletes.
     match /movieLessons/{lessonId} {
-      // Split list from get so list queries don't need to evaluate
-      // resource.data (which Firestore can't access during query
-      // validation and was silently denying onSnapshot subscriptions).
-      allow list: if isTeacher();
-      allow get:  if isTeacher() ||
+      // Unified read rule (same shape as musicLessons). Firestore
+      // evaluates this per returned doc on list queries, which works
+      // because the student-side hook filters by
+      // `assignedTo array-contains studentId` — every doc the query can
+      // return already satisfies the rule. The old split rule rejected
+      // student list queries silently, leaving My Lessons empty.
+      allow read: if isTeacher() ||
                     (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && (
@@ -298,8 +300,8 @@ service cloud.firestore {
     // ── Text Lessons (Friendlytext® — CLT text-based) ────────────
     // Same shared-library model as musicLessons / movieLessons.
     match /textLessons/{lessonId} {
-      allow list: if isTeacher();
-      allow get:  if isTeacher() ||
+      // See movieLessons above for why list/get is unified here.
+      allow read: if isTeacher() ||
                     (isApprovedStudent() && request.auth.uid in resource.data.assignedTo);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && (
