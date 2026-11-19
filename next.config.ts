@@ -13,6 +13,21 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'is6-ssl.mzstatic.com' },
     ],
   },
+  async headers() {
+    return [
+      {
+        // /sw.js is a kill-switch now — never let the browser cache it,
+        // otherwise a stuck client keeps the old worker in control for
+        // hours. Same for the manifest while we're at it.
+        source: '/:file(sw.js|manifest.json)',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: '/login', destination: '/auth/login', permanent: true },
