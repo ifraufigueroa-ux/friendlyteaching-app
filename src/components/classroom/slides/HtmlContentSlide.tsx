@@ -87,7 +87,7 @@ function writeValue(el: AnyFormEl, stored: string): void {
 // Bumped when we change the render strategy — a loud marker so we can tell
 // at a glance whether a given client is running the latest code (iframe)
 // or an old cached chunk (inline innerHTML).
-const HTML_SLIDE_BUILD = 'iframe-v1-2026-11-19';
+const HTML_SLIDE_BUILD = 'iframe-v2-raw-html-2026-11-19';
 
 export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId }: Props) {
   useEffect(() => {
@@ -117,17 +117,15 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
 
   const rawHtml = hostedHtml ?? slide.htmlContent ?? '';
 
-  // We render the teacher's HTML inside an <iframe srcdoc>. The HTML the
-  // teacher pastes often contains its own <script> for pagination / small
-  // interactions; dangerouslySetInnerHTML never ran those (the browser
-  // doesn't execute scripts inserted via innerHTML, and DOMPurify was
-  // stripping them anyway). The iframe fixes both: scripts run, and the
-  // page's styles are isolated from the parent Tailwind context.
+  // The iframe is sandboxed (allow-scripts + allow-same-origin), which
+  // provides stronger isolation than DOMPurify ever did — parent styles
+  // and globals don't leak in, the page gets its own document. So we
+  // pass the teacher's HTML through unmodified. DOMPurify was eating
+  // <head>, <style>, and <script>, which is why the teacher's beautifully
+  // styled lesson showed up as plain text in the student view.
   //
-  // Sandbox: allow-scripts + allow-same-origin. The teacher has upload
-  // trust already, and we need same-origin so the parent can read the
-  // iframe's inputs for auto-save. DOMPurify still runs as defence in
-  // depth (now permitting script/style tags).
+  // We still DOMPurify a defensive copy for the places that use
+  // cleanHtml outside the iframe (if any) — kept minimal.
   const cleanHtml = useMemo(() => {
     if (!rawHtml) return '';
     return DOMPurify.sanitize(rawHtml, {
@@ -137,13 +135,14 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
     });
   }, [rawHtml]);
 
-  // Wrap in a minimal <html><body> if the teacher pasted only a fragment,
-  // so the iframe has a proper document. Add a tiny base stylesheet so
-  // typography matches the rest of the app.
+  // Document fed to the iframe srcdoc. If the teacher pasted a full
+  // <!doctype html><html>…</html>, use it as-is. Otherwise wrap in a
+  // minimal shell so the browser has something to parse. Either way we
+  // use the RAW html — the iframe sandbox is the real security boundary.
   const iframeDoc = useMemo(() => {
-    if (!cleanHtml) return '';
-    const hasHtmlShell = /<html[\s>]/i.test(cleanHtml);
-    if (hasHtmlShell) return cleanHtml;
+    if (!rawHtml) return '';
+    const hasHtmlShell = /<html[\s>]/i.test(rawHtml);
+    if (hasHtmlShell) return rawHtml;
     return `<!doctype html><html><head><meta charset="utf-8" />
 <style>
   html, body { margin: 0; padding: 0; }
@@ -153,8 +152,8 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
   input, textarea, select { font: inherit; }
   a { color: #5A3D7A; }
 </style>
-</head><body>${cleanHtml}</body></html>`;
-  }, [cleanHtml]);
+</head><body>${rawHtml}</body></html>`;
+  }, [rawHtml]);
 
   // ── Student auto-save plumbing ──────────────────────────────
   const { firebaseUser, role } = useAuthStore();
@@ -287,16 +286,8 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
 
   return (
     <div className="flex flex-col h-full overflow-auto relative">
-      {(slide.title || slide.subtitle) && (
-        <div className="px-6 pt-6">
-          {slide.title && (
-            <h2 className="text-3xl font-bold text-[#5A3D7A]">{slide.title}</h2>
-          )}
-          {slide.subtitle && (
-            <p className="text-base text-gray-500 mt-1">{slide.subtitle}</p>
-          )}
-        </div>
-      )}
+      {/* No outer title block — HTML uploads always have their own h1
+          at the top, and showing both duplicates it. */}
 
       {hostedError && (
         <div className="mx-6 my-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
