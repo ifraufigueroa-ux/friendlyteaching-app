@@ -8,6 +8,7 @@
 import type { FLLesson } from '@/types/friendlistenings';
 import { lessonA2TheNewNeighbor } from './a2-the-new-neighbor';
 import { lessonA2LostPhoneCafe } from './a2-lost-phone-cafe';
+import { lessonB1BakeryCatchUp } from './b1-bakery-catch-up';
 import { lessonB1FirstWeekNewJob } from './b1-first-week-new-job';
 import { lessonB1SurpriseParty } from './b1-surprise-party';
 import { lessonB1LogisticsConsultancySprintSlip } from './b1-logistics-consultancy-sprint-slip';
@@ -22,6 +23,7 @@ import { lessonC1SalmonVaccineTrial } from './c1-salmon-vaccine-trial';
 export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonA2TheNewNeighbor,
   lessonA2LostPhoneCafe,
+  lessonB1BakeryCatchUp, // A2 → B1 bridge: entry B1, placed first in B1 group
   lessonB1FirstWeekNewJob,
   lessonB1SurpriseParty,
   lessonB1LogisticsConsultancySprintSlip,
