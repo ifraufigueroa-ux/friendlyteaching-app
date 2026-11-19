@@ -370,7 +370,12 @@ export async function createLessonFromHtml(teacherId: string, data: {
     code: data.code,
     title: data.title,
     level: data.level,
-    isPublished: false,
+    // HTML uploads are created to be given to a student in the same
+    // flow (the only entry point is "Upload and assign"). The Firestore
+    // rule on /lessons only lets students read isPublished==true docs,
+    // so leaving this false would show them "Lesson not found" on open.
+    isPublished: true,
+    publishedAt: sTs(),
     slides,
     slidesJson: JSON.stringify(slides),
     objectives: [],
