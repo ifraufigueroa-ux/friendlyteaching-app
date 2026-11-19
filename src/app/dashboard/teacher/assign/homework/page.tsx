@@ -479,7 +479,7 @@ function CustomHomeworkModal({
     }
   }
 
-  const canSubmit = !saving && title.trim() && picker.picked.size > 0;
+  const canSubmit = !saving && title.trim().length > 0 && picker.picked.size > 0;
 
   return (
     <HomeworkModalShell title="Tarea rápida · con instrucciones" Icon={ClipboardList} onClose={onClose}>
@@ -581,7 +581,7 @@ function ExternalHomeworkModal({
     }
   }
 
-  const canSubmit = !saving && url.trim() && title.trim() && picker.picked.size > 0;
+  const canSubmit = !saving && url.trim().length > 0 && title.trim().length > 0 && picker.picked.size > 0;
 
   return (
     <HomeworkModalShell title="Tarea · link externo" Icon={Link2} onClose={onClose}>
