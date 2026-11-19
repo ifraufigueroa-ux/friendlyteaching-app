@@ -21,6 +21,7 @@ import LiveChatTeacher        from './LiveChatTeacher';
 import LiveChatStudent        from './LiveChatStudent';
 import SyncStatusIndicator    from './SyncStatusIndicator';
 import { sendPresenterMessage } from '@/lib/utils/presenterChannel';
+import { Check, Loader2, CloudOff, Save } from 'lucide-react';
 
 /** Compute a 1–7 score from the student's interactive answers.
  *  Returns null when there are no scoreable slides (mc / true_false). */
@@ -150,25 +151,47 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
     }
   }, [initialSlideIndex]);
 
+  // ── Save progress state (visible to the student) ────────────
+  // Students see a chip + "Save Progress" button so the auto-save isn't
+  // invisible. 'idle' means we haven't moved past slide 0 yet; the chip
+  // only renders once there's something to save.
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  // Tick so "hace Xs" refreshes without re-saving.
+  const [savedTick, setSavedTick] = useState(0);
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    const t = setInterval(() => setSavedTick((n) => n + 1), 15_000);
+    return () => clearInterval(t);
+  }, [lastSavedAt]);
+
+  const saveProgressNow = useCallback(async () => {
+    if (!progressId || isTeacher) return;
+    setSaveStatus('saving');
+    try {
+      const maxVisited = maxVisitedRef.current;
+      await updateProgress(progressId, {
+        slideProgress: Array.from({ length: maxVisited + 1 }, (_, i) => ({
+          slideIndex: i,
+          completed: i <= maxVisited,
+        })),
+      });
+      setLastSavedAt(Date.now());
+      setSaveStatus('saved');
+    } catch {
+      setSaveStatus('error');
+    }
+  }, [progressId, isTeacher]);
+
   // Save slide progress to Firestore when student advances (debounced)
   useEffect(() => {
     if (!progressId || isTeacher) return;
     if (currentIndex > maxVisitedRef.current) {
       maxVisitedRef.current = currentIndex;
     }
-    const timer = setTimeout(() => {
-      const maxVisited = maxVisitedRef.current;
-      updateProgress(progressId, {
-        slideProgress: Array.from({ length: maxVisited + 1 }, (_, i) => ({
-          slideIndex: i,
-          // A slide is "completed" once the student has moved past it,
-          // OR if it's the current slide being viewed (they've at least seen it)
-          completed: i <= maxVisited,
-        })),
-      }).catch(() => {/* non-critical */});
-    }, 1500);
+    const timer = setTimeout(() => { saveProgressNow(); }, 1500);
     return () => clearTimeout(timer);
-  }, [progressId, currentIndex, isTeacher]);
+  }, [progressId, currentIndex, isTeacher, saveProgressNow]);
 
   const prev = useCallback(() => setCurrentIndex((i) => Math.max(0, i - 1)), []);
   const next = useCallback(() => {
@@ -471,6 +494,17 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
               ))}
             </div>
 
+            {/* Save Progress chip + manual save — students only, once there
+                is a progress doc we can write to. */}
+            {!isTeacher && progressId && (
+              <SaveProgressControl
+                status={saveStatus}
+                lastSavedAt={lastSavedAt}
+                savedTick={savedTick}
+                onSave={saveProgressNow}
+              />
+            )}
+
             <div className="flex items-center gap-3 ml-auto">
               <button
                 onClick={prev}
@@ -499,6 +533,64 @@ export default function SlideViewer({ lesson, course, progressId, initialSlideIn
       {isTeacher && showWhiteboard && (
         <WhiteboardPanel onClose={() => setShowWhiteboard(false)} />
       )}
+    </div>
+  );
+}
+
+// ─── Save Progress control ───────────────────────────────────────
+// Student-facing indicator + manual save button. The auto-save hook
+// above fires on slide changes; this surface makes that visible so
+// students don't feel their work could get lost between sessions.
+function SaveProgressControl({
+  status, lastSavedAt, savedTick, onSave,
+}: {
+  status: 'idle' | 'saving' | 'saved' | 'error';
+  lastSavedAt: number | null;
+  savedTick: number;
+  onSave: () => void;
+}) {
+  // savedTick is only read to force a re-render so the "hace Xs" ticks.
+  void savedTick;
+
+  const label = (() => {
+    if (status === 'saving') return 'Guardando…';
+    if (status === 'error')  return 'No se pudo guardar';
+    if (lastSavedAt) {
+      const secs = Math.max(0, Math.round((Date.now() - lastSavedAt) / 1000));
+      if (secs < 10)   return 'Guardado';
+      if (secs < 60)   return `Guardado · hace ${secs}s`;
+      const mins = Math.round(secs / 60);
+      return `Guardado · hace ${mins} min`;
+    }
+    return 'Progreso automático';
+  })();
+
+  const tone =
+    status === 'saving' ? 'text-gray-500 bg-gray-100'
+  : status === 'error'  ? 'text-red-600 bg-red-50 border-red-200'
+  : lastSavedAt         ? 'text-emerald-700 bg-emerald-50'
+                        : 'text-gray-400 bg-gray-50';
+
+  const Icon =
+    status === 'saving' ? Loader2
+  : status === 'error'  ? CloudOff
+                        : Check;
+
+  return (
+    <div className="hidden sm:flex items-center gap-2 mr-2">
+      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${tone}`}>
+        <Icon className={`w-3 h-3 ${status === 'saving' ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={status === 'saving'}
+        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5A3D7A] hover:text-[#3D1F6B] px-2.5 py-1 rounded-lg border border-[#E8D5F0] hover:border-[#5A3D7A] hover:bg-[#F7EFFF] disabled:opacity-50 transition-colors"
+      >
+        <Save className="w-3 h-3" strokeWidth={2.5} />
+        Save Progress
+      </button>
     </div>
   );
 }
