@@ -42,6 +42,21 @@ function formatMemberSince(ts: { toDate?: () => Date } | undefined): string | nu
   return ts.toDate().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
+// Compute the absolute Date for a booking by anchoring its weekStart
+// (Monday 00:00) and offsetting by dayOfWeek/hour/minute. Shared by the
+// next-booking selector and the Next Lesson card so both agree on which
+// slot is "coming up" — especially important when a student has both a
+// recurring weekly class AND an exceptional one-off class in the same
+// week on a different day.
+function computeClassStart(booking: Booking): Date | null {
+  const ws = booking.weekStart?.toDate?.();
+  if (!ws) return null;
+  const d = new Date(ws);
+  d.setDate(d.getDate() + (booking.dayOfWeek - 1));
+  d.setHours(booking.hour ?? 0, booking.minute ?? 0, 0, 0);
+  return d;
+}
+
 export default function StudentDashboardPage() {
   const { profile, firebaseUser } = useAuthStore();
   const uid = firebaseUser?.uid ?? '';
@@ -66,9 +81,21 @@ export default function StudentDashboardPage() {
   const memberSince = formatMemberSince(profile?.studentData?.joinedAt ?? profile?.createdAt);
 
   const myBookings = bookings.filter(b => b.studentId === uid || b.studentEmail === profile?.email);
+  // Pick the next-upcoming booking by ABSOLUTE date, not by (dayOfWeek, hour).
+  // A recurring weekly slot spans 52 docs — one per week — and a one-off
+  // "exceptional" class can land on any day. Sorting by weekday-of-the-week
+  // would always surface the lowest dayOfWeek even when today's exceptional
+  // class is sooner, which is why Fernando saw "next Monday" while he had
+  // a class today.
+  const nowMs = Date.now();
+  // Keep an in-progress class visible for the full hour so the student still
+  // sees Join Meeting / Join Lesson while the class is running.
+  const GRACE_MS = 60 * 60_000;
   const nextBooking = myBookings
     .filter(b => b.status === 'confirmed' || b.status === 'pending')
-    .sort((a: Booking, b: Booking) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour)[0] as Booking | undefined;
+    .map((b) => ({ b, startMs: computeClassStart(b)?.getTime() ?? null }))
+    .filter((x): x is { b: Booking; startMs: number } => x.startMs !== null && x.startMs > nowMs - GRACE_MS)
+    .sort((a, b) => a.startMs - b.startMs)[0]?.b;
   const nextBookingLessonTitle = nextBooking?.lessonId
     ? (() => {
         const l = lessons.find(x => x.id === nextBooking.lessonId);
@@ -176,15 +203,6 @@ export default function StudentDashboardPage() {
 const MEET_URL = 'https://meet.google.com/rhq-agda-ajs';
 const MEET_EARLY_MS = 60_000;
 const MEET_LATE_MS  = 60 * 60_000;
-
-function computeClassStart(booking: Booking): Date | null {
-  const ws = booking.weekStart?.toDate?.();
-  if (!ws) return null;
-  const d = new Date(ws);
-  d.setDate(d.getDate() + (booking.dayOfWeek - 1));
-  d.setHours(booking.hour ?? 0, booking.minute ?? 0, 0, 0);
-  return d;
-}
 
 function NextLessonCard({
   booking, lessonTitle,
