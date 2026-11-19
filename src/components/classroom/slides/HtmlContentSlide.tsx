@@ -278,8 +278,28 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
     const onSaveNow = () => { snapshotAllAndSave(); };
     window.addEventListener('ft-html-save-now', onSaveNow);
 
+    // Auto-snapshot before the teacher's HTML pagination can wipe the
+    // DOM. We listen in CAPTURE phase on the iframe's own document, so
+    // the snapshot reads every <input>/<textarea>/<select> value into
+    // memory BEFORE any Back/Next handler inside the HTML can replace
+    // them. The actual Firestore write happens async — it does not
+    // block the native click.
+    const captureClick = (ev: Event) => {
+      const target = ev.target;
+      if (!(target instanceof Element)) return;
+      // Only trigger when the click lands on something that commonly
+      // changes the page: button, link, or an element the HTML author
+      // marked as navigation. Avoids snapshotting on clicks inside a
+      // textarea or on unrelated chrome.
+      const nav = target.closest('button, a, [role="button"], [data-nav], input[type="submit"]');
+      if (!nav) return;
+      snapshotAllAndSave();
+    };
+    root.addEventListener('click', captureClick, { capture: true });
+
     return () => {
       window.removeEventListener('ft-html-save-now', onSaveNow);
+      try { root.removeEventListener('click', captureClick, { capture: true }); } catch { /* ignore */ }
       listeners.forEach(({ el, fn }) => {
         const evt = (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio'))
           ? 'change'
