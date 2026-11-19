@@ -8,6 +8,8 @@
 import type { FLLesson } from '@/types/friendlistenings';
 import { lessonA2TheNewNeighbor } from './a2-the-new-neighbor';
 import { lessonA2LostPhoneCafe } from './a2-lost-phone-cafe';
+import { lessonA2RestaurantCasaVerde } from './a2-restaurant-casa-verde';
+import { lessonA2WeekendInPuertoVaras } from './a2-weekend-in-puerto-varas';
 import { lessonB1BakeryCatchUp } from './b1-bakery-catch-up';
 import { lessonB1FirstWeekNewJob } from './b1-first-week-new-job';
 import { lessonB1SurpriseParty } from './b1-surprise-party';
@@ -23,6 +25,8 @@ import { lessonC1SalmonVaccineTrial } from './c1-salmon-vaccine-trial';
 export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonA2TheNewNeighbor,
   lessonA2LostPhoneCafe,
+  lessonA2RestaurantCasaVerde,   // late-A2: ordering + sharing + splitting the bill
+  lessonA2WeekendInPuertoVaras,  // late-A2: past-simple trip story with reactions
   lessonB1BakeryCatchUp, // A2 → B1 bridge: entry B1, placed first in B1 group
   lessonB1FirstWeekNewJob,
   lessonB1SurpriseParty,
