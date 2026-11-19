@@ -108,13 +108,44 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
 
   const rawHtml = hostedHtml ?? slide.htmlContent ?? '';
 
+  // We render the teacher's HTML inside an <iframe srcdoc>. The HTML the
+  // teacher pastes often contains its own <script> for pagination / small
+  // interactions; dangerouslySetInnerHTML never ran those (the browser
+  // doesn't execute scripts inserted via innerHTML, and DOMPurify was
+  // stripping them anyway). The iframe fixes both: scripts run, and the
+  // page's styles are isolated from the parent Tailwind context.
+  //
+  // Sandbox: allow-scripts + allow-same-origin. The teacher has upload
+  // trust already, and we need same-origin so the parent can read the
+  // iframe's inputs for auto-save. DOMPurify still runs as defence in
+  // depth (now permitting script/style tags).
   const cleanHtml = useMemo(() => {
     if (!rawHtml) return '';
     return DOMPurify.sanitize(rawHtml, {
       USE_PROFILES: { html: true, svg: true, svgFilters: true },
       ADD_ATTR: ['target'],
+      ADD_TAGS: ['script', 'style'],
     });
   }, [rawHtml]);
+
+  // Wrap in a minimal <html><body> if the teacher pasted only a fragment,
+  // so the iframe has a proper document. Add a tiny base stylesheet so
+  // typography matches the rest of the app.
+  const iframeDoc = useMemo(() => {
+    if (!cleanHtml) return '';
+    const hasHtmlShell = /<html[\s>]/i.test(cleanHtml);
+    if (hasHtmlShell) return cleanHtml;
+    return `<!doctype html><html><head><meta charset="utf-8" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+         color: #1f2937; line-height: 1.5; padding: 24px; }
+  img, video, iframe { max-width: 100%; height: auto; }
+  input, textarea, select { font: inherit; }
+  a { color: #5A3D7A; }
+</style>
+</head><body>${cleanHtml}</body></html>`;
+  }, [cleanHtml]);
 
   // ── Student auto-save plumbing ──────────────────────────────
   const { firebaseUser, role } = useAuthStore();
@@ -126,6 +157,12 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
   );
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef    = useRef<HTMLIFrameElement | null>(null);
+  // The iframe fires onLoad whenever srcdoc gets (re)applied. We bump
+  // this to re-run the hydration/listener effect when the document is
+  // actually ready, since the effect's own cleanHtml dep fires before
+  // the iframe has parsed anything.
+  const [iframeReady, setIframeReady] = useState(0);
   const pendingRef   = useRef<Record<string, string>>({});
   const flushTimerRef = useRef<number | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -133,10 +170,11 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
 
   // Hydrate inputs from the stored answers whenever the HTML (re)renders
   // or the answers payload changes. Also wires change listeners once per
-  // mount of the sanitised markup.
+  // mount of the sanitised markup. The inputs live inside the iframe, so
+  // we query the iframe's own document.
   useEffect(() => {
     if (!shouldPersist) return;
-    const root = containerRef.current;
+    const root = iframeRef.current?.contentDocument;
     if (!root || !cleanHtml) return;
 
     const stored = response?.answers ?? {};
@@ -219,7 +257,7 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
         }
       }
     };
-  }, [shouldPersist, cleanHtml, response, studentId, lessonId, teacherId]);
+  }, [shouldPersist, cleanHtml, response, studentId, lessonId, teacherId, iframeReady]);
 
   // Human-readable "saved Xs ago" label; re-renders once a minute.
   const [, forceTick] = useState(0);
@@ -256,11 +294,18 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
           Error bajando el HTML hospedado: {hostedError}
         </div>
       )}
-      {cleanHtml ? (
-        <div
-          ref={containerRef}
-          className="ft-html-slide flex-1 px-6 py-4"
-          dangerouslySetInnerHTML={{ __html: cleanHtml }}
+      {iframeDoc ? (
+        <iframe
+          ref={iframeRef}
+          title={slide.title ?? 'HTML lesson'}
+          srcDoc={iframeDoc}
+          // allow-scripts so pagination / toggles / small JS in the
+          // teacher's HTML actually runs. allow-same-origin so the parent
+          // can read inputs for auto-save and so relative asset URLs
+          // resolve against our origin.
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+          className="ft-html-slide flex-1 w-full border-0 min-h-[60vh]"
+          onLoad={() => setIframeReady(n => n + 1)}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
