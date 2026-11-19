@@ -54,11 +54,11 @@ export const lessonA2WeekendInPuertoVaras: FLLesson = {
     speakers: [
       {
         id: 'clara', displayName: 'Clara', accent: 'US', gender: 'f',
-        suggestedVoice: { voiceId: '9BWtsMINqrJLrRacOk9x', name: 'Aria', note: 'ElevenLabs · US female, mid-20s — expressive storyteller, natural reactions; fresh pairing in the FL catalog' },
+        suggestedVoice: { voiceId: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', note: 'ElevenLabs · bright US female, mid-20s — natural storyteller energy; same pairing as b1-bakery-catch-up per teacher preference' },
       },
       {
         id: 'mateo', displayName: 'Mateo', accent: 'US', gender: 'm',
-        suggestedVoice: { voiceId: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', note: 'ElevenLabs · casual US male — curious friend energy, clean at A2 pace' },
+        suggestedVoice: { voiceId: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', note: 'ElevenLabs · young US male, mid-20s — bright casual delivery; same pairing as b1-bakery-catch-up per teacher preference' },
       },
     ],
     script: [
