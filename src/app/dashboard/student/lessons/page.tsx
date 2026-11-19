@@ -239,25 +239,29 @@ export default function StudentLessonsPage() {
   const cards: UnifiedCard[] = useMemo(() => {
     const out: UnifiedCard[] = [];
 
-    // 1) studentAssignments — Librería FT + external
+    // 1) studentAssignments — Librería FT + HTML uploads + external
+    // A card counts as EXTERNAL only when the doc explicitly says
+    // source==='external' (and we have a URL to open). Everything else —
+    // source==='lesson', HTML uploads, legacy docs with no source — is
+    // internal FT material routed through the classroom player.
     for (const a of assignments) {
-      const isFT = a.source === 'lesson';
-      const material = isFT ? null : detectMaterialType(a.externalUrl);
+      const isExternal = a.source === 'external' && !!a.externalUrl;
+      const material = isExternal ? detectMaterialType(a.externalUrl) : null;
       out.push({
         key: `assign-${a.id}`,
-        kind: isFT ? 'ft-lesson' : 'external',
+        kind: isExternal ? 'external' : 'ft-lesson',
         title: a.title,
         level: a.level,
-        href: isFT ? `/classroom/${a.refId}` : '',
-        externalUrl: isFT ? undefined : a.externalUrl,
-        badgeIcon: isFT
-          ? <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} />
-          : material?.Icon
-            ? <material.Icon className="w-2.5 h-2.5" strokeWidth={2.25} />
-            : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />,
-        badgeLabel: isFT ? 'FT Library' : (material?.label || 'External link'),
-        isCompleted: a.status === 'completed' || (isFT && a.refId ? completedLessonIds.has(a.refId) : false),
-        isStarted: isFT && a.refId ? startedLessonIds.has(a.refId) : false,
+        href: isExternal ? '' : `/classroom/${a.refId}`,
+        externalUrl: isExternal ? a.externalUrl : undefined,
+        badgeIcon: isExternal
+          ? (material?.Icon
+              ? <material.Icon className="w-2.5 h-2.5" strokeWidth={2.25} />
+              : <Link2 className="w-2.5 h-2.5" strokeWidth={2.25} />)
+          : <BookOpen className="w-2.5 h-2.5" strokeWidth={2.25} />,
+        badgeLabel: isExternal ? (material?.label || 'External link') : 'FriendlyTeaching',
+        isCompleted: a.status === 'completed' || (!isExternal && a.refId ? completedLessonIds.has(a.refId) : false),
+        isStarted: !isExternal && a.refId ? startedLessonIds.has(a.refId) : false,
         assignedAtMs: a.createdAt?.toMillis?.() ?? 0,
       });
     }
