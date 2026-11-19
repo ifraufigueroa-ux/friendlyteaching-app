@@ -612,6 +612,27 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── Weekly IELTS Academic assignments ────────────────────────
+    // One doc per assignment (we may later key by studentId with upsert
+    // semantics, but creating fresh docs keeps history). Student reads
+    // their own, marks module progress and requests next mock. Teacher
+    // creates/updates for the student they own.
+    match /weeklyIeltsAssignments/{assignmentId} {
+      allow list:   if isTeacher() ||
+                      (request.auth != null); // students query by studentId==uid
+      allow get:    if isTeacher() ||
+                      (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      // Student can update ONLY their own doc, and only the progress fields.
+      // Teacher can freely update their own students' assignments.
+      allow update: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+                    || (request.auth != null
+                        && resource.data.studentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['currentMock', 'currentMockIndex', 'completedMocks', 'updatedAt']));
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
     // IELTS practice-mode saved sessions (per student, per mock) so the
     // teacher can resume where a student left off.
     match /ieltsPracticeSessions/{sessionId} {

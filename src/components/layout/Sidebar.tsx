@@ -27,6 +27,7 @@ import {
   Calendar,
   CalendarPlus,
   Flame,
+  Trophy,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -38,6 +39,7 @@ import { useCoworkAnnouncements } from '@/hooks/useCoworkAnnouncements';
 import { useCoworkChatUnread } from '@/hooks/useCoworkChatUnread';
 import { useCoworkChatSound } from '@/hooks/useCoworkChatSound';
 import { useNewLeadsCount } from '@/hooks/useNewLeadsCount';
+import { useStudentWeeklyIelts } from '@/hooks/useWeeklyIelts';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -110,6 +112,28 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/student/progress',    icon: BarChart3,    label: 'My Progress',         iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
 ];
 
+// Weekly IELTS slots in under Daily Practice in the Learning group,
+// but only when the teacher has assigned it. We rebuild the array on
+// demand so the condition stays close to the data.
+function studentNavWithWeeklyIelts(hasAssignment: boolean): NavItem[] {
+  if (!hasAssignment) return STUDENT_NAV;
+  const out: NavItem[] = [];
+  for (const item of STUDENT_NAV) {
+    out.push(item);
+    if (item.type === 'link' && item.href === '/dashboard/student/practice') {
+      out.push({
+        type: 'link',
+        href: '/dashboard/student/weekly-ielts',
+        icon: Trophy,
+        label: 'Weekly IELTS',
+        iconBg: 'bg-rose-100',
+        iconColor: 'text-rose-600',
+      });
+    }
+  }
+  return out;
+}
+
 // ── Badge hook ────────────────────────────────────────────────
 
 function useNavBadges(role: string | null, uid: string): Map<string, number> {
@@ -165,10 +189,16 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const lastName  = profile?.fullName?.split(' ').slice(1).join(' ') ?? '';
 
   const navBadges = useNavBadges(role, uid);
+
+  // Weekly IELTS lives in the student sidebar only while the teacher
+  // has an active assignment for them. Hook runs for everyone but
+  // bails fast when the uid is not a student.
+  const { assignment: weeklyIeltsAssignment } = useStudentWeeklyIelts(role === 'student' ? uid : '');
+
   const nav =
     role === 'teacher'   ? TEACHER_NAV
   : role === 'corporate' ? CORPORATE_NAV
-                         : STUDENT_NAV;
+                         : studentNavWithWeeklyIelts(!!weeklyIeltsAssignment);
 
   async function handleLogout() {
     await logOut();
