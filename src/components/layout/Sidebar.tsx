@@ -108,8 +108,6 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'group', label: 'Tracking' },
   { type: 'link', href: '/dashboard/student/homework',    icon: FileText,     label: 'My Homework',         iconBg: 'bg-amber-100',   iconColor: 'text-amber-600'  },
   { type: 'link', href: '/dashboard/student/progress',    icon: BarChart3,    label: 'My Progress',         iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600'},
-  { type: 'group', label: 'Help' },
-  { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,     label: 'Tutorials',           iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
 
 // ── Badge hook ────────────────────────────────────────────────
