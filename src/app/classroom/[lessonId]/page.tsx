@@ -118,10 +118,21 @@ export default function ClassroomPage({ params }: PageProps) {
       {/* Compact top nav */}
       <div className={`flex items-center justify-between px-4 py-2 backdrop-blur-sm border-b flex-shrink-0 ${isPreview ? 'bg-amber-50/90 border-amber-200' : 'bg-white/80 border-white/50'}`}>
         <Link
-          href={isPreview ? '/dashboard/teacher/lessons' : (role === 'teacher' ? '/dashboard/teacher' : '/dashboard/student')}
-          className="text-[#9B7CB8] hover:text-[#5A3D7A] text-sm font-semibold flex items-center gap-1 transition-colors"
+          href={
+            isPreview
+              ? '/dashboard/teacher/lessons'
+              : role === 'teacher'
+                ? '/dashboard/teacher'
+                : '/dashboard/student/lessons'
+          }
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-[#5A3D7A] text-xs font-bold border border-[#E8D5F0] shadow-sm hover:bg-[#F7EFFF] hover:border-[#5A3D7A] transition-colors"
         >
-          ← {isPreview ? 'Back to lessons' : (role === 'teacher' ? 'Teacher dashboard' : 'My dashboard')}
+          ←{' '}
+          {isPreview
+            ? 'Back to lessons'
+            : role === 'teacher'
+              ? 'Teacher dashboard'
+              : 'My lessons'}
         </Link>
         {isPreview ? (
           <span className="text-xs font-bold text-amber-700 bg-amber-200 px-3 py-1 rounded-full">
