@@ -5,7 +5,16 @@
 // its static assets, so the browser cache handles /_next/* correctly on its
 // own — the SW only precaches a few icon/manifest files.
 
-const CACHE_NAME = 'ft-cache-v8';
+const CACHE_NAME = 'ft-cache-v9';
+
+// Allow the page to force this worker to activate immediately. Paired
+// with the controllerchange auto-reload in useServiceWorker so users
+// stuck on an older SW get bumped to the current build on next poll.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 const PRECACHE_URLS = [
   '/manifest.json',
   '/logo-friendlyteaching.jpg',
