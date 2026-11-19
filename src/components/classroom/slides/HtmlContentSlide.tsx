@@ -246,7 +246,40 @@ export default function HtmlContentSlide({ slide, isTeacher, lessonId, teacherId
       }
     }
 
+    // Snapshot every visible input right now (not just the debounce
+    // buffer) and write the lot. Called when the student clicks
+    // "Save Progress" in the classroom chrome — critical because the
+    // teacher's HTML often switches pages by replacing the DOM, which
+    // destroys <input> values that were never flushed.
+    async function snapshotAllAndSave() {
+      const current: Record<string, string> = {};
+      els.forEach((el, i) => {
+        const key = keyFor(el, i);
+        current[key] = readValue(el);
+      });
+      if (Object.keys(current).length === 0) return;
+      if (flushTimerRef.current !== null) {
+        window.clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+      pendingRef.current = {};
+      setSaving(true);
+      try {
+        await saveHtmlLessonAnswers({
+          studentId, lessonId: lessonId!, teacherId, answers: current,
+        });
+        setSavedAt(Date.now());
+      } catch (err) {
+        console.warn('[HtmlContentSlide] snapshotAllAndSave failed:', err);
+      } finally {
+        setSaving(false);
+      }
+    }
+    const onSaveNow = () => { snapshotAllAndSave(); };
+    window.addEventListener('ft-html-save-now', onSaveNow);
+
     return () => {
+      window.removeEventListener('ft-html-save-now', onSaveNow);
       listeners.forEach(({ el, fn }) => {
         const evt = (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio'))
           ? 'change'

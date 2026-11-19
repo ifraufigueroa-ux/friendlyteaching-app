@@ -23,6 +23,35 @@ export default function ClassroomPage({ params }: PageProps) {
   const [progressId, setProgressId] = useState<string | null>(null);
   const [resumeSlideIndex, setResumeSlideIndex] = useState(0);
   const startTimeRef = useRef<number>(Date.now());
+  // Transient feedback for the HTML-lesson "Save Progress" button so
+  // students see something happen when they press it. Clears itself.
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const savedTimerRef = useRef<number | null>(null);
+
+  async function handleSaveProgress() {
+    if (!progressId) return;
+    if (savedTimerRef.current) {
+      window.clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = null;
+    }
+    setSaveState('saving');
+    // Fire a custom event so HtmlContentSlide snapshots every input
+    // currently visible in the iframe and writes it to Firestore before
+    // the teacher's HTML pagination can wipe them.
+    try { window.dispatchEvent(new CustomEvent('ft-html-save-now')); }
+    catch { /* non-critical */ }
+    const duration = Math.round((Date.now() - startTimeRef.current) / 60000);
+    try {
+      await updateProgress(progressId, { duration });
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+    savedTimerRef.current = window.setTimeout(() => setSaveState('idle'), 2500);
+  }
+  useEffect(() => () => {
+    if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current);
+  }, []);
 
   // Start (or resume) progress tracking when lesson loads — students only.
   // findOrCreateProgress prevents duplicate docs when re-entering mid-session,
@@ -161,12 +190,32 @@ export default function ClassroomPage({ params }: PageProps) {
             teacherId={lesson.teacherId}
           />
           {(role === 'student' || isPreview) && (
-            <button
-              onClick={() => handleLessonComplete()}
-              className="fixed bottom-6 right-6 z-20 px-5 py-3 bg-[#5A3D7A] hover:bg-[#3D1F6B] text-white rounded-full text-sm font-semibold shadow-[0_10px_28px_-10px_rgba(90,61,122,0.6)] transition-colors inline-flex items-center gap-2"
-            >
-              ✓ Mark as complete
-            </button>
+            <div className="fixed bottom-6 right-6 z-20 inline-flex items-center gap-2">
+              <button
+                onClick={handleSaveProgress}
+                disabled={saveState === 'saving' || !progressId}
+                className="px-5 py-3 bg-white hover:bg-[#F7EFFF] text-[#5A3D7A] border-2 border-[#E8D5F0] hover:border-[#5A3D7A] rounded-full text-sm font-semibold shadow-[0_10px_28px_-10px_rgba(90,61,122,0.35)] transition-colors inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {saveState === 'saving' ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    Guardando…
+                  </>
+                ) : saveState === 'saved' ? (
+                  <>✓ Guardado</>
+                ) : saveState === 'error' ? (
+                  <>⚠ Reintentar</>
+                ) : (
+                  <>💾 Save Progress</>
+                )}
+              </button>
+              <button
+                onClick={() => handleLessonComplete()}
+                className="px-5 py-3 bg-[#5A3D7A] hover:bg-[#3D1F6B] text-white rounded-full text-sm font-semibold shadow-[0_10px_28px_-10px_rgba(90,61,122,0.6)] transition-colors inline-flex items-center gap-2"
+              >
+                ✓ Mark as complete
+              </button>
+            </div>
           )}
         </div>
       ) : (
