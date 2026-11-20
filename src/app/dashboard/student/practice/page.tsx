@@ -74,8 +74,11 @@ export default function PracticeLandingPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-grid">
-      <div className="p-6">
+    <div className="min-h-screen bg-grid p-4 md:p-6">
+      {/* Framed canvas — a soft white card so the content doesn't look
+          like it's floating on the gradient. Outer padding keeps the
+          gradient visible around the frame. */}
+      <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-3xl border border-[#e5d9f2] shadow-[0_18px_48px_-24px_rgba(90,61,122,0.35)] p-6 md:p-8">
         <TopBar
           title="Daily Practice"
           subtitle="A few minutes a day. Grammar, vocab, and real English."
@@ -84,7 +87,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             { label: 'Daily Practice' },
           ]}
         />
-        <div className="max-w-5xl mx-auto mt-6">
+        <div className="mt-6">
           {children}
         </div>
       </div>
@@ -99,13 +102,10 @@ function OnboardingChoice({
 }: {
   onStartFromScratch: () => Promise<void>;
 }) {
-  // The placement test lives at /placement/<teacherId>, so we need the
-  // student's own teacher uid to send them somewhere real. If the
-  // profile has not resolved yet (or the student is not approved by a
-  // teacher), fall back to disabled copy instead of a 404.
-  const { profile } = useAuthStore();
-  const teacherId = profile?.studentData?.approvedByTeacherId ?? null;
-  const placementHref = teacherId ? `/placement/${teacherId}` : null;
+  // Placement now lives inside Daily Practice itself — adaptive, ~15 min,
+  // resumable, and seeds practiceProgress directly when it finishes. No
+  // teacher-scoped URL anymore.
+  const placementHref = '/dashboard/student/practice/placement';
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -141,42 +141,23 @@ function OnboardingChoice({
           </p>
         </button>
 
-        {placementHref ? (
-          <Link
-            href={placementHref}
-            className="group text-left game-card rounded-3xl p-6 space-y-3"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
-              🎯
-            </div>
-            <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
-              Take the placement
-            </h3>
-            <p className="text-sm text-slate-500 leading-snug">
-              Short diagnostic so we drop you at the level that fits — anywhere from A0 to B2.
-            </p>
-            <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700 group-hover:gap-2 transition-all">
-              Take placement <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
-            </p>
-          </Link>
-        ) : (
-          // No teacher linked yet — a bare /placement route needs a
-          // teacherId to resolve, so disable the card instead of a 404.
-          <div className="group text-left game-card rounded-3xl p-6 space-y-3 opacity-60 cursor-not-allowed">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
-              🎯
-            </div>
-            <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
-              Take the placement
-            </h3>
-            <p className="text-sm text-slate-500 leading-snug">
-              Ask your teacher to approve your account first — the placement test is linked to your teacher.
-            </p>
-            <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700/60">
-              Waiting for teacher
-            </p>
+        <Link
+          href={placementHref}
+          className="group text-left game-card rounded-3xl p-6 space-y-3"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
+            🎯
           </div>
-        )}
+          <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
+            Take the placement
+          </h3>
+          <p className="text-sm text-slate-500 leading-snug">
+            Short adaptive diagnostic (~15 min) so we drop you at the level that fits — anywhere from A0 to C1. You can pause and continue later.
+          </p>
+          <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700 group-hover:gap-2 transition-all">
+            Take placement <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
+          </p>
+        </Link>
       </div>
 
       <p className="text-center text-[11px] text-slate-500">
