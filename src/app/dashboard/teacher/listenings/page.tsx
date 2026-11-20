@@ -140,7 +140,10 @@ function TeacherLessonCard({ lesson, assignedCount, onAssign }: {
               <Clock className="w-3 h-3" strokeWidth={2.5} /> {lesson.estimatedMin} min
             </span>
             <span className="text-[11px] text-[#7A7387] inline-flex items-center gap-1">
-              <Headphones className="w-3 h-3" strokeWidth={2.5} /> {Math.round(lesson.audio.durationSec / 60)}:{String(lesson.audio.durationSec % 60).padStart(2, '0')}
+              <Headphones className="w-3 h-3" strokeWidth={2.5} />
+              {/* Math.floor for the minutes — Math.round was rolling 220 s
+                  (3:40) up to 4 min and showing "4:40". */}
+              {Math.floor(lesson.audio.durationSec / 60)}:{String(lesson.audio.durationSec % 60).padStart(2, '0')}
             </span>
           </div>
           <h3 className="font-serif text-2xl font-bold text-[#2E2A33] leading-tight">
