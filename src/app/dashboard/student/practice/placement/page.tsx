@@ -175,7 +175,9 @@ function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
   };
   onAnswer: (a: { questionId: string; level: 'A0'|'A1'|'A2'|'B1'|'B2'|'B2+'|'C1'; topic: string; pickedIndex: number; correct: boolean; elapsedMs: number }) => Promise<void>;
   onPause: () => Promise<void>;
-  onFinish: () => Promise<void>;
+  // complete() returns the placed level + first unit; we don't read it
+  // here (the hook also writes practiceProgress), so widen the prop.
+  onFinish: () => Promise<unknown>;
 }) {
   const [pickedIndex, setPickedIndex] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
