@@ -26,9 +26,13 @@ const fraunces = Fraunces({
 // FriendlyTales theme fonts — Cinzel for titles/headers, Plus Jakarta Sans
 // for body/inputs. Loaded here so <html> exposes the CSS variables and the
 // `.theme-friendly-tales` scope in globals.css can consume them.
+// Cinzel is the recurring victim of a Vercel Turbopack + next/font flake
+// — loading multiple weights triggers "Can't resolve
+// @vercel/turbopack-next/internal/font/google/font" on every other build.
+// Keep it to a single weight so there's one URL to resolve, not four.
 const cinzel = Cinzel({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
+  weight: ['700'],
   variable: '--font-cinzel',
   display: 'swap',
 });
