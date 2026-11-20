@@ -484,6 +484,7 @@ function levelPill(level: PracticeLevel): string {
     case 'B1':  return 'border-violet-300 bg-violet-50 text-violet-700';
     case 'B2':  return 'border-rose-300 bg-rose-50 text-rose-700';
     case 'B2+': return 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700';
+    case 'C1':  return 'border-amber-300 bg-amber-50 text-amber-800';
   }
 }
 
@@ -495,6 +496,7 @@ function levelTitle(level: PracticeLevel): string {
     case 'B1':  return 'Intermediate';
     case 'B2':  return 'Upper-Intermediate';
     case 'B2+': return 'Advanced Intermediate';
+    case 'C1':  return 'Advanced';
   }
 }
 

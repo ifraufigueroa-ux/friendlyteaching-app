@@ -11,12 +11,10 @@ import type { LessonLevel } from '@/types/firebase';
 import type { PracticeLevel } from '@/types/practice';
 import { unitsByLevel } from '@/lib/data/practice/general-english';
 
-/** Fold the two ladders:
- *   B1+  → B1  (next Daily Practice level is B2; we keep them a notch below
- *                until the C1 content ships)
- *   C1   → B2+ (the top of what Daily Practice covers today)
- *   everything else maps one-to-one.
- */
+/** Fold the two ladders. B1+ is the only level that doesn't exist in
+ *  Daily Practice yet; map it down to B1 so the student lands on the
+ *  closest matching band. Everything else maps one-to-one, including
+ *  C1 now that the C1 content is live. */
 export function placementToPracticeLevel(placed: LessonLevel): PracticeLevel {
   switch (placed) {
     case 'A0': return 'A0';
@@ -25,7 +23,7 @@ export function placementToPracticeLevel(placed: LessonLevel): PracticeLevel {
     case 'B1': return 'B1';
     case 'B1+': return 'B1';
     case 'B2': return 'B2';
-    case 'C1': return 'B2+';
+    case 'C1': return 'C1';
   }
 }
 

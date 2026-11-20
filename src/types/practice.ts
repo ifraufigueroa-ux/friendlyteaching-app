@@ -12,13 +12,13 @@ import type { Timestamp } from 'firebase/firestore';
 
 // ── CEFR + skills ─────────────────────────────────────────────
 
-/** Levels we commit to supporting on day one. C1/C2 come later. */
-export const PRACTICE_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'B2+'] as const;
+/** CEFR levels the Daily Practice ladder covers end-to-end. */
+export const PRACTICE_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'B2+', 'C1'] as const;
 export type PracticeLevel = typeof PRACTICE_LEVELS[number];
 
 /** CEFR order used everywhere (sorting units, picking the next one…). */
 export const LEVEL_ORDER: Record<PracticeLevel, number> = {
-  A0: 0, A1: 1, A2: 2, B1: 3, B2: 4, 'B2+': 5,
+  A0: 0, A1: 1, A2: 2, B1: 3, B2: 4, 'B2+': 5, C1: 6,
 };
 
 export const PRACTICE_SKILLS = [

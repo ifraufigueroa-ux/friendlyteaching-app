@@ -9,8 +9,13 @@
 // reading drills come in a later content pass.
 
 import type { PracticeUnit } from '@/types/practice';
+import { QUICK_LESSONS } from './quick-lessons';
+import { C1_UNITS } from './c1-units';
 
-export const PRACTICE_UNITS: PracticeUnit[] = [
+// Base A0..B2+ units authored inline. The exported PRACTICE_UNITS at the
+// bottom of this file merges in the Quick Lesson explainers from
+// ./quick-lessons and appends the C1 content from ./c1-units.
+const BASE_UNITS: PracticeUnit[] = [
 
   // ── A0 ─────────────────────────────────────────────────────
 
@@ -1139,6 +1144,23 @@ export const PRACTICE_UNITS: PracticeUnit[] = [
     ],
   },
 
+];
+
+// ── Final export: base units + C1 + quick lessons merged ──────
+//
+// Overlays the QUICK_LESSONS map onto each unit by id so every unit
+// that has an explainer picks it up without touching the exercise
+// data above. C1 units from ./c1-units.ts are concatenated at the
+// end so they appear below B2+ in the level-grouped grid.
+
+function withQuickLesson(u: PracticeUnit): PracticeUnit {
+  const ql = QUICK_LESSONS[u.id];
+  return ql ? { ...u, quickLesson: u.quickLesson ?? ql } : u;
+}
+
+export const PRACTICE_UNITS: PracticeUnit[] = [
+  ...BASE_UNITS.map(withQuickLesson),
+  ...C1_UNITS.map(withQuickLesson),
 ];
 
 // ── Helpers ────────────────────────────────────────────────────
