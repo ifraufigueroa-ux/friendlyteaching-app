@@ -293,11 +293,11 @@ export const lessonB2PlusDevSupplyChainAttack: FLLesson = {
           prompt: 'Which credentials does Noor explicitly tell Daniel to rotate?',
           options: [
             { id: 'a', text: 'Only his GitHub token' },
-            { id: 'b', text: 'Only his cloud provider credentials' },
-            { id: 'c', text: 'Only his npm auth token' },
-            { id: 'd', text: 'His GitHub PAT, npm auth token, AWS access keys and Vault session' },
+            { id: 'b', text: 'His GitHub PAT, npm auth token, AWS access keys and Vault session' },
+            { id: 'c', text: 'Only his cloud provider credentials' },
+            { id: 'd', text: 'Only his npm auth token' },
           ],
-          correct: 'd',
+          correct: 'b',
         },
         {
           kind: 'mcq',
