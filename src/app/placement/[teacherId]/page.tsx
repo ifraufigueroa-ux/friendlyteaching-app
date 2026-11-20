@@ -9,8 +9,9 @@ import {
   collection, doc, setDoc, updateDoc,
   serverTimestamp, Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { db, auth } from '@/lib/firebase/config';
 import { PLACEMENT_QUESTIONS } from '@/data/placementQuestions';
+import { placementToPracticeLevel, firstUnitIdForLevel } from '@/lib/placementToPractice';
 import {
   computeSectionScores,
   determineLevel,
@@ -121,6 +122,12 @@ export default function PlacementTestPage() {
   const [stoppedAt, setStoppedAt]     = useState<number | null>(null);
   const [saving, setSaving]           = useState(false);
   const [saveError, setSaveError]     = useState(false);
+  // Carried over from the completion write so the done screen can offer
+  // "Start Daily Practice at X" when a signed-in student takes the test.
+  const [practiceSetup, setPracticeSetup] = useState<{
+    level: string;
+    unitId: string | null;
+  } | null>(null);
 
   const sessionIdRef   = useRef<string | null>(null);
   const sessionPending = useRef<Promise<string> | null>(null);
@@ -209,6 +216,34 @@ export default function PlacementTestPage() {
         if (assignmentId) {
           const { completePlacementAssignment } = await import('@/hooks/usePlacementAssignments');
           await completePlacementAssignment(assignmentId, { placementSessionId: sid }).catch(() => {});
+        }
+
+        // Signed-in student path: drop them into Daily Practice at the
+        // placed level so they can keep working on their own instead of
+        // just seeing "your teacher will contact you". Anonymous leads
+        // skip this write — auth.currentUser is null for them.
+        const u = auth.currentUser;
+        if (u) {
+          try {
+            const practiceLevel = placementToPracticeLevel(placedLevel);
+            const nextUnitId    = firstUnitIdForLevel(practiceLevel);
+            await setDoc(doc(db, 'practiceProgress', u.uid), {
+              uid: u.uid,
+              startedFromPlacement: true,
+              currentLevel:         practiceLevel,
+              nextUnitId,
+              streak: 0,
+              bestStreak: 0,
+              lastPracticedAt: null,
+              totalXp: 0,
+              unitStars: {},
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            }, { merge: true });
+            setPracticeSetup({ level: practiceLevel, unitId: nextUnitId });
+          } catch (err) {
+            console.warn('[placement] seeding practiceProgress failed:', err);
+          }
         }
       }).catch(() => setSaveError(true)).finally(() => setSaving(false));
       setStep('done');
@@ -389,6 +424,21 @@ export default function PlacementTestPage() {
           <p className="text-sm mb-5" style={{ color: B.purpleMed }}>
             Your results have been submitted. Your teacher will review them and contact you with your English level and a personalised learning plan.
           </p>
+
+          {/* Signed-in students: offer a jump into Daily Practice at
+              the placed level so they don't have to wait on the
+              teacher to start working. */}
+          {practiceSetup && (
+            <a
+              href={practiceSetup.unitId
+                ? `/dashboard/student/practice/lesson/${practiceSetup.unitId}`
+                : '/dashboard/student/practice'}
+              className="block w-full text-center rounded-xl py-3 px-4 mb-4 text-sm font-bold text-white transition-colors"
+              style={{ background: B.purple }}
+            >
+              🎯 Start Daily Practice at {practiceSetup.level}
+            </a>
+          )}
 
           {saving && (
             <p className="text-sm font-medium animate-pulse mb-4" style={{ color: B.purpleMed }}>
