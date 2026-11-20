@@ -28,6 +28,7 @@ import {
   CalendarPlus,
   Flame,
   Trophy,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -55,6 +56,10 @@ type NavLink = {
   // son ilustraciones del mascot cat con background de color ya
   // integrado — el iconBg queda de fallback para items sin imagen.
   iconImg?: string;
+  // External shortcut (Ellii, Off2Class, Sounter…). When true the
+  // render path uses a plain <a target="_blank"> and does not try to
+  // compute an active state against the pathname.
+  external?: boolean;
 };
 type NavGroup = { type: 'group'; label: string };
 type NavItem = NavLink | NavGroup;
@@ -115,13 +120,20 @@ const STUDENT_NAV: NavItem[] = [
 // Weekly IELTS slots in under Daily Practice in the Learning group,
 // but only when the teacher has assigned it. We rebuild the array on
 // demand so the condition stays close to the data.
-function studentNavWithWeeklyIelts(hasAssignment: boolean): NavItem[] {
-  if (!hasAssignment) return STUDENT_NAV;
-  const out: NavItem[] = [];
+//
+// shortcuts: teacher-configured external platform links (Ellii,
+// Off2Class, Sounter) that the student opens in a new tab. Appended
+// AFTER the Tracking group so the shortcut section sits at the bottom
+// of the sidebar, under My Progress.
+function studentNavWithWeeklyIelts(
+  hasAssignment: boolean,
+  shortcuts: NavLink[],
+): NavItem[] {
+  const base: NavItem[] = [];
   for (const item of STUDENT_NAV) {
-    out.push(item);
-    if (item.type === 'link' && item.href === '/dashboard/student/practice') {
-      out.push({
+    base.push(item);
+    if (hasAssignment && item.type === 'link' && item.href === '/dashboard/student/practice') {
+      base.push({
         type: 'link',
         href: '/dashboard/student/weekly-ielts',
         icon: Trophy,
@@ -131,7 +143,60 @@ function studentNavWithWeeklyIelts(hasAssignment: boolean): NavItem[] {
       });
     }
   }
-  return out;
+  if (shortcuts.length > 0) {
+    base.push({ type: 'group', label: 'Shortcuts' });
+    for (const s of shortcuts) base.push(s);
+  }
+  return base;
+}
+
+// Default landing URLs for each external platform — used when the
+// teacher hasn't set a per-student link in studentData.platformLinks.
+const SHORTCUT_FALLBACKS = {
+  off2class: 'https://app.off2class.com/',
+  ellii:     'https://ellii.com',
+  sounter:   'https://sounter.com',
+} as const;
+
+function buildStudentShortcuts(links?: {
+  off2class?: string;
+  ellii?: string;
+  sounter?: string;
+}): NavLink[] {
+  const normalise = (raw?: string, fallback?: string): string => {
+    const v = (raw ?? '').trim();
+    if (!v) return fallback ?? '';
+    return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  };
+  return [
+    {
+      type: 'link',
+      href: normalise(links?.ellii,     SHORTCUT_FALLBACKS.ellii),
+      icon: ExternalLink,
+      label: 'Ellii',
+      iconBg: 'bg-teal-100',
+      iconColor: 'text-teal-600',
+      external: true,
+    },
+    {
+      type: 'link',
+      href: normalise(links?.off2class, SHORTCUT_FALLBACKS.off2class),
+      icon: ExternalLink,
+      label: 'Off2Class',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      external: true,
+    },
+    {
+      type: 'link',
+      href: normalise(links?.sounter,   SHORTCUT_FALLBACKS.sounter),
+      icon: ExternalLink,
+      label: 'Sounter',
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+      external: true,
+    },
+  ];
 }
 
 // ── Badge hook ────────────────────────────────────────────────
@@ -195,10 +260,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   // bails fast when the uid is not a student.
   const { assignment: weeklyIeltsAssignment } = useStudentWeeklyIelts(role === 'student' ? uid : '');
 
+  // Each student may have per-platform URLs set by their teacher under
+  // studentData.platformLinks. Empty / missing links fall back to the
+  // vendor's landing page so the shortcut still works.
+  const studentShortcuts = useMemo(
+    () => role === 'student' ? buildStudentShortcuts(profile?.studentData?.platformLinks) : [],
+    [role, profile?.studentData?.platformLinks],
+  );
+
   const nav =
     role === 'teacher'   ? TEACHER_NAV
   : role === 'corporate' ? CORPORATE_NAV
-                         : studentNavWithWeeklyIelts(!!weeklyIeltsAssignment);
+                         : studentNavWithWeeklyIelts(!!weeklyIeltsAssignment, studentShortcuts);
 
   async function handleLogout() {
     await logOut();
@@ -256,18 +329,27 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             );
           }
 
-          const { href, icon: Icon, label, iconBg, iconColor, iconImg } = item;
-          const isActive = pathname === href || (
-            href !== '/dashboard/teacher' && href !== '/dashboard/student' && pathname.startsWith(href)
+          const { href, icon: Icon, label, iconBg, iconColor, iconImg, external } = item;
+          const isActive = !external && (
+            pathname === href || (
+              href !== '/dashboard/teacher' && href !== '/dashboard/student' && pathname.startsWith(href)
+            )
           );
           const badge = navBadges.get(href) ?? 0;
           const corporate = role === 'corporate';
+          // External shortcuts open in a new tab and don't use Next
+          // routing; internal links still go through next/link.
+          const LinkEl: React.ElementType = external ? 'a' : Link;
+          const linkExtraProps = external
+            ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+            : {};
 
           return (
-            <Link
-              key={href}
+            <LinkEl
+              key={`${label}-${href}`}
               href={href}
               onClick={onNavigate}
+              {...linkExtraProps}
               className={`group relative flex items-center transition-all duration-150 ${
                 corporate
                   ? `gap-4 px-3 py-2.5 rounded-2xl text-[15px] font-semibold ${
@@ -317,7 +399,10 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   {badge > 99 ? '99+' : badge}
                 </span>
               )}
-            </Link>
+              {external && (
+                <ExternalLink className="flex-shrink-0 w-3 h-3 text-gray-300 group-hover:text-[#5A3D7A]" strokeWidth={2.5} />
+              )}
+            </LinkEl>
           );
         })}
       </nav>
