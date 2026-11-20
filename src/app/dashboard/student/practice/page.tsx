@@ -457,6 +457,29 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
         })}
       </div>
 
+      {/* ── Retake placement CTA ────────────────────────── */}
+      <div className="bg-white rounded-2xl border-2 border-[#e5d9f2] p-5 flex flex-col md:flex-row items-center gap-4">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-xl shadow-sm flex-shrink-0">
+          🎯
+        </div>
+        <div className="flex-1 text-center md:text-left">
+          <p className="font-fun text-sm font-bold text-[#4b3869] leading-tight">
+            Changed since last time? Retake the placement.
+          </p>
+          <p className="text-xs text-slate-500 leading-snug">
+            {progress.placedLevel
+              ? <>You are currently placed at <strong className="text-[#4b3869]">{progress.placedLevel}</strong>. Retaking the test can adjust your level.</>
+              : 'Takes about 15 minutes. You can pause and continue later.'}
+          </p>
+        </div>
+        <Link
+          href="/dashboard/student/practice/placement"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#845ec2] to-[#5A3D7A] shadow-sm hover:shadow-md transition-shadow"
+        >
+          Retake placement <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
+        </Link>
+      </div>
+
       {/* ── Footer note ─────────────────────────────────── */}
       <div className="bg-white/70 rounded-2xl border border-dashed border-[#e5d9f2] p-4 text-center">
         <p className="text-[10px] font-black text-[#4b3869]/60 uppercase tracking-[0.25em] mb-1 inline-flex items-center gap-1.5">
