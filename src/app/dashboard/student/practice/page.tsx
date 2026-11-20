@@ -10,11 +10,11 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
 import {
-  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown, BookOpenCheck,
+  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown, BookOpenCheck, ChevronDown,
 } from 'lucide-react';
 import { useDailyPractice, masteryBand } from '@/hooks/useDailyPractice';
 import { useAuthStore } from '@/store/authStore';
@@ -187,11 +187,45 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
     return ordered;
   }, [levels, grouped]);
   const orderedUnitIds = useMemo(() => orderedUnits.map(u => u.id), [orderedUnits]);
+  // Level lookup for the placed-level unlock shortcut. Cheap: a record.
+  const levelOf = useMemo(() => {
+    const out: Record<string, PracticeLevel> = {};
+    for (const u of orderedUnits) out[u.id] = u.level;
+    return out;
+  }, [orderedUnits]);
+  const placedLevel = progress.placedLevel ?? null;
+
+  // Collapsible level sections. Default: expand only the student's
+  // current level; everything else collapsed so the grid doesn't
+  // flood. The choice persists per browser so a student who likes
+  // seeing B1 and B2 open at once doesn't lose it on reload.
+  const [expandedLevels, setExpandedLevels] = useState<Set<PracticeLevel>>(
+    () => new Set([progress.currentLevel]),
+  );
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('ft-practice-expanded-levels');
+      if (saved) {
+        const arr = JSON.parse(saved) as PracticeLevel[];
+        if (Array.isArray(arr) && arr.length > 0) setExpandedLevels(new Set(arr));
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  function toggleLevel(lvl: PracticeLevel) {
+    setExpandedLevels((prev) => {
+      const next = new Set(prev);
+      if (next.has(lvl)) next.delete(lvl); else next.add(lvl);
+      try { window.localStorage.setItem('ft-practice-expanded-levels', JSON.stringify([...next])); }
+      catch { /* ignore */ }
+      return next;
+    });
+  }
 
   const nextUnit: PracticeUnit | null = useMemo(() => {
     // Pick the first unlocked unit the student hasn't passed yet (<2 stars).
     const firstUnlocked = orderedUnits.find(u => {
-      if (!isUnitUnlocked(u.id, orderedUnitIds, progress.mastery)) return false;
+      if (!isUnitUnlocked(u.id, orderedUnitIds, progress.mastery, levelOf, placedLevel)) return false;
       return toStars(progress.mastery[u.id]) < 2;
     });
     if (firstUnlocked) return firstUnlocked;
@@ -202,7 +236,7 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
     }
     const atLevel = grouped[progress.currentLevel] ?? [];
     return atLevel[0] ?? PRACTICE_UNITS[0] ?? null;
-  }, [progress, grouped, orderedUnits, orderedUnitIds]);
+  }, [progress, grouped, orderedUnits, orderedUnitIds, levelOf, placedLevel]);
 
   const gap = daysSince(progress.lastPracticedAt);
   const streakLive = gap <= STREAK_GRACE_DAYS;
@@ -300,9 +334,18 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
         {levels.map(level => {
           const unitsAtLevel = grouped[level] ?? [];
           if (unitsAtLevel.length === 0) return null;
+          const open = expandedLevels.has(level);
+          // Count how many units at this level are already passed so
+          // the collapsed header still tells the student "6/10 done".
+          const passedCount = unitsAtLevel.filter(u => toStars(progress.mastery[u.id]) >= 2).length;
           return (
             <section key={level} className="space-y-3">
-              <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => toggleLevel(level)}
+                className="w-full flex items-center gap-3 text-left group"
+                aria-expanded={open}
+              >
                 <span className={`text-[11px] font-black uppercase tracking-[0.3em] px-2.5 py-1 rounded-full border ${levelPill(level)}`}>
                   {level}
                 </span>
@@ -310,16 +353,21 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                   {levelTitle(level)}
                 </h3>
                 <span className="text-[11px] font-bold text-[#9474c4]/70">
-                  {unitsAtLevel.length} {unitsAtLevel.length === 1 ? 'unit' : 'units'}
+                  {passedCount > 0 ? `${passedCount}/${unitsAtLevel.length}` : `${unitsAtLevel.length}`} {unitsAtLevel.length === 1 ? 'unit' : 'units'}
                 </span>
-              </div>
+                <ChevronDown
+                  className={`ml-auto w-4 h-4 text-[#9474c4] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                  strokeWidth={2.5}
+                />
+              </button>
 
+              {open && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {unitsAtLevel.map(u => {
                   const stars  = toStars(progress.mastery[u.id]);
                   const band   = masteryBand(stars);
                   const isNext = nextUnit?.id === u.id;
-                  const unlocked = isUnitUnlocked(u.id, orderedUnitIds, progress.mastery);
+                  const unlocked = isUnitUnlocked(u.id, orderedUnitIds, progress.mastery, levelOf, placedLevel);
                   const content = (
                     <>
                       <div className={`flex-shrink-0 w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl ${unlocked ? 'bg-[#f3eefc] border-[#e5d9f2]' : 'bg-slate-100 border-slate-200 grayscale'}`}>
@@ -403,6 +451,7 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                   );
                 })}
               </div>
+              )}
             </section>
           );
         })}

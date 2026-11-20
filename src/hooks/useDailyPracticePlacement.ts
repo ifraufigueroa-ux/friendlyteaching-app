@@ -129,6 +129,7 @@ export function useDailyPracticePlacement(uid: string) {
       uid,
       startedFromPlacement: true,
       currentLevel:         placed,
+      placedLevel:          placed,       // unlocks every unit up to this level
       nextUnitId,
       updatedAt:            serverTimestamp(),
     }, { merge: true });

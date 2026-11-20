@@ -136,6 +136,11 @@ export interface PracticeProgress {
   studentId:         string;
   /** Where the student is right now — drives the daily workout. */
   currentLevel:      PracticeLevel;
+  /** Highest level reached in the in-app placement test. Any unit at
+   *  or below this level is unlocked regardless of prerequisites — the
+   *  student has already proved they handle the grammar. Null when no
+   *  placement has been taken. */
+  placedLevel?:      PracticeLevel | null;
   /** Unit the next session will pick exercises from (null if none). */
   nextUnitId:        string | null;
   /** Per-unit mastery, 0-5 crowns. Missing = not started. */
@@ -235,13 +240,25 @@ export function toStars(masteryValue: number | undefined): number {
   return Math.min(STARS_MAX, masteryValue);
 }
 
-/** A unit is unlocked when its predecessor in the ordered list has
- *  ≥ UNLOCK_MIN_STARS. The very first unit is always open. */
+/** A unit is unlocked when any of these is true:
+ *   · it is the first unit in the ordered list (always open),
+ *   · its predecessor has ≥ UNLOCK_MIN_STARS (normal progression),
+ *   · it belongs to a level the student has already placed through
+ *     (the in-app placement wrote their best grammar level). */
 export function isUnitUnlocked(
   unitId: string,
   orderedUnitIds: string[],
   mastery: Record<string, number>,
+  /** Optional lookup of each unit's level. Passed alongside
+   *  `placedLevel` so this helper doesn't have to import the units
+   *  module (avoids a circular dep). */
+  levelOf?: Record<string, PracticeLevel>,
+  placedLevel?: PracticeLevel | null,
 ): boolean {
+  if (placedLevel && levelOf) {
+    const l = levelOf[unitId];
+    if (l && LEVEL_ORDER[l] <= LEVEL_ORDER[placedLevel]) return true;
+  }
   const idx = orderedUnitIds.indexOf(unitId);
   if (idx <= 0) return true; // first unit or unknown → open
   const prevId = orderedUnitIds[idx - 1];
