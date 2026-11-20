@@ -17,6 +17,7 @@ import {
   Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown,
 } from 'lucide-react';
 import { useDailyPractice, masteryBand } from '@/hooks/useDailyPractice';
+import { useAuthStore } from '@/store/authStore';
 import { PRACTICE_UNITS, unitsByLevel } from '@/lib/data/practice/general-english';
 import {
   PRACTICE_LEVELS, LEVEL_ORDER, STREAK_GRACE_DAYS, daysSince,
@@ -98,6 +99,14 @@ function OnboardingChoice({
 }: {
   onStartFromScratch: () => Promise<void>;
 }) {
+  // The placement test lives at /placement/<teacherId>, so we need the
+  // student's own teacher uid to send them somewhere real. If the
+  // profile has not resolved yet (or the student is not approved by a
+  // teacher), fall back to disabled copy instead of a 404.
+  const { profile } = useAuthStore();
+  const teacherId = profile?.studentData?.approvedByTeacherId ?? null;
+  const placementHref = teacherId ? `/placement/${teacherId}` : null;
+
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       <div className="text-center space-y-3">
@@ -132,23 +141,42 @@ function OnboardingChoice({
           </p>
         </button>
 
-        <Link
-          href="/dashboard/student/placement"
-          className="group text-left game-card rounded-3xl p-6 space-y-3"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
-            🎯
+        {placementHref ? (
+          <Link
+            href={placementHref}
+            className="group text-left game-card rounded-3xl p-6 space-y-3"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
+              🎯
+            </div>
+            <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
+              Take the placement
+            </h3>
+            <p className="text-sm text-slate-500 leading-snug">
+              Short diagnostic so we drop you at the level that fits — anywhere from A0 to B2.
+            </p>
+            <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700 group-hover:gap-2 transition-all">
+              Take placement <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
+            </p>
+          </Link>
+        ) : (
+          // No teacher linked yet — a bare /placement route needs a
+          // teacherId to resolve, so disable the card instead of a 404.
+          <div className="group text-left game-card rounded-3xl p-6 space-y-3 opacity-60 cursor-not-allowed">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md">
+              🎯
+            </div>
+            <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
+              Take the placement
+            </h3>
+            <p className="text-sm text-slate-500 leading-snug">
+              Ask your teacher to approve your account first — the placement test is linked to your teacher.
+            </p>
+            <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700/60">
+              Waiting for teacher
+            </p>
           </div>
-          <h3 className="font-fun text-xl font-bold text-[#4b3869] leading-tight">
-            Take the placement
-          </h3>
-          <p className="text-sm text-slate-500 leading-snug">
-            Short diagnostic so we drop you at the level that fits — anywhere from A0 to B2.
-          </p>
-          <p className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-amber-700 group-hover:gap-2 transition-all">
-            Take placement <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
-          </p>
-        </Link>
+        )}
       </div>
 
       <p className="text-center text-[11px] text-slate-500">
