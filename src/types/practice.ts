@@ -98,6 +98,32 @@ export interface PracticeUnit {
   /** Emoji glyph for the card, kept out of i18n. */
   icon:        string;
   exercises:   Exercise[];
+  /** Short pre-workout explainer. Shown from the "Quick Lesson" button
+   *  on the card; ends with "Go Practice" that routes into the drill.
+   *  Optional for backwards compatibility — units without a quickLesson
+   *  render a lightweight "coming soon" placeholder. */
+  quickLesson?: QuickLesson;
+}
+
+// ── Quick Lesson shape ───────────────────────────────────────
+
+export interface QuickLessonSection {
+  /** Short heading shown above the body. Optional — use when the lesson
+   *  has multiple logical blocks. */
+  heading?: string;
+  /** Prose explaining the point. Plain text with line breaks; renderer
+   *  splits paragraphs on blank lines. Short — 2-5 sentences is typical. */
+  body:     string;
+  /** Concrete example sentences. Rendered as a bullet list. */
+  examples?: string[];
+  /** One-line gotcha / mnemonic / tip. Rendered as a callout. */
+  tip?:      string;
+}
+
+export interface QuickLesson {
+  /** One-sentence summary for the card preview + hero of the quick page. */
+  summary:  string;
+  sections: QuickLessonSection[];
 }
 
 // ── Progress docs (Firestore) ─────────────────────────────────

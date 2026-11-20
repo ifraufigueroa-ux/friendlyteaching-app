@@ -14,7 +14,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import TopBar from '@/components/layout/TopBar';
 import {
-  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown,
+  Flame, Trophy, Sparkles, ArrowRight, Target, GraduationCap, Zap, Play, Lock, Star, Crown, BookOpenCheck,
 } from 'lucide-react';
 import { useDailyPractice, masteryBand } from '@/hooks/useDailyPractice';
 import { useAuthStore } from '@/store/authStore';
@@ -377,9 +377,6 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                           {unlocked ? u.description : 'Terminá la unidad anterior con 2★ o más para desbloquearla.'}
                         </p>
                       </div>
-                      {unlocked && (
-                        <ArrowRight className="flex-shrink-0 w-4 h-4 text-[#9474c4] mt-1 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.5} />
-                      )}
                     </>
                   );
                   if (!unlocked) {
@@ -393,14 +390,35 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                       </div>
                     );
                   }
+                  // Unlocked card: two explicit actions so Quick Lesson
+                  // and the drill are both one tap away. The card body
+                  // itself is no longer a single Link — buttons own
+                  // their own navigation.
                   return (
-                    <Link
+                    <div
                       key={u.id}
-                      href={`/dashboard/student/practice/lesson/${u.id}`}
-                      className={`group game-card rounded-3xl p-4 flex items-start gap-3 ${isNext ? 'border-l-4 border-l-[#845ec2]' : ''}`}
+                      className={`group game-card rounded-3xl p-4 flex flex-col gap-3 ${isNext ? 'border-l-4 border-l-[#845ec2]' : ''}`}
                     >
-                      {content}
-                    </Link>
+                      <div className="flex items-start gap-3">
+                        {content}
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Link
+                          href={`/dashboard/student/practice/quick/${u.id}`}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold border border-[#e5d9f2] text-[#5A3D7A] hover:bg-[#F7EFFF] transition-colors"
+                        >
+                          <BookOpenCheck className="w-3.5 h-3.5" strokeWidth={2.25} />
+                          Quick Lesson
+                        </Link>
+                        <Link
+                          href={`/dashboard/student/practice/lesson/${u.id}`}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold bg-gradient-to-r from-[#845ec2] to-[#5A3D7A] text-white shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          {stars > 0 ? 'Continue' : 'Start'}
+                          <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        </Link>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
