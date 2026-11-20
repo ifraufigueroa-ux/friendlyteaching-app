@@ -8,6 +8,10 @@ import {
   AlertTriangle,
   GraduationCap,
   CalendarDays,
+  Smartphone,
+  Apple,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { db, auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
@@ -23,9 +27,71 @@ type Msg = { text: string; kind: 'ok' | 'err' } | null;
 
 const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
 
+// Shareable app download links. Env vars (NEXT_PUBLIC_APP_*) take
+// priority so the real URLs can be set in Vercel without a code change.
+// Fallbacks are placeholder strings — they render as "Coming soon" in
+// the UI so nothing ships a broken link.
+const APP_ANDROID_URL =
+  process.env.NEXT_PUBLIC_APP_ANDROID_URL ?? '';
+const APP_IOS_URL =
+  process.env.NEXT_PUBLIC_APP_IOS_URL ?? '';
+
 function formatMemberSince(ts: { toDate?: () => Date } | undefined) {
   if (!ts?.toDate) return null;
   return ts.toDate().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+// ── Shareable app download card (teacher-only) ──────────────
+
+function AppLinkCard({
+  icon, platform, url, accent,
+}: {
+  icon:     React.ReactNode;
+  platform: string;
+  url:      string;
+  accent:   'emerald' | 'slate';
+}) {
+  const [copied, setCopied] = useState(false);
+  const available = !!url && url !== '#';
+
+  const tone = accent === 'emerald'
+    ? { bg: 'bg-emerald-100', text: 'text-emerald-700', btn: 'bg-emerald-600 hover:bg-emerald-700' }
+    : { bg: 'bg-slate-100',   text: 'text-slate-700',   btn: 'bg-slate-700 hover:bg-slate-800' };
+
+  async function copy() {
+    if (!available) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <div className="rounded-2xl border border-gray-200 p-4 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-xl ${tone.bg} ${tone.text} flex items-center justify-center flex-shrink-0`}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">{platform}</p>
+        <p className="text-sm font-semibold text-gray-700 truncate">
+          {available ? url.replace(/^https?:\/\//, '') : 'Coming soon'}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <button
+          type="button"
+          onClick={copy}
+          disabled={!available}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold text-white inline-flex items-center gap-1 transition-colors ${tone.btn} disabled:opacity-40 disabled:cursor-not-allowed`}
+        >
+          {copied
+            ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Copied</>
+            : <><Copy className="w-3 h-3" strokeWidth={2.5} /> Copy link</>}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function ProfilePage() {
@@ -377,6 +443,34 @@ export default function ProfilePage() {
             </button>
           </form>
         </div>
+
+        {/* ── Shareable app download links — teachers only ─────
+            Students don't see this section; teachers copy the link to
+            send to their students outside the portal. */}
+        {role === 'teacher' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+            <h2 className="font-bold text-gray-800 mb-1 inline-flex items-center gap-2">
+              📲 Share the app
+            </h2>
+            <p className="text-xs text-gray-500 mb-4 leading-snug">
+              Send these links to your students so they can install the app directly.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <AppLinkCard
+                icon={<Smartphone className="w-5 h-5" strokeWidth={2.25} />}
+                platform="Android"
+                url={APP_ANDROID_URL}
+                accent="emerald"
+              />
+              <AppLinkCard
+                icon={<Apple className="w-5 h-5" strokeWidth={2.25} />}
+                platform="iPhone / iPad"
+                url={APP_IOS_URL}
+                accent="slate"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Teacher role repair — shown only when role is not teacher */}
         {role !== 'teacher' && (
