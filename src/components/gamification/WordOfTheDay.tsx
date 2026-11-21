@@ -6,7 +6,7 @@
 // strip read as a different product from the rest of the student view.
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BookMarked,
   Medal,
@@ -18,9 +18,14 @@ import {
   CheckCircle2,
   Send,
   Zap,
+  MessageSquare,
+  ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
-import { useWordOfDay } from '@/hooks/useWordOfDay';
+import {
+  useWordOfDay, countUnreadFeedback, markWordFeedbackRead,
+  type WordSubmission,
+} from '@/hooks/useWordOfDay';
 import { XP_REWARDS } from '@/types/firebase';
 
 interface Props {
@@ -33,12 +38,19 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
   const {
     wordOfDay,
     todaySubmission,
+    recentSubmissions,
     wordStreak,
     totalSubmissions,
     loading,
     submitExample,
     hasSubmittedToday,
   } = useWordOfDay(studentId);
+
+  // Submissions that have teacher feedback the student hasn't opened
+  // yet — drives the (N) badge in the title row.
+  const unreadFeedbackCount = countUnreadFeedback(recentSubmissions);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const feedbackSubs = recentSubmissions.filter((s) => !!s.feedback);
 
   const [example, setExample] = useState('');
   const [showMeaning, setShowMeaning] = useState(false);
@@ -83,20 +95,56 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
     <div className="game-card rounded-2xl overflow-hidden">
       <div className="p-5">
         {/* Title row */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="inline-flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#f3eefc] text-[#845ec2] flex items-center justify-center">
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="inline-flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-[#f3eefc] text-[#845ec2] flex items-center justify-center flex-shrink-0">
               <PenTool className="w-4 h-4" strokeWidth={2.25} />
             </div>
-            <p className="font-fun font-bold text-[#4b3869] text-sm">Word of the Day</p>
+            <p className="font-fun font-bold text-[#4b3869] text-sm truncate">Word of the Day</p>
+            {unreadFeedbackCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowFeedback(true)}
+                aria-label={`${unreadFeedbackCount} new teacher feedback${unreadFeedbackCount === 1 ? '' : 's'}`}
+                className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-extrabold shadow-[0_2px_6px_rgba(244,63,94,0.45)] ring-2 ring-white hover:scale-105 transition-transform animate-pulse"
+              >
+                ({unreadFeedbackCount})
+              </button>
+            )}
           </div>
-          <div className="inline-flex items-center gap-1.5 bg-[#f3eefc] px-2.5 py-1 rounded-xl border border-[#e5d9f2]">
+          <div className="inline-flex items-center gap-1.5 bg-[#f3eefc] px-2.5 py-1 rounded-xl border border-[#e5d9f2] flex-shrink-0">
             <StreakIcon className="w-3.5 h-3.5 text-[#845ec2]" strokeWidth={2.25} />
             <span className="text-[11px] font-fun font-bold text-[#6b4c9a]">
               {wordStreak} day{wordStreak !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
+
+        {/* Teacher feedback inbox — collapsible. Button is visible
+            whenever there is at least one feedback on file. */}
+        {feedbackSubs.length > 0 && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setShowFeedback((v) => !v)}
+              className="w-full inline-flex items-center justify-between px-3 py-2 rounded-xl bg-[#f3eefc] border border-[#e5d9f2] text-[#5A3D7A] text-xs font-bold hover:bg-[#e8dcf7] transition-colors"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Teacher feedback
+                {unreadFeedbackCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold">
+                    {unreadFeedbackCount}
+                  </span>
+                )}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showFeedback ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+            </button>
+            {showFeedback && (
+              <FeedbackList subs={feedbackSubs} />
+            )}
+          </div>
+        )}
 
         {/* Word display */}
         <div className="mb-4">
@@ -229,5 +277,47 @@ export default function WordOfTheDay({ studentId, onXpAwarded, recordWordOfDay }
         )}
       </div>
     </div>
+  );
+}
+
+// ── Collapsible teacher-feedback inbox ────────────────────────
+// Lists the submissions that have feedback, newest first. On mount it
+// marks every unread entry as read (best-effort — ignored if the write
+// fails, so the user never sees an error over a dismissed badge).
+
+function FeedbackList({ subs }: { subs: WordSubmission[] }) {
+  useEffect(() => {
+    const unreadIds = subs.filter((s) => !s.feedbackReadAt).map((s) => s.id);
+    if (unreadIds.length === 0) return;
+    void Promise.all(unreadIds.map((id) =>
+      markWordFeedbackRead(id).catch(() => undefined),
+    ));
+  }, [subs]);
+
+  if (subs.length === 0) return null;
+
+  return (
+    <ul className="mt-2 space-y-2">
+      {subs.map((s) => (
+        <li key={s.id} className="bg-white border border-[#e5d9f2] rounded-xl p-3 text-left">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <p className="text-[10px] font-bold text-[#9474c4] uppercase tracking-wider truncate">
+              {s.word} · {s.date}
+            </p>
+            {!s.feedbackReadAt && (
+              <span className="inline-flex items-center justify-center text-[9px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                new
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] italic text-slate-500 mb-1.5 leading-snug">
+            &ldquo;{s.example}&rdquo;
+          </p>
+          <p className="text-sm text-[#4b3869] leading-snug">
+            {s.feedback}
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }

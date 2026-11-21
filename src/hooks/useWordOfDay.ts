@@ -4,8 +4,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import {
-  collection, query, where, orderBy, limit, onSnapshot, doc, setDoc,
-  Timestamp, getDocs, QuerySnapshot, DocumentData,
+  collection, query, where, orderBy, limit, onSnapshot, doc, setDoc, updateDoc,
+  Timestamp, getDocs, serverTimestamp,
+  QuerySnapshot, DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getWordOfTheDay, type WordEntry } from '@/data/wordOfTheDay';
@@ -19,6 +20,46 @@ export interface WordSubmission {
   word: string;
   example: string;
   createdAt: Timestamp;
+  // Teacher feedback, written after the student submits. All three
+  // fields land together when the teacher saves; feedbackReadAt is
+  // written by the student when they open the submission to clear
+  // the unread-badge.
+  feedback?:             string;
+  feedbackAt?:           Timestamp;
+  feedbackByTeacherId?:  string;
+  feedbackReadAt?:       Timestamp;
+}
+
+// ── Teacher-side mutations ─────────────────────────────────
+
+/** Write (or overwrite) teacher feedback on a submission. */
+export async function saveWordSubmissionFeedback(
+  submissionId: string,
+  feedback: string,
+  teacherId: string,
+): Promise<void> {
+  const trimmed = feedback.trim();
+  if (!submissionId || !teacherId || !trimmed) return;
+  await updateDoc(doc(db, 'wordOfDaySubmissions', submissionId), {
+    feedback:             trimmed,
+    feedbackAt:           serverTimestamp(),
+    feedbackByTeacherId:  teacherId,
+  });
+}
+
+/** Student clears the unread-badge by stamping feedbackReadAt. */
+export async function markWordFeedbackRead(submissionId: string): Promise<void> {
+  if (!submissionId) return;
+  await updateDoc(doc(db, 'wordOfDaySubmissions', submissionId), {
+    feedbackReadAt: serverTimestamp(),
+  });
+}
+
+/** How many of the student's recent submissions have feedback that
+ *  hasn't been read yet — drives the "(N)" badge on the Word of the
+ *  Day card. */
+export function countUnreadFeedback(subs: WordSubmission[]): number {
+  return subs.filter(s => !!s.feedback && !s.feedbackReadAt).length;
 }
 
 function getTodayStr(): string {

@@ -229,7 +229,17 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() &&
                       request.resource.data.studentId == request.auth.uid;
-      allow update: if false;
+      // Teachers may write feedback fields on any submission; the
+      // student that owns the doc can ONLY flip feedbackReadAt so the
+      // "(1)" badge clears when they open it. Everything else is
+      // immutable.
+      allow update: if isTeacher() &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['feedback', 'feedbackAt', 'feedbackByTeacherId'])
+                    || (request.auth != null
+                        && resource.data.studentId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['feedbackReadAt']));
       allow delete: if false;
     }
 
