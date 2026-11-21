@@ -335,7 +335,7 @@ export default function StudentGamifiedBoard({
       {(skillScores || level) && (
         <ProgressCard
           skillScores={skillScores}
-          level={level}
+          level={level ?? null}
           levelHistory={levelHistory}
         />
       )}
