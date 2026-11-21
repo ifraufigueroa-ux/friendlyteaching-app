@@ -12,7 +12,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
   CalendarDays, Crown, Flame, Headphones, PenTool, CheckCircle2,
-  Play, Target, Timer, GraduationCap, Star, TrendingUp, Zap,
+  Play, Target, Timer, GraduationCap, Star, TrendingUp, Zap, ChevronDown, History,
 } from 'lucide-react';
 import { xpForNextLevel, getTodayStr } from '@/lib/utils/gamification';
 import { LevelTimeline } from '@/components/students/LevelTimeline';
@@ -328,29 +328,16 @@ export default function StudentGamifiedBoard({
       {/* ── Dashboard-only block (e.g. Word of the Day) ─────── */}
       {beforeSkillsSlot && <div className="mb-5">{beforeSkillsSlot}</div>}
 
-      {/* ── Skills radar + CEFR timeline ─────────────────────── */}
+      {/* ── Skills radar + collapsible level history ────────
+          Timeline is hidden by default — too noisy on the student's
+          own dashboard — and lives behind a toggle inside the card
+          header so it's still one tap away. */}
       {(skillScores || level) && (
-        <div className="game-card rounded-2xl overflow-hidden mb-5">
-          <div className="px-4 pt-4 pb-2">
-            <p className="font-fun font-bold text-[#4b3869] text-sm inline-flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-[#845ec2]" strokeWidth={2.25} /> My English progress
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-[#e5d9f2]">
-            {level && (
-              <div className="px-4 py-4">
-                <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">CEFR level</p>
-                <LevelTimeline history={levelHistory} currentLevel={level} />
-              </div>
-            )}
-            {skillScores && (
-              <div className="px-4 py-4">
-                <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Skills</p>
-                <SkillRadarChart scores={skillScores} compact />
-              </div>
-            )}
-          </div>
-        </div>
+        <ProgressCard
+          skillScores={skillScores}
+          level={level}
+          levelHistory={levelHistory}
+        />
       )}
 
       {/* ── Badges ───────────────────────────────────────────── */}
@@ -360,5 +347,53 @@ export default function StudentGamifiedBoard({
         </div>
       )}
     </>
+  );
+}
+
+// ── My English progress card with collapsible history ─────────
+
+function ProgressCard({
+  skillScores, level, levelHistory,
+}: {
+  skillScores: SkillScores | null;
+  level:       LessonLevel | null;
+  levelHistory: LevelHistoryEntry[];
+}) {
+  const [showHistory, setShowHistory] = useState(false);
+  const hasHistory = levelHistory.length > 0 && !!level;
+
+  return (
+    <div className="game-card rounded-2xl overflow-hidden mb-5">
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2">
+        <p className="font-fun font-bold text-[#4b3869] text-sm inline-flex items-center gap-1.5">
+          <TrendingUp className="w-4 h-4 text-[#845ec2]" strokeWidth={2.25} /> My English progress
+        </p>
+        {hasHistory && (
+          <button
+            type="button"
+            onClick={() => setShowHistory((v) => !v)}
+            aria-expanded={showHistory}
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#845ec2] hover:text-[#5A3D7A] px-2 py-1 rounded-lg hover:bg-[#F7EFFF] transition-colors"
+          >
+            <History className="w-3 h-3" strokeWidth={2.5} />
+            {showHistory ? 'Hide history' : 'Level history'}
+            <ChevronDown className={`w-3 h-3 transition-transform ${showHistory ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+
+      {skillScores && (
+        <div className="px-4 py-4">
+          <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Skills</p>
+          <SkillRadarChart scores={skillScores} compact />
+        </div>
+      )}
+
+      {hasHistory && showHistory && level && (
+        <div className="px-4 pb-4 pt-0 border-t border-[#e5d9f2]">
+          <LevelTimeline history={levelHistory} currentLevel={level} />
+        </div>
+      )}
+    </div>
   );
 }
