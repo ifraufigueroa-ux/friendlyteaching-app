@@ -36,9 +36,15 @@ const cinzel = Cinzel({
   variable: '--font-cinzel',
   display: 'swap',
 });
+// Jakarta weights trimmed from 5 to 2 (400 + 700). Same workaround
+// we applied to Cinzel after a wider weight list repeatedly flaked
+// the Turbopack build on *.module.css. See memory
+// [[daily-practice-font-flake]]. Jakarta is only consumed at default
+// (globals.css via --font-jakarta) and bold (classroom slides with
+// font-bold). Fallbacks cover the rare font-medium/semibold case.
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '700'],
   variable: '--font-jakarta',
   display: 'swap',
 });
