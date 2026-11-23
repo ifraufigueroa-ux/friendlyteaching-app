@@ -160,17 +160,21 @@ export function pickNextQuestion(
 
 // ── Stop decisions ─────────────────────────────────────────
 
-/** Should we end the session? Three ways out:
+/** Should we end the session? Only two ways out now:
  *   · pool exhausted (no more fresh questions anywhere)
- *   · hit the hard cap
- *   · estimate stable for N, past the min floor, AND the placement
- *     is actually CONFIRMED (not the A0 fallback).
+ *   · hit the hard cap (MAX_QUESTIONS)
  *
- *  The confirmed-placement guard is what keeps a struggling student
- *  on the test: a student failing everywhere has estimate=A0 by
- *  fallback, which looks "stable" but tells us nothing about the floor.
- *  In that case we keep going until the hard cap so the teacher sees
- *  the full distribution of what the student knows.
+ *  Design decision (2026-11-23): the placement test always runs to
+ *  the hard cap so the teacher gets maximum diagnostic signal on
+ *  every student — not just a placed level, but the whole shape of
+ *  their grammar strengths and gaps per CEFR band. The pool was
+ *  expanded to 30/level precisely so even students oscillating
+ *  between two neighbouring levels never exhaust it before 50.
+ *
+ *  The older "stable estimate + isPlacementConfirmed" early-stop is
+ *  retained in the module (isPlacementConfirmed still exports) so
+ *  other parts of the app can read whether the placement is settled,
+ *  but it no longer gates termination.
  */
 export function shouldStop(
   answers: DPPAnswer[],
@@ -178,19 +182,7 @@ export function shouldStop(
 ): boolean {
   if (answers.length >= DPP_CONFIG.MAX_QUESTIONS) return true;
   if (pickNextQuestion(answers, pool) === null) return true;
-  if (answers.length < DPP_CONFIG.MIN_QUESTIONS_BEFORE_EARLY_STOP) return false;
-  if (!isPlacementConfirmed(answers)) return false;
-
-  // Stable estimate check — re-estimate at each of the last N answers;
-  // if every re-estimate agrees, we're confident.
-  const n = DPP_CONFIG.STABLE_ANSWERS_FOR_EARLY_STOP;
-  if (answers.length < n) return false;
-  const latest = estimateLevel(answers);
-  for (let cut = 1; cut < n; cut++) {
-    const prefix = answers.slice(0, answers.length - cut);
-    if (estimateLevel(prefix) !== latest) return false;
-  }
-  return true;
+  return false;
 }
 
 /** Final level decision at the end of the session. Same as the running
