@@ -12,6 +12,9 @@ import {
   Apple,
   Copy,
   Check,
+  MoreVertical,
+  Share,
+  PlusSquare,
 } from 'lucide-react';
 import { db, auth } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
@@ -27,67 +30,127 @@ type Msg = { text: string; kind: 'ok' | 'err' } | null;
 
 const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
 
-// Shareable app download links. Env vars (NEXT_PUBLIC_APP_*) take
-// priority so the real URLs can be set in Vercel without a code change.
-// Fallbacks are placeholder strings — they render as "Coming soon" in
-// the UI so nothing ships a broken link.
-const APP_ANDROID_URL =
-  process.env.NEXT_PUBLIC_APP_ANDROID_URL ?? '';
-const APP_IOS_URL =
-  process.env.NEXT_PUBLIC_APP_IOS_URL ?? '';
+// Public URL students open on their phone's browser to install the
+// PWA. The manifest + apple-web-app meta in layout.tsx already make
+// the site installable — this card just explains how.
+const INSTALL_URL = 'https://friendlyteaching.cl';
 
 function formatMemberSince(ts: { toDate?: () => Date } | undefined) {
   if (!ts?.toDate) return null;
   return ts.toDate().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-// ── Shareable app download card (teacher-only) ──────────────
+// ── Per-platform install instructions (teacher-only share card) ──
 
-function AppLinkCard({
-  icon, platform, url, accent,
+function InstallStepsCard({
+  platform, accent, icon, steps, menuIcon, menuLabel,
 }: {
-  icon:     React.ReactNode;
-  platform: string;
-  url:      string;
+  platform: 'Android' | 'iPhone / iPad';
   accent:   'emerald' | 'slate';
+  icon:     React.ReactNode;
+  menuIcon: React.ReactNode;
+  menuLabel: string;
+  steps:    { label: string; sub?: string }[];
 }) {
-  const [copied, setCopied] = useState(false);
-  const available = !!url && url !== '#';
-
   const tone = accent === 'emerald'
-    ? { bg: 'bg-emerald-100', text: 'text-emerald-700', btn: 'bg-emerald-600 hover:bg-emerald-700' }
-    : { bg: 'bg-slate-100',   text: 'text-slate-700',   btn: 'bg-slate-700 hover:bg-slate-800' };
+    ? { bg: 'bg-emerald-50',  chip: 'bg-emerald-100 text-emerald-700', ring: 'ring-emerald-100' }
+    : { bg: 'bg-slate-50',    chip: 'bg-slate-100 text-slate-700',     ring: 'ring-slate-100' };
+  return (
+    <div className={`rounded-2xl border border-gray-200 p-4 ${tone.bg}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-8 h-8 rounded-lg ${tone.chip} flex items-center justify-center flex-shrink-0`}>
+          {icon}
+        </div>
+        <p className="text-sm font-black text-gray-800">{platform}</p>
+      </div>
+      <ol className="space-y-2">
+        {steps.map((s, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className={`w-5 h-5 rounded-full ${tone.chip} text-[11px] font-black flex items-center justify-center flex-shrink-0 mt-0.5`}>
+              {i + 1}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-gray-800 leading-snug">
+                {s.label}
+              </p>
+              {s.sub && (
+                <p className="text-[11px] text-gray-500 mt-0.5">{s.sub}</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-3 pt-3 border-t border-gray-200/70 flex items-center gap-2 text-[11px] text-gray-500">
+        <span className="font-semibold">Busca este ícono:</span>
+        <span className={`w-6 h-6 rounded ${tone.chip} inline-flex items-center justify-center`}>
+          {menuIcon}
+        </span>
+        <span className="italic">{menuLabel}</span>
+      </div>
+    </div>
+  );
+}
 
-  async function copy() {
-    if (!available) return;
+function PwaInstallCard() {
+  const [copied, setCopied] = useState(false);
+  async function copyUrl() {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(INSTALL_URL);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch { /* ignore */ }
   }
-
   return (
-    <div className="rounded-2xl border border-gray-200 p-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-xl ${tone.bg} ${tone.text} flex items-center justify-center flex-shrink-0`}>
-        {icon}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
+      <h2 className="font-bold text-gray-800 mb-1 inline-flex items-center gap-2">
+        📲 Instalar la app
+      </h2>
+      <p className="text-xs text-gray-500 mb-4 leading-snug">
+        Tus estudiantes abren <span className="font-semibold text-gray-700">friendlyteaching.cl</span> en el
+        navegador del celular y la instalan en 2 pasos — sin app store, sin descargas.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <InstallStepsCard
+          platform="Android"
+          accent="emerald"
+          icon={<Smartphone className="w-4 h-4" strokeWidth={2.25} />}
+          menuIcon={<MoreVertical className="w-3.5 h-3.5" strokeWidth={2.5} />}
+          menuLabel="Menú de Chrome"
+          steps={[
+            { label: 'Abre friendlyteaching.cl en Chrome.' },
+            { label: 'Toca el menú ⋮ arriba a la derecha.' },
+            { label: 'Elige "Instalar app" o "Añadir a pantalla principal".', sub: 'La app aparece como ícono en el celular, igual que cualquier app.' },
+          ]}
+        />
+        <InstallStepsCard
+          platform="iPhone / iPad"
+          accent="slate"
+          icon={<Apple className="w-4 h-4" strokeWidth={2.25} />}
+          menuIcon={<Share className="w-3.5 h-3.5" strokeWidth={2.5} />}
+          menuLabel="Botón de compartir"
+          steps={[
+            { label: 'Abre friendlyteaching.cl en Safari (no funciona en Chrome iOS).' },
+            { label: 'Toca el botón de compartir ⬆ abajo al centro.' },
+            { label: 'Baja y elige "Añadir a pantalla de inicio".', sub: 'La app queda en tu home screen con el logo de FriendlyTeaching.' },
+          ]}
+        />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">{platform}</p>
-        <p className="text-sm font-semibold text-gray-700 truncate">
-          {available ? url.replace(/^https?:\/\//, '') : 'Coming soon'}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
+
+      <div className="rounded-xl border border-gray-200 p-3 flex items-center gap-3 bg-gray-50">
+        <PlusSquare className="w-4 h-4 text-gray-400 flex-shrink-0" strokeWidth={2.25} />
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Link para compartir</p>
+          <p className="text-sm font-semibold text-gray-700 truncate">{INSTALL_URL.replace(/^https?:\/\//, '')}</p>
+        </div>
         <button
           type="button"
-          onClick={copy}
-          disabled={!available}
-          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold text-white inline-flex items-center gap-1 transition-colors ${tone.btn} disabled:opacity-40 disabled:cursor-not-allowed`}
+          onClick={copyUrl}
+          className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-white inline-flex items-center gap-1 transition-colors bg-[#5A3D7A] hover:bg-[#4b3869] flex-shrink-0"
         >
           {copied
-            ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Copied</>
-            : <><Copy className="w-3 h-3" strokeWidth={2.5} /> Copy link</>}
+            ? <><Check className="w-3 h-3" strokeWidth={2.5} /> Copiado</>
+            : <><Copy className="w-3 h-3" strokeWidth={2.5} /> Copiar link</>}
         </button>
       </div>
     </div>
@@ -444,33 +507,10 @@ export default function ProfilePage() {
           </form>
         </div>
 
-        {/* ── Shareable app download links — teachers only ─────
-            Students don't see this section; teachers copy the link to
-            send to their students outside the portal. */}
-        {role === 'teacher' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
-            <h2 className="font-bold text-gray-800 mb-1 inline-flex items-center gap-2">
-              📲 Share the app
-            </h2>
-            <p className="text-xs text-gray-500 mb-4 leading-snug">
-              Send these links to your students so they can install the app directly.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <AppLinkCard
-                icon={<Smartphone className="w-5 h-5" strokeWidth={2.25} />}
-                platform="Android"
-                url={APP_ANDROID_URL}
-                accent="emerald"
-              />
-              <AppLinkCard
-                icon={<Apple className="w-5 h-5" strokeWidth={2.25} />}
-                platform="iPhone / iPad"
-                url={APP_IOS_URL}
-                accent="slate"
-              />
-            </div>
-          </div>
-        )}
+        {/* ── PWA install instructions — teachers only ─────────
+            Students don't see this section; teachers copy the install
+            URL + the per-platform steps to send to their students. */}
+        {role === 'teacher' && <PwaInstallCard />}
 
         {/* Teacher role repair — shown only when role is not teacher */}
         {role !== 'teacher' && (
