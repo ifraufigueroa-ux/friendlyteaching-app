@@ -29,6 +29,7 @@ import {
   Flame,
   Trophy,
   ExternalLink,
+  Smartphone,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -128,6 +129,7 @@ const STUDENT_NAV: NavItem[] = [
 function studentNavWithWeeklyIelts(
   hasAssignment: boolean,
   shortcuts: NavLink[],
+  showInstall: boolean,
 ): NavItem[] {
   const base: NavItem[] = [];
   for (const item of STUDENT_NAV) {
@@ -146,6 +148,20 @@ function studentNavWithWeeklyIelts(
   if (shortcuts.length > 0) {
     base.push({ type: 'group', label: 'Shortcuts' });
     for (const s of shortcuts) base.push(s);
+  }
+  // Install-app entry lives only when the app isn't already running as
+  // a PWA. Appended at the very bottom so it doesn't crowd the main
+  // learning nav but is still a tap away.
+  if (showInstall) {
+    base.push({ type: 'group', label: 'App' });
+    base.push({
+      type: 'link',
+      href: '/instalar',
+      icon: Smartphone,
+      label: 'Instalar app',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+    });
   }
   return base;
 }
@@ -268,10 +284,27 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     [role, profile?.studentData?.platformLinks],
   );
 
+  // Hide the "Instalar app" row once the student is already running
+  // the site as a PWA. Chrome/desktop exposes this via matchMedia,
+  // iOS via navigator.standalone.
+  const [isStandalone, setIsStandalone] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const standalone =
+        window.matchMedia?.('(display-mode: standalone)').matches ||
+        (navigator as Navigator & { standalone?: boolean }).standalone === true;
+      setIsStandalone(!!standalone);
+    };
+    check();
+    const mq = window.matchMedia?.('(display-mode: standalone)');
+    mq?.addEventListener?.('change', check);
+    return () => mq?.removeEventListener?.('change', check);
+  }, []);
+
   const nav =
     role === 'teacher'   ? TEACHER_NAV
   : role === 'corporate' ? CORPORATE_NAV
-                         : studentNavWithWeeklyIelts(!!weeklyIeltsAssignment, studentShortcuts);
+                         : studentNavWithWeeklyIelts(!!weeklyIeltsAssignment, studentShortcuts, !isStandalone);
 
   async function handleLogout() {
     await logOut();
