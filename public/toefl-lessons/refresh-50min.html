@@ -502,6 +502,8 @@ const PREBAKED_AUDIOS = {
 
 
 
+
+
 function stopAllAudio() {
   try {
     if ("speechSynthesis" in window) {
@@ -562,7 +564,7 @@ function renderAudioPlayer(containerId, cacheKey, spokenText, transcriptHtml, la
     container.innerHTML = `
       <div class="audio-player">
         <div style="font-weight:800; color:var(--purpled); font-size:14px; margin-bottom:8px;">
-          🎧 ${labelText} · ${hasKey ? "Mode: ElevenLabs API" : "Mode: Browser TTS Fallback"}
+          🎧 ${labelText} · ${(PREBAKED_AUDIOS && PREBAKED_AUDIOS[cacheKey]) ? "Mode: Studio MP3 (pre-cached)" : (hasKey ? "Mode: ElevenLabs API" : "Mode: Browser TTS Fallback")}
         </div>
         <div class="audio-controls">
           <button class="audio-btn" id="${containerId}-play">▶ Play Audio</button>
@@ -582,7 +584,7 @@ function renderAudioPlayer(containerId, cacheKey, spokenText, transcriptHtml, la
     if (playBtn) {
       playBtn.addEventListener("click", async () => {
         stopAllAudio();
-        if ((state.elApiKey || "").trim()) {
+        if ((PREBAKED_AUDIOS && PREBAKED_AUDIOS[cacheKey]) || (state.elApiKey || "").trim()) {
           st.statusText = "Generating audio with ElevenLabs...";
           draw();
           try {

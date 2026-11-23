@@ -76,7 +76,6 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/history',     icon: ClipboardList, label: 'Class History',      iconBg: 'bg-sky-100',     iconColor: 'text-sky-600',    iconImg: '/sidebar-icons/historial-clases.png' },
   { type: 'group', label: 'Content' },
   { type: 'link', href: '/dashboard/teacher/lessons',     icon: BookOpen,      label: 'Library',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/lecciones.png' },
-  { type: 'link', href: '/dashboard/teacher/toefl/lessons', icon: GraduationCap, label: 'TOEFL Lessons',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'link', href: '/dashboard/teacher/bulk-upload', icon: Download,      label: 'Import Lessons',     iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/importar-lecciones.png' },
   { type: 'link', href: '/dashboard/teacher/planner',     icon: FolderKanban,  label: 'Planner',            iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', iconImg: '/sidebar-icons/planner.png' },
   { type: 'group', label: 'Tracking' },
@@ -90,6 +89,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/billing',     icon: CreditCard,    label: 'Billing',            iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
   { type: 'link', href: '/dashboard/teacher/assign',      icon: UserPlus,      label: 'Assignments',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500' },
   { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Tools',              iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
+  { type: 'link', href: '/dashboard/teacher/toefl/lessons', icon: GraduationCap, label: 'TOEFL Lessons',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
   { type: 'group', label: 'Help' },
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];

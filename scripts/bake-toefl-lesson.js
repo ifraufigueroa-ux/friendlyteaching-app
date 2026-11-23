@@ -178,6 +178,27 @@ const PREBAKED_AUDIOS = ${JSON.stringify(audioUrls, null, 2)};
   // Hide the API-key card when it's present — some templates may omit it.
   out = out.replace(/class="el-config"(?! hidden)/g, 'class="el-config" hidden');
 
+  // The Gemini template's play handler branches on `state.elApiKey` BEFORE
+  // calling generateElevenLabsAudio — so without a pasted API key the
+  // short-circuit never fires and it jumps to browser TTS. Patch the gate
+  // to also trip when the cacheKey has a pre-baked URL.
+  const gateSignature = 'if ((state.elApiKey || "").trim()) {';
+  const gatePatched   = 'if ((PREBAKED_AUDIOS && PREBAKED_AUDIOS[cacheKey]) || (state.elApiKey || "").trim()) {';
+  // Only replace if the un-patched exact literal is still in the file.
+  // (Same-string self-check — patched form contains gateSignature as a
+  // substring so we match explicitly on the un-patched one.)
+  if (out.includes(gateSignature) && !out.includes(gatePatched)) {
+    out = out.replace(gateSignature, gatePatched);
+  }
+
+  // Also fix the mode-label banner so it stops saying "Browser TTS Fallback"
+  // when we have a baked URL.
+  const modeLabelOld = '🎧 ${labelText} · ${hasKey ? "Mode: ElevenLabs API" : "Mode: Browser TTS Fallback"}';
+  const modeLabelNew = '🎧 ${labelText} · ${(PREBAKED_AUDIOS && PREBAKED_AUDIOS[cacheKey]) ? "Mode: Studio MP3 (pre-cached)" : (hasKey ? "Mode: ElevenLabs API" : "Mode: Browser TTS Fallback")}';
+  if (out.includes(modeLabelOld)) {
+    out = out.replace(modeLabelOld, modeLabelNew);
+  }
+
   return out;
 }
 
