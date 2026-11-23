@@ -71,6 +71,21 @@ export function estimateLevel(answers: DPPAnswer[]): PracticeLevel {
   return placed;
 }
 
+/** Did the estimate PROVE the level, or is it the A0 fallback because
+ *  nothing crossed the threshold? The runner uses this to decide
+ *  whether an early-stop is justified — a student who's been failing
+ *  everywhere has an A0 "placement" by default, but we still want to
+ *  keep collecting data so the teacher sees the whole shape of what
+ *  the student does / doesn't know. */
+export function isPlacementConfirmed(answers: DPPAnswer[]): boolean {
+  if (answers.length === 0) return false;
+  const stats = accuracyByLevel(answers);
+  const placed = estimateLevel(answers);
+  const r = stats[placed];
+  return r.answered >= DPP_CONFIG.MIN_QUESTIONS_PER_LEVEL
+      && r.pct >= DPP_CONFIG.PASS_THRESHOLD;
+}
+
 // ── Next question selector ─────────────────────────────────
 //
 // Returns the next question to show, or null when the pool for every
@@ -127,7 +142,14 @@ export function pickNextQuestion(
 /** Should we end the session? Three ways out:
  *   · pool exhausted (no more fresh questions anywhere)
  *   · hit the hard cap
- *   · estimate stable for N and we're past the min floor
+ *   · estimate stable for N, past the min floor, AND the placement
+ *     is actually CONFIRMED (not the A0 fallback).
+ *
+ *  The confirmed-placement guard is what keeps a struggling student
+ *  on the test: a student failing everywhere has estimate=A0 by
+ *  fallback, which looks "stable" but tells us nothing about the floor.
+ *  In that case we keep going until the hard cap so the teacher sees
+ *  the full distribution of what the student knows.
  */
 export function shouldStop(
   answers: DPPAnswer[],
@@ -136,6 +158,7 @@ export function shouldStop(
   if (answers.length >= DPP_CONFIG.MAX_QUESTIONS) return true;
   if (pickNextQuestion(answers, pool) === null) return true;
   if (answers.length < DPP_CONFIG.MIN_QUESTIONS_BEFORE_EARLY_STOP) return false;
+  if (!isPlacementConfirmed(answers)) return false;
 
   // Stable estimate check — re-estimate at each of the last N answers;
   // if every re-estimate agrees, we're confident.
