@@ -72,18 +72,35 @@ export function estimateLevel(answers: DPPAnswer[]): PracticeLevel {
 }
 
 /** Did the estimate PROVE the level, or is it the A0 fallback because
- *  nothing crossed the threshold? The runner uses this to decide
- *  whether an early-stop is justified — a student who's been failing
- *  everywhere has an A0 "placement" by default, but we still want to
- *  keep collecting data so the teacher sees the whole shape of what
- *  the student does / doesn't know. */
+ *  nothing crossed the threshold?
+ *
+ *  Two guards (both must pass for an early stop):
+ *   1. The placed level has ≥ MIN_QUESTIONS_PER_LEVEL answers and
+ *      met the pass threshold.
+ *   2. The level ABOVE the placed level has been probed at least
+ *      MIN_QUESTIONS_PER_LEVEL times too — so we can only "confirm"
+ *      a ceiling after honestly trying to break it.
+ *      (Francisco incident 2026-11-23: 3 wrong at B2+ out of 3 was
+ *      too little signal to declare B2 the ceiling; the engine then
+ *      spent the remaining budget re-probing B2 and closed at 25
+ *      without ever retrying B2+.)
+ *
+ *  If the placed level is at the top of the ladder there is no "up"
+ *  to probe, so guard 2 is skipped.
+ */
 export function isPlacementConfirmed(answers: DPPAnswer[]): boolean {
   if (answers.length === 0) return false;
   const stats = accuracyByLevel(answers);
   const placed = estimateLevel(answers);
   const r = stats[placed];
-  return r.answered >= DPP_CONFIG.MIN_QUESTIONS_PER_LEVEL
-      && r.pct >= DPP_CONFIG.PASS_THRESHOLD;
+  if (r.answered < DPP_CONFIG.MIN_QUESTIONS_PER_LEVEL) return false;
+  if (r.pct < DPP_CONFIG.PASS_THRESHOLD) return false;
+  const up = levelUp(placed);
+  if (up !== placed) {
+    const upStats = stats[up];
+    if (upStats.answered < DPP_CONFIG.MIN_QUESTIONS_PER_LEVEL) return false;
+  }
+  return true;
 }
 
 // ── Next question selector ─────────────────────────────────
@@ -110,8 +127,12 @@ export function pickNextQuestion(
   const up = levelUp(current);
   const down = levelDown(current);
 
-  // Primary probe — one level up, unless we've already asked a lot there
-  // and the pass rate is clearly below threshold (already failing it).
+  // Primary probe — one level up. Keep probing UP unconditionally
+  // until we've seen MIN_QUESTIONS_PER_LEVEL answers there, so a
+  // small streak of bad topic luck can't close the ceiling too early
+  // (Francisco incident 2026-11-23). After MIN we switch to the
+  // older rule: only keep probing up if the student is actually
+  // passing there.
   if (stats[up].answered < DPP_CONFIG.MIN_QUESTIONS_PER_LEVEL ||
       stats[up].pct >= DPP_CONFIG.PASS_THRESHOLD) {
     tryOrder.push(up);

@@ -81,7 +81,15 @@ export const DPP_CONFIG = {
    *  across the questions seen so far at that level. */
   PASS_THRESHOLD: 0.6,
   /** Questions per level considered meaningful when measuring pass. */
-  MIN_QUESTIONS_PER_LEVEL: 3,
+  // Raised from 3 to 5 (audit incident 2026-11-23 · Francisco).
+  // Three attempts at a level was too tight — a student who failed 2
+  // of 3 at the ceiling level was declared "not there" before we had
+  // real signal. Five gives the engine a fair sample before it
+  // commits, and is paired with isPlacementConfirmed() requiring
+  // ≥ MIN at the level ABOVE the placed level (see adaptiveRunner.ts)
+  // so the test won't short-close until it has actually probed the
+  // ceiling.
+  MIN_QUESTIONS_PER_LEVEL: 5,
   /** Early-stop trigger: the estimate has been stable for this many
    *  answers in a row AND we're past the minimum. */
   STABLE_ANSWERS_FOR_EARLY_STOP: 6,
