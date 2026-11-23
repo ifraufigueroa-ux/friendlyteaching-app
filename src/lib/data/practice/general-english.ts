@@ -13,6 +13,7 @@ import { QUICK_LESSONS } from './quick-lessons';
 import { C1_UNITS } from './c1-units';
 import { EXTRA_UNITS_WAVE_1 } from './extra-units-wave1';
 import { EXTRA_UNITS_WAVE_2 } from './extra-units-wave2';
+import { EXTRA_UNITS_WAVE_3 } from './extra-units-wave3';
 
 // Base A0..B2+ units authored inline. The exported PRACTICE_UNITS at the
 // bottom of this file merges in the Quick Lesson explainers from
@@ -1164,6 +1165,7 @@ export const PRACTICE_UNITS: PracticeUnit[] = [
   ...BASE_UNITS.map(withQuickLesson),
   ...EXTRA_UNITS_WAVE_1.map(withQuickLesson),
   ...EXTRA_UNITS_WAVE_2.map(withQuickLesson),
+  ...EXTRA_UNITS_WAVE_3.map(withQuickLesson),
   ...C1_UNITS.map(withQuickLesson),
 ];
 

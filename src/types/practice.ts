@@ -77,11 +77,32 @@ export interface ListenChooseExercise extends BaseExercise {
   correctIndex:  number;
 }
 
+/** Pronunciation drill: the student records themselves saying a target
+ *  phrase; we transcribe with Whisper and compare word-by-word. The
+ *  reference audio is generated on-demand via ElevenLabs the first
+ *  time the student presses "Listen", then cached in the browser for
+ *  the rest of the session. */
+export interface PronunciationExercise extends BaseExercise {
+  type:          'pronunciation';
+  /** Target phrase the student has to say — short and natural. */
+  targetPhrase:  string;
+  /** Optional IPA hint, shown under the phrase. */
+  ipa?:          string;
+  /** Optional ElevenLabs voice id for the reference. Falls back to the
+   *  default voice configured on the TTS endpoint. */
+  voiceId?:      string;
+  /** One-liner shown above the recorder ("Focus on the /θ/ sound"). */
+  focus?:        string;
+  /** Acceptable accuracy ratio to count as "pass" (0–1). Default 0.75. */
+  passThreshold?: number;
+}
+
 export type Exercise =
   | MultipleChoiceExercise
   | FillBlankExercise
   | MatchPairsExercise
-  | ListenChooseExercise;
+  | ListenChooseExercise
+  | PronunciationExercise;
 
 export type ExerciseType = Exercise['type'];
 

@@ -20,6 +20,7 @@ import {
 import type {
   Exercise, PracticeUnit,
   MultipleChoiceExercise, FillBlankExercise, MatchPairsExercise, ListenChooseExercise,
+  PronunciationExercise,
 } from '@/types/practice';
 import { PRACTICE_XP, starsForAccuracy, STARS_MAX } from '@/types/practice';
 import {
@@ -29,6 +30,7 @@ import {
 import ConfettiBurst from './ConfettiBurst';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import { usePracticeAudios } from '@/hooks/usePracticeAudios';
+import PronunciationBody from './PronunciationBody';
 
 interface Props {
   unit:        PracticeUnit;
@@ -48,6 +50,7 @@ function getCorrectAnswer(ex: Exercise): string | null {
     case 'fill-blank':      return ex.answers.join(' / ');
     case 'match-pairs':     return null;
     case 'listen-choose':   return ex.options[ex.correctIndex] ?? null;
+    case 'pronunciation':   return ex.targetPhrase;
   }
 }
 
@@ -372,6 +375,12 @@ function ExerciseBody({
       return <MatchPairsBody ex={exercise} verdict={verdict} onGrade={onGrade} />;
     case 'listen-choose':
       return <ListenChooseBody ex={exercise} verdict={verdict} onGrade={onGrade} audioUrl={audioUrl} />;
+    case 'pronunciation':
+      return <PronunciationBody
+        ex={exercise}
+        verdict={verdict === 'pending' ? null : verdict === 'correct' ? 'correct' : 'incorrect'}
+        onGrade={onGrade}
+      />;
   }
 }
 
