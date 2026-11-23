@@ -110,6 +110,7 @@ const STUDENT_NAV: NavItem[] = [
   { type: 'group', label: 'Learning' },
   { type: 'link', href: '/dashboard/student/practice',    icon: Flame,        label: 'Daily Practice',      iconBg: 'bg-orange-100',  iconColor: 'text-orange-600' },
   { type: 'link', href: '/dashboard/student/lessons',     icon: BookOpen,     label: 'My Lessons',          iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/dashboard/student/library',     icon: BookMarked,   label: 'Library',             iconBg: 'bg-rose-100',    iconColor: 'text-rose-600' },
   { type: 'group', label: 'My Classes' },
   { type: 'link', href: '/dashboard/student/schedule',    icon: Calendar,     label: 'Schedule',            iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },
   { type: 'link', href: '/dashboard/student/book',        icon: CalendarPlus, label: 'Request Class',       iconBg: 'bg-sky-100',     iconColor: 'text-sky-600'    },

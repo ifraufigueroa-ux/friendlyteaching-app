@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/dompurify": "^3.0.5",
     "dompurify": "^3.3.3",
+    "epubjs": "^0.3.93",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.10.0",
     "lucide-react": "^1.60.0",

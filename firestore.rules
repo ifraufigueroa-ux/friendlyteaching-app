@@ -633,6 +633,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── Library reading progress ─────────────────────────────────
+    // One doc per book under libraryProgress/{studentId}/items/{bookId}.
+    // Owner writes (cfi + percent) as they read; teacher/master/corporate
+    // read for visibility. The student can overwrite their own doc on
+    // every page turn, so update is allowed in addition to create.
+    match /libraryProgress/{studentId}/items/{bookId} {
+      allow read:            if isOwner(studentId) || isTeacher() || isMaster() || isCorporate();
+      allow create, update:  if isOwner(studentId);
+      allow delete:          if false;
+    }
+
     // ── Daily Practice adaptive placement ────────────────────────
     // One doc per student at dailyPracticePlacement/{uid}, rewritten
     // on every answer so the session can resume mid-test. Owner
