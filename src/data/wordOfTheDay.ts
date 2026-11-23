@@ -1,11 +1,18 @@
 // FriendlyTeaching.cl — Word of the Day data
-// Rotating vocabulary for the login page. Picks one word per day deterministically.
+//
+// Rotating daily vocabulary. `getWordOfTheDay(level)` returns a word
+// deterministically for today, filtered to the student's zone of
+// proximal development (ZPD): their own level + one notch above. An
+// A0 student sees A0/A1 words, a B1 student sees B1/B2 words, and a
+// C1 student sees C1/C2 words. When no level is passed (login page,
+// pre-hydration, teacher accounts) the function falls back to the
+// full pool so the rotation still works.
 
 export interface WordEntry {
   word: string;
   ipa: string;           // IPA pronunciation
   type: string;          // noun, verb, adjective, etc.
-  level: string;         // CEFR level
+  level: string;         // CEFR level — A0, A1, A2, B1, B1+, B2, B2+, C1, C2
   meaning: string;       // Spanish translation
   example: string;       // Example sentence
   tip?: string;          // Optional learning tip
@@ -43,11 +50,80 @@ const WORDS: WordEntry[] = [
   { word: 'Look forward to', ipa: '/lʊk ˈfɔːr.wɚd tuː/', type: 'phrasal verb', level: 'A2', meaning: 'Esperar con ilusión', example: "I'm looking forward to the holidays!", tip: '¡Siempre seguido de sustantivo o gerundio (-ing)!' },
   { word: 'Stunning', ipa: '/ˈstʌn.ɪŋ/', type: 'adjective', level: 'B1', meaning: 'Impresionante, deslumbrante', example: 'She looked stunning in her new dress.', tip: 'Más coloquial que "breathtaking". Muy versátil.' },
   { word: 'Carry on', ipa: '/ˈkær.i ɑːn/', type: 'phrasal verb', level: 'A2', meaning: 'Continuar, seguir adelante', example: "Carry on with your work, I'll wait.", tip: 'En aviones: "carry-on" = equipaje de mano.' },
+
+  // ── A0 (survival vocabulary that still teaches something new) ──
+  { word: 'Hungry',   ipa: '/ˈhʌŋ.ɡri/',   type: 'adjective', level: 'A0', meaning: 'Que tiene hambre',             example: "I'm hungry. Let's eat.",                    tip: 'Siempre con "be": I AM hungry. Nunca "I have hungry".' },
+  { word: 'Tired',    ipa: '/taɪrd/',       type: 'adjective', level: 'A0', meaning: 'Cansado, cansada',             example: 'She was tired after the long trip.',        tip: '"Tired of" = harto de algo. "Tired from" = cansado por.' },
+  { word: 'Later',    ipa: '/ˈleɪ.tɚ/',     type: 'adverb',    level: 'A0', meaning: 'Más tarde',                    example: "I'll call you later.",                      tip: '"See you later" = Nos vemos luego. Super útil al despedirse.' },
+  { word: 'Also',     ipa: '/ˈɑːl.soʊ/',    type: 'adverb',    level: 'A0', meaning: 'También',                      example: 'I like pizza. I also like pasta.',          tip: 'Va antes del verbo, o después del verbo "be".' },
+  { word: 'Together', ipa: '/təˈɡeð.ɚ/',    type: 'adverb',    level: 'A0', meaning: 'Juntos, juntas',               example: "Let's study together tonight.",             tip: 'Pronuncia la "th" sonora (como zumbido), no como /t/.' },
+  { word: 'Already',  ipa: '/ɔːlˈred.i/',   type: 'adverb',    level: 'A0', meaning: 'Ya',                           example: "I've already had lunch.",                   tip: 'Para preguntas y negativas suele usarse "yet", no "already".' },
+
+  // ── A1 (extension vocab — feelings, time, simple actions) ──
+  { word: 'Borrow',    ipa: '/ˈbɔːr.oʊ/',      type: 'verb',         level: 'A1', meaning: 'Pedir prestado',          example: 'Can I borrow your pen?',                      tip: 'Borrow = recibir prestado. Lend = prestar. ¡No los confundas!' },
+  { word: 'Choose',    ipa: '/tʃuːz/',          type: 'verb',         level: 'A1', meaning: 'Elegir, escoger',         example: 'You can choose any color.',                   tip: 'Pasado: chose. Participio: chosen. "Choice" es el sustantivo.' },
+  { word: 'Lonely',    ipa: '/ˈloʊn.li/',       type: 'adjective',    level: 'A1', meaning: 'Solitario, que se siente solo', example: 'He feels lonely sometimes.',           tip: 'No es "alone": "lonely" implica tristeza; "alone" solo soledad física.' },
+  { word: 'Suddenly',  ipa: '/ˈsʌd.ən.li/',     type: 'adverb',       level: 'A1', meaning: 'De repente, de golpe',    example: 'Suddenly, it started to rain.',               tip: 'Perfecto para contar historias y dar color a narraciones.' },
+  { word: 'Afford',    ipa: '/əˈfɔːrd/',         type: 'verb',         level: 'A1', meaning: 'Poder permitirse (económicamente)', example: "I can't afford a new car right now.",  tip: 'Siempre con "can/can\'t". No decir "I afford": siempre "I can afford".' },
+  { word: 'Save up',   ipa: '/seɪv ʌp/',         type: 'phrasal verb', level: 'A1', meaning: 'Ahorrar (dinero para algo)', example: "She's saving up for a trip to Europe.",    tip: 'Separable: "save money up". Siempre con un objetivo (for + sustantivo).' },
+
+  // ── B1+ (bridge between B1 and B2) ──
+  { word: 'Figure out',  ipa: '/ˈfɪɡ.jɚ aʊt/', type: 'phrasal verb', level: 'B1+', meaning: 'Resolver, darse cuenta de, averiguar', example: "I can't figure out how to fix this.", tip: 'Separable: "figure it out". Muy común en conversación diaria.' },
+  { word: 'Get along',   ipa: '/ɡɛt əˈlɔːŋ/',  type: 'phrasal verb', level: 'B1+', meaning: 'Llevarse bien con alguien',               example: 'I get along with my coworkers.',       tip: '"Get along with someone". "Get along without" = arreglárselas sin.' },
+  { word: 'Rely on',     ipa: '/rɪˈlaɪ ɑːn/',  type: 'phrasal verb', level: 'B1+', meaning: 'Depender de, confiar en',                 example: 'You can rely on her to meet deadlines.', tip: 'Base del adjetivo "reliable". Más formal que "count on".' },
+  { word: 'Mindful',     ipa: '/ˈmaɪnd.fəl/',  type: 'adjective',    level: 'B1+', meaning: 'Consciente, atento',                      example: 'Be mindful of the time.',             tip: '"Mindfulness" es el concepto de meditación/conciencia plena.' },
+
+  // ── B2+ (near-advanced — precision + register) ──
+  { word: 'Compelling',   ipa: '/kəmˈpel.ɪŋ/',    type: 'adjective', level: 'B2+', meaning: 'Convincente, cautivador, irresistible', example: 'She made a compelling argument for the change.', tip: 'Más fuerte que "convincing". Úsalo cuando algo literalmente te obliga a creerlo.' },
+  { word: 'Nuance',       ipa: '/ˈnuː.ɑːns/',     type: 'noun',       level: 'B2+', meaning: 'Matiz, sutileza',                        example: "There's a subtle nuance between those two words.", tip: 'Palabra elegante y exacta para hablar de diferencias finas.' },
+  { word: 'Overlook',     ipa: '/ˌoʊ.vɚˈlʊk/',   type: 'verb',       level: 'B2+', meaning: 'Pasar por alto; dar vistas a',           example: 'We overlooked an important detail in the contract.', tip: 'Dos sentidos: ignorar algo (negativo) o tener vistas a (hotel/casa).' },
+  { word: 'Mitigate',     ipa: '/ˈmɪt.ɪ.ɡeɪt/',  type: 'verb',       level: 'B2+', meaning: 'Mitigar, reducir',                        example: 'We need to mitigate the risks before launching.', tip: 'Formal. Perfecto para contextos de trabajo y escritura académica.' },
+
+  // ── C1 refuerzo ──
+  { word: 'Resourceful',  ipa: '/rɪˈsɔːrs.fəl/', type: 'adjective', level: 'C1',  meaning: 'Ingenioso, que encuentra soluciones',   example: 'She\'s incredibly resourceful under pressure.', tip: 'Elogio alto en entrevistas de trabajo. Sustantivo: resourcefulness.' },
+  { word: 'Overarching',  ipa: '/ˌoʊ.vɚˈɑːr.tʃɪŋ/', type: 'adjective', level: 'C1', meaning: 'Dominante, general, que lo abarca todo', example: 'The overarching goal of the project is sustainability.', tip: 'Útil para introducir la idea principal de un argumento.' },
+  { word: 'Incentivize',  ipa: '/ɪnˈsen.tɪ.vaɪz/', type: 'verb',    level: 'C1',  meaning: 'Incentivar, motivar con un incentivo',    example: 'The policy aims to incentivize electric vehicle adoption.', tip: 'Vocabulario corporativo/economía. Sustantivo: incentive.' },
+
+  // ── C2 (stretch zone para C1) ──
+  { word: 'Ubiquitous',     ipa: '/juːˈbɪk.wɪ.təs/',     type: 'adjective', level: 'C2', meaning: 'Omnipresente, que está en todas partes', example: 'Smartphones have become ubiquitous in modern life.', tip: 'Sinónimo formal de "everywhere". Ideal para academic writing.' },
+  { word: 'Quintessential', ipa: '/ˌkwɪn.tɪˈsen.ʃəl/',   type: 'adjective', level: 'C2', meaning: 'Quintaesencial, el ejemplo perfecto de algo', example: "He's the quintessential English gentleman.", tip: 'Marca el "arquetipo" más puro de algo. Muy sofisticado.' },
+  { word: 'Serendipitous',  ipa: '/ˌser.ənˈdɪp.ɪ.təs/', type: 'adjective', level: 'C2', meaning: 'Fortuito, afortunadamente casual',       example: 'Our serendipitous meeting changed everything.',   tip: 'Adjetivo derivado de "serendipity". Súper literario.' },
+  { word: 'Ephemeral',      ipa: '/ɪˈfem.ɚ.əl/',         type: 'adjective', level: 'C2', meaning: 'Efímero, de muy corta duración',         example: 'Fame is often ephemeral.',                         tip: 'Del griego ephēmeros = "que dura un día". Opuesto: enduring, lasting.' },
 ];
 
-/** Returns the word of the day based on the current date. */
-export function getWordOfTheDay(): WordEntry {
+// ── ZPD (Zone of Proximal Development) mapping ──────────────────
+//
+// For each CEFR level, the eligible word pool is the student's own
+// level (consolidation) plus one step above (stretch). Exactly as
+// Vygotsky's ZPD — the zone the student can reach with support.
+
+const ZPD: Record<string, readonly string[]> = {
+  A0:    ['A0', 'A1'],
+  A1:    ['A1', 'A2'],
+  A2:    ['A2', 'B1'],
+  B1:    ['B1', 'B1+', 'B2'],
+  'B1+': ['B1+', 'B2'],
+  B2:    ['B2', 'B2+', 'C1'],
+  'B2+': ['B2+', 'C1'],
+  C1:    ['C1', 'C2'],
+  C2:    ['C1', 'C2'],
+};
+
+/** Returns the word of the day for a student at the given level.
+ *  Filters the pool to the student's ZPD (their level + one notch up)
+ *  so an A0 learner never gets "serendipity" and a C1 learner isn't
+ *  stuck re-practising A2 words. Falls back to the full pool when no
+ *  level is passed (login page, hydration-lag, teacher accounts). */
+export function getWordOfTheDay(level?: string | null): WordEntry {
+  const allowed = level ? ZPD[level] : undefined;
+  const pool =
+    allowed && allowed.length > 0
+      ? WORDS.filter(w => allowed.includes(w.level))
+      : WORDS;
+  // Safety net: if a level somehow has zero words in the pool, fall
+  // back to the whole catalogue rather than crash on `pool[0]`.
+  const base = pool.length > 0 ? pool : WORDS;
   const now = new Date();
   const dayIndex = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
-  return WORDS[dayIndex % WORDS.length];
+  return base[dayIndex % base.length];
 }

@@ -2,7 +2,7 @@
 // Tracks student submissions, streaks, and integrates with gamification.
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   collection, query, where, orderBy, limit, onSnapshot, doc, setDoc, updateDoc,
   Timestamp, getDocs, serverTimestamp,
@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getWordOfTheDay, type WordEntry } from '@/data/wordOfTheDay';
+import { useAuthStore } from '@/store/authStore';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -75,7 +76,14 @@ function getYesterdayStr(): string {
 // ── Hook ─────────────────────────────────────────────────────────
 
 export function useWordOfDay(studentId: string | undefined) {
-  const [wordOfDay] = useState<WordEntry>(() => getWordOfTheDay());
+  // Pull the student's CEFR level from the auth store so the word is
+  // drawn from their ZPD (own level + one notch above). If the store
+  // is still hydrating (see [[authstore-hydration-bug]]), level stays
+  // undefined and we fall back to the full catalogue — a short-term
+  // wrong-level word is better than a crashed card. useMemo re-runs
+  // the selection when the level finally loads.
+  const level = useAuthStore((s) => s.profile?.studentData?.level);
+  const wordOfDay = useMemo<WordEntry>(() => getWordOfTheDay(level), [level]);
   const [todaySubmission, setTodaySubmission] = useState<WordSubmission | null>(null);
   const [recentSubmissions, setRecentSubmissions] = useState<WordSubmission[]>([]);
   const [wordStreak, setWordStreak] = useState(0);
