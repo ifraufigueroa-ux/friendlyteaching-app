@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Calendar, GraduationCap, BookOpen, Check, Clock, X, Inbox, Repeat, Pin, type LucideIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useScheduleStore } from '@/store/scheduleStore';
-import { useBookings } from '@/hooks/useBookings';
+import { useStudentBookings } from '@/hooks/useStudentBookings';
 import { usePublishedLessons } from '@/hooks/useLessons';
 import TopBar from '@/components/layout/TopBar';
 import type { Booking } from '@/types/firebase';
@@ -46,7 +46,9 @@ export default function StudentSchedulePage() {
   // Get teacher UID from student profile (set at approval time)
   const teacherUid = profile?.studentData?.approvedByTeacherId ?? '';
 
-  const { bookings, loading } = useBookings(teacherUid, currentWeekStart);
+  // Student-scoped query (audit 2026-11-23, C3). teacherUid stays used
+  // only for the "book new class" link action below.
+  const { bookings, loading } = useStudentBookings(firebaseUser?.uid, currentWeekStart);
   const { lessons } = usePublishedLessons();
 
   useEffect(() => {

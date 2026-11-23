@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useStudentProgress } from '@/hooks/useProgress';
-import { useBookings } from '@/hooks/useBookings';
+import { useStudentBookings } from '@/hooks/useStudentBookings';
 import { usePublishedLessons } from '@/hooks/useLessons';
 import { useStudentActiveSessions } from '@/hooks/useLiveSession';
 import { useSkillAssessments } from '@/hooks/useSkillAssessments';
@@ -64,7 +64,10 @@ export default function StudentDashboardPage() {
   const studentLevel = profile?.studentData?.level;
 
   const { progress } = useStudentProgress(uid);
-  const { bookings } = useBookings(teacherUid, getWeekStart());
+  // Scoped to the student's own bookings — honours the tightened
+  // bookings read rule (audit 2026-11-23, C3). Teachers still use the
+  // wider useBookings(teacherId, …) on their own pages.
+  const { bookings } = useStudentBookings(uid, getWeekStart());
   const { activeSessions } = useStudentActiveSessions();
   const { lessons } = usePublishedLessons();
   const { averageScores: skillScores } = useSkillAssessments(uid, teacherUid);

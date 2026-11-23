@@ -76,12 +76,26 @@ service cloud.firestore {
       allow list: if isKnownTeacherEmail() || getUserRole() == 'teacher' || isMaster();
 
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isTeacher();
+      // C2 fix (audit 2026-11-23): owner update was `isOwner(userId) || isTeacher()`
+      // with NO field allowlist, so a student could direct-write
+      // role:'teacher'/status:'approved' from the console. Owner is now
+      // scoped to the safe fields they actually need from the profile UI.
+      // Teachers (and the Admin SDK via the kill-switch) stay unrestricted.
+      allow update: if isTeacher()
+                      || (isOwner(userId)
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['fullName', 'phone', 'bio', 'preferences', 'teacherData', 'updatedAt']));
       allow delete: if false;
     }
 
     match /bookings/{bookingId} {
-      allow read: if isAuthenticated();
+      // C3 fix (audit 2026-11-23): read was `isAuthenticated()` — any student
+      // could pull every booking on the platform. Now scoped: teacher/master/
+      // corporate read freely; a student only sees docs where they are the
+      // studentId. Student-side queries must filter `where('studentId','==',uid)`
+      // (useStudentBookings does so).
+      allow read: if isTeacher() || isMaster() || isCorporate()
+                    || (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow create: if isTeacher();
       allow update: if isTeacher();
       allow delete: if isTeacher();
@@ -99,7 +113,11 @@ service cloud.firestore {
     }
 
     match /weeklySchedule/{slotId} {
-      allow read: if isAuthenticated();
+      // C4 fix (audit 2026-11-23): tightened from `isAuthenticated()` so
+      // pending students and unauthenticated users can't enumerate every
+      // teacher's slots. Approved students can still read (they need to see
+      // their teacher's available openings to request a class).
+      allow read: if isTeacher() || isMaster() || isApprovedStudent();
       allow write: if isTeacher();
     }
 
@@ -327,10 +345,15 @@ service cloud.firestore {
     // borran las asignaciones que ellos mismos hicieron. El estudiante
     // sólo puede leer las suyas propias (no crearlas ni borrarlas).
     match /studentAssignments/{assignmentId} {
+      // C5 fix (audit 2026-11-23): `request.auth.uid != null` was tautological
+      // for authenticated users, so any student could list every assignment on
+      // the platform. Now per-doc: student must query with
+      // `where('studentId','==',uid)` so every returned row matches. useStudentAssignments
+      // already does this.
       allow list: if isTeacher() ||
-                    (request.auth != null && request.auth.uid != null);
+                    (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow get:  if isTeacher() ||
-                    (request.auth != null && resource.data.studentId == request.auth.uid);
+                    (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
@@ -387,11 +410,12 @@ service cloud.firestore {
       allow update: if (
         (isTeacher() && resource.data.teacherId == request.auth.uid)
         ||
-        (!isAuthenticated() && resource.data.status == 'in_progress')
-        ||
-        // Public runner needs to write results and mark completed while the
-        // taker is unauthenticated. Allow updates that don't change teacherId.
-        (request.resource.data.teacherId == resource.data.teacherId)
+        // C6 fix (audit 2026-11-23): old rule `request.resource.data.teacherId ==
+        // resource.data.teacherId` let an unauthenticated scraper overwrite ANY
+        // doc (completed included) as long as teacherId was unchanged. Now gated
+        // on status still being in_progress.
+        (resource.data.status == 'in_progress'
+          && request.resource.data.teacherId == resource.data.teacherId)
       );
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
@@ -403,22 +427,28 @@ service cloud.firestore {
       allow update: if (
         (isTeacher() && resource.data.teacherId == request.auth.uid)
         ||
-        (request.resource.data.teacherId == resource.data.teacherId)
+        // C6 fix (audit 2026-11-23): same status gate as placementSuiteSessions.
+        (resource.data.status == 'in_progress'
+          && request.resource.data.teacherId == resource.data.teacherId)
       );
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
 
     // TOEFL Speaking assignments — teacher creates; student runs from link.
-    // Same public-write pattern as toeflSessions: reads are open (the id is
-    // the token), updates keep teacherId locked so a student can't hijack
-    // the doc.
+    // Same public-write pattern as toeflSessions: single-doc GET is open (the
+    // id is the token), LIST stays teacher-only, updates keep teacherId locked
+    // AND must leave status still in_progress.
     match /toeflSpeakingAssignments/{assignmentId} {
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
-      allow read:   if true;
+      // C6 fix (audit 2026-11-23): split read → get:true / list:teacher-only.
+      // Previous `allow read: if true` let anyone enumerate every assignment.
+      allow get:    if true;
+      allow list:   if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow update: if (
         (isTeacher() && resource.data.teacherId == request.auth.uid)
         ||
-        (request.resource.data.teacherId == resource.data.teacherId)
+        (resource.data.status == 'in_progress'
+          && request.resource.data.teacherId == resource.data.teacherId)
       );
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
@@ -426,11 +456,14 @@ service cloud.firestore {
     // TOEFL Writing assignments — same pattern as toeflSpeakingAssignments.
     match /toeflWritingAssignments/{assignmentId} {
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
-      allow read:   if true;
+      // C6 fix — split read; close enumeration.
+      allow get:    if true;
+      allow list:   if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow update: if (
         (isTeacher() && resource.data.teacherId == request.auth.uid)
         ||
-        (request.resource.data.teacherId == resource.data.teacherId)
+        (resource.data.status == 'in_progress'
+          && request.resource.data.teacherId == resource.data.teacherId)
       );
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
@@ -512,19 +545,21 @@ service cloud.firestore {
     // doc. Same shape as studentAssignments: teacher owns and mutates;
     // student reads only their own.
     match /friendlisteningAssignments/{assignmentId} {
+      // C5 fix (same pattern as studentAssignments).
       allow list:   if isTeacher() ||
-                      (request.auth != null && request.auth.uid != null);
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow get:    if isTeacher() ||
-                      (request.auth != null && resource.data.studentId == request.auth.uid);
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
     }
     match /friendlywritingAssignments/{assignmentId} {
+      // C5 fix (same pattern as studentAssignments).
       allow list:   if isTeacher() ||
-                      (request.auth != null && request.auth.uid != null);
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow get:    if isTeacher() ||
-                      (request.auth != null && resource.data.studentId == request.auth.uid);
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       allow update: if isTeacher() && resource.data.teacherId == request.auth.uid;
       allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
@@ -683,10 +718,13 @@ service cloud.firestore {
     // their own, marks module progress and requests next mock. Teacher
     // creates/updates for the student they own.
     match /weeklyIeltsAssignments/{assignmentId} {
+      // C5 fix (audit 2026-11-23): the old `request.auth != null` alone let
+      // any student list every weekly IELTS assignment on the platform.
+      // Now gated per-doc — student queries already filter by studentId.
       allow list:   if isTeacher() ||
-                      (request.auth != null); // students query by studentId==uid
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow get:    if isTeacher() ||
-                      (request.auth != null && resource.data.studentId == request.auth.uid);
+                      (isAuthenticated() && resource.data.studentId == request.auth.uid);
       allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
       // Student can update ONLY their own doc, and only the progress fields.
       // Teacher can freely update their own students' assignments.
