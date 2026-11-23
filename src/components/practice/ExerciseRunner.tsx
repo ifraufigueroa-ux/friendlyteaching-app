@@ -380,6 +380,7 @@ function ExerciseBody({
         ex={exercise}
         verdict={verdict === 'pending' ? null : verdict === 'correct' ? 'correct' : 'incorrect'}
         onGrade={onGrade}
+        audioUrl={audioUrl}
       />;
   }
 }

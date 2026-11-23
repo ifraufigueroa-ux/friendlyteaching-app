@@ -1,43 +1,50 @@
 // FriendlyTeaching.cl — Pronunciation exercise runner
 //
 // Student flow:
-//   1. Tap "Listen" → ElevenLabs TTS generates the reference phrase (one
-//      POST to /api/tts/elevenlabs). Audio is cached per-exercise in a
-//      sessionStorage blob URL so a retry doesn't burn another API call.
-//   2. Tap "Record" → MediaRecorder starts (webm/opus). Tap "Stop" to
-//      finish; the blob gets POSTed to /api/transcribe-speech (Whisper).
-//   3. The returned transcript is normalised and compared word-by-word
-//      with the target phrase. Each target word renders green or red
-//      depending on whether the student hit it; overall % drives the
-//      pass/fail verdict that ExerciseRunner reads.
-//
-// Keeps the heavy work in-browser; the API endpoints are already
-// shipped (see src/app/api/transcribe-speech and src/app/api/tts/
-// elevenlabs). Falls back to showing a friendly message if the
-// browser doesn't expose MediaRecorder.
+//   1. Tap "Listen" → plays the pre-generated reference MP3. The URL
+//      comes from usePracticeAudios(unitId) in the runner (seeded by
+//      `scripts/generate-practice-audios.js`). No live ElevenLabs
+//      calls at student runtime.
+//   2. Tap "Record" → MediaRecorder starts. 30-second hard cap so a
+//      forgotten Stop can't burn an infinite Whisper call. Tap "Stop"
+//      to finish; the blob gets POSTed to /api/transcribe-speech
+//      (Whisper) using the recorder's real MIME (Safari produces mp4,
+//      Chrome produces webm — we read it from recorder.mimeType).
+//   3. The transcript is normalised and compared word-by-word with
+//      the target. The grade is only committed to the runner when the
+//      student either hits the pass threshold OR gives up via
+//      "Move on". Retries in between are free and don't lock a wrong
+//      verdict in.
 
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Mic, Square, RotateCcw, Loader2, Check, X as XIcon } from 'lucide-react';
+import { Play, Mic, Square, RotateCcw, Loader2, Check, X as XIcon, ArrowRight } from 'lucide-react';
 import type { PronunciationExercise } from '@/types/practice';
 
 type Verdict = 'correct' | 'incorrect' | null;
 
 interface Props {
-  ex:      PronunciationExercise;
-  verdict: Verdict;
-  onGrade: (correct: boolean) => void;
+  ex:        PronunciationExercise;
+  verdict:   Verdict;
+  onGrade:   (correct: boolean) => void;
+  /** Pre-generated reference MP3 URL from Firebase Storage, resolved
+   *  by usePracticeAudios(unit.id) in the runner. When absent, we
+   *  show the Listen button disabled with an "audio pendiente" note
+   *  rather than hitting ElevenLabs from the client. */
+  audioUrl?: string;
 }
+
+const MAX_RECORD_MS = 30_000;
 
 // ── Helpers ──────────────────────────────────────────────────
 
 /** Normalise a phrase for scoring: lowercase, strip punctuation,
- *  collapse whitespace, trim common polite fillers. */
+ *  collapse whitespace. */
 function normalise(s: string): string {
   return s
     .toLowerCase()
-    .replace(/[.,!?;:"“”'()\\[\\]]/g, '')
+    .replace(/[.,!?;:"“”'()\[\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -48,7 +55,7 @@ function tokenise(s: string): string[] {
 }
 
 /** Word-level alignment: for each target word, is there a match in the
- *  transcript? Allows one-word look-ahead so an inserted filler
+ *  transcript? Allows a 2-word look-ahead so an inserted filler
  *  ("umm") doesn't throw off the rest of the sentence. */
 function scorePerWord(target: string[], said: string[]): boolean[] {
   const hits: boolean[] = [];
@@ -56,7 +63,6 @@ function scorePerWord(target: string[], said: string[]): boolean[] {
   for (let i = 0; i < target.length; i++) {
     const want = target[i];
     let matched = false;
-    // Look at the next up-to-3 said-words starting at j.
     for (let k = j; k < Math.min(said.length, j + 3); k++) {
       if (said[k] === want) {
         matched = true;
@@ -71,116 +77,104 @@ function scorePerWord(target: string[], said: string[]): boolean[] {
 
 // ── Component ─────────────────────────────────────────────────
 
-export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
+export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Props) {
   const passRatio = ex.passThreshold ?? 0.75;
+  const refAudioRef  = useRef<HTMLAudioElement | null>(null);
+  const [playingRef, setPlayingRef] = useState(false);
 
-  // Reference audio: cached URL per exercise within the session.
-  const [refUrl, setRefUrl] = useState<string | null>(null);
-  const [loadingRef, setLoadingRef] = useState(false);
-  const refAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Student's own recording, for playback alongside the reference.
+  const recordedUrlRef = useRef<string | null>(null);
+  const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
 
   // Recording state
   const [recording, setRecording] = useState(false);
-  const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
   const [transcribing, setTranscribing] = useState(false);
-  const [transcript, setTranscript] = useState<string | null>(null);
-  const [perWordHits, setPerWordHits] = useState<boolean[]>([]);
-  const [accuracyPct, setAccuracyPct] = useState<number | null>(null);
+  const [transcript, setTranscript]     = useState<string | null>(null);
+  const [perWordHits, setPerWordHits]   = useState<boolean[]>([]);
+  const [accuracyPct, setAccuracyPct]   = useState<number | null>(null);
+  const [attempts, setAttempts]         = useState(0);
+  const [bestPct,  setBestPct]          = useState(0);
   const [recorderError, setRecorderError] = useState<string | null>(null);
-  const mediaRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const mediaRef    = useRef<MediaRecorder | null>(null);
+  const streamRef   = useRef<MediaStream | null>(null);
+  const chunksRef   = useRef<Blob[]>([]);
+  const maxTimerRef = useRef<number | null>(null);
 
   const targetTokens = tokenise(ex.targetPhrase);
 
-  // Reset everything when exercise changes.
+  // Only commit a grade ONCE per exercise. Later retries can improve
+  // the visible score but can't flip the runner's verdict.
+  const hasGradedRef = useRef(false);
+
+  // ── Cleanup on exercise change / unmount ────────────────────
+  function revokeRecorded() {
+    if (recordedUrlRef.current) {
+      try { URL.revokeObjectURL(recordedUrlRef.current); } catch { /* ignore */ }
+      recordedUrlRef.current = null;
+    }
+  }
+  function stopStream() {
+    try { streamRef.current?.getTracks().forEach(t => t.stop()); } catch { /* ignore */ }
+    streamRef.current = null;
+  }
+  function stopMaxTimer() {
+    if (maxTimerRef.current !== null) {
+      window.clearTimeout(maxTimerRef.current);
+      maxTimerRef.current = null;
+    }
+  }
+
   useEffect(() => {
-    setRefUrl(null);
+    // Reset per-exercise state.
+    revokeRecorded();
     setRecordedUrl(null);
     setTranscript(null);
     setPerWordHits([]);
     setAccuracyPct(null);
+    setAttempts(0);
+    setBestPct(0);
     setRecorderError(null);
-  }, [ex.id]);
-
-  const playReference = useCallback(async () => {
-    if (loadingRef) return;
-    // Cached → just play.
-    if (refUrl && refAudioRef.current) {
-      refAudioRef.current.currentTime = 0;
-      await refAudioRef.current.play().catch(() => undefined);
-      return;
-    }
-    setLoadingRef(true);
-    try {
-      const res = await fetch('/api/tts/elevenlabs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text:    ex.targetPhrase,
-          voiceId: ex.voiceId,
-        }),
-      });
-      if (!res.ok) throw new Error(`TTS failed: ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      setRefUrl(url);
-      // Wait a tick for ref to attach, then play.
-      setTimeout(() => {
-        refAudioRef.current?.play().catch(() => undefined);
-      }, 50);
-    } catch (err) {
-      console.warn('[PronunciationBody] TTS failed:', err);
-      setRecorderError('Could not load the reference audio. Try again.');
-    } finally {
-      setLoadingRef(false);
-    }
-  }, [ex.targetPhrase, ex.voiceId, refUrl, loadingRef]);
-
-  const startRecording = useCallback(async () => {
-    setRecorderError(null);
-    setTranscript(null);
-    setPerWordHits([]);
-    setAccuracyPct(null);
-    setRecordedUrl(null);
-    if (typeof window === 'undefined' || !window.MediaRecorder) {
-      setRecorderError('Your browser does not support recording. Try Chrome/Edge/Safari.');
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
-      mediaRef.current = rec;
-      chunksRef.current = [];
-      rec.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      rec.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const url  = URL.createObjectURL(blob);
-        setRecordedUrl(url);
-        stream.getTracks().forEach((t) => t.stop());
-        void transcribe(blob);
-      };
-      rec.start();
-      setRecording(true);
-    } catch (err) {
-      console.warn('[PronunciationBody] mic start failed:', err);
-      setRecorderError('Microphone blocked. Allow the site to use the mic and try again.');
-    }
+    setPlayingRef(false);
+    hasGradedRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ex.id]);
 
-  const stopRecording = useCallback(() => {
-    if (!mediaRef.current) return;
-    try { mediaRef.current.stop(); } catch { /* ignore */ }
-    setRecording(false);
+  // On unmount: stop any active recording + release the mic + revoke
+  // dangling blobs. Belt and suspenders.
+  useEffect(() => {
+    return () => {
+      stopMaxTimer();
+      try { mediaRef.current?.state === 'recording' && mediaRef.current.stop(); } catch { /* ignore */ }
+      stopStream();
+      revokeRecorded();
+    };
   }, []);
 
-  const transcribe = useCallback(async (blob: Blob) => {
+  // ── Listen (reference audio) ────────────────────────────────
+
+  const playReference = useCallback(async () => {
+    if (!audioUrl || !refAudioRef.current) return;
+    try {
+      refAudioRef.current.currentTime = 0;
+      await refAudioRef.current.play();
+      setPlayingRef(true);
+    } catch {
+      setPlayingRef(false);
+    }
+  }, [audioUrl]);
+
+  // ── Record ──────────────────────────────────────────────────
+
+  const transcribe = useCallback(async (blob: Blob, mime: string) => {
     setTranscribing(true);
     try {
+      // File extension from MIME helps Whisper detect the container.
+      const ext = mime.includes('mp4') ? 'm4a'
+                : mime.includes('ogg') ? 'ogg'
+                : mime.includes('wav') ? 'wav'
+                : 'webm';
       const fd = new FormData();
-      fd.append('audio',    blob, 'answer.webm');
+      fd.append('audio',    blob, `answer.${ext}`);
       fd.append('language', 'en');
       const res = await fetch('/api/transcribe-speech', { method: 'POST', body: fd });
       if (!res.ok) throw new Error(`Whisper failed: ${res.status}`);
@@ -192,11 +186,16 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
       const pct = targetTokens.length > 0
         ? hits.filter(Boolean).length / targetTokens.length
         : 0;
-      setAccuracyPct(Math.round(pct * 100));
-      // Emit verdict upward — ExerciseRunner expects onGrade once per
-      // attempt. Only grade "correct" if we hit the threshold; the
-      // retry button resets local state and the runner can re-grade.
-      onGrade(pct >= passRatio);
+      const pctRounded = Math.round(pct * 100);
+      setAccuracyPct(pctRounded);
+      setBestPct(prev => Math.max(prev, pctRounded));
+      setAttempts(a => a + 1);
+      // Only commit the grade ONCE. Pass → correct; otherwise leave
+      // it open so the student can retry without being locked wrong.
+      if (!hasGradedRef.current && pct >= passRatio) {
+        hasGradedRef.current = true;
+        onGrade(true);
+      }
     } catch (err) {
       console.warn('[PronunciationBody] transcription failed:', err);
       setRecorderError('Could not transcribe your audio. Try recording again.');
@@ -204,20 +203,82 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
       setTranscribing(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [passRatio, targetTokens.join('|')]);
+  }, [passRatio, targetTokens.join('|'), onGrade]);
+
+  const startRecording = useCallback(async () => {
+    setRecorderError(null);
+    setTranscript(null);
+    setPerWordHits([]);
+    setAccuracyPct(null);
+    revokeRecorded();
+    setRecordedUrl(null);
+    if (typeof window === 'undefined' || !window.MediaRecorder) {
+      setRecorderError('Your browser does not support recording. Try Chrome/Edge/Safari.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const rec = new MediaRecorder(stream);
+      mediaRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = () => {
+        stopMaxTimer();
+        // Trust the recorder's own MIME so iOS Safari (audio/mp4) and
+        // Chrome (audio/webm) both produce a blob Whisper can read.
+        const mime = rec.mimeType || 'audio/webm';
+        const blob = new Blob(chunksRef.current, { type: mime });
+        const url  = URL.createObjectURL(blob);
+        recordedUrlRef.current = url;
+        setRecordedUrl(url);
+        stopStream();
+        void transcribe(blob, mime);
+      };
+      rec.start();
+      setRecording(true);
+      // 30-second hard cap — auto-stop if the student forgets.
+      stopMaxTimer();
+      maxTimerRef.current = window.setTimeout(() => {
+        try { rec.state === 'recording' && rec.stop(); } catch { /* ignore */ }
+        setRecording(false);
+      }, MAX_RECORD_MS);
+    } catch (err) {
+      console.warn('[PronunciationBody] mic start failed:', err);
+      setRecorderError('Microphone blocked. Allow the site to use the mic and try again.');
+    }
+  }, [transcribe]);
+
+  const stopRecording = useCallback(() => {
+    stopMaxTimer();
+    try {
+      if (mediaRef.current && mediaRef.current.state === 'recording') mediaRef.current.stop();
+    } catch { /* ignore */ }
+    setRecording(false);
+  }, []);
 
   const retry = useCallback(() => {
     setTranscript(null);
     setPerWordHits([]);
     setAccuracyPct(null);
+    revokeRecorded();
     setRecordedUrl(null);
     setRecorderError(null);
   }, []);
 
+  const giveUp = useCallback(() => {
+    if (hasGradedRef.current) return;
+    hasGradedRef.current = true;
+    onGrade(false);
+  }, [onGrade]);
+
   // ── Render ─────────────────────────────────────────────
 
-  const canListen = !recording && !transcribing;
-  const canRecord = !recording && !transcribing && verdict === null;
+  const graded    = verdict !== null;
+  const canRecord = !recording && !transcribing && !graded;
+  const passed    = accuracyPct !== null && accuracyPct >= Math.round(passRatio * 100);
 
   return (
     <div className="space-y-4">
@@ -253,12 +314,12 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
         <button
           type="button"
           onClick={playReference}
-          disabled={!canListen}
+          disabled={!audioUrl || recording || transcribing}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#e5d9f2] text-[#5A3D7A] text-sm font-bold hover:bg-[#F7EFFF] disabled:opacity-50 transition-colors"
+          title={audioUrl ? 'Play the reference' : 'Reference audio not generated yet'}
         >
-          {loadingRef
-            ? <><Loader2 className="w-4 h-4 animate-spin" strokeWidth={2.5} /> Loading…</>
-            : <><Play className="w-4 h-4" strokeWidth={2.5} /> Listen</>}
+          <Play className={`w-4 h-4 ${playingRef ? 'animate-pulse' : ''}`} strokeWidth={2.5} />
+          Listen
         </button>
 
         {!recording ? (
@@ -268,7 +329,7 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
             disabled={!canRecord}
             className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 text-white text-sm font-bold shadow-sm hover:shadow-md disabled:opacity-50 transition-shadow"
           >
-            <Mic className="w-4 h-4" strokeWidth={2.5} /> Record
+            <Mic className="w-4 h-4" strokeWidth={2.5} /> {attempts === 0 ? 'Record' : 'Record again'}
           </button>
         ) : (
           <button
@@ -280,21 +341,40 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
           </button>
         )}
 
-        {(transcript || recorderError) && (
+        {transcript && !passed && (
           <button
             type="button"
             onClick={retry}
             disabled={recording || transcribing}
             className="inline-flex items-center gap-1 text-[11px] font-bold text-[#9474c4] hover:text-[#5A3D7A] px-2 py-1"
           >
-            <RotateCcw className="w-3 h-3" strokeWidth={2.5} /> Try again
+            <RotateCcw className="w-3 h-3" strokeWidth={2.5} /> Reset
+          </button>
+        )}
+
+        {/* "Move on" lets the student accept a wrong verdict after at
+            least one honest attempt. The runner still enforces one
+            grade only, and this routes to the wrong path cleanly. */}
+        {attempts > 0 && !hasGradedRef.current && !passed && !recording && !transcribing && (
+          <button
+            type="button"
+            onClick={giveUp}
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-700 px-2 py-1"
+          >
+            Move on <ArrowRight className="w-3 h-3" strokeWidth={2.5} />
           </button>
         )}
       </div>
 
+      {!audioUrl && (
+        <p className="text-[10px] text-slate-400">
+          Audio de referencia pendiente de generación.
+        </p>
+      )}
+
       {/* Transcribing spinner */}
       {transcribing && (
-        <div className="text-sm text-slate-500 inline-flex items-center gap-2">
+        <div className="text-sm text-slate-500 inline-flex items-center gap-2" role="status" aria-live="polite">
           <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2.5} />
           Checking your pronunciation…
         </div>
@@ -302,24 +382,37 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
 
       {/* Transcript read-out + accuracy */}
       {transcript && accuracyPct !== null && (
-        <div className={`rounded-2xl p-4 border-2 ${
-          accuracyPct >= Math.round(passRatio * 100)
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-            : 'bg-rose-50 border-rose-200 text-rose-900'
-        }`}>
+        <div
+          role="status"
+          aria-live="polite"
+          className={`rounded-2xl p-4 border-2 ${
+            passed
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              : accuracyPct >= 50
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-rose-50 border-rose-200 text-rose-900'
+          }`}
+        >
           <div className="flex items-center gap-2 mb-1">
-            {accuracyPct >= Math.round(passRatio * 100)
+            {passed
               ? <><Check className="w-5 h-5 text-emerald-600" strokeWidth={2.5} /> <span className="font-bold">{accuracyPct}% match — nicely done</span></>
-              : <><XIcon  className="w-5 h-5 text-rose-500"    strokeWidth={2.5} /> <span className="font-bold">{accuracyPct}% match — close, try again</span></>}
+              : accuracyPct >= 50
+                ? <><span className="text-xl">🎯</span><span className="font-bold">{accuracyPct}% match — close, give it another go</span></>
+                : <><XIcon className="w-5 h-5 text-rose-500" strokeWidth={2.5} /> <span className="font-bold">{accuracyPct}% match — try again, slowly</span></>}
           </div>
           <p className="text-[12px] italic text-slate-600">
             I heard: &ldquo;{transcript}&rdquo;
           </p>
+          {attempts > 1 && (
+            <p className="text-[11px] text-slate-500 mt-1">
+              Attempt {attempts} · best so far: {bestPct}%
+            </p>
+          )}
         </div>
       )}
 
       {recorderError && (
-        <p className="text-sm text-rose-500 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">
+        <p role="alert" className="text-sm text-rose-500 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">
           {recorderError}
         </p>
       )}
@@ -330,8 +423,15 @@ export default function PronunciationBody({ ex, verdict, onGrade }: Props) {
       )}
 
       {/* Hidden reference audio element — plays when Listen is tapped. */}
-      {refUrl && (
-        <audio ref={refAudioRef} src={refUrl} hidden />
+      {audioUrl && (
+        <audio
+          ref={refAudioRef}
+          src={audioUrl}
+          preload="auto"
+          onEnded={() => setPlayingRef(false)}
+          hidden
+          aria-hidden="true"
+        />
       )}
     </div>
   );
