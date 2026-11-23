@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TopBar from '@/components/layout/TopBar';
+import FullscreenButton from '@/components/ui/FullscreenButton';
 import {
   Trophy, ArrowRight, ArrowLeft, Pause, Target, Check, X, PartyPopper,
 } from 'lucide-react';
@@ -261,6 +262,10 @@ function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
         >
           <Pause className="w-3 h-3" strokeWidth={2.5} /> Pause
         </button>
+        <FullscreenButton
+          variant="inline"
+          className="!w-9 !h-9 !rounded-full flex-shrink-0"
+        />
       </div>
 
       <Card>
