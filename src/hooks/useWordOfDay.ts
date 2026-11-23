@@ -11,6 +11,7 @@ import {
 import { db } from '@/lib/firebase/config';
 import { getWordOfTheDay, type WordEntry } from '@/data/wordOfTheDay';
 import { useAuthStore } from '@/store/authStore';
+import { getTodayStr as getLocalTodayStr, getYesterdayStr as getLocalYesterdayStr } from '@/lib/utils/gamification';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -63,15 +64,13 @@ export function countUnreadFeedback(subs: WordSubmission[]): number {
   return subs.filter(s => !!s.feedback && !s.feedbackReadAt).length;
 }
 
-function getTodayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getYesterdayStr(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
-}
+// Local-date helpers — the UTC flavour kept students locked in the
+// "done for today" state after 9 p.m. Chile time, because UTC rolled
+// over to the next day while the student was still inside the same
+// calendar day. Shared with gamification so the mission card label
+// ("Resets in …") and the WOD listener agree on what "today" means.
+const getTodayStr = getLocalTodayStr;
+const getYesterdayStr = getLocalYesterdayStr;
 
 // ── Hook ─────────────────────────────────────────────────────────
 

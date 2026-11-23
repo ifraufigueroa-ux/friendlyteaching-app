@@ -123,7 +123,14 @@ export function getWordOfTheDay(level?: string | null): WordEntry {
   // Safety net: if a level somehow has zero words in the pool, fall
   // back to the whole catalogue rather than crash on `pool[0]`.
   const base = pool.length > 0 ? pool : WORDS;
+  // Day index from LOCAL midnight — the WOD listener and the
+  // submission date both key off local YYYY-MM-DD (see
+  // src/lib/utils/gamification.getTodayStr), so the displayed word
+  // rolls over at the same moment the "done for today" flag clears.
   const now = new Date();
-  const dayIndex = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
+  const dayIndex = Math.floor(
+    new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() /
+      (1000 * 60 * 60 * 24),
+  );
   return base[dayIndex % base.length];
 }

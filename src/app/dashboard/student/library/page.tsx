@@ -15,8 +15,9 @@ import { BookOpen, ChevronDown, Search, Check, ArrowRight } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { useAuthStore } from '@/store/authStore';
 import { useLibraryProgress } from '@/hooks/useLibraryProgress';
+import { useLibraryEpubs } from '@/hooks/useLibraryEpubs';
 import {
-  LIBRARY_BOOKS, LIBRARY_LEVEL_NAMES,
+  LIBRARY_LEVEL_NAMES,
   libraryBooksByLevel,
   type LibraryBook, type LibraryLevel,
 } from '@/lib/data/library/novels';
@@ -40,10 +41,20 @@ export default function LibraryPage() {
   const studentLevel = profile?.studentData?.level;
 
   const { byBook } = useLibraryProgress(uid);
+  const hostedEpubs = useLibraryEpubs();
   const [reading, setReading] = useState<LibraryBook | null>(null);
   const [filter, setFilter]   = useState('');
 
-  const byLevel = useMemo(() => libraryBooksByLevel(), []);
+  // Fold the Firebase Storage mirror URL into each book when present.
+  // Falls through to pageUrl / derived Standard Ebooks URL otherwise.
+  const byLevel = useMemo(() => {
+    const raw = libraryBooksByLevel();
+    const merged: Record<LibraryLevel, LibraryBook[]> = { A: [], B1: [], B2: [], C1: [], C2: [] };
+    for (const lvl of Object.keys(raw) as LibraryLevel[]) {
+      merged[lvl] = raw[lvl].map(b => hostedEpubs[b.id] ? { ...b, epubUrl: hostedEpubs[b.id] } : b);
+    }
+    return merged;
+  }, [hostedEpubs]);
 
   const filtered = useMemo<Record<LibraryLevel, LibraryBook[]>>(() => {
     const needle = filter.trim().toLowerCase();

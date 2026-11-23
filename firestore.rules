@@ -644,6 +644,17 @@ service cloud.firestore {
       allow delete:          if false;
     }
 
+    // ── Library ePub hosted URLs ─────────────────────────────────
+    // One doc per pre-downloaded novel, populated by
+    // scripts/upload-library-epubs.js. Shape: { epubUrl, bookId,
+    // uploadedAt, size }. Student UI reads these to swap out the
+    // direct Standard Ebooks URL for the Firebase Storage mirror.
+    // Writes come from the admin SDK (bypasses rules).
+    match /libraryEpubs/{bookId} {
+      allow read:  if isAuthenticated();
+      allow write: if false;
+    }
+
     // ── Daily Practice adaptive placement ────────────────────────
     // One doc per student at dailyPracticePlacement/{uid}, rewritten
     // on every answer so the session can resume mid-test. Owner

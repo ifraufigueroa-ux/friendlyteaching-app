@@ -95,14 +95,28 @@ export function getLevelTitle(level: number): string {
 
 // ── Streak Logic ──────────────────────────────────────────────
 
+/** Local YYYY-MM-DD. Using toISOString() would give the UTC date,
+ *  which for Chile (UTC-3) rolls over at 9 p.m. local — a student
+ *  submitting after that would get locked into "done for today"
+ *  until the next UTC midnight, even though they intuitively expect
+ *  a new day at local midnight. The "Resets in …" label on the
+ *  missions card already counts to local midnight, so lining both
+ *  up on local time removes the inconsistency. */
 export function getTodayStr(): string {
-  return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function getYesterdayStr(): string {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function calculateStreak(lastActivityDate: string, currentStreak: number): { newStreak: number; isNewDay: boolean } {
