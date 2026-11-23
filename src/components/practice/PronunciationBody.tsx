@@ -19,9 +19,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Play, Mic, Square, RotateCcw, Loader2, Check, X as XIcon, ArrowRight } from 'lucide-react';
+import { Play, Mic, Square, RotateCcw, Loader2, Check, X as XIcon, ArrowRight, Sparkles } from 'lucide-react';
 import type { PronunciationExercise } from '@/types/practice';
 import { logPronunciationAttempt } from '@/hooks/usePronunciationAttempts';
+import { hintForWord } from '@/lib/practice/phoneticHints';
 
 type Verdict = 'correct' | 'incorrect' | null;
 
@@ -105,6 +106,8 @@ export default function PronunciationBody({
   const [attempts, setAttempts]         = useState(0);
   const [bestPct,  setBestPct]          = useState(0);
   const [recorderError, setRecorderError] = useState<string | null>(null);
+  /** Which target-word index the student tapped for a phonetic hint. */
+  const [focusedWord, setFocusedWord] = useState<number | null>(null);
   const mediaRef    = useRef<MediaRecorder | null>(null);
   const streamRef   = useRef<MediaStream | null>(null);
   const chunksRef   = useRef<Blob[]>([]);
@@ -156,6 +159,7 @@ export default function PronunciationBody({
     setBestPct(0);
     setRecorderError(null);
     setPlayingRef(false);
+    setFocusedWord(null);
     hasGradedRef.current = false;
     lastAttemptRef.current = { transcript: '', accuracy: 0 };
     everMatchedRef.current = new Set();
@@ -346,7 +350,14 @@ export default function PronunciationBody({
 
   const graded    = verdict !== null;
   const canRecord = !recording && !transcribing && !graded;
-  const passed    = accuracyPct !== null && accuracyPct >= Math.round(passRatio * 100);
+  const passPct   = Math.round(passRatio * 100);
+  const nearPct   = Math.max(0, passPct - 10);
+  const passed    = accuracyPct !== null && accuracyPct >= passPct;
+  const nearPass  = accuracyPct !== null && !passed && accuracyPct >= nearPct;
+
+  const focusedWordHint = focusedWord !== null && perWordHits[focusedWord] === false
+    ? hintForWord(targetTokens[focusedWord])
+    : null;
 
   return (
     <div className="space-y-4">
@@ -356,7 +367,8 @@ export default function PronunciationBody({
         </p>
       )}
 
-      {/* Target phrase with per-word colouring once graded */}
+      {/* Target phrase with per-word colouring once graded. Missed
+          words are tappable — the hint card below reveals the sound. */}
       <div className="bg-white rounded-2xl border-2 border-[#e5d9f2] p-5">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
           Say this out loud
@@ -364,16 +376,70 @@ export default function PronunciationBody({
         <p className="font-fun text-2xl md:text-3xl font-extrabold text-[#4b3869] leading-snug">
           {targetTokens.map((w, i) => {
             const hit = perWordHits[i];
-            const cls = hit === undefined
-              ? ''
-              : hit
-                ? 'text-emerald-600'
-                : 'text-rose-500 underline decoration-wavy decoration-2 underline-offset-4';
-            return <span key={i} className={cls}>{w}{i < targetTokens.length - 1 ? ' ' : ''}</span>;
+            const trail = i < targetTokens.length - 1 ? ' ' : '';
+            if (hit === undefined) {
+              return <span key={i}>{w}{trail}</span>;
+            }
+            if (hit) {
+              return <span key={i} className="text-emerald-600">{w}{trail}</span>;
+            }
+            const isFocused = focusedWord === i;
+            return (
+              <span key={i}>
+                <button
+                  type="button"
+                  onClick={() => setFocusedWord(isFocused ? null : i)}
+                  className={`text-rose-500 underline decoration-wavy decoration-2 underline-offset-4 hover:bg-rose-50 rounded-md transition-colors cursor-help ${
+                    isFocused ? 'bg-rose-50' : ''
+                  }`}
+                  title="Tap para ver cómo pronunciarla"
+                >
+                  {w}
+                </button>
+                {trail}
+              </span>
+            );
           })}
         </p>
         {ex.ipa && (
           <p className="text-sm text-slate-500 mt-1 font-mono">/{ex.ipa}/</p>
+        )}
+
+        {focusedWordHint && (
+          <div
+            className="mt-4 bg-gradient-to-br from-amber-50 to-rose-50 border-2 border-amber-200 rounded-2xl p-4 animate-ft-fade-in"
+            role="status"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-white">
+                <Sparkles className="w-5 h-5" strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-fun font-extrabold text-lg text-[#4b3869]">
+                    {targetTokens[focusedWord!]}
+                  </span>
+                  <span className="font-mono text-sm text-amber-700 bg-white border border-amber-200 rounded-full px-2 py-0.5">
+                    {focusedWordHint.ipa}
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-800">
+                    {focusedWordHint.label}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-700 leading-snug">
+                  {focusedWordHint.tip}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFocusedWord(null)}
+                className="flex-shrink-0 w-7 h-7 rounded-full text-slate-400 hover:text-slate-700 hover:bg-white transition-colors flex items-center justify-center"
+                aria-label="Cerrar tip"
+              >
+                <XIcon className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -448,7 +514,8 @@ export default function PronunciationBody({
         </div>
       )}
 
-      {/* Transcript read-out + accuracy */}
+      {/* Transcript read-out + accuracy. Three bands: pass (emerald),
+          near-pass yellow zone (amber — "almost there"), low (rose). */}
       {transcript && accuracyPct !== null && (
         <div
           role="status"
@@ -456,7 +523,7 @@ export default function PronunciationBody({
           className={`rounded-2xl p-4 border-2 ${
             passed
               ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-              : accuracyPct >= 50
+              : nearPass
                 ? 'bg-amber-50 border-amber-200 text-amber-900'
                 : 'bg-rose-50 border-rose-200 text-rose-900'
           }`}
@@ -464,13 +531,18 @@ export default function PronunciationBody({
           <div className="flex items-center gap-2 mb-1">
             {passed
               ? <><Check className="w-5 h-5 text-emerald-600" strokeWidth={2.5} /> <span className="font-bold">{accuracyPct}% match — nicely done</span></>
-              : accuracyPct >= 50
-                ? <><span className="text-xl">🎯</span><span className="font-bold">{accuracyPct}% match — close, give it another go</span></>
+              : nearPass
+                ? <><span className="text-xl">🎯</span><span className="font-bold">{accuracyPct}% match — casi lo logras, un intento más</span></>
                 : <><XIcon className="w-5 h-5 text-rose-500" strokeWidth={2.5} /> <span className="font-bold">{accuracyPct}% match — try again, slowly</span></>}
           </div>
           <p className="text-[12px] italic text-slate-600">
             I heard: &ldquo;{transcript}&rdquo;
           </p>
+          {!passed && perWordHits.some(h => h === false) && (
+            <p className="text-[11px] text-slate-500 mt-1">
+              Tip: toca una palabra <span className="text-rose-500 underline decoration-wavy">así</span> para ver cómo pronunciarla.
+            </p>
+          )}
           {attempts > 1 && (
             <p className="text-[11px] text-slate-500 mt-1">
               Attempt {attempts} · best so far: {bestPct}%
