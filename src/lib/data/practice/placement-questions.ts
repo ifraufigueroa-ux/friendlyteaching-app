@@ -456,6 +456,186 @@ export const DPP_QUESTIONS: DPPQuestion[] = [
     correct: 1, explain: 'Wish + past perfect = regret about a past event.',
   },
 
+  // ╔══════════ Pool expansion — wave 2 ══════════════════════╗
+  // Doubles the per-level pool from 10 → 20 so a student who
+  // oscillates between two neighbouring levels never exhausts the
+  // bank before the 50-question hard cap. Same shape as wave 1 —
+  // single-structure items, three plausible distractors, short
+  // explain line.
+
+  // ── A0 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a0-11', level: 'A0', topic: 'object pronouns (basic)', prompt: 'I know Anna. I see ___ every day.', options: ['she', 'her', 'hers', 'herself'], correct: 1, explain: 'Object of a verb uses "her".' },
+  { id: 'dpp-a0-12', level: 'A0', topic: 'prepositions of place', prompt: 'The book is ___ the table.', options: ['on', 'in', 'at', 'to'], correct: 0, explain: '"On" for something resting on a surface.' },
+  { id: 'dpp-a0-13', level: 'A0', topic: 'days / months', prompt: 'My birthday is ___ June.', options: ['on', 'in', 'at', 'of'], correct: 1, explain: 'Months use "in".' },
+  { id: 'dpp-a0-14', level: 'A0', topic: 'imperatives', prompt: '___ the door, please.', options: ['Closing', 'To close', 'Close', 'Closes'], correct: 2, explain: 'Imperative is the base form of the verb.' },
+  { id: 'dpp-a0-15', level: 'A0', topic: 'like / don\'t like', prompt: 'I ___ coffee. I prefer tea.', options: ['don\'t like', 'am not like', 'not like', 'no like'], correct: 0, explain: 'Negative present simple = don\'t + base verb.' },
+  { id: 'dpp-a0-16', level: 'A0', topic: 'can (ability)', prompt: 'My brother ___ swim very well.', options: ['can', 'cans', 'can to', 'is can'], correct: 0, explain: '"Can" is modal — no "-s", no "to".' },
+  { id: 'dpp-a0-17', level: 'A0', topic: 'have / has', prompt: 'She ___ a new phone.', options: ['have', 'has', 'haves', 'is have'], correct: 1, explain: 'Third person singular → "has".' },
+  { id: 'dpp-a0-18', level: 'A0', topic: 'how old', prompt: '___ your mother?', options: ['How is old', 'How old is', 'How old has', 'What age is'], correct: 1, explain: 'Standard order: "How old is …?".' },
+  { id: 'dpp-a0-19', level: 'A0', topic: 'what time', prompt: '___ is it? — It\'s 3 o\'clock.', options: ['How time', 'What time', 'What hour', 'When time'], correct: 1, explain: 'Asking for the clock time uses "What time …?".' },
+  { id: 'dpp-a0-20', level: 'A0', topic: 'subject pronouns', prompt: 'Peter and I are friends. ___ study together.', options: ['Us', 'We', 'They', 'Our'], correct: 1, explain: 'Subject of the verb → "we".' },
+
+  // ── A1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a1-11', level: 'A1', topic: 'adverbs of frequency', prompt: 'She ___ watches TV in the morning.', options: ['never', 'is never', 'never is', 'nevers'], correct: 0, explain: 'Frequency adverbs go BEFORE the main verb.' },
+  { id: 'dpp-a1-12', level: 'A1', topic: 'past simple (be)', prompt: 'I ___ at the party last night.', options: ['am', 'was', 'were', 'be'], correct: 1, explain: '"I" + past of be = "was".' },
+  { id: 'dpp-a1-13', level: 'A1', topic: 'like + -ing', prompt: 'He likes ___ football on Sundays.', options: ['play', 'plays', 'playing', 'to playing'], correct: 2, explain: '"Like" is commonly followed by -ing.' },
+  { id: 'dpp-a1-14', level: 'A1', topic: 'want + infinitive', prompt: 'I ___ a new car.', options: ['want buy', 'want buying', 'want to buy', 'wanting to buy'], correct: 2, explain: '"Want" is followed by TO + base verb.' },
+  { id: 'dpp-a1-15', level: 'A1', topic: 'let\'s (suggestions)', prompt: '___ go to the beach tomorrow.', options: ['Let\'s to', 'We let', 'Let\'s', 'Let go'], correct: 2, explain: '"Let\'s" + base verb for suggestions.' },
+  { id: 'dpp-a1-16', level: 'A1', topic: 'must (obligation)', prompt: 'You ___ wear a seatbelt in the car.', options: ['must', 'must to', 'musts', 'are must'], correct: 0, explain: '"Must" is modal; no "to", no "-s".' },
+  { id: 'dpp-a1-17', level: 'A1', topic: 'shouldn\'t (advice)', prompt: 'You ___ eat so much sugar.', options: ['no should', 'shouldn\'t', 'don\'t should', 'aren\'t should'], correct: 1, explain: 'Negative of "should" is "shouldn\'t".' },
+  { id: 'dpp-a1-18', level: 'A1', topic: 'countable / uncountable (basic)', prompt: 'I don\'t have ___ time.', options: ['many', 'much', 'a lot', 'few'], correct: 1, explain: '"Time" is uncountable → "much".' },
+  { id: 'dpp-a1-19', level: 'A1', topic: 'possessive \'s', prompt: 'This is ___ book.', options: ['Anna\'s', 'Annas', 'of Anna', 'Anna'], correct: 0, explain: '\'s after a singular name shows possession.' },
+  { id: 'dpp-a1-20', level: 'A1', topic: 'prepositions of place (deeper)', prompt: 'The cat is ___ the box.', options: ['on', 'in', 'under', 'to'], correct: 2, explain: '"Under" = below a surface.' },
+
+  // ── A2 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a2-11', level: 'A2', topic: 'present continuous (future)', prompt: 'I ___ Anna tomorrow at 7.', options: ['meet', 'am meeting', 'will meet', 'have met'], correct: 1, explain: 'Scheduled personal arrangement → present continuous.' },
+  { id: 'dpp-a2-12', level: 'A2', topic: 'used to (past habit)', prompt: 'When I was a child, I ___ a lot of candy.', options: ['use to eat', 'used to eat', 'used to eating', 'was used eat'], correct: 1, explain: '"Used to" + base verb for past habits.' },
+  { id: 'dpp-a2-13', level: 'A2', topic: 'may / might', prompt: 'It ___ rain later — take an umbrella.', options: ['may', 'may to', 'mays', 'is may'], correct: 0, explain: '"May" / "might" + base verb to express possibility.' },
+  { id: 'dpp-a2-14', level: 'A2', topic: 'why don\'t you', prompt: '___ try the chicken? It\'s great.', options: ['Why don\'t you', 'Why not you', 'Why you don\'t', 'Why aren\'t you'], correct: 0, explain: 'Suggestion pattern: "Why don\'t you …?".' },
+  { id: 'dpp-a2-15', level: 'A2', topic: 'so / such', prompt: 'It was ___ a beautiful day!', options: ['so', 'such', 'too', 'very'], correct: 1, explain: '"Such" + (a/an) + adjective + noun.' },
+  { id: 'dpp-a2-16', level: 'A2', topic: 'question tags (basic)', prompt: 'You\'re a student, ___?', options: ['isn\'t it', 'aren\'t you', 'don\'t you', 'are you'], correct: 1, explain: 'Positive statement → negative tag matching subject + aux.' },
+  { id: 'dpp-a2-17', level: 'A2', topic: 'quantifiers', prompt: 'There are ___ chairs in the room.', options: ['much', 'a few', 'a little', 'any'], correct: 1, explain: '"A few" with countable nouns = some.' },
+  { id: 'dpp-a2-18', level: 'A2', topic: 'will (predictions)', prompt: 'Don\'t worry — I\'m sure everything ___ fine.', options: ['is', 'will be', 'is going to', 'has been'], correct: 1, explain: '"Will" for predictions based on opinion/belief.' },
+  { id: 'dpp-a2-19', level: 'A2', topic: 'adverbs of manner', prompt: 'She sings ___.', options: ['beautiful', 'beautifully', 'beauty', 'the beautiful'], correct: 1, explain: 'Adverbs modifying verbs end in -ly here.' },
+  { id: 'dpp-a2-20', level: 'A2', topic: 'enough', prompt: 'He isn\'t ___ to drive a car.', options: ['enough old', 'old enough', 'enough of old', 'more old'], correct: 1, explain: '"Enough" goes AFTER an adjective.' },
+
+  // ── B1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-b1-11', level: 'B1', topic: 'reported statements', prompt: 'He said he ___ tired.', options: ['is', 'was', 'has been', 'be'], correct: 1, explain: 'Back-shift from present to past in reported speech.' },
+  { id: 'dpp-b1-12', level: 'B1', topic: 'relative clauses (non-defining)', prompt: 'My brother, ___ lives in Rome, is a chef.', options: ['who', 'which', 'what', 'where'], correct: 0, explain: 'Non-defining clause about a person → "who".' },
+  { id: 'dpp-b1-13', level: 'B1', topic: 'phrasal verbs (inseparable)', prompt: 'We really ___ him since he moved away.', options: ['look up to', 'look after', 'look into', 'look up'], correct: 1, explain: '"Look after" (inseparable) = take care of. (Context fits as missing.)' },
+  { id: 'dpp-b1-14', level: 'B1', topic: 'verb patterns (gerund vs infinitive)', prompt: 'I enjoy ___ to music.', options: ['listen', 'to listen', 'listening', 'listened'], correct: 2, explain: '"Enjoy" is always followed by -ing.' },
+  { id: 'dpp-b1-15', level: 'B1', topic: 'wish (present)', prompt: 'I wish I ___ more time to travel.', options: ['have', 'had', 'will have', 'am having'], correct: 1, explain: 'Wish + past simple = unreal present.' },
+  { id: 'dpp-b1-16', level: 'B1', topic: 'as soon as', prompt: 'I\'ll call you as soon as I ___ home.', options: ['get', 'will get', 'am getting', 'got'], correct: 0, explain: 'After "as soon as" (future time), use the present simple.' },
+  { id: 'dpp-b1-17', level: 'B1', topic: 'neither / so (short answers)', prompt: '"I don\'t like coffee." — "___."', options: ['So do I', 'Neither do I', 'Me too', 'So am I'], correct: 1, explain: 'Agreeing with a negative → "Neither do I".' },
+  { id: 'dpp-b1-18', level: 'B1', topic: 'present perfect continuous', prompt: 'How long ___ English?', options: ['have you been studying', 'are you studying', 'do you study', 'did you study'], correct: 0, explain: 'Duration of ongoing action → present perfect continuous.' },
+  { id: 'dpp-b1-19', level: 'B1', topic: 'modals (might have)', prompt: 'He\'s not answering — he ___ left his phone at home.', options: ['might have', 'might', 'might has', 'might of'], correct: 0, explain: '"Might have" + past participle for past speculation.' },
+  { id: 'dpp-b1-20', level: 'B1', topic: 'unless (conditional)', prompt: 'You won\'t pass ___ you study more.', options: ['if', 'unless', 'in case', 'as long as'], correct: 1, explain: '"Unless" = "if not"; takes present simple.' },
+
+  // ── B2 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-b2-11', level: 'B2', topic: 'future continuous', prompt: 'This time tomorrow I ___ on a beach.', options: ['am lying', 'will lie', 'will be lying', 'will have lain'], correct: 2, explain: 'Future continuous for an action in progress at a future moment.' },
+  { id: 'dpp-b2-12', level: 'B2', topic: 'future perfect (basic)', prompt: 'By next June, she ___ her degree.', options: ['will finish', 'will be finishing', 'will have finished', 'finishes'], correct: 2, explain: 'Future perfect = action completed BEFORE a future point.' },
+  { id: 'dpp-b2-13', level: 'B2', topic: 'reporting verbs', prompt: 'She apologised ___ late.', options: ['for being', 'to be', 'that she was', 'being'], correct: 0, explain: '"Apologise for" + -ing.' },
+  { id: 'dpp-b2-14', level: 'B2', topic: 'participle adjectives', prompt: 'The film was ___ — I almost fell asleep.', options: ['bored', 'boring', 'bore', 'been boring'], correct: 1, explain: '-ing adjective describes the thing causing the feeling.' },
+  { id: 'dpp-b2-15', level: 'B2', topic: 'emphasis with do', prompt: 'I don\'t usually eat sweets, but I ___ love chocolate.', options: ['do', 'am', 'have', 'did'], correct: 0, explain: 'Auxiliary "do" in the present for emphasis.' },
+  { id: 'dpp-b2-16', level: 'B2', topic: 'passive with modal', prompt: 'This document ___ before Monday.', options: ['must sign', 'must signed', 'must be signed', 'must being signed'], correct: 2, explain: 'Modal passive = modal + be + past participle.' },
+  { id: 'dpp-b2-17', level: 'B2', topic: 'adverb-adjective precision', prompt: 'The results are ___ encouraging.', options: ['high', 'highly', 'height', 'heightly'], correct: 1, explain: '"Highly" modifies the adjective "encouraging".' },
+  { id: 'dpp-b2-18', level: 'B2', topic: 'question tags (advanced)', prompt: 'Nobody called, ___?', options: ['did they', 'didn\'t they', 'did he', 'didn\'t he'], correct: 0, explain: '"Nobody" takes "they" in the tag and positive aux.' },
+  { id: 'dpp-b2-19', level: 'B2', topic: 'enough / too (clauses)', prompt: 'It was ___ hot for us to go out.', options: ['so', 'too', 'very', 'enough'], correct: 1, explain: '"Too + adj + for + object + to-infinitive".' },
+  { id: 'dpp-b2-20', level: 'B2', topic: 'reduced relative', prompt: 'The man ___ over there is my uncle.', options: ['stand', 'standing', 'is standing', 'stood'], correct: 1, explain: 'Reduced relative with -ing = "who is standing".' },
+
+  // ── B2+ · 10 more ──────────────────────────────────────────
+  { id: 'dpp-b2p-11', level: 'B2+', topic: 'inversion (basic)', prompt: 'Only after the meeting ___ the real problem.', options: ['I realized', 'did I realize', 'I did realize', 'realized I'], correct: 1, explain: '"Only + time/clause" fronted → subject-aux inversion.' },
+  { id: 'dpp-b2p-12', level: 'B2+', topic: 'concessive clauses', prompt: '___ tired she was, she kept going.', options: ['Even', 'How', 'However', 'Although'], correct: 2, explain: '"However + adj + subject + verb" = concession.' },
+  { id: 'dpp-b2p-13', level: 'B2+', topic: 'participle clauses', prompt: '___ into the room, she noticed the smell.', options: ['Walking', 'Walked', 'To walk', 'Walks'], correct: 0, explain: 'Participle clause = -ing form for a simultaneous action.' },
+  { id: 'dpp-b2p-14', level: 'B2+', topic: 'hedging with verbs', prompt: 'The data ___ that the trend is slowing.', options: ['proves', 'suggests', 'confirms', 'demonstrates'], correct: 1, explain: '"Suggests" is the hedged academic choice.' },
+  { id: 'dpp-b2p-15', level: 'B2+', topic: 'as if / as though', prompt: 'He talks ___ he knew everything.', options: ['as', 'as if', 'that', 'like'], correct: 1, explain: '"As if" + past simple for unreal present comparison.' },
+  { id: 'dpp-b2p-16', level: 'B2+', topic: 'correlative conjunctions', prompt: 'She is ___ intelligent ___ hard-working.', options: ['either / or', 'both / and', 'neither / nor', 'not only / and'], correct: 1, explain: '"Both X and Y" to link two positive qualities.' },
+  { id: 'dpp-b2p-17', level: 'B2+', topic: 'no sooner', prompt: 'No sooner ___ the house ___ the rain started.', options: ['I left / than', 'had I left / than', 'did I leave / when', 'I had left / when'], correct: 1, explain: '"No sooner + past perfect inversion … than + past simple".' },
+  { id: 'dpp-b2p-18', level: 'B2+', topic: 'cleft (what)', prompt: '___ me most is her attitude.', options: ['It bothers', 'What bothers', 'The thing bothers', 'Bothers what'], correct: 1, explain: 'Wh-cleft: "What + clause + is + …".' },
+  { id: 'dpp-b2p-19', level: 'B2+', topic: 'gerund perfect', prompt: 'She apologised for ___ forgotten the appointment.', options: ['have', 'having', 'had', 'to have'], correct: 1, explain: 'Perfect gerund: "having + past participle" for a prior action.' },
+  { id: 'dpp-b2p-20', level: 'B2+', topic: 'subjunctive (mandative intro)', prompt: 'It is essential that he ___ on time.', options: ['is', 'be', 'to be', 'being'], correct: 1, explain: 'Mandative subjunctive uses the base form.' },
+
+  // ── C1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-c1-11', level: 'C1', topic: 'fronting', prompt: '___ I expected to see at the door than my old roommate.', options: ['The last person', 'Not anyone', 'Nobody more', 'Hardly anyone did'], correct: 0, explain: 'Fronting for stylistic emphasis: subject phrase + verb.' },
+  { id: 'dpp-c1-12', level: 'C1', topic: 'inversion (negative adverbials)', prompt: 'Hardly ___ the house when the phone rang.', options: ['I had left', 'had I left', 'I left', 'did I leave'], correct: 1, explain: '"Hardly" fronted → subject-aux inversion with past perfect.' },
+  { id: 'dpp-c1-13', level: 'C1', topic: 'subjunctive (unreal)', prompt: 'If I ___ in your shoes, I\'d accept the offer.', options: ['was', 'were', 'am', 'would be'], correct: 1, explain: 'Hypothetical "were" in all persons is formal/standard.' },
+  { id: 'dpp-c1-14', level: 'C1', topic: 'participle clauses (advanced)', prompt: '___ by critics, the film still flopped.', options: ['Having praised', 'Praised', 'Praising', 'Being praised'], correct: 1, explain: 'Past participle for a passive / completed reason.' },
+  { id: 'dpp-c1-15', level: 'C1', topic: 'discourse markers (formal)', prompt: 'The proposal is innovative; ___, it is unrealistic.', options: ['so', 'however', 'nevertheless', 'then'], correct: 2, explain: '"Nevertheless" = formal concession signalling contrast.' },
+  { id: 'dpp-c1-16', level: 'C1', topic: 'ellipsis (verb phrase)', prompt: 'She can\'t come, but her sister ___.', options: ['can to', 'can', 'is', 'has'], correct: 1, explain: 'Ellipsis of the verb phrase after a modal uses the modal alone.' },
+  { id: 'dpp-c1-17', level: 'C1', topic: 'had + inverted subject (literary)', prompt: '___ earlier, he might have caught the flight.', options: ['Had he left', 'If he left', 'If he had leave', 'Did he leave'], correct: 0, explain: 'Third-conditional inversion drops "if": "Had + subject + pp".' },
+  { id: 'dpp-c1-18', level: 'C1', topic: 'far from (emphatic)', prompt: '___ being lazy, she works around the clock.', options: ['Instead of', 'Far from', 'Rather than', 'Apart from'], correct: 1, explain: '"Far from" + -ing = strong denial of an attribute.' },
+  { id: 'dpp-c1-19', level: 'C1', topic: 'inversion (not only)', prompt: 'Not only ___ late, he didn\'t apologise.', options: ['he arrived', 'did he arrive', 'arrived he', 'he did arrive'], correct: 1, explain: '"Not only" fronted → do-aux inversion.' },
+  { id: 'dpp-c1-20', level: 'C1', topic: 'subjunctive (that-clauses)', prompt: 'The committee insisted that the report ___ revised.', options: ['is', 'was', 'be', 'to be'], correct: 2, explain: 'Mandative subjunctive after verbs like insist, demand.' },
+
+  // ╔══════════ Pool expansion — wave 3 ══════════════════════╗
+  // Final wave bringing each level to 30 total. Covers the extreme
+  // tail: a student oscillating between two levels at the 50-cap
+  // can't exhaust them, and the engine always has fresh variety.
+
+  // ── A0 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a0-21', level: 'A0', topic: 'present simple (I/you)', prompt: 'You ___ English very well.', options: ['speaks', 'speak', 'speaking', 'are speak'], correct: 1, explain: '"I/You/We/They" + base form of the verb.' },
+  { id: 'dpp-a0-22', level: 'A0', topic: 'short answers', prompt: '"Are you a student?" — "Yes, ___."', options: ['I am', 'I\'m', 'am I', 'I do'], correct: 0, explain: 'Short answers repeat the subject + auxiliary.' },
+  { id: 'dpp-a0-23', level: 'A0', topic: 'prepositions (from)', prompt: 'I\'m ___ Chile.', options: ['of', 'at', 'from', 'in'], correct: 2, explain: '"From" + country shows origin.' },
+  { id: 'dpp-a0-24', level: 'A0', topic: 'basic adjectives', prompt: 'This soup is very ___.', options: ['hotly', 'a hot', 'hot', 'hots'], correct: 2, explain: 'Adjective after "be": no article, no -s.' },
+  { id: 'dpp-a0-25', level: 'A0', topic: 'colors + nouns', prompt: 'I have a ___.', options: ['red car', 'car red', 'cars red', 'red cars'], correct: 0, explain: 'English places the adjective BEFORE the noun.' },
+  { id: 'dpp-a0-26', level: 'A0', topic: 'this / these', prompt: '___ apples are delicious.', options: ['This', 'That', 'These', 'Those'], correct: 2, explain: 'Plural + near = "these".' },
+  { id: 'dpp-a0-27', level: 'A0', topic: 'do / does (questions)', prompt: '___ she like pizza?', options: ['Do', 'Does', 'Is', 'Are'], correct: 1, explain: 'Present simple question with "she" → "Does".' },
+  { id: 'dpp-a0-28', level: 'A0', topic: 'in / on (time)', prompt: 'The meeting is ___ Monday.', options: ['in', 'on', 'at', 'of'], correct: 1, explain: 'Days of the week take "on".' },
+  { id: 'dpp-a0-29', level: 'A0', topic: 'verb "to be" (plural)', prompt: 'My parents ___ doctors.', options: ['is', 'are', 'am', 'be'], correct: 1, explain: 'Plural subject → "are".' },
+  { id: 'dpp-a0-30', level: 'A0', topic: 'where (questions)', prompt: '___ your keys?', options: ['Where is', 'Where are', 'Where\'s', 'Where do'], correct: 1, explain: '"Keys" is plural → "are".' },
+
+  // ── A1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a1-21', level: 'A1', topic: 'present continuous (negative)', prompt: 'She ___ now; she\'s studying.', options: ['isn\'t sleeping', 'doesn\'t sleep', 'don\'t sleeping', 'not sleeping'], correct: 0, explain: 'Present continuous negative: "isn\'t + -ing".' },
+  { id: 'dpp-a1-22', level: 'A1', topic: 'object / subject', prompt: '___ saw the movie yesterday.', options: ['Us', 'We', 'Our', 'Ours'], correct: 1, explain: 'Subject of the verb → "we".' },
+  { id: 'dpp-a1-23', level: 'A1', topic: 'can / can\'t', prompt: 'I\'m sorry, I ___ come to the party.', options: ['can\'t', 'don\'t can', 'am not can', 'not can'], correct: 0, explain: 'Modal negative: "can\'t" + base verb.' },
+  { id: 'dpp-a1-24', level: 'A1', topic: 'who / what (questions)', prompt: '___ is your English teacher?', options: ['What', 'Which', 'Who', 'Where'], correct: 2, explain: 'Asking about a person → "Who".' },
+  { id: 'dpp-a1-25', level: 'A1', topic: 'how often', prompt: '___ do you go to the gym?', options: ['How often', 'How many', 'How much', 'How time'], correct: 0, explain: '"How often" asks about frequency.' },
+  { id: 'dpp-a1-26', level: 'A1', topic: 'articles (definite)', prompt: 'Have you been to ___ United States?', options: ['-', 'a', 'an', 'the'], correct: 3, explain: 'Countries with "United" always take "the".' },
+  { id: 'dpp-a1-27', level: 'A1', topic: 'possessive pronouns', prompt: 'This book isn\'t mine — it\'s ___.', options: ['your', 'yours', 'you\'re', 'of you'], correct: 1, explain: 'Possessive pronoun (no noun after) = "yours".' },
+  { id: 'dpp-a1-28', level: 'A1', topic: 'present simple (routines)', prompt: 'My parents ___ dinner at 8 every night.', options: ['has', 'have', 'having', 'is having'], correct: 1, explain: 'Plural subject + routine → present simple "have".' },
+  { id: 'dpp-a1-29', level: 'A1', topic: 'some / any', prompt: 'There aren\'t ___ milk in the fridge.', options: ['some', 'any', 'a', 'much'], correct: 1, explain: 'Negative → "any" with uncountable.' },
+  { id: 'dpp-a1-30', level: 'A1', topic: 'would you like', prompt: '___ a cup of tea?', options: ['Do you like', 'Are you like', 'Would you like', 'Will you like'], correct: 2, explain: 'Polite offer: "Would you like …?".' },
+
+  // ── A2 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-a2-21', level: 'A2', topic: 'past simple (questions)', prompt: '___ to the cinema last weekend?', options: ['Did you go', 'You went', 'Have you gone', 'Did you went'], correct: 0, explain: 'Past simple question: "Did + subject + base verb".' },
+  { id: 'dpp-a2-22', level: 'A2', topic: 'adjective + preposition', prompt: 'She\'s very good ___ math.', options: ['in', 'on', 'at', 'for'], correct: 2, explain: '"Good at" + skill is the fixed collocation.' },
+  { id: 'dpp-a2-23', level: 'A2', topic: 'be going to (plans)', prompt: 'Look at those clouds! It ___ rain.', options: ['goes to', 'will', 'is going to', 'is'], correct: 2, explain: '"Be going to" for predictions based on evidence.' },
+  { id: 'dpp-a2-24', level: 'A2', topic: 'first conditional (basic)', prompt: 'If it rains, we ___ at home.', options: ['stay', 'will stay', 'are staying', 'would stay'], correct: 1, explain: 'First conditional: "if + present, will + base".' },
+  { id: 'dpp-a2-25', level: 'A2', topic: 'comparative (less)', prompt: 'This movie is ___ interesting than the first one.', options: ['least', 'lesser', 'less', 'little'], correct: 2, explain: '"Less + adjective + than".' },
+  { id: 'dpp-a2-26', level: 'A2', topic: 'have to / don\'t have to', prompt: 'You ___ pay — it\'s free today.', options: ['mustn\'t', 'don\'t have to', 'haven\'t to', 'no need to'], correct: 1, explain: '"Don\'t have to" = no obligation.' },
+  { id: 'dpp-a2-27', level: 'A2', topic: 'adverbs of place', prompt: 'Come ___ — the kitchen is warmer.', options: ['on here', 'here', 'the here', 'at here'], correct: 1, explain: 'Adverbs of place take no preposition.' },
+  { id: 'dpp-a2-28', level: 'A2', topic: 'present perfect (ever/never)', prompt: 'Have you ___ been to Japan?', options: ['never', 'ever', 'yet', 'just'], correct: 1, explain: '"Ever" in present perfect questions = at any time.' },
+  { id: 'dpp-a2-29', level: 'A2', topic: 'too many / too much', prompt: 'There are ___ cars on the road today.', options: ['too much', 'too many', 'very many', 'a lot'], correct: 1, explain: '"Too many" + countable plural.' },
+  { id: 'dpp-a2-30', level: 'A2', topic: 'prepositions (travel)', prompt: 'We travelled ___ train from Paris ___ Rome.', options: ['on / at', 'by / to', 'in / for', 'with / until'], correct: 1, explain: '"By + transport"; destination = "to".' },
+
+  // ── B1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-b1-21', level: 'B1', topic: 'reported questions', prompt: 'She asked me ___ I was happy.', options: ['that', 'if', 'what', 'did'], correct: 1, explain: 'Reporting yes/no questions → "if" / "whether".' },
+  { id: 'dpp-b1-22', level: 'B1', topic: 'make / let', prompt: 'My parents didn\'t let me ___ out last night.', options: ['go', 'to go', 'going', 'went'], correct: 0, explain: '"Let + object + base verb" (no "to").' },
+  { id: 'dpp-b1-23', level: 'B1', topic: 'modal perfect (should have)', prompt: 'You ___ told me earlier.', options: ['should', 'should have', 'should had', 'should been'], correct: 1, explain: '"Should have + past participle" = past regret / advice.' },
+  { id: 'dpp-b1-24', level: 'B1', topic: 'passive (present simple)', prompt: 'These products ___ in China.', options: ['make', 'are made', 'are making', 'make them'], correct: 1, explain: 'Present passive: "am/is/are + past participle".' },
+  { id: 'dpp-b1-25', level: 'B1', topic: 'comparatives (much + comp)', prompt: 'Your idea is ___ than mine.', options: ['much better', 'much good', 'very better', 'more best'], correct: 0, explain: '"Much + comparative" intensifies the comparison.' },
+  { id: 'dpp-b1-26', level: 'B1', topic: 'embedded questions', prompt: 'Do you know ___?', options: ['where is the station', 'where the station is', 'where does the station', 'the station is where'], correct: 1, explain: 'Embedded question → statement order.' },
+  { id: 'dpp-b1-27', level: 'B1', topic: 'enough + for (clauses)', prompt: 'The water isn\'t hot enough ___ tea.', options: ['make', 'to make', 'for make', 'making'], correct: 1, explain: '"Enough + to-infinitive".' },
+  { id: 'dpp-b1-28', level: 'B1', topic: 'because / because of', prompt: 'We cancelled the picnic ___ the rain.', options: ['because', 'because of', 'for', 'due'], correct: 1, explain: '"Because of" + noun; "because" + clause.' },
+  { id: 'dpp-b1-29', level: 'B1', topic: 'like vs as', prompt: 'He works ___ a chef in a famous restaurant.', options: ['like', 'as', 'how', 'such'], correct: 1, explain: '"As" + job/role; "like" for similarity.' },
+  { id: 'dpp-b1-30', level: 'B1', topic: 'conjunctions (although)', prompt: '___ it was cold, we went for a walk.', options: ['Despite', 'Although', 'In spite', 'However'], correct: 1, explain: '"Although" + clause; "despite" + noun / -ing.' },
+
+  // ── B2 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-b2-21', level: 'B2', topic: 'inversion (basic)', prompt: 'Rarely ___ such an elegant solution.', options: ['I have seen', 'have I seen', 'I had seen', 'did I saw'], correct: 1, explain: 'Negative adverb fronted → aux-subject inversion.' },
+  { id: 'dpp-b2-22', level: 'B2', topic: 'passive (present perfect)', prompt: 'The documents ___ by the lawyers.', options: ['have already reviewed', 'have been already reviewed', 'have already been reviewed', 'already have reviewed'], correct: 2, explain: 'Present perfect passive: "have + been + past participle".' },
+  { id: 'dpp-b2-23', level: 'B2', topic: 'causative (have)', prompt: 'I need to ___ my hair cut before the wedding.', options: ['do', 'have', 'make', 'get'], correct: 1, explain: '"Have + object + past participle" = arrange a service.' },
+  { id: 'dpp-b2-24', level: 'B2', topic: 'mixed conditional (intro)', prompt: 'If I ___ harder in school, I\'d have a better job now.', options: ['studied', 'had studied', 'would study', 'will study'], correct: 1, explain: 'Mixed conditional: past condition → present result.' },
+  { id: 'dpp-b2-25', level: 'B2', topic: 'subjunctive (suggestion)', prompt: 'The manager suggested that she ___ a report.', options: ['writes', 'wrote', 'write', 'to write'], correct: 2, explain: 'Mandative subjunctive after "suggest".' },
+  { id: 'dpp-b2-26', level: 'B2', topic: 'conditionals (unless)', prompt: 'I won\'t speak to him ___ he apologises first.', options: ['if', 'unless', 'in case', 'provided'], correct: 1, explain: '"Unless" = "if not".' },
+  { id: 'dpp-b2-27', level: 'B2', topic: 'cleft (it)', prompt: '___ caused the problem — not the software.', options: ['It was the user who', 'The user that', 'It\'s who the user', 'What the user'], correct: 0, explain: '"It + be + emphasised + who/that".' },
+  { id: 'dpp-b2-28', level: 'B2', topic: 'gerund after preposition', prompt: 'She\'s thinking about ___ her own company.', options: ['start', 'to start', 'started', 'starting'], correct: 3, explain: 'Preposition + gerund (-ing).' },
+  { id: 'dpp-b2-29', level: 'B2', topic: 'future perfect continuous', prompt: 'By December, I ___ here for ten years.', options: ['will work', 'will be working', 'will have been working', 'am working'], correct: 2, explain: 'Future perfect continuous: duration up to a future point.' },
+  { id: 'dpp-b2-30', level: 'B2', topic: 'adverb placement', prompt: 'She ___ finished the task on time.', options: ['has almost', 'almost has', 'has finished almost', 'almost had'], correct: 0, explain: 'Adverb between auxiliary and main verb.' },
+
+  // ── B2+ · 10 more ──────────────────────────────────────────
+  { id: 'dpp-b2p-21', level: 'B2+', topic: 'inversion (seldom)', prompt: 'Seldom ___ such a brilliant performance.', options: ['we see', 'do we see', 'we do see', 'see we'], correct: 1, explain: '"Seldom" fronted → do-aux inversion.' },
+  { id: 'dpp-b2p-22', level: 'B2+', topic: 'participle clauses (past)', prompt: '___ to Berlin, he found a new job quickly.', options: ['Having moved', 'Moved', 'Moving', 'To move'], correct: 0, explain: '"Having + past participle" for a completed earlier action.' },
+  { id: 'dpp-b2p-23', level: 'B2+', topic: 'hedging (adverbs)', prompt: 'This ___ represents a turning point for the industry.', options: ['clear', 'arguably', 'definite', 'purely'], correct: 1, explain: '"Arguably" is the hedged adverb for a disputable claim.' },
+  { id: 'dpp-b2p-24', level: 'B2+', topic: 'cleft (all)', prompt: '___ I need is a bit of peace and quiet.', options: ['It is', 'What', 'All', 'The one'], correct: 2, explain: '"All (that) + subject + verb" = cleft focus on the only thing.' },
+  { id: 'dpp-b2p-25', level: 'B2+', topic: 'inversion (if omitted)', prompt: '___ you need anything, just call me.', options: ['Had', 'Should', 'If were', 'Were'], correct: 1, explain: '"Should" at start = polite conditional without "if".' },
+  { id: 'dpp-b2p-26', level: 'B2+', topic: 'passive report', prompt: 'The CEO ___ to resign by the end of the week.', options: ['is expected', 'expects', 'has expected', 'is expecting'], correct: 0, explain: 'Passive report structure: "subject + be + reporting verb + to-inf".' },
+  { id: 'dpp-b2p-27', level: 'B2+', topic: 'while / whereas', prompt: '___ the first study used surveys, the second relied on interviews.', options: ['While', 'When', 'Because', 'Since'], correct: 0, explain: '"While"/"whereas" for direct contrast.' },
+  { id: 'dpp-b2p-28', level: 'B2+', topic: 'reduced conditional', prompt: '___ in doubt, consult the manual.', options: ['When', 'If you\'re', 'Are you', 'Being'], correct: 1, explain: 'Reduced conditional: "If + you\'re" shortens "If you are".' },
+  { id: 'dpp-b2p-29', level: 'B2+', topic: 'appositional phrase', prompt: 'Dr. Lee, ___ a leading expert, will speak first.', options: ['that is', 'which is', 'who is', 'being is'], correct: 2, explain: 'Non-defining appositional clause: "who + be + description".' },
+  { id: 'dpp-b2p-30', level: 'B2+', topic: 'passive gerund', prompt: 'She hates ___ at while she\'s working.', options: ['looked', 'to be looked', 'being looked', 'looking'], correct: 2, explain: 'Passive gerund: "being + past participle".' },
+
+  // ── C1 · 10 more ───────────────────────────────────────────
+  { id: 'dpp-c1-21', level: 'C1', topic: 'inversion (nowhere)', prompt: 'Nowhere ___ such hospitality.', options: ['I experienced', 'have I experienced', 'did I experience', 'I did experience'], correct: 1, explain: '"Nowhere" fronted → aux-subject inversion.' },
+  { id: 'dpp-c1-22', level: 'C1', topic: 'subjunctive (lest)', prompt: 'We double-check every report ___ an error slip through.', options: ['so', 'in order', 'lest', 'unless'], correct: 2, explain: '"Lest" (formal) + subjunctive = "for fear that".' },
+  { id: 'dpp-c1-23', level: 'C1', topic: 'future perfect passive', prompt: 'By next month, the renovations ___ completed.', options: ['will complete', 'will be completing', 'will have been', 'will have completed'], correct: 2, explain: 'Future perfect passive: "will have been + past participle".' },
+  { id: 'dpp-c1-24', level: 'C1', topic: 'participle (having been)', prompt: '___ warned twice, she left her phone on in the exam.', options: ['Having been', 'Having', 'Being', 'Been'], correct: 0, explain: '"Having been + past participle" = passive perfect participle.' },
+  { id: 'dpp-c1-25', level: 'C1', topic: 'cleft (reversed pseudo-cleft)', prompt: 'A proper apology is ___ he needs.', options: ['that', 'the one', 'what', 'where'], correct: 2, explain: 'Reversed wh-cleft: subject complement = "what-clause".' },
+  { id: 'dpp-c1-26', level: 'C1', topic: 'inversion (only by)', prompt: 'Only by working together ___ overcome this crisis.', options: ['we will', 'can we', 'we can', 'will have'], correct: 1, explain: '"Only by …" fronted → modal + subject inversion.' },
+  { id: 'dpp-c1-27', level: 'C1', topic: 'subjunctive (were to)', prompt: 'If I ___ hire someone, it would be her.', options: ['was', 'were', 'were to', 'was to'], correct: 2, explain: '"Were to" + base verb = remote hypothetical.' },
+  { id: 'dpp-c1-28', level: 'C1', topic: 'future continuous passive', prompt: 'This time next week, the plans ___ reviewed.', options: ['are being', 'will be being', 'will be', 'will have'], correct: 1, explain: 'Future continuous passive is rare but correct: "will be being + past participle".' },
+  { id: 'dpp-c1-29', level: 'C1', topic: 'ellipsis (so / neither)', prompt: '"I don\'t agree." — "Neither ___."', options: ['do I', 'I don\'t', 'am I', 'did I'], correct: 0, explain: '"Neither + aux + subject" for agreement with a negative.' },
+  { id: 'dpp-c1-30', level: 'C1', topic: 'fronting (adjective)', prompt: '___ was the view that we stayed an extra hour.', options: ['So beautiful', 'Such beautiful', 'Very beautiful', 'Beautiful so'], correct: 0, explain: '"So + adj + be + subject + that + clause".' },
+
 ];
 
 // Pool lookup helpers ─────────────────────────────────────────
