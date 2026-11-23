@@ -655,6 +655,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Library highlights ───────────────────────────────────────
+    // One doc per highlight under libraryHighlights/{studentId}/items/.
+    // Owner creates and deletes; teacher/master/corporate read for
+    // future visibility surfaces. Update is disabled because a change
+    // in the highlighted text should land as a new row.
+    match /libraryHighlights/{studentId}/items/{highlightId} {
+      allow read:    if isOwner(studentId) || isTeacher() || isMaster() || isCorporate();
+      allow create:  if isOwner(studentId);
+      allow delete:  if isOwner(studentId);
+      allow update:  if false;
+    }
+
     // ── Daily Practice adaptive placement ────────────────────────
     // One doc per student at dailyPracticePlacement/{uid}, rewritten
     // on every answer so the session can resume mid-test. Owner
