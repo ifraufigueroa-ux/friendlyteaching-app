@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TOEFL iBT · 50-Min 1:1 Refresh &amp; ElevenLabs Audio</title>
+<style>
+  :root {
+    --purple: #9B72B8;
+    --purpled: #4A2060;
+    --pink: #E87BAD;
+    --light-pk: #FBE7F1;
+    --yellow: #F9F0A8;
+    --softyel: #FCF7D8;
+    --cyan: #7ED6E0;
+    --light-cy: #E6F6F9;
+    --green: #7BC67E;
+    --light-gr: #EAF7EB;
+    --orange: #F4A261;
+    --light-or: #FDE8D0;
+    --light-pu: #E8D8F5;
+    --ink: #2E2A33;
+    --mute: #7A7387;
+    --offwhite: #FFFDF5;
+    --shadow: 0 4px 20px rgba(74, 32, 96, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, var(--light-pu) 0%, var(--offwhite) 60%);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .badge-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .title-bar { flex: 1; min-width: 200px; }
+  .title-bar h1 {
+    font-size: 24px;
+    color: var(--purpled);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .title-bar .subtitle {
+    font-size: 13px;
+    color: var(--mute);
+    margin-top: 2px;
+  }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+  }
+  .progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--purple);
+    white-space: nowrap;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 10px;
+    background: var(--light-pu);
+    border-radius: 10px;
+    overflow: hidden;
+    min-width: 100px;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  h2 {
+    font-size: 28px;
+    color: var(--purpled);
+    margin-bottom: 6px;
+    font-weight: 800;
+  }
+  h2 .num {
+    display: inline-block;
+    background: var(--purple);
+    color: white;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 18px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .subtitle-es {
+    color: var(--purple);
+    font-style: italic;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+  p { line-height: 1.6; margin-bottom: 12px; font-size: 16px; }
+  .lang-en { color: var(--ink); }
+  .lang-es { color: var(--purple); font-style: italic; font-size: 14px; }
+  .bilingual {
+    padding: 14px 18px;
+    background: var(--softyel);
+    border-left: 4px solid var(--orange);
+    border-radius: 12px;
+    margin: 16px 0;
+  }
+  .bilingual p { margin-bottom: 4px; }
+  .bilingual .lang-en { font-weight: 600; }
+  .example {
+    display: inline-block;
+    background: var(--light-cy);
+    border-radius: 10px;
+    padding: 6px 12px;
+    margin: 4px;
+    font-weight: 600;
+    color: var(--purpled);
+    font-size: 14px;
+  }
+  .example.pink { background: var(--light-pk); }
+  .example.green { background: var(--light-gr); }
+  .example.yellow { background: var(--yellow); }
+  .example.orange { background: var(--light-or); }
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  button.nav {
+    background: white;
+    color: var(--purpled);
+    border: 2px solid var(--purple);
+    padding: 12px 22px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  button.nav.primary {
+    background: var(--purple);
+    color: white;
+    border-color: var(--purple);
+  }
+  button.nav:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(74, 32, 96, 0.2);
+  }
+  button.nav:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .quiz-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .quiz-option {
+    background: white;
+    border: 3px solid var(--light-pu);
+    border-radius: 14px;
+    padding: 14px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--purpled);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    text-align: left;
+  }
+  .quiz-option:hover:not(:disabled) {
+    border-color: var(--purple);
+    transform: translateY(-2px);
+  }
+  .quiz-option.correct {
+    background: var(--light-gr);
+    border-color: var(--green);
+    color: #1e5c22;
+  }
+  .quiz-option.wrong {
+    background: var(--light-pk);
+    border-color: var(--pink);
+    color: #9c2e5c;
+  }
+  .quiz-option:disabled { cursor: default; }
+  .quiz-feedback {
+    text-align: center;
+    margin: 16px 0 0;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .quiz-feedback.correct { background: var(--light-gr); color: #1e5c22; }
+  .quiz-feedback.wrong { background: var(--light-pk); color: #9c2e5c; }
+  .rule-box {
+    background: linear-gradient(135deg, var(--light-pk), var(--light-pu));
+    border-radius: 20px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    text-align: center;
+  }
+  .rule-box .rule-title {
+    font-size: 18px;
+    color: var(--purpled);
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .rule-box .rule-formula {
+    background: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--purple);
+    display: inline-block;
+    box-shadow: 0 3px 10px rgba(74, 32, 96, 0.1);
+  }
+  .rule-box .rule-es {
+    font-size: 14px;
+    color: var(--purple);
+    font-style: italic;
+    margin-top: 10px;
+  }
+  .try-again-btn {
+    display: inline-block;
+    margin: 10px 6px 0;
+    background: var(--yellow);
+    color: var(--purpled);
+    border: 2px solid var(--orange);
+    padding: 10px 22px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .try-again-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .fact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+  .fact { background: var(--light-pu); border-radius: 16px; padding: 14px 8px; text-align: center; }
+  .f-num { font-size: 22px; font-weight: 900; color: var(--purpled); }
+  .f-lab { font-size: 12px; color: var(--mute); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+  .tense-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 14px 0; }
+  .tense-card { border-radius: 14px; padding: 16px; border: 3px solid; }
+  .tense-card.t1 { background: var(--light-cy); border-color: var(--cyan); }
+  .tense-card.t2 { background: var(--light-or); border-color: var(--orange); }
+  .tense-card.t3 { background: var(--light-gr); border-color: var(--green); }
+  .tense-card.t4 { background: var(--light-pk); border-color: var(--pink); }
+  .t-name { font-weight: 800; color: var(--purpled); font-size: 18px; margin-bottom: 4px; }
+  .t-form { font-size: 13.5px; color: var(--purple); font-weight: 700; margin-bottom: 6px; }
+  .t-use { font-size: 14px; color: var(--ink); line-height: 1.5; }
+  .howto { background: var(--offwhite); border: 2px solid var(--light-pu); border-radius: 14px; padding: 14px 18px; margin: 12px 0; font-size: 14.5px; }
+  .howto .h-title { font-weight: 800; color: var(--purpled); margin-bottom: 6px; }
+  .howto ul { margin: 4px 0 0 20px; line-height: 1.7; }
+  .passage-box {
+    background: var(--offwhite);
+    border: 2px solid var(--purple);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15.5px;
+    line-height: 1.75;
+  }
+  .passage-box p { margin-bottom: 10px; }
+  .passage-box p:last-child { margin-bottom: 0; }
+  .el-config {
+    background: var(--softyel);
+    border: 2px solid var(--orange);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin: 12px 0 18px;
+  }
+  .el-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .el-input {
+    flex: 1;
+    min-width: 190px;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 2px solid var(--purple);
+    border-radius: 10px;
+    background: white;
+    color: var(--ink);
+  }
+  .audio-player {
+    background: var(--light-cy);
+    border: 2px solid var(--cyan);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin: 14px 0;
+  }
+  .audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .audio-btn {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13.5px;
+    border-radius: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    background: var(--purpled);
+    color: white;
+    border: 2px solid var(--purpled);
+  }
+  .audio-btn.sec {
+    background: white;
+    color: var(--purpled);
+    border-color: var(--purple);
+  }
+  .audio-status {
+    font-size: 12.5px;
+    color: var(--mute);
+    font-weight: 600;
+  }
+  .audio-el-tag {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .transcript-box {
+    background: white;
+    border: 1px dashed var(--purple);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+  .unscramble-built {
+    min-height: 60px;
+    background: var(--light-cy);
+    border: 2px solid var(--cyan);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .unscramble-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--offwhite);
+    border: 2px solid var(--light-pu);
+    border-radius: 14px;
+  }
+  .word-chip {
+    font-family: inherit;
+    background: white;
+    border: 2px solid var(--light-pu);
+    border-radius: 10px;
+    padding: 7px 13px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--purpled);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .word-chip:hover { border-color: var(--purple); }
+  .word-chip.built { border-color: var(--cyan); }
+  .match-cols { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin: 14px 0; }
+  .match-col { display: flex; flex-direction: column; gap: 10px; }
+  .match-head { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; color: var(--mute); text-align: center; }
+  .match-item {
+    background: white;
+    border: 3px solid var(--light-pu);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--purpled);
+    text-align: left;
+    font-family: inherit;
+  }
+  .match-item.selected { border-color: var(--purple); background: var(--light-pu); }
+  .match-item.matched { background: var(--light-gr); border-color: var(--green); color: #1e5c22; cursor: default; }
+  .match-item.fn { background: var(--softyel); text-align: center; }
+  .match-item.fn.matched { background: var(--light-gr); }
+  .shake { animation: shake 0.35s; border-color: var(--pink) !important; background: var(--light-pk) !important; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .timer-inline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .timer-clock { font-family: "Courier New", monospace; font-size: 22px; font-weight: 800; color: var(--purpled); background: var(--light-pu); padding: 4px 12px; border-radius: 10px; }
+  .timer-clock.warn { background: var(--light-pk); color: #9c2e5c; }
+  .timer-btn { font-family: inherit; font-weight: 700; font-size: 13px; border-radius: 12px; padding: 8px 14px; cursor: pointer; background: var(--purple); color: white; border: 2px solid var(--purple); }
+  .timer-btn.ghost { background: white; color: var(--purpled); }
+  .writing-ta { width: 100%; min-height: 110px; font-family: inherit; font-size: 15.5px; line-height: 1.65; padding: 14px 16px; border: 2px solid var(--purple); border-radius: 16px; background: var(--offwhite); color: var(--ink); resize: vertical; }
+  .writing-ta:focus { outline: none; box-shadow: 0 0 0 4px var(--light-pu); }
+  .wc { text-align: right; font-size: 13px; color: var(--mute); font-weight: 700; margin: 6px 4px 10px; }
+  .checklist { display: flex; flex-direction: column; gap: 8px; }
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--offwhite); border: 2px solid var(--light-pu); font-size: 14px; color: var(--mute); transition: all .2s; }
+  .check-row.ok { background: var(--light-gr); border-color: var(--green); color: #1e5c22; font-weight: 600; }
+  .check-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--light-pu); display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; background: white; }
+  .check-row.ok .check-dot { border-color: var(--green); background: var(--green); color: white; }
+  .check-score { text-align: center; font-weight: 800; color: var(--purpled); margin-top: 8px; font-size: 15px; }
+  .checklist-final { background: linear-gradient(135deg, var(--light-pk), var(--light-pu)); border-radius: 20px; padding: 20px 24px; margin-top: 18px; }
+  .checklist-final ul { margin: 10px 0 0 20px; line-height: 1.85; }
+  @media (max-width: 650px) {
+    .fact-grid { grid-template-columns: 1fr 1fr; }
+    .tense-grid, .quiz-options, .match-cols { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 500px) {
+    header { padding: 12px 16px; }
+    .title-bar h1 { font-size: 20px; }
+    .card { padding: 20px; }
+    h2 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="badge-logo">50m</div>
+    <div class="title-bar">
+      <h1>TOEFL iBT · 1:1 Quick Refresh &amp; Audio</h1>
+      <div class="subtitle">50-Min Pacing · ElevenLabs API + Fallback · 2x Drills</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="prog-current">1</span>/<span id="prog-total">6</span></div>
+      <div class="progress-bar"><div id="progress-fill" style="width:16%"></div></div>
+    </div>
+  </header>
+  <main id="content"></main>
+  <div class="nav-buttons">
+    <button class="nav" id="prev-btn">← Back</button>
+    <button class="nav primary" id="next-btn">Next →</button>
+  </div>
+</div>
+
+<script>
+const state = {
+  section: 0,
+  elApiKey: "",
+  elVoiceId: "JBFqnCBsd6RMkjVDRZzb"
+};
+const labDrafts = {};
+const timers = {};
+const audioCache = {};
+const PREBAKED_AUDIOS = {
+  "drill-a": "https://storage.googleapis.com/friendly-scheduling.firebasestorage.app/audio/toefl-lessons/refresh-50min/drill-a.mp3",
+  "drill-b": "https://storage.googleapis.com/friendly-scheduling.firebasestorage.app/audio/toefl-lessons/refresh-50min/drill-b.mp3"
+};
+
+
+function stopAllAudio() {
+  try {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  } catch (e) {}
+  document.querySelectorAll("audio").forEach(el => {
+    try { el.pause(); } catch (e) {}
+  });
+}
+
+async function generateElevenLabsAudio(cacheKey, spokenText) {
+  // Pre-baked override: if the batch script has uploaded an MP3 for
+  // this cacheKey, use the Firebase Storage URL directly — no API
+  // key, no browser-TTS fallback. Overrides anything else.
+  if (PREBAKED_AUDIOS && PREBAKED_AUDIOS[cacheKey]) {
+    return PREBAKED_AUDIOS[cacheKey];
+  }
+
+  const apiKey = (state.elApiKey || "").trim();
+  const voiceId = (state.elVoiceId || "JBFqnCBsd6RMkjVDRZzb").trim();
+  if (!apiKey) {
+    throw new Error("NO_API_KEY");
+  }
+  const fullCacheKey = `${voiceId}::${cacheKey}`;
+  if (audioCache[fullCacheKey]) {
+    return audioCache[fullCacheKey];
+  }
+  const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`;
+  const resp = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "xi-api-key": apiKey,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      text: spokenText,
+      model_id: "eleven_multilingual_v2"
+    })
+  });
+  if (!resp.ok) {
+    throw new Error(`ElevenLabs HTTP ${resp.status}`);
+  }
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  audioCache[fullCacheKey] = url;
+  return url;
+}
+
+function renderAudioPlayer(containerId, cacheKey, spokenText, transcriptHtml, labelText) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const st = { statusText: "Listo. Audios pre-cargados — toca ▶ para reproducir.", showScript: false, audioUrl: "" };
+
+  const draw = () => {
+    const hasKey = Boolean((state.elApiKey || "").trim());
+    const hasSpeech = "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+    container.innerHTML = `
+      <div class="audio-player">
+        <div style="font-weight:800; color:var(--purpled); font-size:14px; margin-bottom:8px;">
+          🎧 ${labelText} · ${hasKey ? "Mode: ElevenLabs API" : "Mode: Browser TTS Fallback"}
+        </div>
+        <div class="audio-controls">
+          <button class="audio-btn" id="${containerId}-play">▶ Play Audio</button>
+          <button class="audio-btn sec" id="${containerId}-stop">⏹ Stop</button>
+          <button class="audio-btn sec" id="${containerId}-script">${st.showScript ? "🙈 Hide Transcript" : "📄 Show Transcript"}</button>
+          <span class="audio-status" id="${containerId}-st">${st.statusText}</span>
+        </div>
+        ${st.audioUrl ? `<audio class="audio-el-tag" id="${containerId}-el" controls src="${st.audioUrl}" autoplay></audio>` : ""}
+        ${st.showScript ? `<div class="transcript-box">${transcriptHtml}</div>` : ""}
+      </div>
+    `;
+
+    const playBtn = document.getElementById(containerId + "-play");
+    const stopBtn = document.getElementById(containerId + "-stop");
+    const scriptBtn = document.getElementById(containerId + "-script");
+
+    if (playBtn) {
+      playBtn.addEventListener("click", async () => {
+        stopAllAudio();
+        if ((state.elApiKey || "").trim()) {
+          st.statusText = "Generating audio with ElevenLabs...";
+          draw();
+          try {
+            const url = await generateElevenLabsAudio(cacheKey, spokenText);
+            st.audioUrl = url;
+            st.statusText = "Playing ElevenLabs MP3.";
+            draw();
+          } catch (err) {
+            st.audioUrl = "";
+            if (hasSpeech) {
+              st.statusText = "ElevenLabs request failed—using browser speech fallback.";
+              draw();
+              const utter = new SpeechSynthesisUtterance(spokenText);
+              utter.lang = "en-US";
+              utter.rate = 0.98;
+              window.speechSynthesis.speak(utter);
+            } else {
+              st.statusText = "Could not load audio—open transcript.";
+              draw();
+            }
+          }
+        } else if (hasSpeech) {
+          st.audioUrl = "";
+          st.statusText = "Playing via browser speech synthesis (no API key entered).";
+          draw();
+          const utter = new SpeechSynthesisUtterance(spokenText);
+          utter.lang = "en-US";
+          utter.rate = 0.98;
+          window.speechSynthesis.speak(utter);
+        } else {
+          st.statusText = "No audio engine available—open transcript.";
+          draw();
+        }
+      });
+    }
+
+    if (stopBtn) {
+      stopBtn.addEventListener("click", () => {
+        stopAllAudio();
+        st.statusText = "Stopped.";
+        draw();
+      });
+    }
+
+    if (scriptBtn) {
+      scriptBtn.addEventListener("click", () => {
+        st.showScript = !st.showScript;
+        draw();
+      });
+    }
+  };
+  draw();
+}
+
+function renderQuiz(containerId, questions) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const st = { idx: 0, score: 0, done: false };
+  const letters = ["A", "B", "C", "D"];
+
+  const render = () => {
+    if (st.done) {
+      container.innerHTML = `
+        <div class="quiz-feedback correct">
+          🎯 Drill completed: <b>${st.score} / ${questions.length}</b> correct!
+        </div>
+        <div style="text-align:center;">
+          <button class="try-again-btn" id="${containerId}-retry">🔄 Try Again</button>
+        </div>
+      `;
+      const retryBtn = document.getElementById(containerId + "-retry");
+      if (retryBtn) {
+        retryBtn.addEventListener("click", () => {
+          st.idx = 0; st.score = 0; st.done = false; render();
+        });
+      }
+      return;
+    }
+    const q = questions[st.idx];
+    container.innerHTML = `
+      <div style="margin-bottom:10px; font-size:13px; color:var(--mute); font-weight:700;">
+        Question ${st.idx + 1} of ${questions.length} · Score: ${st.score}
+      </div>
+      <div style="font-size:16.5px; font-weight:700; color:var(--purpled); margin-bottom:14px; line-height:1.5;">
+        ${q.prompt}
+      </div>
+      <div class="quiz-options">
+        ${q.options.map((opt, i) => `
+          <button class="quiz-option" data-i="${i}">
+            <b>${letters[i]}.</b> ${opt}
+          </button>
+        `).join("")}
+      </div>
+      <div id="${containerId}-fb"></div>
+    `;
+    container.querySelectorAll(".quiz-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const chosen = parseInt(btn.dataset.i, 10);
+        const opts = container.querySelectorAll(".quiz-option");
+        opts.forEach(o => { o.disabled = true; });
+        const fb = document.getElementById(`${containerId}-fb`);
+        if (chosen === q.correct) {
+          opts[chosen].classList.add("correct");
+          st.score++;
+          if (fb) fb.innerHTML = `<div class="quiz-feedback correct">✅ Spot on! ${q.note || ""}</div>`;
+        } else {
+          opts[chosen].classList.add("wrong");
+          opts[q.correct].classList.add("correct");
+          if (fb) fb.innerHTML = `<div class="quiz-feedback wrong">❌ Correct answer: <b>${letters[q.correct]}</b>. ${q.note || ""}</div>`;
+        }
+        setTimeout(() => {
+          st.idx++;
+          if (st.idx >= questions.length) st.done = true;
+          render();
+        }, 1850);
+      });
+    });
+  };
+  render();
+}
+
+function renderUnscramble(containerId, targetSentence, chipsList) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(v => v[1]);
+  const initial = chipsList.map((t, i) => ({ t, id: i }));
+  const st = { bank: shuffle(initial), built: [], checked: false, ok: false };
+
+  const render = () => {
+    const fbHtml = st.checked
+      ? (st.ok
+          ? `<span style="color:#1e5c22;">✅ Clean syntax! ${targetSentence}</span>`
+          : `<span style="color:#9c2e5c;">Check word order. Target: ${targetSentence}</span>`)
+      : "";
+    container.innerHTML = `
+      <div class="unscramble-built">
+        ${st.built.length === 0
+          ? "<span style=\"color:var(--mute); font-style:italic; font-size:14px;\">Tap chips in order to build the sentence...</span>"
+          : st.built.map(b => `<button class="word-chip built" data-id="${b.id}" ${st.checked ? "disabled" : ""}>${b.t}</button>`).join("")
+        }
+      </div>
+      <div class="unscramble-bank">
+        ${st.bank.map(b => `<button class="word-chip" data-id="${b.id}" ${st.checked ? "disabled" : ""}>${b.t}</button>`).join("")}
+      </div>
+      <div style="text-align:center; margin-top:12px;">
+        ${!st.checked
+          ? `<button class="try-again-btn" id="${containerId}-ck" ${st.bank.length > 0 ? "disabled" : ""}>Check Sentence</button>`
+          : `<button class="try-again-btn" id="${containerId}-rt">🔄 Try Again</button>`
+        }
+      </div>
+      <div style="text-align:center; margin-top:8px; font-weight:700;">${fbHtml}</div>
+    `;
+    if (!st.checked) {
+      container.querySelectorAll(".unscramble-bank .word-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = parseInt(btn.dataset.id, 10);
+          const found = st.bank.find(x => x.id === id);
+          st.bank = st.bank.filter(x => x.id !== id);
+          st.built.push(found);
+          render();
+        });
+      });
+      container.querySelectorAll(".unscramble-built .word-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = parseInt(btn.dataset.id, 10);
+          const found = st.built.find(x => x.id === id);
+          st.built = st.built.filter(x => x.id !== id);
+          st.bank.push(found);
+          render();
+        });
+      });
+      const ck = document.getElementById(containerId + "-ck");
+      if (ck) {
+        ck.addEventListener("click", () => {
+          st.checked = true;
+          st.ok = st.built.map(x => x.t).join(" ") === targetSentence;
+          render();
+        });
+      }
+    } else {
+      const rt = document.getElementById(containerId + "-rt");
+      if (rt) {
+        rt.addEventListener("click", () => {
+          st.bank = shuffle(initial); st.built = []; st.checked = false; st.ok = false; render();
+        });
+      }
+    }
+  };
+  render();
+}
+
+function renderMatch(containerId, pairs) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(v => v[1]);
+  let st;
+  const reset = () => {
+    st = {
+      left: shuffle(pairs.map((p, i) => ({ t: p[0], id: i }))),
+      right: shuffle(pairs.map((p, i) => ({ t: p[1], id: i }))),
+      selL: null, selR: null, matched: new Set(), errors: 0, flash: null
+    };
+  };
+  reset();
+
+  const render = () => {
+    const done = st.matched.size === pairs.length;
+    container.innerHTML = `
+      <div class="match-cols">
+        <div class="match-col">
+          <div class="match-head">Cue / Situation</div>
+          ${st.left.map(l => `
+            <button class="match-item ${st.matched.has(l.id) ? "matched" : ""} ${st.selL === l.id ? "selected" : ""} ${st.flash && st.flash[0] === l.id ? "shake" : ""}"
+              data-side="L" data-id="${l.id}" ${st.matched.has(l.id) ? "disabled" : ""}>${l.t}</button>
+          `).join("")}
+        </div>
+        <div class="match-col">
+          <div class="match-head">Exam Strategy</div>
+          ${st.right.map(r => `
+            <button class="match-item fn ${st.matched.has(r.id) ? "matched" : ""} ${st.selR === r.id ? "selected" : ""} ${st.flash && st.flash[1] === r.id ? "shake" : ""}"
+              data-side="R" data-id="${r.id}" ${st.matched.has(r.id) ? "disabled" : ""}>${r.t}</button>
+          `).join("")}
+        </div>
+      </div>
+      ${done
+        ? `<div class="quiz-feedback correct">✅ All matched! Mistakes: ${st.errors}</div><div style="text-align:center;"><button class="try-again-btn" id="${containerId}-retry">🔄 Play Again</button></div>`
+        : "<p style=\"text-align:center; color:var(--mute); font-size:13px; margin-top:8px;\">Tap a cue on the left, then its strategy on the right.</p>"
+      }
+    `;
+    container.querySelectorAll(".match-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = parseInt(btn.dataset.id, 10);
+        if (btn.dataset.side === "L") st.selL = id; else st.selR = id;
+        if (st.selL !== null && st.selR !== null) {
+          if (st.selL === st.selR) {
+            st.matched.add(st.selL);
+            st.flash = null;
+          } else {
+            st.errors++;
+            st.flash = [st.selL, st.selR];
+            setTimeout(() => { st.flash = null; render(); }, 650);
+          }
+          st.selL = null;
+          st.selR = null;
+        }
+        render();
+      });
+    });
+    if (done) {
+      const retryBtn = document.getElementById(containerId + "-retry");
+      if (retryBtn) retryBtn.addEventListener("click", () => { reset(); render(); });
+    }
+  };
+  render();
+}
+
+function renderTimerWidget(containerId, secondsTotal) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!timers[containerId]) timers[containerId] = { left: secondsTotal, running: false, h: null };
+  const t = timers[containerId];
+  const draw = () => {
+    if (!document.getElementById(containerId)) { clearInterval(t.h); t.running = false; return; }
+    const m = String(Math.floor(t.left / 60)).padStart(2, "0");
+    const s = String(t.left % 60).padStart(2, "0");
+    el.innerHTML = `
+      <div class="timer-inline">
+        <div class="timer-clock ${t.left <= 10 ? "warn" : ""}">⏱️ ${m}:${s}</div>
+        <button class="timer-btn" id="${containerId}-go">${t.running ? "⏸ Pause" : "▶ Start Timer"}</button>
+        <button class="timer-btn ghost" id="${containerId}-rs">↺ Reset</button>
+        ${t.left === 0 ? "<span style=\"font-weight:800; color:#9c2e5c;\">⏰ Time up!</span>" : ""}
+      </div>
+    `;
+    const goBtn = document.getElementById(containerId + "-go");
+    const rsBtn = document.getElementById(containerId + "-rs");
+    if (goBtn) {
+      goBtn.onclick = () => {
+        if (t.running) { clearInterval(t.h); t.running = false; }
+        else {
+          t.running = true;
+          t.h = setInterval(() => {
+            t.left = Math.max(0, t.left - 1);
+            if (t.left === 0) { clearInterval(t.h); t.running = false; }
+            draw();
+          }, 1000);
+        }
+        draw();
+      };
+    }
+    if (rsBtn) {
+      rsBtn.onclick = () => {
+        clearInterval(t.h); t.running = false; t.left = secondsTotal; draw();
+      };
+    }
+  };
+  draw();
+}
+
+function renderDiscussionLab(containerId, promptEn, promptEs, minW, maxW, placeholderText) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (labDrafts[containerId] === undefined) labDrafts[containerId] = "";
+  const checks = [
+    { label: "Clear position / thesis statement upfront", test: t => /\b(i believe|in my view|in my opinion|from my perspective|while|whereas|i argue)\b/i.test(t) },
+    { label: "Engages with or contrasts another viewpoint", test: t => /\b(like|unlike|building on|agree with|disagree with|add to|point out|whereas|while)\b/i.test(t) },
+    { label: "Includes a concrete reason or example", test: t => /\b(for example|for instance|such as|because|since|as a result)\b/i.test(t) },
+    { label: `Target length (${minW}–${maxW} words)`, test: t => { const n = t.trim().split(/\s+/).filter(Boolean).length; return n >= minW && n <= maxW; } },
+    { label: "Appropriate register (no chat slang)", test: t => t.trim().length > 0 && !/\b(gonna|wanna|kinda|sorta|lol|btw)\b/i.test(t) },
+  ];
+  container.innerHTML = `
+    <div class="bilingual">
+      <p class="lang-en">${promptEn}</p>
+      <p class="lang-es">${promptEs}</p>
+    </div>
+    <textarea id="${containerId}-ta" class="writing-ta" placeholder="${placeholderText}">${labDrafts[containerId]}</textarea>
+    <div class="wc" id="${containerId}-wc"></div>
+    <div class="checklist" id="${containerId}-cl"></div>
+  `;
+  const ta = document.getElementById(containerId + "-ta");
+  const update = () => {
+    if (!ta) return;
+    labDrafts[containerId] = ta.value;
+    const n = ta.value.trim().split(/\s+/).filter(Boolean).length;
+    const wcEl = document.getElementById(containerId + "-wc");
+    const clEl = document.getElementById(containerId + "-cl");
+    if (wcEl) wcEl.textContent = `${n} ${n === 1 ? "word" : "words"}`;
+    const ok = checks.filter(c => c.test(ta.value)).length;
+    if (clEl) {
+      clEl.innerHTML =
+        checks.map(c => `<div class="check-row ${c.test(ta.value) ? "ok" : ""}"><span class="check-dot">${c.test(ta.value) ? "✓" : ""}</span>${c.label}</div>`).join("") +
+        `<div class="check-score">${ok} / ${checks.length} criteria met</div>`;
+    }
+  };
+  if (ta) {
+    ta.addEventListener("input", update);
+    update();
+  }
+}
+
+const sections = [
+  {
+    render: () => `
+      <div class="card">
+        <h2 style="text-align:center;">TOEFL iBT · 50-Min 1:1 Refresh</h2>
+        <div class="subtitle-es" style="text-align:center;">Paced for a 50-minute one-on-one session with ElevenLabs audio support &amp; 2x drills</div>
+        <div class="fact-grid">
+          <div class="fact"><div class="f-num">50 min</div><div class="f-lab">1:1 Pacing</div></div>
+          <div class="fact"><div class="f-num">4</div><div class="f-lab">Sections</div></div>
+          <div class="fact"><div class="f-num">12 Qs</div><div class="f-lab">R &amp; L Drills</div></div>
+          <div class="fact"><div class="f-num">12 Qs</div><div class="f-lab">Final Quiz</div></div>
+        </div>
+        <div class="bilingual">
+          <p class="lang-en">⏱️ <b>Suggested 50-Min 1:1 Timeline:</b> Reset (5m) · Reading Drills (12m) · Listening ElevenLabs Drills (12m) · Writing &amp; Speaking Drills (12m) · Strategy Match &amp; 12-Q Quiz (9m).</p>
+          <p class="lang-es">Tip de seguridad: ingresa tu API key de ElevenLabs solo durante tu sesión en vivo y no la dejes guardada si compartes el archivo.</p>
+        </div>
+        <div style="text-align:center; margin-top:16px;">
+          <span class="example">1 · Reset (5m)</span>
+          <span class="example pink">2 · Reading (12m)</span>
+          <span class="example orange">3 · Listening + ElevenLabs (12m)</span>
+          <span class="example green">4 · Writing &amp; Speaking (12m)</span>
+          <span class="example yellow">5 · Match &amp; 12-Q Quiz (9m)</span>
+        </div>
+      </div>
+    `,
+    onMount: () => {}
+  },
+
+  {
+    render: () => `
+      <div class="card">
+        <h2><span class="num">1</span>Four Sections · Quick Reset (5m)</h2>
+        <div class="subtitle-es">Fast reminders before testing the tips under practice conditions</div>
+        <div class="tense-grid">
+          <div class="tense-card t1">
+            <div class="t-name">📖 Reading</div>
+            <div class="t-form">Context vocab · Inference · Purpose</div>
+            <div class="t-use">Test words in-sentence, stay within passage evidence, and question extreme qualifiers (<i>always, never, only</i>).</div>
+          </div>
+          <div class="tense-card t2">
+            <div class="t-name">🎧 Listening</div>
+            <div class="t-form">Attitude · Shifts · Function</div>
+            <div class="t-use">Catch pivots like <i>actually, on the other hand, I wouldn't say</i> and note why examples are given.</div>
+          </div>
+          <div class="tense-card t3">
+            <div class="t-name">✍️ Writing</div>
+            <div class="t-form">Sentence building · Discussion</div>
+            <div class="t-use">Keep syntax clean, take a clear stand, support it specifically, and use academic register.</div>
+          </div>
+          <div class="tense-card t4">
+            <div class="t-name">🎙️ Speaking</div>
+            <div class="t-form">Timed responses</div>
+            <div class="t-use">Answer directly at the start, organize 1–2 clear points, and keep steady flow without long pauses.</div>
+          </div>
+        </div>
+        <div class="rule-box">
+          <div class="rule-title">1:1 Coaching Habit</div>
+          <div class="rule-formula">Ask why each wrong option is a trap after every miss</div>
+          <div class="rule-es">Verbalizing the distractor flaw locks in test-day judgment.</div>
+        </div>
+      </div>
+    `,
+    onMount: () => {}
+  },
+
+  {
+    render: () => `
+      <div class="card">
+        <h2><span class="num">2</span>Reading Drills · Two Passages (12m)</h2>
+        <div class="subtitle-es">Drill A (Urban Heat) &amp; Drill B (Sleep &amp; Memory Consolidation)</div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">📖 Drill A · Urban Heat Islands and Street Trees</h3>
+        <div class="passage-box">
+          <p>Dense metropolitan areas frequently record temperatures several degrees higher than surrounding rural land, a phenomenon known as the <i>urban heat island</i> effect. Dark asphalt roads and concrete buildings absorb solar radiation during the day and release heat slowly after sunset, keeping nighttime temperatures elevated.</p>
+          <p>Expanding street-tree canopies can moderate local temperatures by providing shade and cooling air through evapotranspiration. However, city planners note that planting trees in narrow sidewalks is not a cure-all: restricted root space, compacted soil, and road salt can stunt tree growth and shorten lifespans, making soil preparation and species selection essential.</p>
+        </div>
+        <div id="quiz-read-a"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:24px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">📖 Drill B · Sleep and Memory Consolidation</h3>
+        <div class="passage-box">
+          <p>Rather than acting merely as passive downtime, sleep plays an active role in stabilizing newly acquired information. During specific sleep stages, neural circuits replay patterns activated during waking study, transferring fragile short-term traces into more durable cortical networks.</p>
+          <p>Pulling an all-nighter before an exam may keep a student awake for short-term cramming, yet sleep deprivation impairs attention and weakens the consolidation of complex relationships. Short, regular daytime naps can offer modest memory benefits, though consistent overnight sleep remains far more effective for long-term retention.</p>
+        </div>
+        <div id="quiz-read-b"></div>
+      </div>
+    `,
+    onMount: () => {
+      renderQuiz("quiz-read-a", [
+        {
+          prompt: "A1. In paragraph 1, the word elevated is closest in meaning to...",
+          options: ["higher than usual", "difficult to measure", "dropping rapidly", "identical everywhere"],
+          correct: 0,
+          note: "Heat released after sunset keeps nighttime temperatures higher than usual."
+        },
+        {
+          prompt: "A2. What can be inferred from paragraph 2 about planting street trees?",
+          options: [
+            "Trees grow faster on narrow sidewalks than in parks",
+            "Road salt prevents trees from ever needing water",
+            "Simply adding trees without adequate growing conditions may limit their benefit",
+            "City planners have abandoned tree-planting programs"
+          ],
+          correct: 2,
+          note: "Poor soil/root conditions can stunt growth, so preparation and species choice matter."
+        },
+        {
+          prompt: "A3. Why does the author mention dark asphalt roads and concrete buildings in paragraph 1?",
+          options: [
+            "To argue that rural areas experience stronger sunlight",
+            "To show how street trees cool neighborhoods at night",
+            "To criticize modern construction materials as illegal",
+            "To explain physical surfaces that store daytime heat and keep nights warmer"
+          ],
+          correct: 3,
+          note: "They absorb solar radiation by day and release heat slowly after sunset."
+        }
+      ]);
+
+      renderQuiz("quiz-read-b", [
+        {
+          prompt: "B1. According to paragraph 1, what happens during sleep to help memory?",
+          options: [
+            "All waking neural activity stops completely",
+            "Neural circuits replay waking patterns and strengthen durable networks",
+            "Short-term memory replaces long-term memory permanently",
+            "The brain erases complex relationships"
+          ],
+          correct: 1,
+          note: "Neural circuits replay patterns and move fragile traces into durable networks."
+        },
+        {
+          prompt: "B2. What does paragraph 2 imply about daytime naps versus overnight sleep?",
+          options: [
+            "Daytime naps completely replace the need for night sleep",
+            "Overnight sleep only helps with simple memorization",
+            "Naps always harm complex learning",
+            "Naps can help modestly, but consistent overnight sleep is much stronger for retention"
+          ],
+          correct: 3,
+          note: "Naps offer modest benefits, whereas consistent overnight sleep is far more effective."
+        },
+        {
+          prompt: "B3. Why does the passage mention pulling an all-nighter before an exam?",
+          options: [
+            "To illustrate a common study habit that sacrifices sleep despite short-term appeal",
+            "To prove that cramming guarantees top exam scores",
+            "To argue against studying before exams",
+            "To explain how sleep stages are measured in labs"
+          ],
+          correct: 0,
+          note: "It shows a tempting short-term tactic that undermines attention and consolidation."
+        }
+      ]);
+    }
+  },
+
+  {
+    render: () => `
+      <div class="card">
+        <h2><span class="num">3</span>Listening Drills + ElevenLabs (12m)</h2>
+        <div class="subtitle-es">Generate audio via ElevenLabs API (with automatic browser TTS fallback)</div>
+
+        <div class="el-config" hidden>
+          <div style="font-weight:800; color:var(--purpled); font-size:14px;">🔑 ElevenLabs Session Key &amp; Voice ID (kept in memory only)</div>
+          <div class="el-row">
+            <input type="password" class="el-input" id="el-key-input" placeholder="Paste ElevenLabs xi-api-key (optional)" value="${state.elApiKey.replace(/"/g, "&quot;")}" />
+            <input type="text" class="el-input" id="el-voice-input" placeholder="Voice ID (default: JBFqnCBsd6RMkjVDRZzb)" value="${state.elVoiceId.replace(/"/g, "&quot;")}" />
+          </div>
+        </div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">🎧 Audio Drill A · Campus Advising Exchange</h3>
+        <div id="audio-list-a"></div>
+        <div id="quiz-list-a"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:24px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">🎧 Audio Drill B · Seminar Clip on Coral Symbiosis</h3>
+        <div id="audio-list-b"></div>
+        <div id="quiz-list-b"></div>
+      </div>
+    `,
+    onMount: () => {
+      const keyInp = document.getElementById("el-key-input");
+      const voiceInp = document.getElementById("el-voice-input");
+      if (keyInp) {
+        keyInp.addEventListener("input", () => { state.elApiKey = keyInp.value; });
+      }
+      if (voiceInp) {
+        voiceInp.addEventListener("input", () => { state.elVoiceId = voiceInp.value; });
+      }
+
+      const textA = "Advisor: I see you are thinking of dropping Lab Section B because the eight a.m. start is rough. Student: Right—at first I thought switching to the online module would be way easier. Actually, now that I checked the lab schedule, the online version requires two proctored campus exams anyway, so I wouldn't even save the commute on test weeks. Advisor: Good catch. Plus, Section B has the equipment you need for your senior project—though if mornings really hurt your focus, ask Professor Lin if swapping into Thursday is open.";
+      const scriptA = `
+        <p><b>Advisor:</b> I see you are thinking of dropping Lab Section B because the 8 a.m. start is rough.</p>
+        <p><b>Student:</b> Right—at first I thought switching to the online module would be way easier. Actually, now that I checked the lab schedule, the online version requires two proctored campus exams anyway, so I wouldn't even save the commute on test weeks.</p>
+        <p><b>Advisor:</b> Good catch. Plus, Section B has the equipment you need for your senior project—though if mornings really hurt your focus, ask Professor Lin if swapping into Thursday is open.</p>
+      `;
+
+      const textB = "Professor: Many people picture coral reefs purely as colorful rock formations. In reality, reef-building corals depend on microscopic algae living inside their tissues. Those algae provide most of the coral's energy through photosynthesis. When water stays too warm for too long, stressed corals expel the algae—causing bleaching. Notice that bleached coral isn't dead right away, so if temperatures drop soon enough, recovery is still possible.";
+      const scriptB = `
+        <p><b>Professor:</b> Many people picture coral reefs purely as colorful rock formations. In reality, reef-building corals depend on microscopic algae living inside their tissues.</p>
+        <p><b>Professor:</b> Those algae provide most of the coral's energy through photosynthesis. When water stays too warm for too long, stressed corals expel the algae—causing bleaching. Notice that bleached coral isn't dead right away, so if temperatures drop soon enough, recovery is still possible.</p>
+      `;
+
+      renderAudioPlayer("audio-list-a", "drill-a", textA, scriptA, "Audio A · Advising Conversation");
+      renderAudioPlayer("audio-list-b", "drill-b", textB, scriptB, "Audio B · Biology Mini-Lecture");
+
+      renderQuiz("quiz-list-a", [
+        {
+          prompt: "A1. Why does the student say Actually, now that I checked the lab schedule...?",
+          options: [
+            "To announce that the senior project has been canceled",
+            "To revise an earlier assumption after checking exam requirements",
+            "To complain that the advisor gave incorrect room numbers",
+            "To say the online module has no exams at all"
+          ],
+          correct: 1,
+          note: "Actually signals a correction to the student's first assumption."
+        },
+        {
+          prompt: "A2. What does the advisor point out about Lab Section B?",
+          options: [
+            "It is no longer offered this term",
+            "It requires fewer hours than the online option",
+            "It is only for first-year students",
+            "It has equipment needed for the student's senior project"
+          ],
+          correct: 3,
+          note: "The advisor highlights both the equipment benefit and the Thursday swap option."
+        },
+        {
+          prompt: "A3. What practical option does the advisor suggest if 8 a.m. hurts focus?",
+          options: [
+            "Ask Professor Lin if a Thursday swap is open",
+            "Drop all science courses immediately",
+            "Skip the proctored exams",
+            "Delay the senior project until next year"
+          ],
+          correct: 0,
+          note: "Checking with Professor Lin about a Thursday opening is the concrete suggestion."
+        }
+      ]);
+
+      renderQuiz("quiz-list-b", [
+        {
+          prompt: "B1. What role do microscopic algae play for reef-building corals?",
+          options: [
+            "They harden the coral skeleton with minerals",
+            "They shield corals from all ocean predators",
+            "They supply most of the coral's energy via photosynthesis",
+            "They lower ocean temperatures around the reef"
+          ],
+          correct: 2,
+          note: "The professor states that algae provide most of the coral's energy through photosynthesis."
+        },
+        {
+          prompt: "B2. What does the professor emphasize about bleached coral?",
+          options: [
+            "It is not immediately dead and can recover if water cools soon enough",
+            "It can never recover once algae are expelled",
+            "It only occurs in freezing water",
+            "It stops needing sunlight permanently"
+          ],
+          correct: 0,
+          note: "Bleached coral is not dead right away, so timely cooling allows recovery."
+        },
+        {
+          prompt: "B3. Why does the professor begin by contrasting colorful rock formations with reality?",
+          options: [
+            "To question whether coral reefs are real marine habitats",
+            "To shift listener attention from surface appearance to the living partnership inside coral",
+            "To introduce a history of underwater photography",
+            "To argue that rocks generate photosynthesis"
+          ],
+          correct: 1,
+          note: "The contrast sets up the biological symbiosis driving reef health."
+        }
+      ]);
+    }
+  },
+
+  {
+    render: () => `
+      <div class="card">
+        <h2><span class="num">4</span>Writing &amp; Speaking Drills (12m)</h2>
+        <div class="subtitle-es">Syntax drills, two Academic Discussion prompts, and two timed Speaking prompts</div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">✍️ Writing 1A · Sentence Building</h3>
+        <div id="unscramble-1"></div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin:18px 0 6px;">✍️ Writing 1B · Sentence Building</h3>
+        <div id="unscramble-2"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:22px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">✍️ Writing 2A · Academic Discussion (Hybrid Classes)</h3>
+        <div id="lab-1"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:22px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">✍️ Writing 2B · Academic Discussion (AI Study Tools)</h3>
+        <div id="lab-2"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:22px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">🎙️ Speaking Drill 1 · Study Environment (45s)</h3>
+        <div class="bilingual">
+          <p class="lang-en"><b>Prompt 1:</b> Some students prefer studying alone in a quiet space; others prefer studying with classmates. Which do you prefer and why? Use specific reasons and examples.</p>
+          <p class="lang-es">Tip: State your preference right away, give one main reason + a concrete example, and keep pacing steady.</p>
+        </div>
+        <div id="timer-spk-1"></div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin:16px 0 6px;">🎙️ Speaking Drill 2 · Campus or Work Choice (45s)</h3>
+        <div class="bilingual">
+          <p class="lang-en"><b>Prompt 2:</b> Do you think taking a part-time job during the semester helps or hurts university students? Explain your position clearly with examples.</p>
+          <p class="lang-es">Tip: Open with a clear stance, add a concrete example, and finish cleanly before time runs out.</p>
+        </div>
+        <div id="timer-spk-2"></div>
+      </div>
+    `,
+    onMount: () => {
+      renderUnscramble(
+        "unscramble-1",
+        "Early intervention often prevents minor learning gaps from becoming major obstacles.",
+        ["Early intervention", "often prevents", "minor learning gaps", "from becoming", "major obstacles."]
+      );
+      renderUnscramble(
+        "unscramble-2",
+        "Clear topic sentences help readers follow an argument without losing the main thread.",
+        ["Clear topic sentences", "help readers follow", "an argument", "without losing", "the main thread."]
+      );
+      renderDiscussionLab(
+        "lab-1",
+        "<b>Prompt:</b> Professor asks: <i>Should universities offer hybrid classes permanently even when campus facilities are open?</i> Nadia values schedule flexibility; Owen worries about weaker peer interaction.",
+        "Practica una respuesta clara, conectada con el debate y con ejemplo concreto.",
+        75,
+        135,
+        "Write your response on hybrid classes..."
+      );
+      renderDiscussionLab(
+        "lab-2",
+        "<b>Prompt:</b> Professor asks: <i>Should instructors allow AI tutoring tools for homework assignments?</i> Sara sees value in instant explanations; Leo warns about over-reliance before exams.",
+        "Practica postura definida, contraste y ejemplo específico.",
+        75,
+        135,
+        "Write your response on AI tutoring tools..."
+      );
+      renderTimerWidget("timer-spk-1", 45);
+      renderTimerWidget("timer-spk-2", 45);
+    }
+  },
+
+  {
+    render: () => `
+      <div class="card">
+        <h2><span class="num">5</span>Strategy Match &amp; 12-Q Quiz (9m)</h2>
+        <div class="subtitle-es">Wrap up the 1:1 session with a match drill and 12 evenly balanced questions</div>
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">🧩 Strategy Match Drill</h3>
+        <div id="match-final"></div>
+
+        <hr style="border:none; border-top:2px dashed var(--light-pu); margin:24px 0;">
+
+        <h3 style="color:var(--purpled); font-size:19px; margin-bottom:6px;">🎯 Final Challenge Quiz (12 Questions)</h3>
+        <div id="quiz-final"></div>
+
+        <div class="checklist-final">
+          <div class="rule-title" style="text-align:center;">✅ 50-Min 1:1 Wrap-Up</div>
+          <ul>
+            <li>Log the top 1–2 trap types your student missed today.</li>
+            <li>Assign one focused micro-drill (10–15 min) before the next lesson.</li>
+            <li>Keep Speaking and Writing structures concise and supported.</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    onMount: () => {
+      renderMatch("match-final", [
+        ["Vocabulary in context item", "Test the option back in the sentence for fit"],
+        ["Inference question", "Stay strictly within what the passage supports"],
+        ["Speaker says Actually...", "Watch for a correction or shift in stance"],
+        ["Extreme word (always / never)", "Check carefully for overgeneralization"],
+        ["Timed Speaking opening", "State your main point directly at the start"],
+        ["Post-practice review", "Group misses by task type to target habits"],
+      ]);
+
+      renderQuiz("quiz-final", [
+        {
+          prompt: "1. What is the best way to check a vocabulary-in-context choice in Reading?",
+          options: [
+            "Pick the most formal word regardless of sentence fit",
+            "Choose the option that appears least often",
+            "Substitute the word back into the sentence to check meaning and grammar",
+            "Rely solely on the first letter or prefix"
+          ],
+          correct: 2,
+          note: "Meaning and grammar inside the actual sentence decide the answer."
+        },
+        {
+          prompt: "2. What makes an inference answer risky in Reading?",
+          options: [
+            "It adds outside assumptions not supported by the passage",
+            "It restates a point from the text accurately",
+            "It matches a cause-and-effect link stated in the text",
+            "It stays within the paragraph's scope"
+          ],
+          correct: 0,
+          note: "Inferences must be anchored in the passage, not outside assumptions."
+        },
+        {
+          prompt: "3. In Listening, what often follows a speaker saying Actually... or On the other hand...?",
+          options: [
+            "A permanent end to the conversation",
+            "A word-for-word repetition of the opening line",
+            "A spelling instruction",
+            "A contrast, correction, or shift in attitude"
+          ],
+          correct: 3,
+          note: "Contrast and correction signals frequently point to key items."
+        },
+        {
+          prompt: "4. What is the strongest opening move in a timed Speaking response?",
+          options: [
+            "A long silent pause while planning every word",
+            "A direct statement of your main point or preference",
+            "Reading the prompt back slowly word for word",
+            "Listing unrelated ideas before choosing one"
+          ],
+          correct: 1,
+          note: "Leading with a direct answer gives clarity and saves time."
+        },
+        {
+          prompt: "5. What makes an Academic Discussion response stand out?",
+          options: [
+            "Echoing a peer's post without adding support",
+            "Drifting into off-topic personal stories",
+            "Stating a clear position, engaging with the prompt/peers, and giving concrete support",
+            "Using informal text slang throughout"
+          ],
+          correct: 2,
+          note: "Relevance, clear stance, and concrete support drive strong responses."
+        },
+        {
+          prompt: "6. How should you handle choices containing always, never, or only?",
+          options: [
+            "Check carefully for overgeneralization beyond what is stated",
+            "Select them immediately as advanced answers",
+            "Skip checking the surrounding sentences",
+            "Assume they are automatically right in inference items"
+          ],
+          correct: 0,
+          note: "Extreme qualifiers often overstate what a text or speaker supports."
+        },
+        {
+          prompt: "7. After a practice set, what is the smartest way to use your error log?",
+          options: [
+            "Look only at the raw score and move on",
+            "Ignore questions you got right by guessing",
+            "Assume every mistake was caused by speed alone",
+            "Group misses by task/trap type to guide targeted practice"
+          ],
+          correct: 3,
+          note: "Grouping misses by task/trap type reveals repeatable patterns."
+        },
+        {
+          prompt: "8. Why is steady focus from the beginning valuable in TOEFL iBT?",
+          options: [
+            "You can reopen earlier sections at the end",
+            "Sections run continuously and early accuracy shapes adaptive stages",
+            "Time limits do not apply to multiple-choice items",
+            "Speaking always comes before Reading"
+          ],
+          correct: 1,
+          note: "Consistent focus early supports both accuracy and pacing."
+        },
+        {
+          prompt: "9. In Writing, when is a simpler sentence better than a complex one?",
+          options: [
+            "Whenever you want to write fewer than 20 words",
+            "Only in casual notes",
+            "When a complex structure makes grammar or clarity unreliable",
+            "Whenever you have extra time left over"
+          ],
+          correct: 2,
+          note: "Clear, grammatically accurate sentences always beat tangled ones."
+        },
+        {
+          prompt: "10. Why do distractors in TOEFL multiple-choice questions often sound appealing at first glance?",
+          options: [
+            "They echo key words or familiar ideas from the text while distorting meaning or scope",
+            "They always use longer paragraphs than the correct answer",
+            "They leave out the answer choices completely",
+            "They appear in a different alphabet"
+          ],
+          correct: 0,
+          note: "Familiar keywords without exact meaning or scope alignment are classic traps."
+        },
+        {
+          prompt: "11. In a Listening lecture, when a professor gives a specific example, what should you ask yourself?",
+          options: [
+            "Which word in the example is longest",
+            "How to spell every proper noun",
+            "Whether the example contradicts the syllabus",
+            "What general point or claim this example is illustrating"
+          ],
+          correct: 3,
+          note: "Examples in lectures exist to support or clarify a broader point."
+        },
+        {
+          prompt: "12. When a student runs out of time near the end of a timed Speaking prompt, what is best?",
+          options: [
+            "Trail off in mid-sentence with no conclusion",
+            "Wrap up the current point concisely and clearly within the window",
+            "Restart the whole answer from the beginning",
+            "Apologize for running out of ideas"
+          ],
+          correct: 1,
+          note: "Closing your active thought cleanly keeps the response coherent to the end."
+        }
+      ]);
+    }
+  }
+];
+
+const totalEl = document.getElementById("prog-total");
+if (totalEl) totalEl.textContent = sections.length;
+
+function renderSection() {
+  stopAllAudio();
+  const content = document.getElementById("content");
+  if (!content) return;
+  content.innerHTML = sections[state.section].render();
+  sections[state.section].onMount();
+
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
+  if (prevBtn) prevBtn.disabled = state.section === 0;
+  if (nextBtn) {
+    if (state.section === sections.length - 1) {
+      nextBtn.style.display = "none";
+    } else {
+      nextBtn.style.display = "";
+      nextBtn.textContent = state.section === 0 ? "Start 50m Refresh →" : "Next →";
+    }
+  }
+  const pct = Math.round(((state.section + 1) * 100) / sections.length);
+  const fillEl = document.getElementById("progress-fill");
+  const currEl = document.getElementById("prog-current");
+  if (fillEl) fillEl.style.width = pct + "%";
+  if (currEl) currEl.textContent = state.section + 1;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+const nextBtnEl = document.getElementById("next-btn");
+const prevBtnEl = document.getElementById("prev-btn");
+if (nextBtnEl) {
+  nextBtnEl.addEventListener("click", () => {
+    if (state.section < sections.length - 1) {
+      state.section++;
+      renderSection();
+    }
+  });
+}
+if (prevBtnEl) {
+  prevBtnEl.addEventListener("click", () => {
+    if (state.section > 0) {
+      state.section--;
+      renderSection();
+    }
+  });
+}
+
+renderSection();
+</script>
+</body>
+</html>
