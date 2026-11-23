@@ -90,7 +90,7 @@ export default function UploadHtmlLessonModal({ teacherId, onClose }: Props) {
     const trimmedTitle = title.trim();
     const trimmedHtml = html.trim();
     if (!trimmedTitle) { setError('El título es requerido.'); return; }
-    if (!trimmedHtml) { setError('Subí un archivo HTML o pegá el markup.'); return; }
+    if (!trimmedHtml) { setError('Sube un archivo HTML o pega el markup.'); return; }
     setSaving(true);
     try {
       const finalCode = code.trim().toUpperCase() || generateAutoCode();
@@ -162,7 +162,7 @@ export default function UploadHtmlLessonModal({ teacherId, onClose }: Props) {
           {/* Paste HTML fallback */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">
-              O pegá el HTML directamente
+              O pega el HTML directamente
             </label>
             <textarea
               value={html}

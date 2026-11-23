@@ -195,7 +195,7 @@ const slides: Slide[] = [
     // ElevenLabs (endpoint /api/tts/elevenlabs-dialogue). Vacío por
     // default para que la clase renderee incluso sin audio generado.
     audioUrl: '',
-    teacherNotes: 'Después del segundo pass, pedí al alumno que resuma la secuencia en 3 pasos.',
+    teacherNotes: 'Después del segundo pass, pide al alumno que resuma la secuencia en 3 pasos.',
   },
 
   // 7 — Comprehension quiz

@@ -1398,7 +1398,7 @@ function PlacementListeningRunner({
                 <p className="text-xs text-amber-800 font-semibold">⚠ Audio no generado todavía</p>
                 <p className="text-[11px] text-amber-700 mt-1 leading-relaxed">
                   Ejecutá <code className="bg-white/60 px-1 rounded">node scripts/generate-placement-listening-audios.js</code> para
-                  generar los 6 clips con ElevenLabs (una sola vez). Mientras tanto, podés leer el script.
+                  generar los 6 clips con ElevenLabs (una sola vez). Mientras tanto, puedes leer el script.
                 </p>
                 <details className="mt-2">
                   <summary className="text-[11px] font-semibold text-amber-800 cursor-pointer">Ver script</summary>

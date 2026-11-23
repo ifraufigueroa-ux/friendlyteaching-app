@@ -867,7 +867,7 @@ export default function IELTSWritingPage() {
 
               {gradeError && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700 text-center">
-                  {gradeError} — tu texto sigue guardado, podés reintentar.
+                  {gradeError} — tu texto sigue guardado, puedes reintentar.
                 </div>
               )}
 

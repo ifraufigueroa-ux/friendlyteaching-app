@@ -312,7 +312,7 @@ export default function IELTSReadingPage() {
         <div className="rounded-xl bg-[#F0E5FF] border border-[#C8A8DC]/60 px-4 py-3 text-sm text-[#2D1B4E]">
           <strong className="font-bold text-[#5A3D7A]">Beta:</strong>{' '}
           runner CBT completo con timer y diagnóstico. Save/resume y más mocks
-          vienen pronto — por ahora podés hacer &quot;Preview&quot; para revisar
+          vienen pronto — por ahora puedes hacer &quot;Preview&quot; para revisar
           respuestas antes de clase.
         </div>
 

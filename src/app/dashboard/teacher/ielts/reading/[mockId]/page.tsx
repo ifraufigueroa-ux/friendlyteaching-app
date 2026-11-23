@@ -647,7 +647,7 @@ function SetupScreen({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {([
                 { id: 'exam', label: 'Exam', help: '60 min estricto, sin revelar respuestas hasta el final.' },
-                { id: 'practice', label: 'Practice', help: '60 min visible, podés revisar respuestas al terminar.' },
+                { id: 'practice', label: 'Practice', help: '60 min visible, puedes revisar respuestas al terminar.' },
               ] as const).map((m) => (
                 <button
                   key={m.id}

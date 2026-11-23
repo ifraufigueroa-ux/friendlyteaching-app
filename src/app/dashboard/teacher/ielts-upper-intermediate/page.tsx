@@ -90,7 +90,7 @@ export default function IELTSUpperIntermediatePage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#A855F7] font-bold mt-0.5">✓</span>
-                <span><strong>Todos los tipos de pregunta</strong>: incluye plan-map-labelling en S2 y multiple-choice-multi (elegí 2 de 5). Distractores más finos, más preguntas inferenciales.</span>
+                <span><strong>Todos los tipos de pregunta</strong>: incluye plan-map-labelling en S2 y multiple-choice-multi (elige 2 de 5). Distractores más finos, más preguntas inferenciales.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#A855F7] font-bold mt-0.5">✓</span>

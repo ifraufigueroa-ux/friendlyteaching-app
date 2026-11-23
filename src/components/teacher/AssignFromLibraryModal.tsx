@@ -163,7 +163,7 @@ export default function AssignFromLibraryModal({ teacherId, onClose, onSaved, lo
             <div className="max-h-72 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
               {publishedLessons.length === 0 ? (
                 <p className="text-xs text-gray-400 text-center py-8">
-                  No hay lecciones publicadas que coincidan. Publicá o creá una en la Librería primero.
+                  No hay lecciones publicadas que coincidan. Publica o crea una en la Librería primero.
                 </p>
               ) : (
                 publishedLessons.map(l => {

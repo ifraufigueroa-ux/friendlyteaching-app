@@ -118,10 +118,10 @@ export default function LibraryPage() {
                 <Sparkles className="w-3 h-3" strokeWidth={2.5} /> FriendlyTeaching Library
               </span>
               <h2 className="font-fun text-2xl md:text-3xl font-bold text-[#4b3869] leading-tight tracking-tight">
-                Elegí un libro, leé a tu ritmo.
+                Elige un libro, lee a tu ritmo.
               </h2>
               <p className="text-sm text-slate-600 mt-1.5 leading-snug">
-                Seleccionar una palabra abre el diccionario; tocá «Destacar» para marcarla y volver después.
+                Seleccionar una palabra abre el diccionario; toca «Destacar» para marcarla y volver después.
               </p>
             </div>
           </div>

@@ -130,7 +130,7 @@ export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved, 
     const trimmedTitle = title.trim();
     const trimmedHtml = html.trim();
     if (!trimmedTitle) { setError('El título es requerido.'); return; }
-    if (!trimmedHtml)  { setError('Subí un archivo HTML o pegá el markup.'); return; }
+    if (!trimmedHtml)  { setError('Sube un archivo HTML o pega el markup.'); return; }
     if (picked.size === 0) { setError('Elegí al menos un estudiante.'); return; }
 
     setSaving(true);
@@ -228,7 +228,7 @@ export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved, 
 
             <details className="group">
               <summary className="text-xs font-semibold text-gray-500 cursor-pointer hover:text-[#5A3D7A]">
-                O pegá el HTML directamente
+                O pega el HTML directamente
               </summary>
               <textarea
                 value={html}
@@ -319,7 +319,7 @@ export default function UploadAndAssignHtmlModal({ teacherId, onClose, onSaved, 
               {filteredStudents.length === 0 ? (
                 <p className="text-xs text-gray-400 text-center py-8">
                   {activeStudents.length === 0
-                    ? 'No tenés estudiantes activos todavía.'
+                    ? 'No tienes estudiantes activos todavía.'
                     : 'Ningún estudiante coincide con la búsqueda.'}
                 </p>
               ) : (

@@ -365,7 +365,7 @@ export const lessonB1BakeryCatchUp: FLLesson = {
           id:       'c4',
           chunk:    'to be honest / actually / sort of',
           category: 'discourse-marker',
-          gloss:    'marcadores que suavizan o matizan lo que decís',
+          gloss:    'marcadores que suavizan o matizan lo que dices',
           example:  '"To be honest, it\'s the best part of my week." / "Sort of." / "I was actually just thinking about you."',
           notice:   'B1 speakers use these little words to sound natural and not blunt. "To be honest" introduces a real opinion; "actually" corrects or surprises; "sort of" softens a yes/no answer.',
         },
