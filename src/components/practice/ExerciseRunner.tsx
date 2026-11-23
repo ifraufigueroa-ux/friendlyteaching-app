@@ -35,6 +35,9 @@ import PronunciationBody from './PronunciationBody';
 interface Props {
   unit:        PracticeUnit;
   onComplete:  (summary: { correctCount: number; totalCount: number }) => Promise<void> | void;
+  /** Student id. Threaded through so PronunciationBody can log attempts
+   *  under pronunciationAttempts/{studentId}/items for the teacher view. */
+  studentId?:  string | null;
 }
 
 type Verdict = 'pending' | 'correct' | 'wrong';
@@ -54,7 +57,7 @@ function getCorrectAnswer(ex: Exercise): string | null {
   }
 }
 
-export function ExerciseRunner({ unit, onComplete }: Props) {
+export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
   // Hosted audio URLs for every listen-choose exercise in this unit,
   // seeded by scripts/generate-practice-audios.js. Empty object until
   // the batch runs — ListenChooseBody falls back to SpeechSynthesis.
@@ -279,6 +282,9 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
             verdict={verdict}
             onGrade={handleGrade}
             audioUrl={audiosByExerciseId[current.id]}
+            studentId={studentId}
+            unitId={unit.id}
+            unitLevel={unit.level}
           />
 
           {/* Floating +XP chip — centered horizontally above the body */}
@@ -360,11 +366,15 @@ export function ExerciseRunner({ unit, onComplete }: Props) {
 
 function ExerciseBody({
   exercise, verdict, onGrade, audioUrl,
+  studentId, unitId, unitLevel,
 }: {
-  exercise: Exercise;
-  verdict:  Verdict;
-  onGrade:  (correct: boolean) => void;
+  exercise:  Exercise;
+  verdict:   Verdict;
+  onGrade:   (correct: boolean) => void;
   audioUrl?: string;
+  studentId?: string | null;
+  unitId:     string;
+  unitLevel:  string;
 }) {
   switch (exercise.type) {
     case 'multiple-choice':
@@ -381,6 +391,9 @@ function ExerciseBody({
         verdict={verdict === 'pending' ? null : verdict === 'correct' ? 'correct' : 'incorrect'}
         onGrade={onGrade}
         audioUrl={audioUrl}
+        studentId={studentId}
+        unitId={unitId}
+        unitLevel={unitLevel}
       />;
   }
 }

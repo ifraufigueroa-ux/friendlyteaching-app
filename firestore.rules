@@ -622,6 +622,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── Daily Practice pronunciation attempts ────────────────────
+    // One subcollection per student. Student creates when they pass
+    // or give up on a pronunciation exercise; teacher reads for the
+    // visibility tab. Docs are immutable once written (any correction
+    // should land as a new attempt).
+    match /pronunciationAttempts/{studentId}/items/{attemptId} {
+      allow read:   if isOwner(studentId) || isTeacher() || isMaster() || isCorporate();
+      allow create: if isOwner(studentId);
+      allow update, delete: if false;
+    }
+
     // ── Daily Practice adaptive placement ────────────────────────
     // One doc per student at dailyPracticePlacement/{uid}, rewritten
     // on every answer so the session can resume mid-test. Owner

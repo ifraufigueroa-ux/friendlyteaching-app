@@ -24,12 +24,15 @@ import {
   Link2,
   Package,
   ExternalLink,
+  Mic,
+  Check,
   type LucideIcon,
 } from 'lucide-react';
 import { useSkillAssessments } from '@/hooks/useSkillAssessments';
 import { useLevelHistory } from '@/hooks/useLevelHistory';
 import { useExportReport } from '@/hooks/useExportReport';
 import { useStudentAssignments } from '@/hooks/useStudentAssignments';
+import { usePronunciationAttempts, type PronunciationAttemptDoc } from '@/hooks/usePronunciationAttempts';
 import { SkillRadarChart } from './SkillRadarChart';
 import { LevelTimeline } from './LevelTimeline';
 import type { FTUser, SkillScores, StudentAssignment } from '@/types/firebase';
@@ -286,7 +289,7 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
   const { history: levelHistory, loading: levelLoading } = useLevelHistory(student.uid, teacherId);
   const { exportReport, loading: exporting, error: exportError } = useExportReport();
   const { assignments: studentAssignments, loading: assignmentsLoading } = useStudentAssignments(student.uid);
-  const [view, setView] = useState<'chart' | 'history' | 'level' | 'material' | 'new'>('chart');
+  const [view, setView] = useState<'chart' | 'history' | 'level' | 'material' | 'practice' | 'new'>('chart');
 
   function handleExportProgress() {
     const now = new Date();
@@ -359,6 +362,7 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
             ['history',  ClipboardList,  'Historial'],
             ['level',    TrendingUp,     'Nivel'],
             ['material', Package,        'Material'],
+            ['practice', Mic,            'Práctica'],
             ['new',      Plus,           'Evaluar'],
           ] as const).map(([tab, Icon, label]) => (
             <button
@@ -514,6 +518,11 @@ export function StudentDetailModal({ student, teacherId, onClose }: Props) {
             />
           )}
 
+          {/* ── Pronunciation practice view ── */}
+          {view === 'practice' && (
+            <PronunciationActivityList studentId={student.uid} />
+          )}
+
           {/* ── New assessment view ── */}
           {view === 'new' && (
             <AssessmentForm
@@ -643,5 +652,150 @@ function AssignedMaterialList({
         );
       })}
     </ul>
+  );
+}
+
+// ─── Pronunciation activity list ─────────────────────────────────────────────
+
+function formatAttemptAgo(a: PronunciationAttemptDoc): string {
+  const d = a.at?.toDate?.();
+  if (!d) return '—';
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1)  return 'recién';
+  if (mins < 60) return `hace ${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24)  return `hace ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `hace ${days}d`;
+  return d.toLocaleDateString('es-CL', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+
+function PronunciationActivityList({ studentId }: { studentId: string }) {
+  const { items, loading } = usePronunciationAttempts(studentId, 50);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-8 h-8 border-4 border-[#C8A8DC] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Mic className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={2} />
+        <p className="text-gray-500 text-sm font-semibold">Sin actividad de pronunciación</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Cuando el estudiante haga ejercicios de pronunciation en Daily Practice, aparecerán acá.
+        </p>
+      </div>
+    );
+  }
+
+  // Summary chips (top of panel): total attempts, pass rate, most-missed
+  const total = items.length;
+  const passed = items.filter(i => i.passed).length;
+  const passPct = Math.round((passed / total) * 100);
+  const missedCounter = new Map<string, number>();
+  for (const it of items) {
+    for (const w of it.missedWords ?? []) {
+      missedCounter.set(w, (missedCounter.get(w) ?? 0) + 1);
+    }
+  }
+  const topMissed = Array.from(missedCounter.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  return (
+    <div className="space-y-4">
+      {/* Summary row */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-[#FDFAFF] rounded-xl p-3 border border-[#EDE0F6] text-center">
+          <p className="text-xl font-extrabold text-[#5A3D7A]">{total}</p>
+          <p className="text-[10px] text-gray-500 font-semibold">intentos</p>
+        </div>
+        <div className="bg-[#FDFAFF] rounded-xl p-3 border border-[#EDE0F6] text-center">
+          <p className="text-xl font-extrabold text-emerald-600">{passPct}%</p>
+          <p className="text-[10px] text-gray-500 font-semibold">pass rate</p>
+        </div>
+        <div className="bg-[#FDFAFF] rounded-xl p-3 border border-[#EDE0F6] text-center">
+          <p className="text-xl font-extrabold text-amber-600">{passed}/{total}</p>
+          <p className="text-[10px] text-gray-500 font-semibold">pasados</p>
+        </div>
+      </div>
+
+      {topMissed.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-2">
+            Palabras más falladas
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {topMissed.map(([word, count]) => (
+              <span
+                key={word}
+                className="inline-flex items-center gap-1 bg-white border border-amber-200 rounded-full px-2 py-0.5 text-xs font-semibold text-amber-900"
+              >
+                {word} <span className="text-amber-500 text-[10px] font-black">×{count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attempts list */}
+      <ul className="space-y-2">
+        {items.map(it => (
+          <li
+            key={it.id}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#2D1B4E] leading-snug">
+                  &ldquo;{it.targetPhrase}&rdquo;
+                </p>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  {it.unitLevel} · {it.unitId} · {formatAttemptAgo(it)}
+                </p>
+                {it.lastTranscript && (
+                  <p className="text-[11px] italic text-gray-500 mt-1 truncate">
+                    I heard: &ldquo;{it.lastTranscript}&rdquo;
+                  </p>
+                )}
+                {it.missedWords?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {it.missedWords.map(w => (
+                      <span
+                        key={w}
+                        className="inline-block text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5"
+                      >
+                        {w}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black ${
+                    it.passed
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  {it.passed ? <Check className="w-3 h-3" strokeWidth={3} /> : <X className="w-3 h-3" strokeWidth={3} />}
+                  {it.bestAccuracy}%
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {it.attempts} intento{it.attempts === 1 ? '' : 's'}
+                </span>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

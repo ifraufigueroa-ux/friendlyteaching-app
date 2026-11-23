@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Play, Mic, Square, RotateCcw, Loader2, Check, X as XIcon, ArrowRight } from 'lucide-react';
 import type { PronunciationExercise } from '@/types/practice';
+import { logPronunciationAttempt } from '@/hooks/usePronunciationAttempts';
 
 type Verdict = 'correct' | 'incorrect' | null;
 
@@ -33,6 +34,13 @@ interface Props {
    *  show the Listen button disabled with an "audio pendiente" note
    *  rather than hitting ElevenLabs from the client. */
   audioUrl?: string;
+  /** Student id — needed to persist the attempt for teacher visibility.
+   *  When absent (anonymous testing) we skip the write and the runner
+   *  still works. */
+  studentId?: string | null;
+  /** Unit metadata, used only when logging the attempt. */
+  unitId?:    string;
+  unitLevel?: string;
 }
 
 const MAX_RECORD_MS = 30_000;
@@ -77,7 +85,9 @@ function scorePerWord(target: string[], said: string[]): boolean[] {
 
 // ── Component ─────────────────────────────────────────────────
 
-export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Props) {
+export default function PronunciationBody({
+  ex, verdict, onGrade, audioUrl, studentId, unitId, unitLevel,
+}: Props) {
   const passRatio = ex.passThreshold ?? 0.75;
   const refAudioRef  = useRef<HTMLAudioElement | null>(null);
   const [playingRef, setPlayingRef] = useState(false);
@@ -105,6 +115,17 @@ export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Pr
   // Only commit a grade ONCE per exercise. Later retries can improve
   // the visible score but can't flip the runner's verdict.
   const hasGradedRef = useRef(false);
+  /** Last transcript + accuracy per exercise — kept in a ref so the
+   *  giveUp handler can read the latest numbers without re-rendering. */
+  const lastAttemptRef = useRef<{ transcript: string; accuracy: number }>({ transcript: '', accuracy: 0 });
+  /** Target-word indices the student has still not matched across any
+   *  attempt — the UI flips an index to "ever matched" the moment a
+   *  retry hits it, so the teacher only sees genuinely stubborn words. */
+  const everMatchedRef = useRef<Set<number>>(new Set());
+  /** Mirrors `attempts` and `bestPct` so the transcribe + giveUp
+   *  callbacks don't need them in deps and can't see stale closures. */
+  const attemptsRef = useRef(0);
+  const bestPctRef  = useRef(0);
 
   // ── Cleanup on exercise change / unmount ────────────────────
   function revokeRecorded() {
@@ -136,6 +157,10 @@ export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Pr
     setRecorderError(null);
     setPlayingRef(false);
     hasGradedRef.current = false;
+    lastAttemptRef.current = { transcript: '', accuracy: 0 };
+    everMatchedRef.current = new Set();
+    attemptsRef.current = 0;
+    bestPctRef.current  = 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ex.id]);
 
@@ -179,22 +204,48 @@ export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Pr
       const res = await fetch('/api/transcribe-speech', { method: 'POST', body: fd });
       if (!res.ok) throw new Error(`Whisper failed: ${res.status}`);
       const data = await res.json() as { text?: string };
-      const said = tokenise(data.text ?? '');
-      setTranscript(data.text ?? '');
+      const transcriptText = data.text ?? '';
+      const said = tokenise(transcriptText);
+      setTranscript(transcriptText);
       const hits = scorePerWord(targetTokens, said);
       setPerWordHits(hits);
+      // Accumulate words ever matched across retries — missedWords is
+      // the complement at commit time.
+      hits.forEach((hit, i) => { if (hit) everMatchedRef.current.add(i); });
       const pct = targetTokens.length > 0
         ? hits.filter(Boolean).length / targetTokens.length
         : 0;
       const pctRounded = Math.round(pct * 100);
+      const nextAttempts = attemptsRef.current + 1;
+      const nextBest = Math.max(bestPctRef.current, pctRounded);
+      attemptsRef.current = nextAttempts;
+      bestPctRef.current  = nextBest;
       setAccuracyPct(pctRounded);
-      setBestPct(prev => Math.max(prev, pctRounded));
-      setAttempts(a => a + 1);
+      setBestPct(nextBest);
+      setAttempts(nextAttempts);
+      lastAttemptRef.current = { transcript: transcriptText, accuracy: pctRounded };
       // Only commit the grade ONCE. Pass → correct; otherwise leave
       // it open so the student can retry without being locked wrong.
       if (!hasGradedRef.current && pct >= passRatio) {
         hasGradedRef.current = true;
         onGrade(true);
+        // Log the attempt for teacher visibility. Fire-and-forget.
+        if (studentId && unitId) {
+          const missedWords = targetTokens.filter((_, i) => !everMatchedRef.current.has(i));
+          void logPronunciationAttempt({
+            studentId,
+            unitId,
+            unitLevel:     unitLevel ?? '',
+            exerciseId:    ex.id,
+            targetPhrase:  ex.targetPhrase,
+            lastTranscript: transcriptText,
+            bestAccuracy:  nextBest,
+            lastAccuracy:  pctRounded,
+            attempts:      nextAttempts,
+            passed:        true,
+            missedWords,
+          });
+        }
       }
     } catch (err) {
       console.warn('[PronunciationBody] transcription failed:', err);
@@ -203,7 +254,7 @@ export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Pr
       setTranscribing(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [passRatio, targetTokens.join('|'), onGrade]);
+  }, [passRatio, targetTokens.join('|'), onGrade, studentId, unitId, unitLevel, ex.id, ex.targetPhrase]);
 
   const startRecording = useCallback(async () => {
     setRecorderError(null);
@@ -272,7 +323,24 @@ export default function PronunciationBody({ ex, verdict, onGrade, audioUrl }: Pr
     if (hasGradedRef.current) return;
     hasGradedRef.current = true;
     onGrade(false);
-  }, [onGrade]);
+    if (studentId && unitId) {
+      const missedWords = targetTokens.filter((_, i) => !everMatchedRef.current.has(i));
+      void logPronunciationAttempt({
+        studentId,
+        unitId,
+        unitLevel:     unitLevel ?? '',
+        exerciseId:    ex.id,
+        targetPhrase:  ex.targetPhrase,
+        lastTranscript: lastAttemptRef.current.transcript,
+        bestAccuracy:  bestPctRef.current,
+        lastAccuracy:  lastAttemptRef.current.accuracy,
+        attempts:      attemptsRef.current,
+        passed:        false,
+        missedWords,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onGrade, studentId, unitId, unitLevel, ex.id, ex.targetPhrase, targetTokens.join('|')]);
 
   // ── Render ─────────────────────────────────────────────
 

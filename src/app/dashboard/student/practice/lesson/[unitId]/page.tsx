@@ -52,6 +52,7 @@ export default function PracticeLessonPage({ params }: Props) {
   return (
     <ExerciseRunner
       unit={unit}
+      studentId={uid}
       onComplete={async (summary) => {
         await recordSession({
           unitId: unit.id,
