@@ -52,9 +52,10 @@ export function useStudentBookings(studentId: string | undefined, weekStart: Dat
     return unsub;
   }, [studentId]);
 
-  // Same week-filter rule as useBookings: recurring docs always included
-  // (the engine still intersects by week at the consumer level), one-off
-  // and cancelled docs restricted to the current week.
+  // Current-week docs only (audit 2026-11-23 C7). Each recurring booking
+  // is stored as one doc per week; the student schedule renders each row
+  // as it comes, so including other weeks' docs would duplicate every
+  // slot 52 times.
   const bookings = useMemo(() => {
     const weMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
     return allBookings.filter((b: Booking) => {
@@ -66,10 +67,6 @@ export function useStudentBookings(studentId: string | undefined, weekStart: Dat
             ? ws.seconds * 1000
             : null
         : null;
-      if (b.status === 'cancelled') {
-        return bMs !== null && bMs >= weekStartMs && bMs < weMs;
-      }
-      if (b.isRecurring) return true;
       return bMs !== null && bMs >= weekStartMs && bMs < weMs;
     });
   }, [allBookings, weekStartMs]);

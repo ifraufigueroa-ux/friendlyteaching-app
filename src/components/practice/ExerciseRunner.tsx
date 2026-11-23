@@ -62,6 +62,7 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
   // seeded by scripts/generate-practice-audios.js. Empty object until
   // the batch runs — ListenChooseBody falls back to SpeechSynthesis.
   const audiosByExerciseId = usePracticeAudios(unit.id);
+  const bodyWrapRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState(0);
   const [verdict, setVerdict] = useState<Verdict>('pending');
   const [correctCount, setCorrectCount] = useState(0);
@@ -204,10 +205,19 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
   // Shake wrapper around the body on wrong, bounce on correct. On a
   // fresh pending prompt the body fades in from below. The key swaps
   // per verdict so the animation re-plays each time.
-  const bodyAnim =
-    verdict === 'wrong'   ? 'animate-ft-shake'
-    : verdict === 'correct' ? 'animate-ft-pop'
-    : 'animate-ft-fade-in';
+  // Trigger shake/pop imperatively on verdict change WITHOUT remounting
+  // the body wrapper (C8 fix). A straight key={verdict} remount reset
+  // FillBlank `vals` and MatchPairs `picks` to empty the moment the
+  // student pressed Check — they saw coloured but blank inputs. Here we
+  // remove the animation class, force a reflow, then re-add it so the
+  // CSS keyframes restart while the subtree keeps its state.
+  useEffect(() => {
+    const el = bodyWrapRef.current;
+    if (!el || verdict === 'pending') return;
+    el.classList.remove('animate-ft-shake', 'animate-ft-pop');
+    void el.offsetWidth; // force reflow
+    el.classList.add(verdict === 'wrong' ? 'animate-ft-shake' : 'animate-ft-pop');
+  }, [verdict]);
 
   return (
     <div className="min-h-screen flex flex-col bg-grid relative">
@@ -266,9 +276,18 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
         </div>
       )}
 
-      {/* ── Exercise body (shake / pop / fade-in wrapper) ── */}
+      {/* ── Exercise body ──
+          C8 fix (audit 2026-11-23): keying this wrapper on verdict too
+          remounted the body on Check → FillBlank/MatchPairs state
+          vanished. Now keyed on idx only (so switching exercises
+          still remounts), and the verdict shake/pop is driven
+          imperatively by the useEffect above using bodyWrapRef. */}
       <div className="flex-1 flex items-center justify-center px-4 py-8 relative">
-        <div key={`${idx}-${verdict}`} className={`w-full max-w-xl relative ${bodyAnim}`}>
+        <div
+          key={idx}
+          ref={bodyWrapRef}
+          className="w-full max-w-xl relative animate-ft-fade-in"
+        >
           <div className="text-center mb-6">
             <span className="inline-block bg-[#f3eefc] text-[#845ec2] text-[10px] font-fun font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
               Daily challenge

@@ -65,12 +65,15 @@ export function useBookings(teacherId: string, weekStart: Date) {
     return () => unsub();
   }, [teacherId]);
 
-  // Client-side filter: recurring bookings (all weeks) + one-time bookings for this week.
-  // Cancelled bookings for the CURRENT week are included so the grid can clear fallback
-  // slots where the teacher explicitly cancelled a class this week.
+  // Client-side filter: CURRENT-WEEK docs only, including cancelled ones.
+  // Audit 2026-11-23 C7: the old branch `if (b.isRecurring) return true;`
+  // let all 52 weekly docs of a recurring booking into `bookings`, which the
+  // student schedule renderer then showed as 52 "Friday 11:00" rows. The
+  // teacher's SchedulingGrid uses `allBookings` directly for its priority
+  // fallback logic (match current / closest / any recurring), so this
+  // tightening only removes the leak.
   const bookings = useMemo(() => {
     const weMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
-
     return allBookings.filter((b: Booking) => {
       const ws = b.weekStart as unknown as { toDate?: () => Date; seconds?: number } | null;
       const bMs: number | null = ws
@@ -80,12 +83,6 @@ export function useBookings(teacherId: string, weekStart: Date) {
             ? ws.seconds * 1000
             : null
         : null;
-
-      if (b.status === 'cancelled') {
-        // Include current-week cancelled docs so bookingMap can populate cancelledSlots
-        return bMs !== null && bMs >= weekStartMs && bMs < weMs;
-      }
-      if (b.isRecurring) return true;
       return bMs !== null && bMs >= weekStartMs && bMs < weMs;
     });
   }, [allBookings, weekStartMs]);
