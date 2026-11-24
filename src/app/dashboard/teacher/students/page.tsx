@@ -1,6 +1,7 @@
 // FriendlyTeaching.cl — Students Management Page (rebuilt)
 'use client';
 import { useState, useMemo, useEffect, type ReactNode } from 'react';
+import Link from 'next/link';
 import {
   Check,
   Link2,
@@ -1049,6 +1050,18 @@ export default function StudentsPage() {
     [students, byStudentId, byStudentName],
   );
 
+  // Approved accounts that aren't on the schedule yet — the student
+  // was created (or self-signed-up and got approved) but no recurring
+  // booking exists. Previously they were hidden entirely; the teacher
+  // would never see them until they put a class on the planner.
+  // Incident 2026-11-24: Juan Fontecilla approved on 2026-11-03 and
+  // the teacher couldn't find him anywhere.
+  const inactiveRegistered = useMemo(
+    () => students.filter((s) => !isActive(s)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [students, byStudentId, byStudentName],
+  );
+
   // Names that appear in the recurring schedule but don't match any
   // registered student — surface them so the teacher can create the account.
   const scheduleOnlyNames = useMemo(() => {
@@ -1308,6 +1321,49 @@ export default function StudentsPage() {
             </>
           )}
         </section>
+
+        {/* ── Registered accounts with no recurring class yet ────── */}
+        {inactiveRegistered.length > 0 && (
+          <section>
+            <h2 className="text-sm font-bold text-[#5A3D7A] uppercase tracking-wider mb-1">
+              Registered, no schedule yet ({inactiveRegistered.length})
+            </h2>
+            <p className="text-xs text-gray-400 mb-3">
+              Approved accounts without a recurring booking. Put a class on the planner to move them up.
+            </p>
+            <div className="space-y-2">
+              {inactiveRegistered.map((s) => {
+                const level = s.studentData?.level;
+                return (
+                  <div
+                    key={s.uid}
+                    className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#F7EFFF] flex items-center justify-center text-[#5A3D7A] font-bold text-sm flex-shrink-0">
+                      {initials(s.fullName)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-[#2D1B4E] text-sm truncate">{s.fullName}</p>
+                      <p className="text-xs text-gray-400 truncate">{s.email}</p>
+                    </div>
+                    {level && (
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${LEVEL_COLORS[level]}`}>
+                        {level}
+                      </span>
+                    )}
+                    <Link
+                      href="/dashboard/teacher/planner"
+                      className="flex-shrink-0 px-3 py-1.5 bg-[#F7EFFF] hover:bg-[#EAD9F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
+                      title="Open planner to schedule a class"
+                    >
+                      Schedule class
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* ── Schedule-only names (no registered account yet) ────── */}
         {scheduleOnlyNames.length > 0 && (
