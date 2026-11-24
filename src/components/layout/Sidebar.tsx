@@ -90,6 +90,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/assign',      icon: UserPlus,      label: 'Assignments',        iconBg: 'bg-slate-100',   iconColor: 'text-slate-500' },
   { type: 'link', href: '/dashboard/teacher/tools',       icon: Wrench,        label: 'Tools',              iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/herramientas.png' },
   { type: 'link', href: '/dashboard/teacher/toefl/lessons', icon: GraduationCap, label: 'TOEFL Lessons',    iconBg: 'bg-violet-100',  iconColor: 'text-violet-600' },
+  { type: 'link', href: '/ielts-lessons/listening-intro.html', icon: GraduationCap, label: 'IELTS Lessons', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', external: true },
   { type: 'group', label: 'Help' },
   { type: 'link', href: '/dashboard/teacher/help',        icon: LifeBuoy,      label: 'Tutorials',          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600',   iconImg: '/sidebar-icons/tutoriales.png' },
 ];
