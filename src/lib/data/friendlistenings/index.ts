@@ -16,6 +16,7 @@ import { lessonB1SurpriseParty } from './b1-surprise-party';
 import { lessonB1LogisticsConsultancySprintSlip } from './b1-logistics-consultancy-sprint-slip';
 import { lessonB1WhichGymShouldIJoin } from './b1-which-gym-should-i-join';
 import { lessonB1PlusTmsCutoverSlip } from './b1plus-tms-cutover-slip';
+import { lessonB1PlusAirplaneCargoHotSalmon } from './b1plus-airplane-cargo-hot-salmon';
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonB2AtcGoAround } from './b2-atc-go-around';
@@ -34,6 +35,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB1LogisticsConsultancySprintSlip,
   lessonB1WhichGymShouldIJoin,
   lessonB1PlusTmsCutoverSlip,
+  lessonB1PlusAirplaneCargoHotSalmon, // B1+: air-cargo duty manager works a tight turnaround
   lessonB2OffTheBeatenPath,
   lessonB2JobOfferDilemma,
   lessonB2AtcGoAround,      // B2: ATC debrief after an aborted landing
