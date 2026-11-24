@@ -70,8 +70,14 @@ export function useStudents(enabled: boolean = true) {
                 s.studentData.approvedByTeacherId === uid),
           );
           // Deduplicate: when one name is a prefix of another (e.g. "Andrée" vs
-          // "Andrée Barraza"), keep only the longer/more-complete record.
+          // "Andrée Barraza"), keep only the longer/more-complete record —
+          // BUT only when the shorter record is a legacy stub (no email).
+          // Two real students who share a first name (Daniela / Daniela
+          // Ibaceta / Daniela Molina) must stay visible. Audit incident
+          // 2026-11-24: Daniela Correa was renamed to just "Daniela" and
+          // got silently absorbed by the Ibaceta + Molina rows.
           const norm = (n: string) => (n ?? '').toLowerCase().trim();
+          const hasEmail = (u: FTUser) => !!(u.email && u.email.trim());
           const deduped: FTUser[] = [];
           for (const s of approvedRaw.sort((a: FTUser, b: FTUser) =>
             (b.fullName ?? '').length - (a.fullName ?? '').length, // longest first
@@ -79,7 +85,11 @@ export function useStudents(enabled: boolean = true) {
             const sn = norm(s.fullName ?? '');
             const absorbed = deduped.some((existing: FTUser) => {
               const en = norm(existing.fullName ?? '');
-              return en.startsWith(sn) || sn.startsWith(en);
+              const prefixMatch = en.startsWith(sn) || sn.startsWith(en);
+              if (!prefixMatch) return false;
+              // Only absorb if the shorter record is a stub without email.
+              const shorter = en.length < sn.length ? existing : s;
+              return !hasEmail(shorter);
             });
             if (!absorbed) deduped.push(s);
           }
