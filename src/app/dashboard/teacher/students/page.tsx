@@ -733,6 +733,100 @@ function StudentRow({
   );
 }
 
+// ─── Inactive-registered row (approved account, no booking yet) ────────────
+// Compact row for approved students who don't have a recurring booking yet.
+// They need a Link-history button so the teacher can bind any legacy
+// name-only bookings / sessions (e.g. plain "Juan" → "Juan Fontecilla")
+// to the account BEFORE scheduling a new class. Edit + Trash included so
+// the teacher can fix the full name or archive from the same row.
+function InactiveStudentRow({
+  student,
+  teacherId,
+}: {
+  student: FTUser;
+  teacherId: string;
+}) {
+  const [showLink, setShowLink] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const level = student.studentData?.level;
+
+  async function handleArchive() {
+    if (!confirm(`Move ${student.fullName} to trash? (No bookings to cancel — just hides the account.)`)) return;
+    setArchiving(true);
+    try { await archiveStudent(student.uid); }
+    finally { setArchiving(false); }
+  }
+
+  return (
+    <>
+      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-[#F7EFFF] flex items-center justify-center text-[#5A3D7A] font-bold text-sm flex-shrink-0">
+          {initials(student.fullName)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-[#2D1B4E] text-sm truncate">{student.fullName}</p>
+          <p className="text-xs text-gray-400 truncate">{student.email}</p>
+        </div>
+        {level && (
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${LEVEL_COLORS[level]}`}>
+            {level}
+          </span>
+        )}
+        <div className="flex gap-2 flex-shrink-0">
+          <button
+            onClick={() => setShowLink(true)}
+            className="px-3 py-1.5 bg-[#FFF4E0] hover:bg-[#FFE7B8] text-[#92590C] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1"
+            title="Link legacy bookings and class history to this account"
+          >
+            <Link2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Link history
+          </button>
+          <Link
+            href="/dashboard/teacher/planner"
+            className="px-3 py-1.5 bg-[#F7EFFF] hover:bg-[#EAD9F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
+            title="Open planner to schedule a class"
+          >
+            Schedule class
+          </Link>
+          <button
+            onClick={() => setShowEdit(true)}
+            className="px-3 py-1.5 bg-[#F0E5FF] hover:bg-[#E0D0F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
+            title="Edit student"
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleArchive}
+            disabled={archiving}
+            className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
+            title="Move to trash"
+          >
+            <Trash2 className="w-3.5 h-3.5" strokeWidth={2.25} />
+          </button>
+        </div>
+      </div>
+
+      {showLink && (
+        <LinkHistoryModal
+          studentId={student.uid}
+          studentFullName={student.fullName}
+          teacherId={teacherId}
+          onClose={() => setShowLink(false)}
+        />
+      )}
+      {showEdit && (
+        <EditStudentModal
+          student={student}
+          teacherId={teacherId}
+          scheduleSlots={[]}
+          unlinkedSlots={[]}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+    </>
+  );
+}
+
 // ─── Schedule-only row (student in the grid but no registered account) ──────
 // Compact row used for names that appear in the recurring schedule but don't
 // have a matching FTUser yet. Same visual language as StudentRow but with
@@ -1332,35 +1426,9 @@ export default function StudentsPage() {
               Approved accounts without a recurring booking. Put a class on the planner to move them up.
             </p>
             <div className="space-y-2">
-              {inactiveRegistered.map((s) => {
-                const level = s.studentData?.level;
-                return (
-                  <div
-                    key={s.uid}
-                    className="bg-white border border-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-[#F7EFFF] flex items-center justify-center text-[#5A3D7A] font-bold text-sm flex-shrink-0">
-                      {initials(s.fullName)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-[#2D1B4E] text-sm truncate">{s.fullName}</p>
-                      <p className="text-xs text-gray-400 truncate">{s.email}</p>
-                    </div>
-                    {level && (
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${LEVEL_COLORS[level]}`}>
-                        {level}
-                      </span>
-                    )}
-                    <Link
-                      href="/dashboard/teacher/planner"
-                      className="flex-shrink-0 px-3 py-1.5 bg-[#F7EFFF] hover:bg-[#EAD9F5] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors"
-                      title="Open planner to schedule a class"
-                    >
-                      Schedule class
-                    </Link>
-                  </div>
-                );
-              })}
+              {inactiveRegistered.map((s) => (
+                <InactiveStudentRow key={s.uid} student={s} teacherId={teacherId} />
+              ))}
             </div>
           </section>
         )}
