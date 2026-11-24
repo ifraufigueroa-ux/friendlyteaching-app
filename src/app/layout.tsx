@@ -8,9 +8,16 @@ import PWAProvider from '@/components/pwa/PWAProvider';
 // headings and feature titles, Inter (geometric humanist sans) for UI
 // and body copy. Fraunces's `SOFT` axis gives the serif the warmer,
 // less academic look that fits FriendlyTeaching's palette.
+// Inter is a VARIABLE font — drop the explicit weight array so Next
+// loads a single file for the whole 100–900 axis. Previously we were
+// listing 5 weights, which forced Next to generate 5 separate
+// *.module.css files and tripped the Turbopack build flake on
+// production deploys (memory [[daily-practice-font-flake]] — same
+// family of issues that already hit Cinzel and Jakarta). All
+// `font-medium/semibold/bold/extrabold` usage keeps working because
+// the variable file covers the whole axis.
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-inter',
   display: 'swap',
 });
@@ -51,10 +58,10 @@ const jakarta = Plus_Jakarta_Sans({
 
 // Fredoka — rounded playful display used in the gamified student
 // surfaces (Daily Practice + the student profile). Consumed via the
-// `.font-fun` utility defined in globals.css.
+// `.font-fun` utility defined in globals.css. Variable font — same
+// flake-dodging treatment as Inter above.
 const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-fredoka',
   display: 'swap',
 });
