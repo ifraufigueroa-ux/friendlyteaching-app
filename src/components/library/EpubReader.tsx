@@ -53,6 +53,7 @@ interface Rendition {
   on:        (event: string, fn: (...args: unknown[]) => void) => void;
   themes:    { fontSize: (size: string) => void };
   annotations: Annotations;
+  resize:    (w?: number | string, h?: number | string) => void;
   destroy:   () => void;
 }
 interface EpubBook {
@@ -88,6 +89,7 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
   // Keep the latest highlights accessible from inside the epub.js
   // callbacks without re-binding them on every change.
   const highlightsRef = useRef<BookHighlight[]>([]);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -119,17 +121,48 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
         if (cancelled) return;
         const b = ePub(url) as EpubBook;
         bookRef.current = b;
-        const rendition = b.renderTo(containerRef.current!, {
-          width:  '100%',
-          height: '100%',
+        // Wait for the book package to parse BEFORE rendering — epub.js's
+        // paginated flow needs the spine ready, otherwise the first few
+        // front-matter sections (cover / titlepage / imprint) render but
+        // the real chapters never paginate correctly and later pages come
+        // out blank. Incident 2026-11-24: content disappeared after the
+        // third page on every Standard Ebooks title.
+        await b.ready;
+        if (cancelled) return;
+        // Measure the container once so epub.js gets real numeric dimensions
+        // instead of the percentage strings (which can resolve to 0 while
+        // the overlay animates in, poisoning the first layout).
+        const containerEl = containerRef.current!;
+        const rect0 = containerEl.getBoundingClientRect();
+        const rendition = b.renderTo(containerEl, {
+          width:  Math.max(320, Math.floor(rect0.width))  || '100%',
+          height: Math.max(400, Math.floor(rect0.height)) || '100%',
           flow:   'paginated',
           spread: 'none',
-          allowScriptedContent: false,
+          // Keep epub.js's own column-measurement scripts inside the
+          // iframe enabled — setting this to `false` disables scripts
+          // in the sandbox and the second spine section onwards fails
+          // to paginate (blank pages).
+          allowScriptedContent: true,
         });
         renditionRef.current = rendition;
         rendition.themes.fontSize(`${fontScale}%`);
         await rendition.display(initialCfi ?? undefined);
         void b.locations.generate(1024).catch(() => undefined);
+
+        // Resize the rendition whenever the reader's content area actually
+        // changes size (window resize, keyboard, orientation, dev-tools).
+        // Paginated flow needs this call or the columns stay at the
+        // original width and later chapters render in the wrong rect.
+        const ro = new ResizeObserver(() => {
+          const r = containerEl.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            try { rendition.resize(Math.floor(r.width), Math.floor(r.height)); }
+            catch { /* ignore mid-destroy */ }
+          }
+        });
+        ro.observe(containerEl);
+        resizeObserverRef.current = ro;
 
         // Progress writes
         rendition.on('relocated', ((loc: Location) => {
@@ -202,6 +235,8 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
     return () => {
       cancelled = true;
       if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
+      try { resizeObserverRef.current?.disconnect(); } catch { /* ignore */ }
+      resizeObserverRef.current = null;
       try { renditionRef.current?.destroy(); } catch { /* ignore */ }
       try { bookRef.current?.destroy(); } catch { /* ignore */ }
       renditionRef.current = null;
