@@ -19,9 +19,10 @@ const LEVEL_COLORS: Record<string, string> = {
   B1: 'bg-green-100 text-green-700',
   'B1+': 'bg-emerald-100 text-emerald-700',
   B2: 'bg-amber-100 text-amber-700',
+  'B2+': 'bg-orange-100 text-orange-700',
   C1: 'bg-purple-100 text-purple-700',
 };
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 interface Props {
   studentId: string;

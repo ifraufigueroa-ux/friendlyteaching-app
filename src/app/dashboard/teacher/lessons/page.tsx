@@ -36,7 +36,7 @@ import type { AILessonResponse } from '@/app/api/ai-lesson/route';
 import type { Lesson, LessonLevel, Slide, Course } from '@/types/firebase';
 import { LessonsGridSkeleton } from '@/components/ui/Skeleton';
 
-const LESSON_LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LESSON_LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 function NewCourseModal({ onClose }: { onClose: () => void }) {
   const [form, setForm] = useState({ title: '', level: 'A1' as LessonLevel, icon: '', description: '' });
@@ -582,7 +582,7 @@ export default function LessonsLibraryPage() {
   const displayCourses = orderedIds.map(id => courses.find(c => c.id === id)).filter(Boolean) as Course[];
 
   // All levels present in this teacher's lessons (for level filter chips)
-  const LEVELS_ORDER = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  const LEVELS_ORDER = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
   const presentLevels = LESSON_LEVELS.filter(l => lessons.some((lesson: Lesson) => lesson.level === l));
 
   const filtered = lessons.filter((l: Lesson) => {

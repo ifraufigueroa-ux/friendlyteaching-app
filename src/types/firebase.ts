@@ -10,7 +10,7 @@ export type UserRole = 'teacher' | 'student' | 'admin' | 'master' | 'corporate';
 export type UserStatus = 'active' | 'pending' | 'approved' | 'inactive' | 'archived';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
 export type AttendanceStatus = 'attended' | 'absent' | 'late';
-export type LessonLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'C1';
+export type LessonLevel = 'A0' | 'A1' | 'A2' | 'B1' | 'B1+' | 'B2' | 'B2+' | 'C1';
 export type SlidePhase = 'pre' | 'while' | 'post';
 export type LessonPlannerStatus = 'backlog' | 'upcoming' | 'ready' | 'archived';
 

@@ -17,7 +17,7 @@ import TopBar from '@/components/layout/TopBar';
 import TranscriptClipEditor from '@/components/teacher/TranscriptClipEditor';
 import type { Slide, LessonLevel, SongData, MusicLesson } from '@/types/firebase';
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 interface SongResult {
   trackId: number;

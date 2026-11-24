@@ -20,7 +20,7 @@ import type {
   QuizQuestion, SongData,
 } from '@/types/firebase';
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 interface BlankRow { word: string; options: string }
 interface QuestionRow { question: string; options: string[]; correctIdx: number }

@@ -51,7 +51,7 @@ function isValidLesson(obj: unknown): obj is LessonJSON {
   return typeof o.code === 'string' && typeof o.title === 'string' && Array.isArray(o.slides);
 }
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 // ─── Sample JSON ──────────────────────────────────────────────────────────────
 

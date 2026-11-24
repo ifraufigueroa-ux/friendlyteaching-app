@@ -5,7 +5,7 @@
 import { TrendingUp } from 'lucide-react';
 import type { LevelHistoryEntry, LessonLevel } from '@/types/firebase';
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 const LEVEL_META: Record<LessonLevel, { label: string; color: string; bg: string; ring: string }> = {
   A0:  { label: 'Principiante absoluto', color: 'text-gray-600',   bg: 'bg-gray-100',    ring: 'ring-gray-300' },

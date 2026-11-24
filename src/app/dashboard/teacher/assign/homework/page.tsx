@@ -635,7 +635,7 @@ function ExternalHomeworkModal({
 
 // ─── Library (FT lesson as homework) modal ───────────────────────────
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 function LibraryHomeworkModal({
   teacherId, onClose, onSaved,

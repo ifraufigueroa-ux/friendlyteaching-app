@@ -25,7 +25,12 @@ const HARDCODED_TEACHER_EMAILS = [
   'aranxa.brunam@gmail.com',
 ];
 
-const TEACHER_CODE = process.env.NEXT_PUBLIC_TEACHER_CODE ?? 'FT-PROFESOR-2026';
+// Audit 2026-11-23 C1: the teacher signup code used to live in
+// NEXT_PUBLIC_TEACHER_CODE, which shipped in the browser bundle. Any
+// visitor could grep the JS, grab the string and self-register as
+// teacher. The real check is now behind the /api/auth/claim-teacher-role
+// endpoint, which validates against the server-only TEACHER_SIGNUP_CODE
+// env var and uses the Admin SDK to promote the user doc.
 
 export async function signIn(email: string, password: string) {
   return await signInWithEmailAndPassword(auth, email, password);
@@ -54,29 +59,52 @@ export interface SignUpData {
 }
 
 export async function signUp({ email, password, fullName, phone, teacherCode }: SignUpData) {
-  const isTeacher = teacherCode === TEACHER_CODE;
-  const role: UserRole = isTeacher ? 'teacher' : 'student';
-
+  // Always create as 'student'; the teacher promotion happens via the
+  // server endpoint below so the code never ships in the browser bundle
+  // and client-side Firestore rules can block any direct role='teacher'
+  // write. See audit [[audit-C1]].
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const { uid } = userCredential.user;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userData: Record<string, any> = {
+  const userData: Record<string, unknown> = {
     uid,
     email,
     fullName,
     phone: phone ?? '',
-    role,
-    status: isTeacher ? 'active' : 'pending',
+    role: 'student' as UserRole,
+    status: 'pending',
     timezone: 'America/Santiago',
     language: 'es',
     preferences: { emailNotifications: true },
     createdAt: serverTimestamp(),
   };
-
   await setDoc(doc(db, 'users', uid), userData);
 
-  if (role === 'student') {
+  // If they typed a teacher code, ask the server whether it matches
+  // the private one. The endpoint uses the Admin SDK to flip the
+  // role → 'teacher' / status → 'active'. On a wrong code it 403s
+  // and the account stays a pending student.
+  let finalRole: UserRole = 'student';
+  if (teacherCode && teacherCode.trim()) {
+    try {
+      const idToken = await userCredential.user.getIdToken();
+      const res = await fetch('/api/auth/claim-teacher-role', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ idToken, teacherCode: teacherCode.trim() }),
+      });
+      if (res.ok) {
+        finalRole = 'teacher';
+        // Force-refresh the token so downstream calls see any custom
+        // claims the server may have set later.
+        await userCredential.user.getIdToken(true);
+      }
+    } catch (err) {
+      console.warn('[signUp] teacher-code check failed:', err);
+    }
+  }
+
+  if (finalRole === 'student') {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://friendlyteaching.cl';
     await sendEmailVerification(userCredential.user, {
       url: `${appUrl}/auth/login?activated=1`,
@@ -84,7 +112,7 @@ export async function signUp({ email, password, fullName, phone, teacherCode }: 
     });
   }
 
-  return { user: userCredential.user, role };
+  return { user: userCredential.user, role: finalRole };
 }
 
 export async function logOut() {

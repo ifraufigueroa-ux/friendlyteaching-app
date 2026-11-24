@@ -22,7 +22,7 @@ import type {
   TextLesson, Slide, LessonLevel, TextData, TextAudioSource, ComprehensionMode,
 } from '@/types/firebase';
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 interface Voice { id: string; name: string; accent: string; gender: 'f' | 'm' }
 

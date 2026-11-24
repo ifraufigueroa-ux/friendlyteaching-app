@@ -37,13 +37,13 @@ const SKILLS: { id: ActivitySkill; label: string; Icon: LucideIcon; color: strin
   { id: 'general',    label: 'General',     Icon: Sparkles,      color: 'bg-gray-100 text-gray-600' },
 ];
 
-const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 const LEVEL_COLORS: Record<string, string> = {
   A0:'bg-gray-100 text-gray-500', A1:'bg-blue-100 text-blue-700',
   A2:'bg-sky-100 text-sky-700', B1:'bg-green-100 text-green-700',
   'B1+':'bg-emerald-100 text-emerald-700', B2:'bg-amber-100 text-amber-700',
-  C1:'bg-purple-100 text-purple-700',
+  'B2+':'bg-orange-100 text-orange-700', C1:'bg-purple-100 text-purple-700',
 };
 
 function skillMeta(id: ActivitySkill) {

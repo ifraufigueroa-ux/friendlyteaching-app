@@ -11,7 +11,7 @@ import type {
 } from '@/types/placement';
 import { TOPIC_LABELS } from '@/data/placementQuestions';
 
-const LEVELS_IN_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVELS_IN_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 const PASS_THRESHOLD = 0.6; // 60%
 const MIN_QUESTIONS = 4;    // need at least 4 answers in a section to count
 

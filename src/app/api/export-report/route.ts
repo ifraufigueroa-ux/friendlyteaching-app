@@ -380,7 +380,7 @@ function generatePlacementHTML(data: PlacementReportData, logoUrl: string): stri
   const answeredMap = new Map<number, PlacementAnswer>();
   for (const a of data.answers) answeredMap.set(a.questionId, a);
 
-  const LEVELS_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  const LEVELS_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
   const questionSections = LEVELS_ORDER.map((level) => {
     const range = LEVEL_SECTIONS[level];

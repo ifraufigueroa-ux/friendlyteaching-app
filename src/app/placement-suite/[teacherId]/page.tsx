@@ -66,7 +66,7 @@ const B = {
   lavenderDark:'#E0D5FF',
 };
 
-const LEVEL_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LEVEL_ORDER: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 const COMPONENT_ORDER: ComponentId[] = ['grammar', 'vocabulary', 'reading', 'listening', 'writing', 'speaking'];
 
@@ -713,7 +713,7 @@ function AdaptiveReadingRunner({
   onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'adaptive-reading' }>) => void;
   initialSnapshot?: Extract<LiveSnapshot, { kind: 'adaptive-reading' }>;
 }) {
-  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
   const pickPassageAt = (level: LessonLevel, used: Set<string>): ReadingPassage | null => {
     return PLACEMENT_READING.find(p => p.level === level && !used.has(p.id)) ?? null;
@@ -979,7 +979,7 @@ function AdaptiveReadingRunner({
 }
 
 function highestPassedLevel(passed: Set<LessonLevel>): LessonLevel | null {
-  const order: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  const order: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
   for (let i = order.length - 1; i >= 0; i--) {
     if (passed.has(order[i])) return order[i];
   }
@@ -1177,7 +1177,7 @@ function PlacementListeningRunner({
   onProgress?:      (snap: Extract<LiveSnapshot, { kind: 'adaptive-listening' }>) => void;
   initialSnapshot?: Extract<LiveSnapshot, { kind: 'adaptive-listening' }>;
 }) {
-  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+  const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
   const pickClipAt = (level: LessonLevel, used: Set<string>): ListeningClip | null =>
     PLACEMENT_LISTENING.find(c => c.level === level && !used.has(c.id)) ?? null;

@@ -16,7 +16,7 @@ import { useRef, useState } from 'react';
 import { createLessonFromHtml } from '@/hooks/useLessons';
 import type { LessonLevel } from '@/types/firebase';
 
-const LESSON_LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'C1'];
+const LESSON_LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
 
 interface Props {
   teacherId: string;
