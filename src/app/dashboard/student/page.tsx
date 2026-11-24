@@ -91,13 +91,18 @@ export default function StudentDashboardPage() {
   // class is sooner, which is why Fernando saw "next Monday" while he had
   // a class today.
   const nowMs = Date.now();
-  // Keep an in-progress class visible for the full hour so the student still
-  // sees Join Meeting / Join Lesson while the class is running.
-  const GRACE_MS = 60 * 60_000;
+  // Keep the class visible until it actually ends — one class length plus
+  // a small buffer so the card doesn't vanish on the hour boundary while
+  // the student is still in the lesson. Juan incident 2026-11-24: 18:00
+  // class card disappeared at 19:00 exactly even though he was still in
+  // the meeting.
+  const CLASS_DURATION_MS = 60 * 60_000;
+  const POST_CLASS_BUFFER_MS = 30 * 60_000;
+  const GRACE_MS = CLASS_DURATION_MS + POST_CLASS_BUFFER_MS;
   const nextBooking = myBookings
     .filter(b => b.status === 'confirmed' || b.status === 'pending')
     .map((b) => ({ b, startMs: computeClassStart(b)?.getTime() ?? null }))
-    .filter((x): x is { b: Booking; startMs: number } => x.startMs !== null && x.startMs > nowMs - GRACE_MS)
+    .filter((x): x is { b: Booking; startMs: number } => x.startMs !== null && x.startMs >= nowMs - GRACE_MS)
     .sort((a, b) => a.startMs - b.startMs)[0]?.b;
   const nextBookingLessonTitle = nextBooking?.lessonId
     ? (() => {
@@ -205,7 +210,10 @@ export default function StudentDashboardPage() {
 
 const MEET_URL = 'https://meet.google.com/rhq-agda-ajs';
 const MEET_EARLY_MS = 60_000;
-const MEET_LATE_MS  = 60 * 60_000;
+// Match the dashboard's GRACE_MS so the Meet link / "Meeting is live" badge
+// stays active for the full class plus a short buffer (90 min from start),
+// not just the first hour.
+const MEET_LATE_MS  = 90 * 60_000;
 
 function NextLessonCard({
   booking, lessonTitle,
