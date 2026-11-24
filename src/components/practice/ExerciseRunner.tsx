@@ -179,6 +179,29 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [verdict, saving]);
 
+  // Shake wrapper around the body on wrong, bounce on correct. On a
+  // fresh pending prompt the body fades in from below. The key swaps
+  // per verdict so the animation re-plays each time.
+  // Trigger shake/pop imperatively on verdict change WITHOUT remounting
+  // the body wrapper (C8 fix). A straight key={verdict} remount reset
+  // FillBlank `vals` and MatchPairs `picks` to empty the moment the
+  // student pressed Check — they saw coloured but blank inputs. Here we
+  // remove the animation class, force a reflow, then re-add it so the
+  // CSS keyframes restart while the subtree keeps its state.
+  //
+  // MUST run before any early return (the `if (done)` below) — otherwise
+  // the hook count drops the moment `done` flips to true after the last
+  // exercise and React throws "Rendered fewer hooks than during the
+  // previous render" instead of showing the SummaryCard. Incident
+  // 2026-11-24.
+  useEffect(() => {
+    const el = bodyWrapRef.current;
+    if (!el || verdict === 'pending') return;
+    el.classList.remove('animate-ft-shake', 'animate-ft-pop');
+    void el.offsetWidth; // force reflow
+    el.classList.add(verdict === 'wrong' ? 'animate-ft-shake' : 'animate-ft-pop');
+  }, [verdict]);
+
   if (done) {
     const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     const xpEarned =
@@ -201,23 +224,6 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
     verdict === 'correct' ? 'bg-emerald-50 border-emerald-400'
     : verdict === 'wrong' ? 'bg-rose-50 border-rose-400'
     : 'bg-white border-transparent';
-
-  // Shake wrapper around the body on wrong, bounce on correct. On a
-  // fresh pending prompt the body fades in from below. The key swaps
-  // per verdict so the animation re-plays each time.
-  // Trigger shake/pop imperatively on verdict change WITHOUT remounting
-  // the body wrapper (C8 fix). A straight key={verdict} remount reset
-  // FillBlank `vals` and MatchPairs `picks` to empty the moment the
-  // student pressed Check — they saw coloured but blank inputs. Here we
-  // remove the animation class, force a reflow, then re-add it so the
-  // CSS keyframes restart while the subtree keeps its state.
-  useEffect(() => {
-    const el = bodyWrapRef.current;
-    if (!el || verdict === 'pending') return;
-    el.classList.remove('animate-ft-shake', 'animate-ft-pop');
-    void el.offsetWidth; // force reflow
-    el.classList.add(verdict === 'wrong' ? 'animate-ft-shake' : 'animate-ft-pop');
-  }, [verdict]);
 
   return (
     <div className="min-h-screen flex flex-col bg-grid relative">

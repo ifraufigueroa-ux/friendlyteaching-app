@@ -223,20 +223,42 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
   }
 
   const nextUnit: PracticeUnit | null = useMemo(() => {
-    // Pick the first unlocked unit the student hasn't passed yet (<2 stars).
-    const firstUnlocked = orderedUnits.find(u => {
-      if (!isUnitUnlocked(u.id, orderedUnitIds, progress.mastery, levelOf, placedLevel)) return false;
-      return toStars(progress.mastery[u.id]) < 2;
+    // Rank candidate units by how close they are to the student's CEFR
+    // level — the current level comes first, then the level above, then
+    // below, outward. A student placed at A2 should never see A0
+    // "Numbers" as Today's workout while A2 units are available. Juan
+    // Fontecilla incident 2026-11-24: placed A2, surfaced A0 "Numbers".
+    //
+    // Within each tier we keep the authored order inside the level.
+    // Only skip units already mastered with 3 stars — 0/1/2★ units are
+    // still candidates because the student can still pick up more
+    // points on them.
+    const notMasteredAndUnlocked = (u: PracticeUnit) =>
+      toStars(progress.mastery[u.id]) < 3 &&
+      isUnitUnlocked(u.id, orderedUnitIds, progress.mastery, levelOf, placedLevel);
+
+    const currentLevelIdx = LEVEL_ORDER[progress.currentLevel] ?? 0;
+    const tiers = [...PRACTICE_LEVELS].sort((a, b) => {
+      const da = Math.abs(LEVEL_ORDER[a] - currentLevelIdx);
+      const db = Math.abs(LEVEL_ORDER[b] - currentLevelIdx);
+      if (da !== db) return da - db;
+      // Tie-break: prefer the higher level over the lower (so a student
+      // on B1 breaks ties toward B2 rather than A2).
+      return LEVEL_ORDER[b] - LEVEL_ORDER[a];
     });
-    if (firstUnlocked) return firstUnlocked;
-    // Fall back to the stored nextUnitId then the stored level's first unit.
+    for (const lvl of tiers) {
+      const candidate = (grouped[lvl] ?? []).find(notMasteredAndUnlocked);
+      if (candidate) return candidate;
+    }
+    // Nothing unlocked + unmastered anywhere — fall back to the stored
+    // pointer, then the student's level's first unit.
     if (progress.nextUnitId) {
       const picked = PRACTICE_UNITS.find(u => u.id === progress.nextUnitId);
       if (picked) return picked;
     }
     const atLevel = grouped[progress.currentLevel] ?? [];
     return atLevel[0] ?? PRACTICE_UNITS[0] ?? null;
-  }, [progress, grouped, orderedUnits, orderedUnitIds, levelOf, placedLevel]);
+  }, [progress, grouped, orderedUnitIds, levelOf, placedLevel]);
 
   const gap = daysSince(progress.lastPracticedAt);
   const streakLive = gap <= STREAK_GRACE_DAYS;
