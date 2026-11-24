@@ -344,7 +344,7 @@ export const lessonB1PlusAirplaneCargoHotSalmon: FLLesson = {
         {
           id:       'c4',
           chunk:    'to walk (sb) through the options',
-          category: 'phrase',
+          category: 'collocation',
           gloss:    'Explicarle paso a paso las opciones a alguien (típicamente a quien decide)',
           example:  '"Walk me through the options. What can you actually get on that aircraft?"',
           notice:   'Omar is asking for a structured breakdown. The verb "walk (sb) through" = give a guided tour of a plan. Compare: "explain" (too flat), "run me through" (close synonym).',
