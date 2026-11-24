@@ -47,7 +47,13 @@ export function useDailyPractice() {
     const ref = doc(db, 'practiceProgress', uid);
     const unsub = onSnapshot(ref, (snap: DocumentSnapshot) => {
       if (snap.exists()) {
-        setProgress(snap.data() as PracticeProgress);
+        // Merge against defaults so a partially-seeded doc (e.g. a
+        // freshly-completed placement that only wrote currentLevel +
+        // placedLevel + nextUnitId) can't crash the landing on
+        // `progress.totalXp.toLocaleString()` or similar. Incident
+        // 2026-11-24: Matías / Daniela Correa post-placement.
+        const raw = snap.data() as Partial<PracticeProgress>;
+        setProgress({ ...defaultProgress(uid), ...raw });
       } else {
         setProgress(null);
       }

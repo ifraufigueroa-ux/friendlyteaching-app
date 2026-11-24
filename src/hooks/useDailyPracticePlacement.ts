@@ -9,7 +9,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  doc, onSnapshot, serverTimestamp, setDoc,
+  doc, getDoc, onSnapshot, serverTimestamp, setDoc,
   type DocumentData,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -124,15 +124,35 @@ export function useDailyPracticePlacement(uid: string) {
       updatedAt:         serverTimestamp(),
     });
     // Seed / update practiceProgress so the main Daily Practice view
-    // drops the student right at the placed level.
-    await setDoc(doc(db, 'practiceProgress', uid), {
-      uid,
+    // drops the student right at the placed level. If the doc didn't
+    // exist, we MUST include every field the landing reads — otherwise
+    // the merge leaves numeric fields (totalXp, currentStreak,
+    // longestStreak) as undefined and the landing crashes on
+    // `totalXp.toLocaleString()`. Incident 2026-11-24: Matías and
+    // Daniela Correa completed placement and the landing would not
+    // mount.
+    const ppRef = doc(db, 'practiceProgress', uid);
+    const existing = await getDoc(ppRef);
+    const placementFields: DocumentData = {
+      studentId:            uid,
       startedFromPlacement: true,
       currentLevel:         placed,
       placedLevel:          placed,       // unlocks every unit up to this level
       nextUnitId,
       updatedAt:            serverTimestamp(),
-    }, { merge: true });
+    };
+    const payload: DocumentData = existing.exists()
+      ? placementFields
+      : {
+          ...placementFields,
+          mastery:         {},
+          currentStreak:   0,
+          longestStreak:   0,
+          lastPracticedAt: null,
+          totalXp:         0,
+          createdAt:       serverTimestamp(),
+        };
+    await setDoc(ppRef, payload, { merge: true });
     return { placed, nextUnitId };
   }, [uid, session]);
 
