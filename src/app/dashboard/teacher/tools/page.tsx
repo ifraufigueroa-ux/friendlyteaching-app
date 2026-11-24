@@ -65,6 +65,16 @@ const INTERNAL_TOOLS = [
     badge:       'New',
   },
   {
+    href:            '/ielts-lessons/listening-intro.html',
+    icon:            '🎧',
+    title:           'IELTS Listening · Introduction',
+    description:     'Scaffolded walk-through of the Listening test: prediction, Part-1 form, Part-2 map, Part-3 academic discussion, Part-4 lecture, and 12 Band 7+ tips & tricks. Studio-quality ElevenLabs audio pre-baked — no API key needed.',
+    gradient:        'from-[#E87BAD] to-[#9B72B8]',
+    glow:            'shadow-pink-200/40',
+    badge:           'New',
+    openInNewTab:    true,
+  },
+  {
     href:        '/dashboard/teacher/toefl',
     icon:        '🎓',
     title:       'TOEFL Academic Simulator',
@@ -148,37 +158,45 @@ export default function ToolsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {INTERNAL_TOOLS.map(({ href, icon, title, description, gradient, glow, badge }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`group relative flex flex-col gap-4 p-6 rounded-2xl bg-white border border-[#E8D5F0] hover:border-transparent hover:shadow-xl ${glow} transition-all duration-200 overflow-hidden`}
-              >
-                {/* Gradient top accent */}
-                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-
-                <div className="flex items-start justify-between">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200`}>
-                    {icon}
+            {INTERNAL_TOOLS.map((tool) => {
+              const { href, icon, title, description, gradient, glow, badge } = tool;
+              // Standalone lesson HTMLs (public/ files) open in a new tab so
+              // they get the presentation chrome without the dashboard shell.
+              const openInNewTab = 'openInNewTab' in tool && tool.openInNewTab;
+              const commonClass = `group relative flex flex-col gap-4 p-6 rounded-2xl bg-white border border-[#E8D5F0] hover:border-transparent hover:shadow-xl ${glow} transition-all duration-200 overflow-hidden`;
+              const inner = (
+                <>
+                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                  <div className="flex items-start justify-between">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                      {icon}
+                    </div>
+                    {badge && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 border border-pink-200">
+                        {badge}
+                      </span>
+                    )}
                   </div>
-                  {badge && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 border border-pink-200">
-                      {badge}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <p className="font-bold text-[#2D1B4E] text-base mb-1 group-hover:text-[#5A3D7A] transition-colors">{title}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
-                </div>
-
-                <div className="flex items-center gap-1 text-xs font-semibold text-[#9B7CB8] group-hover:text-[#5A3D7A] mt-auto transition-colors">
-                  <span>Open</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-                </div>
-              </Link>
-            ))}
+                  <div>
+                    <p className="font-bold text-[#2D1B4E] text-base mb-1 group-hover:text-[#5A3D7A] transition-colors">{title}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs font-semibold text-[#9B7CB8] group-hover:text-[#5A3D7A] mt-auto transition-colors">
+                    <span>{openInNewTab ? 'Open in new tab' : 'Open'}</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">{openInNewTab ? '↗' : '→'}</span>
+                  </div>
+                </>
+              );
+              return openInNewTab ? (
+                <a key={href} href={href} target="_blank" rel="noopener noreferrer" className={commonClass}>
+                  {inner}
+                </a>
+              ) : (
+                <Link key={href} href={href} className={commonClass}>
+                  {inner}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
