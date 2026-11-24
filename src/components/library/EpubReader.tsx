@@ -133,16 +133,18 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
         // instead of the percentage strings (which can resolve to 0 while
         // the overlay animates in, poisoning the first layout).
         const containerEl = containerRef.current!;
-        const rect0 = containerEl.getBoundingClientRect();
+        // Scrolled-doc flow: each spine section renders as a plain
+        // scrolling document. Earlier we used paginated columns and
+        // kept hitting epub.js layout bugs — blank pages past chapter
+        // 1, blank screen at large font sizes. Scrolled flow has no
+        // column math, so it just works regardless of font scale,
+        // container resize, or spine section shape. Chapter
+        // navigation still works via rendition.next/prev — it moves
+        // to the next spine item instead of to the next column page.
         const rendition = b.renderTo(containerEl, {
-          width:  Math.max(320, Math.floor(rect0.width))  || '100%',
-          height: Math.max(400, Math.floor(rect0.height)) || '100%',
-          flow:   'paginated',
-          spread: 'none',
-          // Keep epub.js's own column-measurement scripts inside the
-          // iframe enabled — setting this to `false` disables scripts
-          // in the sandbox and the second spine section onwards fails
-          // to paginate (blank pages).
+          width:  '100%',
+          height: '100%',
+          flow:   'scrolled-doc',
           allowScriptedContent: true,
         });
         renditionRef.current = rendition;
@@ -150,10 +152,8 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
         await rendition.display(initialCfi ?? undefined);
         void b.locations.generate(1024).catch(() => undefined);
 
-        // Resize the rendition whenever the reader's content area actually
-        // changes size (window resize, keyboard, orientation, dev-tools).
-        // Paginated flow needs this call or the columns stay at the
-        // original width and later chapters render in the wrong rect.
+        // Still call resize on container changes — scrolled-doc uses
+        // it to re-wrap text when the viewport width changes.
         const ro = new ResizeObserver(() => {
           const r = containerEl.getBoundingClientRect();
           if (r.width > 0 && r.height > 0) {
