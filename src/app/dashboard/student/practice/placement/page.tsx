@@ -269,8 +269,13 @@ function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
       </div>
 
       <Card>
+        {/* Only the level chip — topic names the grammar structure under
+            test (e.g. "modals (should)") and often outright spoils the
+            answer ("should"). Topics stay in the answer payload we write
+            to Firestore so the teacher analytics still see per-topic
+            accuracy; they just don't show up during the test itself. */}
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#9B7CB8] mb-2">
-          {question.level} · {question.topic}
+          {question.level}
         </p>
         <p className="font-fun text-xl md:text-2xl font-bold text-[#4b3869] leading-snug mb-5">
           {question.prompt}
