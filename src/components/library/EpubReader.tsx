@@ -111,7 +111,12 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
   useEffect(() => {
     let cancelled = false;
     async function boot() {
-      if (!url || !containerRef.current) return;
+      if (!containerRef.current) return;
+      if (!url) {
+        setLoading(false);
+        setErr('No encontramos el archivo de este libro.');
+        return;
+      }
       setLoading(true);
       setErr(null);
       try {
@@ -129,37 +134,66 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
         // third page on every Standard Ebooks title.
         await b.ready;
         if (cancelled) return;
-        // Measure the container once so epub.js gets real numeric dimensions
-        // instead of the percentage strings (which can resolve to 0 while
-        // the overlay animates in, poisoning the first layout).
         const containerEl = containerRef.current!;
+
+        // Wait until the container has real pixel dimensions. The reader
+        // mounts behind an overlay animation and the container often
+        // reports 0×0 on the first measurement — passing that into
+        // renderTo poisons the layout permanently (blank screen). We
+        // poll one rAF at a time, up to ~1.5s, before giving up.
+        async function waitForLayout(): Promise<{ w: number; h: number }> {
+          for (let attempts = 0; attempts < 90; attempts++) {
+            const r = containerEl.getBoundingClientRect();
+            if (r.width >= 200 && r.height >= 200) return { w: r.width, h: r.height };
+            await new Promise<void>((res) => requestAnimationFrame(() => res()));
+            if (cancelled) throw new Error('cancelled');
+          }
+          const r = containerEl.getBoundingClientRect();
+          return { w: Math.max(320, r.width), h: Math.max(400, r.height) };
+        }
+        const { w, h } = await waitForLayout();
+        if (cancelled) return;
+
         // Scrolled-doc flow: each spine section renders as a plain
-        // scrolling document. Earlier we used paginated columns and
-        // kept hitting epub.js layout bugs — blank pages past chapter
-        // 1, blank screen at large font sizes. Scrolled flow has no
-        // column math, so it just works regardless of font scale,
-        // container resize, or spine section shape. Chapter
-        // navigation still works via rendition.next/prev — it moves
-        // to the next spine item instead of to the next column page.
+        // scrolling document. Paginated columns kept breaking on
+        // resize / font scale, so this flow is the safer default.
         const rendition = b.renderTo(containerEl, {
-          width:  '100%',
-          height: '100%',
+          width:  Math.floor(w),
+          height: Math.floor(h),
           flow:   'scrolled-doc',
           allowScriptedContent: true,
         });
         renditionRef.current = rendition;
         rendition.themes.fontSize(`${fontScale}%`);
-        await rendition.display(initialCfi ?? undefined);
+        try {
+          await rendition.display(initialCfi ?? undefined);
+        } catch (displayErr) {
+          // Stale CFI from an older version? Fall back to the first
+          // spine item so the book still opens.
+          console.warn('[EpubReader] display(initialCfi) failed, falling back:', displayErr);
+          await rendition.display();
+        }
         void b.locations.generate(1024).catch(() => undefined);
 
-        // Still call resize on container changes — scrolled-doc uses
-        // it to re-wrap text when the viewport width changes.
-        const ro = new ResizeObserver(() => {
-          const r = containerEl.getBoundingClientRect();
-          if (r.width > 0 && r.height > 0) {
-            try { rendition.resize(Math.floor(r.width), Math.floor(r.height)); }
-            catch { /* ignore mid-destroy */ }
-          }
+        // Debounced resize on container changes. The first rAF-aligned
+        // observation fires immediately with the SAME dimensions we
+        // just rendered with — skip those to avoid an unnecessary
+        // re-layout that sometimes blanks scrolled-doc in epub.js.
+        let lastW = Math.floor(w), lastH = Math.floor(h);
+        let resizeTimer: number | null = null;
+        const ro = new ResizeObserver((entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          const cw = Math.floor(entry.contentRect.width);
+          const ch = Math.floor(entry.contentRect.height);
+          if (cw < 200 || ch < 200) return;
+          if (Math.abs(cw - lastW) < 8 && Math.abs(ch - lastH) < 8) return;
+          lastW = cw; lastH = ch;
+          if (resizeTimer !== null) window.clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => {
+            try { rendition.resize(cw, ch); }
+            catch (e) { console.warn('[EpubReader] resize failed:', e); }
+          }, 150);
         });
         ro.observe(containerEl);
         resizeObserverRef.current = ro;
@@ -226,8 +260,9 @@ export default function EpubReader({ book, studentId, initialCfi, onClose }: Pro
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
+        const msg = e instanceof Error ? e.message : String(e);
         console.warn('[EpubReader] load failed:', e);
-        setErr('No pudimos abrir este libro. Podés descargarlo directo desde la fuente original.');
+        setErr(`No pudimos abrir este libro: ${msg}`);
         setLoading(false);
       }
     }
