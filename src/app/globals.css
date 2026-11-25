@@ -4,6 +4,25 @@
    FriendlyTeaching.cl — Global Styles
    ============================================================ */
 
+/* iOS auto-zooms into form fields with font-size < 16px when they
+   receive focus — the viewport rescales and the whole page looks
+   disproportionate until the user pinches back. This is Fernando's
+   "cuadros de texto desproporcionados en teléfono" report
+   (2026-11-25): WordOfTheDay's textarea, library/lessons search,
+   homework answer box, writing drafts, listening fill-blanks and
+   open-text all used `text-sm` (14px) and triggered the auto-zoom.
+   On touch-sized viewports we floor every form-control's font-size
+   at 16px. `max(16px, 1em)` keeps bigger inputs (the Daily Practice
+   fill-blank inherits a `text-xl`/`text-2xl` sentence, say) at
+   their original size — we only bump up, never shrink down. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
 :root {
   color-scheme: light;
 
