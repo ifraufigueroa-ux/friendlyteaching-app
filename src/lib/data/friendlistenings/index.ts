@@ -17,6 +17,7 @@ import { lessonB1LogisticsConsultancySprintSlip } from './b1-logistics-consultan
 import { lessonB1WhichGymShouldIJoin } from './b1-which-gym-should-i-join';
 import { lessonB1PlusTmsCutoverSlip } from './b1plus-tms-cutover-slip';
 import { lessonB1PlusAirplaneCargoHotSalmon } from './b1plus-airplane-cargo-hot-salmon';
+import { lessonB1OgmpMitigationClass02 } from './b1-ogmp-mitigation-class-02';
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonB2AtcGoAround } from './b2-atc-go-around';
@@ -33,6 +34,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB1FirstWeekNewJob,
   lessonB1SurpriseParty,
   lessonB1LogisticsConsultancySprintSlip,
+  lessonB1OgmpMitigationClass02, // B1: OGMP 2.0 methane mitigation for gas-transport engineers (Class 2 of the series)
   lessonB1WhichGymShouldIJoin,
   lessonB1PlusTmsCutoverSlip,
   lessonB1PlusAirplaneCargoHotSalmon, // B1+: air-cargo duty manager works a tight turnaround
