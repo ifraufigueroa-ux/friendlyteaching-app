@@ -53,10 +53,23 @@ export default function PlacementPage() {
     return <Shell><ResultView session={session!} onRestart={() => startNew()} /></Shell>;
   }
   if (isInProgress || isPaused) {
+    // Seed the question picker with uid + startedAt so every retake
+    // gets a different (but within-session stable) order. Without a
+    // seed the selector is deterministic and students can memorise
+    // the fixed trail across attempts.
+    const startedAtMs = (() => {
+      const s = session?.startedAt as unknown;
+      if (s && typeof s === 'object' && 'toMillis' in s && typeof (s as { toMillis: () => number }).toMillis === 'function') {
+        return (s as { toMillis: () => number }).toMillis();
+      }
+      return 0;
+    })();
+    const seed = `${uid}:${startedAtMs}`;
     return (
       <Shell>
         <RunnerView
           pool={pool}
+          seed={seed}
           session={session!}
           onAnswer={submitAnswer}
           onPause={pause}
@@ -167,8 +180,9 @@ function StatTile({ icon, title, sub }: { icon: string; title: string; sub: stri
 
 // ── Runner view ────────────────────────────────────────────
 
-function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
+function RunnerView({ pool, seed, session, onAnswer, onPause, onFinish }: {
   pool: DPPQuestion[];
+  seed: string;
   session: {
     answers: { questionId: string; level: string; topic: string; pickedIndex: number; correct: boolean }[];
     currentLevelEstimate: string;
@@ -189,8 +203,8 @@ function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
     const normalisedAnswers = session.answers.map((a) => ({
       ...a, level: a.level as 'A0'|'A1'|'A2'|'B1'|'B2'|'B2+'|'C1',
     }));
-    return pickNextQuestion(normalisedAnswers, pool);
-  }, [session.answers, pool]);
+    return pickNextQuestion(normalisedAnswers, pool, seed);
+  }, [session.answers, pool, seed]);
 
   // Reset local UI state for every new question.
   useEffect(() => {
@@ -204,7 +218,7 @@ function RunnerView({ pool, session, onAnswer, onPause, onFinish }: {
     const normalised = session.answers.map((a) => ({
       ...a, level: a.level as 'A0'|'A1'|'A2'|'B1'|'B2'|'B2+'|'C1',
     }));
-    if (shouldStop(normalised, pool)) {
+    if (shouldStop(normalised, pool, seed)) {
       void onFinish();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -77,9 +77,26 @@ export const DPP_CONFIG = {
   /** The engine starts at this level — somewhere in the middle of the
    *  ladder so climbers and descenders both have room. */
   STARTING_LEVEL: 'B1' as PracticeLevel,
-  /** A level is "passed" when accuracy at that level is ≥ this ratio
-   *  across the questions seen so far at that level. */
+  /** Legacy single-threshold "passed" bar — retained for any callers
+   *  reading it. The engine now uses the two-threshold model below
+   *  (MASTERED + PARTIAL) for both in-session probing and final
+   *  placement. */
   PASS_THRESHOLD: 0.6,
+  /** Two-threshold placement model (introduced 2026-11-25).
+   *  - MASTERED: student clearly commands this level. The placed level
+   *    floor is the highest level with pct ≥ MASTERED.
+   *  - PARTIAL: student shows meaningful knowledge above random chance
+   *    (25% on 4-option MCQ). Used to "bridge up" — if the level above
+   *    the highest mastered level is at PARTIAL, we place the student
+   *    there rather than at the safe floor.
+   *
+   *  Rationale (audit 2026-11-25): placing a student at A2 when they
+   *  scored 80% in A1/A2 AND 50% in B1/B2 felt punitive because 50%
+   *  on 4-choice MCQ is 2× random chance — real partial command of
+   *  the structures, not noise. Bridge-up matches teacher intuition
+   *  and the CEFR "emerging at" rubric. */
+  MASTERED_THRESHOLD: 0.7,
+  PARTIAL_THRESHOLD:  0.5,
   /** Questions per level considered meaningful when measuring pass. */
   // Raised from 3 to 5 (audit incident 2026-11-23 · Francisco).
   // Three attempts at a level was too tight — a student who failed 2

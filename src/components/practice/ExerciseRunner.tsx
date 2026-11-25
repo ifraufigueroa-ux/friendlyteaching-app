@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap, Clock, Headphones, Star,
+  Check, X, Sparkles, ArrowRight, RotateCcw, Home, Flame, Volume2, VolumeX, Zap, Clock, Headphones, Star, BookOpen, ChevronDown,
 } from 'lucide-react';
 import type {
   Exercise, PracticeUnit,
@@ -41,6 +41,16 @@ interface Props {
 }
 
 type Verdict = 'pending' | 'correct' | 'wrong';
+
+/** One wrong attempt captured for the end-of-lesson review. `pickedLabel`
+ *  is the text of what the student chose (or filled in) — null when the
+ *  exercise type doesn't produce a single human-readable pick (match
+ *  pairs). The review renders correct answer + explain unconditionally,
+ *  and the pick when present. */
+interface WrongAttempt {
+  exercise:    Exercise;
+  pickedLabel: string | null;
+}
 
 // Varied micro-copy keeps the correct banner from feeling robotic.
 const CORRECT_CHEERS = ['Nicely done!', 'Great!', 'You got it!', 'Spot on!', 'Yes!', 'Boom!'];
@@ -72,6 +82,7 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showXp, setShowXp] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState<WrongAttempt[]>([]);
   const [muted, setMutedState] = useState<boolean>(() => (typeof window === 'undefined' ? false : isMuted()));
   const [elapsed, setElapsed] = useState(0);    // seconds since the session started
 
@@ -110,7 +121,7 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
     setMuted(next);
   }
 
-  function handleGrade(wasCorrect: boolean) {
+  function handleGrade(wasCorrect: boolean, pickedLabel: string | null = null) {
     if (verdict !== 'pending') return;
     if (wasCorrect) {
       setCorrectCount(c => c + 1);
@@ -137,6 +148,11 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
     } else {
       setCombo(0);
       playWrong();
+      // Capture the miss for the end-of-lesson review. We stash the
+      // whole exercise object (small, already in memory) + what the
+      // student picked so the review can render both without having
+      // to re-resolve labels from indices later.
+      setWrongAttempts(prev => [...prev, { exercise: current, pickedLabel }]);
     }
     setVerdict(wasCorrect ? 'correct' : 'wrong');
   }
@@ -216,6 +232,7 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
         xpEarned={xpEarned}
         bestCombo={bestCombo}
         elapsedSec={elapsed}
+        wrongAttempts={wrongAttempts}
       />
     );
   }
@@ -395,7 +412,7 @@ function ExerciseBody({
 }: {
   exercise:  Exercise;
   verdict:   Verdict;
-  onGrade:   (correct: boolean) => void;
+  onGrade:   (correct: boolean, pickedLabel?: string | null) => void;
   audioUrl?: string;
   studentId?: string | null;
   unitId:     string;
@@ -430,7 +447,7 @@ function ListenChooseBody({
 }: {
   ex: ListenChooseExercise;
   verdict: Verdict;
-  onGrade: (correct: boolean) => void;
+  onGrade: (correct: boolean, pickedLabel?: string | null) => void;
   /** Resolved URL from Firestore via usePracticeAudios; wins over
    *  ex.audioUrl because the data file rarely carries it. */
   audioUrl?: string;
@@ -465,7 +482,7 @@ function ListenChooseBody({
   function handlePick(i: number) {
     if (locked) return;
     setPicked(i);
-    onGrade(i === ex.correctIndex);
+    onGrade(i === ex.correctIndex, ex.options[i] ?? null);
   }
 
   return (
@@ -545,7 +562,7 @@ function MultipleChoiceBody({
 }: {
   ex: MultipleChoiceExercise;
   verdict: Verdict;
-  onGrade: (correct: boolean) => void;
+  onGrade: (correct: boolean, pickedLabel?: string | null) => void;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
   const locked = verdict !== 'pending';
@@ -553,7 +570,7 @@ function MultipleChoiceBody({
   function handlePick(i: number) {
     if (locked) return;
     setPicked(i);
-    onGrade(i === ex.correctIndex);
+    onGrade(i === ex.correctIndex, ex.options[i] ?? null);
   }
 
   return (
@@ -608,7 +625,7 @@ function FillBlankBody({
 }: {
   ex: FillBlankExercise;
   verdict: Verdict;
-  onGrade: (correct: boolean) => void;
+  onGrade: (correct: boolean, pickedLabel?: string | null) => void;
 }) {
   const parts = ex.sentence.split('___');
   const blankCount = parts.length - 1;
@@ -627,7 +644,9 @@ function FillBlankBody({
       const alts = ex.alts?.[i] ?? [];
       return alts.some(a => normalize(a) === got);
     });
-    onGrade(allCorrect);
+    // Join the student's fills so the review can show what they typed.
+    const picked = vals.map(v => v.trim()).join(' / ') || null;
+    onGrade(allCorrect, picked);
   }
 
   return (
@@ -675,7 +694,7 @@ function MatchPairsBody({
 }: {
   ex: MatchPairsExercise;
   verdict: Verdict;
-  onGrade: (correct: boolean) => void;
+  onGrade: (correct: boolean, pickedLabel?: string | null) => void;
 }) {
   const shuffledRights = useMemo(() => {
     const arr = ex.pairs.map((p, i) => ({ right: p.right, originalIndex: i }));
@@ -797,14 +816,15 @@ function MatchPairsBody({
 // ── End-of-lesson summary ────────────────────────────────────
 
 function SummaryCard({
-  unit, correctCount, totalCount, xpEarned, bestCombo, elapsedSec,
+  unit, correctCount, totalCount, xpEarned, bestCombo, elapsedSec, wrongAttempts,
 }: {
-  unit:         PracticeUnit;
-  correctCount: number;
-  totalCount:   number;
-  xpEarned:     number;
-  bestCombo:    number;
-  elapsedSec:   number;
+  unit:          PracticeUnit;
+  correctCount:  number;
+  totalCount:    number;
+  xpEarned:      number;
+  bestCombo:     number;
+  elapsedSec:    number;
+  wrongAttempts: WrongAttempt[];
 }) {
   const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
   const tone =
@@ -866,6 +886,10 @@ function SummaryCard({
           </p>
         )}
 
+        {wrongAttempts.length > 0 && (
+          <MistakesReview attempts={wrongAttempts} />
+        )}
+
         <div className="flex flex-col gap-2">
           <Link
             href={`/dashboard/student/practice/lesson/${unit.id}`}
@@ -890,6 +914,117 @@ function SummaryCard({
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Student-facing review of every missed question in this lesson.
+ *  Collapsed by default so the main summary KPIs breathe; one click
+ *  reveals the stack. Each row shows: the prompt, what the student
+ *  picked (when we captured it), the correct answer, and the explain
+ *  one-liner. The whole thing is build from state already in memory —
+ *  no extra fetches, no Firestore writes.
+ *
+ *  Added 2026-11-25: immediate feedback is already shown mid-lesson,
+ *  but students sprint through and don't re-read the banner. Giving
+ *  them a single screen at the end with every miss + reason turns
+ *  the summary into a study moment rather than just a scoreboard. */
+function MistakesReview({ attempts }: { attempts: WrongAttempt[] }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-4 text-left">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-2xl border-2 border-[#e5d9f2] bg-white hover:bg-[#f7efff] transition-colors"
+        aria-expanded={open}
+      >
+        <span className="inline-flex items-center gap-2 text-sm font-fun font-bold text-[#4b3869]">
+          <BookOpen className="w-4 h-4 text-[#845ec2]" strokeWidth={2.25} />
+          Review your mistakes
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-black tabular-nums">
+            {attempts.length}
+          </span>
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-[#845ec2] transition-transform ${open ? 'rotate-180' : ''}`}
+          strokeWidth={2.5}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+          {attempts.map((a, i) => (
+            <MistakeRow key={`${a.exercise.id}-${i}`} attempt={a} index={i + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MistakeRow({ attempt, index }: { attempt: WrongAttempt; index: number }) {
+  const { exercise, pickedLabel } = attempt;
+  const correctLabel = getCorrectAnswer(exercise);
+
+  return (
+    <div className="rounded-2xl border border-[#e5d9f2] bg-white p-4 space-y-2 text-left">
+      <div className="flex items-start gap-2">
+        <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-100 text-rose-700 text-[11px] font-black tabular-nums">
+          {index}
+        </span>
+        <p className="text-sm font-semibold text-[#2D1B4E] leading-snug">
+          {exercise.prompt}
+        </p>
+      </div>
+
+      {pickedLabel && (
+        <div className="pl-8">
+          <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-0.5">
+            Your answer
+          </p>
+          <p className="text-sm text-rose-700 line-through decoration-rose-400/60">
+            {pickedLabel}
+          </p>
+        </div>
+      )}
+
+      {correctLabel && (
+        <div className="pl-8">
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-0.5">
+            Correct answer
+          </p>
+          <p className="text-sm font-semibold text-emerald-800">
+            {correctLabel}
+          </p>
+        </div>
+      )}
+
+      {exercise.type === 'match-pairs' && (
+        <div className="pl-8">
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">
+            Correct pairs
+          </p>
+          <ul className="text-sm text-emerald-800 space-y-0.5">
+            {exercise.pairs.map((p, i) => (
+              <li key={i} className="leading-snug">
+                <span className="font-semibold">{p.left}</span>
+                <span className="text-emerald-500 mx-1.5">→</span>
+                <span>{p.right}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {exercise.explain && (
+        <div className="pl-8 pt-1">
+          <p className="text-[12px] leading-snug text-[#5A3D7A] bg-[#f7efff] border border-[#e5d9f2] rounded-xl px-3 py-2">
+            <strong className="font-bold">Why:</strong> {exercise.explain}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
