@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Fraunces, Cinzel, Plus_Jakarta_Sans, Fredoka } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import ImpersonationBanner from '@/components/auth/ImpersonationBanner';
 import PWAProvider from '@/components/pwa/PWAProvider';
 
 // Platform-wide type system — Fraunces (serif display, variable) for
@@ -122,6 +123,7 @@ export default function RootLayout({
     <html lang="es-CL" className={`${inter.variable} ${fraunces.variable} ${cinzel.variable} ${jakarta.variable} ${fredoka.variable}`}>
       <body className="antialiased">
         <AuthProvider>
+          <ImpersonationBanner />
           {children}
           <PWAProvider />
         </AuthProvider>

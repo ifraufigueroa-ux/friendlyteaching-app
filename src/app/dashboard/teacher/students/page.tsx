@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   XCircle,
   BarChart3,
+  LogIn,
 } from 'lucide-react';
+import { impersonateStudent } from '@/lib/firebase/impersonate';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents, approveStudent, rejectStudent, archiveStudent, restoreStudent, createStudent, archiveStudentEverywhere } from '@/hooks/useStudents';
@@ -549,7 +551,24 @@ function StudentRow({
   const [showAssign,  setShowAssign]  = useState(false);
   const [showLink,    setShowLink]    = useState(false);
   const [archiving,   setArchiving]   = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
   const level = student.studentData?.level;
+
+  async function handleImpersonate() {
+    if (!confirm(
+      `Open ${student.fullName}'s account?\n\n` +
+      `You'll be signed out of your teacher session and logged in as the student. ` +
+      `A banner at the top lets you return with one click (your email will be prefilled).`,
+    )) return;
+    setImpersonating(true);
+    try {
+      await impersonateStudent({ studentId: student.uid });
+      window.location.assign('/dashboard');
+    } catch (err) {
+      setImpersonating(false);
+      alert('Impersonation failed: ' + ((err as Error).message ?? 'unknown error'));
+    }
+  }
 
   const sortedSlots = useMemo(
     () => [...scheduleSlots].sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.hour - b.hour),
@@ -688,6 +707,15 @@ function StudentRow({
             Analytics
           </button>
           <button
+            onClick={handleImpersonate}
+            disabled={impersonating}
+            className="px-3 py-1.5 bg-[#F7EFFF] hover:bg-[#EADAFB] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1 disabled:opacity-40"
+            title="Sign in as this student (no password needed)"
+          >
+            <LogIn className="w-3.5 h-3.5" strokeWidth={2.5} />
+            {impersonating ? '…' : 'Login as'}
+          </button>
+          <button
             onClick={handleArchive}
             disabled={archiving}
             className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 rounded-full text-xs transition-colors disabled:opacity-40 inline-flex items-center justify-center"
@@ -747,11 +775,12 @@ function InactiveStudentRow({
   student: FTUser;
   teacherId: string;
 }) {
-  const [showLink,   setShowLink]   = useState(false);
-  const [showEdit,   setShowEdit]   = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
-  const [archiving,  setArchiving]  = useState(false);
+  const [showLink,     setShowLink]     = useState(false);
+  const [showEdit,     setShowEdit]     = useState(false);
+  const [showAssign,   setShowAssign]   = useState(false);
+  const [showDetail,   setShowDetail]   = useState(false);
+  const [archiving,    setArchiving]    = useState(false);
+  const [impersonating, setImpersonating] = useState(false);
   const level = student.studentData?.level;
 
   async function handleArchive() {
@@ -759,6 +788,22 @@ function InactiveStudentRow({
     setArchiving(true);
     try { await archiveStudent(student.uid); }
     finally { setArchiving(false); }
+  }
+
+  async function handleImpersonate() {
+    if (!confirm(
+      `Open ${student.fullName}'s account?\n\n` +
+      `You'll be signed out of your teacher session and logged in as the student. ` +
+      `A banner at the top lets you return with one click (your email will be prefilled).`,
+    )) return;
+    setImpersonating(true);
+    try {
+      await impersonateStudent({ studentId: student.uid });
+      window.location.assign('/dashboard');
+    } catch (err) {
+      setImpersonating(false);
+      alert('Impersonation failed: ' + ((err as Error).message ?? 'unknown error'));
+    }
   }
 
   return (
@@ -825,6 +870,15 @@ function InactiveStudentRow({
             title="View analytics"
           >
             Analytics
+          </button>
+          <button
+            onClick={handleImpersonate}
+            disabled={impersonating}
+            className="px-3 py-1.5 bg-[#F7EFFF] hover:bg-[#EADAFB] text-[#5A3D7A] rounded-full text-xs font-bold transition-colors inline-flex items-center gap-1 disabled:opacity-40"
+            title="Sign in as this student (no password needed)"
+          >
+            <LogIn className="w-3.5 h-3.5" strokeWidth={2.5} />
+            {impersonating ? '…' : 'Login as'}
           </button>
           <button
             onClick={handleArchive}

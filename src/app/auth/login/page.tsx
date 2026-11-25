@@ -25,6 +25,17 @@ export default function LoginPage() {
     }
   }, [isInitialized, firebaseUser, router]);
 
+  // Prefill the email field when the URL carries one — used by the
+  // impersonation "Return to your account" flow so the teacher doesn't
+  // have to retype their email.
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const e = sp.get('email');
+      if (e) setEmail(e);
+    } catch { /* ignore */ }
+  }, []);
+
   const handleGoogleLogin = async () => {
     setError('');
     setGoogleLoading(true);
