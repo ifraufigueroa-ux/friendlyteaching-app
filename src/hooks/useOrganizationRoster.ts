@@ -247,7 +247,7 @@ export function useOrganizationRoster(org: Organization | null) {
 // the week.
 
 const CEFR_RANK: Record<LessonLevel, number> = {
-  A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, C1: 5,
+  A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, 'B2+': 4.5, C1: 5,
 };
 
 export interface OrgImpact {

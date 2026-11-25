@@ -23,6 +23,7 @@ export function placementToPracticeLevel(placed: LessonLevel): PracticeLevel {
     case 'B1': return 'B1';
     case 'B1+': return 'B1';
     case 'B2': return 'B2';
+    case 'B2+': return 'B2+';
     case 'C1': return 'C1';
   }
 }

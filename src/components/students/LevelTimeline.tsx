@@ -14,6 +14,7 @@ const LEVEL_META: Record<LessonLevel, { label: string; color: string; bg: string
   B1:  { label: 'Intermedio',            color: 'text-green-700',  bg: 'bg-green-100',   ring: 'ring-green-300' },
   'B1+': { label: 'Intermedio alto',    color: 'text-emerald-700',bg: 'bg-emerald-100', ring: 'ring-emerald-300' },
   B2:  { label: 'Avanzado',             color: 'text-amber-700',  bg: 'bg-amber-100',   ring: 'ring-amber-300' },
+  'B2+': { label: 'Pre-Experto',        color: 'text-orange-700', bg: 'bg-orange-100',  ring: 'ring-orange-300' },
   C1:  { label: 'Experto',              color: 'text-purple-700', bg: 'bg-purple-100',  ring: 'ring-purple-300' },
 };
 

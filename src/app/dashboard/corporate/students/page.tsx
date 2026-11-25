@@ -26,7 +26,7 @@ const DAY_LABELS = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S
 
 // CEFR ascending order — B1+ sits between B1 and B2.
 const CEFR_RANK: Record<LessonLevel, number> = {
-  A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, C1: 5,
+  A0: 0, A1: 1, A2: 2, B1: 3, 'B1+': 3.5, B2: 4, 'B2+': 4.5, C1: 5,
 };
 
 export default function CorporateStudentsPage() {

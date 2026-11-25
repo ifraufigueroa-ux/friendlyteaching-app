@@ -29,6 +29,7 @@ const LEVEL_LABELS: Record<LessonLevel, string> = {
   B1: 'B1 — Intermediate',
   'B1+': 'B1+ — Upper intermediate',
   B2: 'B2 — Advanced intermediate',
+  'B2+': 'B2+ — Pre-Advanced',
   C1: 'C1 — Advanced',
 };
 
