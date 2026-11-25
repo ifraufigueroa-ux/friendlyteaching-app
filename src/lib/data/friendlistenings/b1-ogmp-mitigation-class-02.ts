@@ -1,6 +1,8 @@
 // Friendlistenings® — B1 · OGMP 2.0 for electrical engineers
-// Class 2 of a scaffolded series: mitigation strategies, flaring &
-// vent recovery during pipeline maintenance.
+// Class 2 of a scaffolded series. Class 1 is the OGMP 2.0 primer
+// (b1-ogmp-intro-class-01) which gives the student the vocabulary
+// ecosystem — methane basics, L1→L5 levels, material vs. operated
+// assets, quantification vs. mitigation — that this class assumes.
 //
 // Audience: B1 electrical engineer working on gas-transport projects
 // who needs the English to sit in OGMP-aligned O&M meetings. The
