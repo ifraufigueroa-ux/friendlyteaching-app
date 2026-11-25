@@ -25,7 +25,7 @@ export default function StudentMusicPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#F9F5FF] to-[#F0E8FF]">
       <TopBar title="Friendlyrics®" />
-      <div className="flex-1 p-4 md:p-6 max-w-5xl mx-auto w-full">
+      <div className="flex-1 p-3 sm:p-4 md:p-6 max-w-5xl mx-auto w-full">
         <p className="text-sm text-gray-500 mb-5">Learn English through music — complete the exercises for each song.</p>
 
         {loading ? (

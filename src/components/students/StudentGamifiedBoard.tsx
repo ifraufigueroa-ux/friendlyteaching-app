@@ -155,7 +155,7 @@ export default function StudentGamifiedBoard({
   return (
     <>
       {/* ── Header stat badges ──────────────────────────────── */}
-      <div className="flex items-center justify-end gap-3 mb-4">
+      <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 mb-4">
         <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-2xl border border-amber-200 shadow-sm">
           <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center">
             <Flame className="w-3.5 h-3.5" strokeWidth={2.5} />
@@ -174,7 +174,7 @@ export default function StudentGamifiedBoard({
 
       {/* ── Welcome hero ─────────────────────────────────────── */}
       <div
-        className="game-card rounded-3xl p-6 md:p-8 relative overflow-hidden mb-6"
+        className="game-card rounded-3xl p-5 sm:p-6 md:p-8 relative overflow-hidden mb-6"
         style={{ background: 'linear-gradient(to right, #ffffff, #fcfbfe, #f3eefc)' }}
       >
         <div
@@ -182,13 +182,13 @@ export default function StudentGamifiedBoard({
           style={{ background: 'rgba(236, 227, 247, 0.5)', filter: 'blur(32px)' }}
         />
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3 text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative z-10">
+          <div className="space-y-3 text-center md:text-left min-w-0 w-full md:w-auto">
             <div className="inline-flex items-center gap-2 bg-[#e5d9f2]/80 px-3 py-1 rounded-full text-[#4b3869] text-xs font-extrabold">
               <Crown className="w-3.5 h-3.5 text-amber-500" strokeWidth={2.25} />
-              <span>Level {playerLevel}{level ? ` — ${levelLabel.split(' · ').slice(1).join(' · ') || level}` : ''}</span>
+              <span className="truncate">Level {playerLevel}{level ? ` — ${levelLabel.split(' · ').slice(1).join(' · ') || level}` : ''}</span>
             </div>
-            <h1 className="font-fun text-2xl md:text-4xl font-bold text-[#4b3869] tracking-tight">
+            <h1 className="font-fun text-2xl sm:text-3xl md:text-4xl font-bold text-[#4b3869] tracking-tight">
               Hi, {firstName}! <span>🚀</span>
             </h1>
             <p className="text-sm text-slate-600 max-w-lg">
@@ -196,21 +196,21 @@ export default function StudentGamifiedBoard({
                 ? `Finish your daily missions to keep the streak alive and climb this week's league.`
                 : `Finish your daily missions to start your streak and climb this week's league.`}
             </p>
-            <div className="flex items-center justify-center md:justify-start gap-3 text-[11px] text-slate-400 pt-1">
-              <span className="truncate">{email}</span>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-1 text-[11px] text-slate-400 pt-1 min-w-0">
+              <span className="truncate max-w-full">{email}</span>
               {memberSince && (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
                   <CalendarDays className="w-3 h-3" strokeWidth={2.25} /> Since {memberSince}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-3xl border-2 border-[#e5d9f2] shadow-md flex items-center gap-4 w-full md:w-auto">
-            <div className="relative w-16 h-16 flex items-center justify-center bg-[#f3eefc] rounded-2xl text-[#845ec2] font-extrabold text-xl border-2 border-[#e5d9f2]">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border-2 border-[#e5d9f2] shadow-md flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-[#f3eefc] rounded-2xl text-[#845ec2] font-extrabold text-lg sm:text-xl border-2 border-[#e5d9f2] flex-shrink-0">
               {Math.round(levelProgress * 100)}%
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Level progress</span>
               <span className="text-sm font-extrabold text-[#4b3869]">{levelXp} / {levelNeeded} XP</span>
               <span className="text-xs font-semibold text-[#9474c4] block mt-0.5">
@@ -243,20 +243,24 @@ export default function StudentGamifiedBoard({
             };
             const t = toneMap[m.tone];
             return (
-              <div key={m.key} className={`game-card rounded-2xl p-4 flex items-center justify-between border-l-4 ${t.leftBar}`}>
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className={`w-11 h-11 rounded-2xl ${t.iconBg} ${t.iconFg} flex items-center justify-center flex-shrink-0`}>
+              <div key={m.key} className={`game-card rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 border-l-4 ${t.leftBar}`}>
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl ${t.iconBg} ${t.iconFg} flex items-center justify-center flex-shrink-0`}>
                     {m.icon}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <h4 className="font-fun font-bold text-[#4b3869] text-sm truncate">{m.title}</h4>
-                    <div className="w-40 sm:w-56 bg-[#f3eefc] h-2 rounded-full mt-1.5 overflow-hidden border border-[#e5d9f2]">
+                    {/* Progress bar flex-grows into whatever room the row
+                        has; the old `w-40 sm:w-56` pinned it to 160px
+                        even on 320px phones, which pushed the XP chip
+                        off-screen on small devices. */}
+                    <div className="w-full bg-[#f3eefc] h-2 rounded-full mt-1.5 overflow-hidden border border-[#e5d9f2]">
                       <div className={`${t.bar} h-full rounded-full transition-all`} style={{ width: `${m.pct}%` }} />
                     </div>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <span className={`text-[11px] font-fun font-bold px-2.5 py-1 rounded-xl border ${t.chipBg} ${t.chipFg}`}>
+                <div className="text-right flex-shrink-0">
+                  <span className={`text-[11px] font-fun font-bold px-2.5 py-1 rounded-xl border ${t.chipBg} ${t.chipFg} whitespace-nowrap`}>
                     {m.done ? 'Done!' : `+${m.xp} XP`}
                   </span>
                 </div>

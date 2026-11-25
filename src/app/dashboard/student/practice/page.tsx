@@ -74,11 +74,15 @@ export default function PracticeLandingPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-grid p-4 md:p-6">
+    <div className="min-h-screen bg-grid p-3 sm:p-4 md:p-6">
       {/* Framed canvas — a soft white card so the content doesn't look
           like it's floating on the gradient. Outer padding keeps the
-          gradient visible around the frame. */}
-      <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-3xl border border-[#e5d9f2] shadow-[0_18px_48px_-24px_rgba(90,61,122,0.35)] p-6 md:p-8">
+          gradient visible around the frame. On phones we drop inner
+          padding to 16/20px so there's actual content width to work
+          with — 32-40px total horizontal padding on a 360px phone
+          leaves barely any room for the daily workout tile and the
+          unit cards. */}
+      <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-3xl border border-[#e5d9f2] shadow-[0_18px_48px_-24px_rgba(90,61,122,0.35)] p-4 sm:p-5 md:p-8">
         <TopBar
           title="Daily Practice"
           subtitle="A few minutes a day. Grammar, vocab, and real English."
@@ -291,12 +295,12 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
 
       {/* ── Today's workout hero CTA ─────────────────────── */}
       {nextUnit && (
-        <div className="game-card rounded-3xl p-6 md:p-8 relative overflow-hidden bg-gradient-to-r from-[#f3eefc] to-white">
+        <div className="game-card rounded-3xl p-5 sm:p-6 md:p-8 relative overflow-hidden bg-gradient-to-r from-[#f3eefc] to-white">
           <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full pointer-events-none"
                style={{ background: 'rgba(132,94,194,0.15)', filter: 'blur(40px)' }} />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-5">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-[#845ec2] text-white flex items-center justify-center text-3xl shadow-md border-2 border-white">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-4 sm:gap-5">
+            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#845ec2] text-white flex items-center justify-center text-2xl sm:text-3xl shadow-md border-2 border-white">
                 {nextUnit.icon}
               </div>
               <div className="min-w-0">
@@ -304,7 +308,7 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
                   <Crown className="w-3 h-3" strokeWidth={2.5} />
                   Today&rsquo;s workout
                 </span>
-                <h3 className="font-fun text-2xl md:text-3xl font-bold leading-tight tracking-tight text-[#4b3869]">
+                <h3 className="font-fun text-xl sm:text-2xl md:text-3xl font-bold leading-tight tracking-tight text-[#4b3869]">
                   {nextUnit.title}
                 </h3>
                 <p className="text-xs text-gray-600 mt-1">
@@ -314,7 +318,7 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
             </div>
             <Link
               href={`/dashboard/student/practice/lesson/${nextUnit.id}`}
-              className="btn-game inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-fun font-bold text-xs uppercase tracking-wider whitespace-nowrap shadow-md flex-shrink-0 md:self-center"
+              className="btn-game w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-fun font-bold text-xs uppercase tracking-wider whitespace-nowrap shadow-md flex-shrink-0 md:self-center"
             >
               <Play className="w-3.5 h-3.5 fill-current" strokeWidth={2.5} />
               Start now 🚀
@@ -324,7 +328,10 @@ function DashboardView({ progress }: { progress: PracticeProgress }) {
       )}
 
       {/* ── Secondary stats row ──────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* grid-cols-1 on phones meant 3 big cards stacked — unnecessary
+          scroll. 3-up on all sizes, with compacted paddings below so
+          every tile still breathes on a 360px phone. */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard
           icon={<Flame className="w-5 h-5" strokeWidth={2.5} />}
           label="Current streak"
@@ -532,18 +539,18 @@ function StatCard({
     amber:  { bg: 'bg-gradient-to-br from-amber-400 to-amber-600', text: 'text-amber-700'  },
   }[tone];
   return (
-    <div className="bg-white rounded-2xl border border-[#e5d9f2] p-4 flex items-start gap-3 shadow-sm">
-      <div className={`flex-shrink-0 w-10 h-10 rounded-xl ${palette.bg} text-white flex items-center justify-center shadow`}>
+    <div className="bg-white rounded-2xl border border-[#e5d9f2] p-3 sm:p-4 flex flex-col sm:flex-row items-start gap-2 sm:gap-3 shadow-sm">
+      <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${palette.bg} text-white flex items-center justify-center shadow`}>
         {icon}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 w-full">
         <p className="text-[10px] font-black uppercase tracking-widest text-[#9474c4]/70 mb-0.5">
           {label}
         </p>
-        <p className={`text-2xl font-extrabold leading-tight ${palette.text}`}>
+        <p className={`text-xl sm:text-2xl font-extrabold leading-tight ${palette.text}`}>
           {value}
         </p>
-        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug hidden sm:block">
           {sub}
         </p>
       </div>

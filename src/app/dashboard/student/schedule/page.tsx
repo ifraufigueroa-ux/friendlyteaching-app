@@ -83,10 +83,10 @@ export default function StudentSchedulePage() {
           </Link>
         )}
       />
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
         {[
           { label: 'Upcoming', value: upcomingBookings.length, Icon: Calendar, color: 'text-[#5A3D7A]' },
           { label: 'Completed', value: completedBookings.length, Icon: GraduationCap, color: 'text-green-600' },
@@ -130,30 +130,31 @@ export default function StudentSchedulePage() {
             .map(b => {
               const cfg = STATUS_CONFIG[b.status] ?? STATUS_CONFIG.confirmed;
               return (
-                <div key={b.id} className={`bg-white rounded-2xl p-4 shadow-sm border ${cfg.color.split(' ').find(c => c.startsWith('border-')) ?? 'border-gray-100'}`}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                <div key={b.id} className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border ${cfg.color.split(' ').find(c => c.startsWith('border-')) ?? 'border-gray-100'}`}>
+                  <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-10 h-10 rounded-xl bg-[#F0E5FF] flex flex-col items-center justify-center flex-shrink-0">
                         <span className="text-xs font-bold text-[#5A3D7A] leading-none">{DAY_NAMES[b.dayOfWeek]?.slice(0, 3)}</span>
                         <span className="text-[10px] text-[#9B7CB8]">{b.hour}:00</span>
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-[#5A3D7A]">{DAY_NAMES[b.dayOfWeek]} · {formatTime(b.hour)}</p>
-                        <p className="text-xs text-gray-400 inline-flex items-center gap-1">
+                        <p className="text-xs text-gray-400 inline-flex items-center gap-1 flex-wrap">
                           {b.isRecurring ? <><Repeat className="w-3 h-3" strokeWidth={2.25} /> Recurring class</> : <><Pin className="w-3 h-3" strokeWidth={2.25} /> One-off class</>}
                           {b.notes ? ` · ${b.notes}` : ''}
                         </p>
                         {b.lessonId && (() => {
                           const lesson = lessons.find(l => l.id === b.lessonId);
                           return lesson ? (
-                            <p className="text-xs text-[#9B7CB8] font-medium mt-0.5 inline-flex items-center gap-1">
-                              <BookOpen className="w-3 h-3" strokeWidth={2.25} /> {lesson.code} · {lesson.title}
+                            <p className="text-xs text-[#9B7CB8] font-medium mt-0.5 inline-flex items-center gap-1 min-w-0">
+                              <BookOpen className="w-3 h-3 flex-shrink-0" strokeWidth={2.25} />
+                              <span className="truncate">{lesson.code} · {lesson.title}</span>
                             </p>
                           ) : null;
                         })()}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border inline-flex items-center gap-1 ${cfg.color}`}>
                         <cfg.Icon className="w-3 h-3" strokeWidth={2.5} /> {cfg.label}
                       </span>

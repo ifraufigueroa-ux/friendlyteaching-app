@@ -132,7 +132,7 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="min-h-screen bg-grid">
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="max-w-7xl mx-auto p-3 sm:p-5 md:p-8">
 
         {/* ── Live session banner ── */}
         {activeSessions.map((session) => (

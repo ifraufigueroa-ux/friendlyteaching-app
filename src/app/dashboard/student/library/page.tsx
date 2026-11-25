@@ -96,7 +96,7 @@ export default function LibraryPage() {
   const recommended = byLevel[studentBand].slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-grid p-4 md:p-6">
+    <div className="min-h-screen bg-grid p-3 sm:p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <TopBar
           title="Library"
@@ -108,16 +108,16 @@ export default function LibraryPage() {
         />
 
         {/* ── Hero ───────────────────────────────────────────────── */}
-        <div className="mt-6 game-card rounded-3xl p-6 md:p-7 relative overflow-hidden bg-gradient-to-br from-[#f3eefc] via-white to-[#FFF4F0]">
-          <div className="flex items-start gap-5 relative">
-            <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border-2 border-[#e5d9f2] flex items-center justify-center flex-shrink-0">
-              <BookMarked className="w-7 h-7 text-[#845ec2]" strokeWidth={2.25} />
+        <div className="mt-6 game-card rounded-3xl p-4 sm:p-6 md:p-7 relative overflow-hidden bg-gradient-to-br from-[#f3eefc] via-white to-[#FFF4F0]">
+          <div className="flex items-start gap-3 sm:gap-5 relative">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-sm border-2 border-[#e5d9f2] flex items-center justify-center flex-shrink-0">
+              <BookMarked className="w-6 h-6 sm:w-7 sm:h-7 text-[#845ec2]" strokeWidth={2.25} />
             </div>
             <div className="flex-1 min-w-0">
               <span className="inline-flex items-center gap-1.5 bg-[#845ec2] text-white px-3 py-1 rounded-full text-[10px] font-fun font-bold uppercase tracking-wider mb-2">
                 <Sparkles className="w-3 h-3" strokeWidth={2.5} /> FriendlyTeaching Library
               </span>
-              <h2 className="font-fun text-2xl md:text-3xl font-bold text-[#4b3869] leading-tight tracking-tight">
+              <h2 className="font-fun text-xl sm:text-2xl md:text-3xl font-bold text-[#4b3869] leading-tight tracking-tight">
                 Elige un libro, lee a tu ritmo.
               </h2>
               <p className="text-sm text-slate-600 mt-1.5 leading-snug">
@@ -157,18 +157,19 @@ export default function LibraryPage() {
           <button
             type="button"
             onClick={() => setReading(continueBook)}
-            className="mt-5 w-full text-left game-card rounded-3xl p-6 md:p-7 flex items-center gap-5 bg-gradient-to-r from-white to-[#FFF4F0] hover:from-[#f3eefc] transition-colors"
+            className="mt-5 w-full text-left game-card rounded-3xl p-4 sm:p-6 md:p-7 flex items-center gap-3 sm:gap-5 bg-gradient-to-r from-white to-[#FFF4F0] hover:from-[#f3eefc] transition-colors"
           >
             <ProgressRing percent={(byBook[continueBook.id]?.percent ?? 0) * 100} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-fun font-bold text-[#845ec2] uppercase tracking-widest mb-1">Seguir leyendo</p>
-              <h3 className="font-fun text-xl md:text-2xl font-bold text-[#4b3869] leading-tight truncate">
+              <h3 className="font-fun text-lg sm:text-xl md:text-2xl font-bold text-[#4b3869] leading-tight truncate">
                 {continueBook.title}
               </h3>
               <p className="text-sm text-slate-500 mt-0.5 truncate">{continueBook.author}</p>
             </div>
-            <span className="btn-game inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-fun font-bold text-xs uppercase tracking-wider shadow-md flex-shrink-0">
-              Continuar <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+            <span className="btn-game inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl font-fun font-bold text-xs uppercase tracking-wider shadow-md flex-shrink-0">
+              <span className="hidden sm:inline">Continuar </span>
+              <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
             </span>
           </button>
         )}

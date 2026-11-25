@@ -370,7 +370,7 @@ export default function StudentLessonsPage() {
   const loading = aLoading || mLoading || mmLoading || tLoading || lLoading || wLoading;
 
   return (
-    <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>
+    <div className="min-h-screen p-3 sm:p-4 md:p-6" style={{ background: 'var(--gradient-hero)' }}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-extrabold text-[#5A3D7A] inline-flex items-center gap-2"><BookOpen className="w-5 h-5" strokeWidth={2.25} /> My lessons</h1>
