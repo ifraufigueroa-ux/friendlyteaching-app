@@ -13,6 +13,15 @@
 //     optionally a `tip` callout for a frequent mistake / mnemonic.
 //   · Keep the English UI tone — the platform is in English, so
 //     explain in English even when discussing L1 interference.
+//   · VOCABULARY + PHRASAL VERB units MUST introduce every target
+//     item the drill tests, not just the concept. A student should
+//     never meet a word for the first time in the practice itself.
+//     After writing a vocab QL, scan the unit's exercises (options,
+//     pairs, fill-blank sentences) and make sure every tested
+//     word/chunk is explicitly listed in the lesson with a short
+//     gloss. Incident 2026-11-25: 'b1-phrasal-verbs' QL introduced
+//     the concept of phrasal verbs but only 3 of the 11 verbs that
+//     the drill actually tests.
 
 import type { QuickLesson } from '@/types/practice';
 
@@ -123,20 +132,38 @@ export const QUICK_LESSONS: Record<string, QuickLesson> = {
   },
 
   'a1-family': {
-    summary: 'Family words (mother, father, brother…) and possessives (my, your, his, her) to talk about your family.',
+    summary: 'Every family word the drill asks about — close family, extended family, in-laws, grandchildren — plus the possessives that go with them.',
     sections: [
       {
-        heading: 'Family vocabulary',
-        body: 'Core family terms are gender-specific in English, like in Spanish, but there is no "o/a" ending.',
+        heading: 'Close family — parents, siblings, kids, spouse',
+        body: 'These are the words the drill opens with. Learn them as pairs.',
         examples: [
-          'mother / father, sister / brother',
-          'daughter / son, aunt / uncle',
-          'grandmother / grandfather',
+          '**mother** (mamá) / **father** (papá) → together: **parents**',
+          '**sister** (hermana) / **brother** (hermano) → together: **siblings**',
+          '**daughter** (hija) / **son** (hijo)',
+          '**husband** (esposo) / **wife** (esposa)',
         ],
       },
       {
-        heading: 'Possessive adjectives',
-        body: 'Possessives go BEFORE the noun, and do NOT change with the noun. "My brother" and "my sisters" both use "my".',
+        heading: 'Grandparents, aunts, uncles, cousins',
+        body: 'One step further out in the family tree. Note "cousin" is gender-neutral in English (same word for male and female).',
+        examples: [
+          '**grandmother** (abuela) / **grandfather** (abuelo) → together: **grandparents**',
+          '**aunt** (tía) / **uncle** (tío)',
+          '**cousin** (primo/prima) — same word for male and female',
+        ],
+      },
+      {
+        heading: 'Nephews and nieces (your siblings\' kids)',
+        body: 'Your brother\'s or sister\'s children are your nephew (boy) or niece (girl).',
+        examples: [
+          '**nephew** (sobrino) = your brother/sister\'s son',
+          '**niece** (sobrina) = your brother/sister\'s daughter',
+        ],
+      },
+      {
+        heading: 'Possessives: my, your, his, her, our, their',
+        body: 'Possessives go BEFORE the noun, and do NOT change for singular/plural. "My brother" and "my sisters" both use "my".',
         examples: [
           '**My** mother is a teacher.',
           '**His** sister is 10.',
@@ -277,26 +304,37 @@ export const QUICK_LESSONS: Record<string, QuickLesson> = {
   },
 
   'b1-phrasal-verbs': {
-    summary: 'High-frequency everyday phrasal verbs (give up, look for, run out of…) that native speakers use constantly.',
+    summary: 'The 10 everyday phrasal verbs this drill tests — learn their meanings here, then prove you have them in the practice.',
     sections: [
       {
-        heading: 'What they are',
-        body: 'A phrasal verb is a verb + small word (up, off, out, on…) whose meaning is usually NOT guessable from the parts. "Give up" means to quit — not to give something upward.',
+        heading: 'What a phrasal verb is',
+        body: 'A phrasal verb is a verb + small word (up, off, out, on, after…) whose combined meaning is usually NOT guessable from the parts. "Give up" means to quit — not to give something upward. Memorise them as single units.',
+      },
+      {
+        heading: 'The 10 phrasals in this drill',
+        body: 'Read these once before you start. Every exercise below tests one of these — no surprises.',
         examples: [
-          '**Give up** smoking = to quit smoking.',
-          '**Look for** the keys = to search for the keys.',
-          '**Run out of** milk = to have none left.',
+          '**put off** = to postpone. "Let\'s put off the meeting until Monday."',
+          '**look after** = to take care of. "I look after my grandmother on weekends."',
+          '**pick (sb) up** = to collect someone (by car, from a place). "Can you pick me up at the station at 7?"',
+          '**run out of** = to use the last of something. "We ran out of milk."',
+          '**give up** = to quit, stop trying. "I gave up smoking last year."',
+          '**turn down** = to reject (an offer, a job, an invitation). "She turned down the job."',
+          '**work out** = (a) to exercise, (b) to solve / figure out. "I work out three times a week." / "We worked out the answer."',
+          '**get along (with)** = to have a good relationship with. "I get along with my boss."',
+          '**catch up on** = to deal with things you are behind on. "I need to catch up on my emails."',
+          '**meet up (with)** = to get together with someone, often informally. "I\'ll meet up with Ana later."',
         ],
+        tip: 'Also appears in the drill: **call off** = to cancel ("Let\'s call off the meeting"). Think "cancel" when you see it.',
       },
       {
         heading: 'Separable vs. inseparable',
-        body: 'Some phrasal verbs can be split by their object (turn OFF the light / turn the light OFF). Others cannot (look AFTER the kids, never "look the kids after").',
+        body: 'Some can be split by their object (pick ME up / pick up ME ✗ but pick HIM up ✓). Others cannot (look AFTER the kids, never "look the kids after"). When the object is a PRONOUN (it, me, him, them), separable phrasal verbs MUST split.',
         examples: [
-          'Turn **off** the TV. / Turn the TV **off**. ✓',
-          'She **looks after** her grandmother. ✓',
-          'She looks her grandmother after. ✗',
+          'Separable: pick **up** the box / pick the box **up** / pick it **up** ✓',
+          'Inseparable: look **after** the kids ✓ / look the kids **after** ✗',
+          'Pronoun rule: turn it **off** ✓ / turn **off** it ✗',
         ],
-        tip: 'When the object is a pronoun (it, them, her), separable phrasal verbs MUST split: "turn it off" ✓, "turn off it" ✗.',
       },
     ],
   },
@@ -381,24 +419,46 @@ export const QUICK_LESSONS: Record<string, QuickLesson> = {
   // ── B2+ ────────────────────────────────────────────────────
 
   'b2plus-hedging': {
-    summary: 'Hedging language — softening statements so you sound polite, cautious, or professional instead of blunt.',
+    summary: 'The exact hedging moves this drill tests — how to soften a disagreement, a claim, a rejection, or a statistic so you sound diplomatic instead of blunt.',
     sections: [
       {
-        heading: 'Why hedge',
-        body: 'Direct claims sound aggressive in English. Hedging adds nuance: "could", "might", "tend to", "it seems that", "to some extent". Essential for academic writing and polite emails.',
+        heading: 'Why hedge at all',
+        body: 'Direct claims sound aggressive in English. Hedging adds nuance and keeps the conversation open — essential for academic writing, client-facing email, and any meeting where you need to push back without burning the relationship.',
+      },
+      {
+        heading: 'Softening a disagreement',
+        body: 'Flat "no" / "that\'s wrong" is almost always too much. Substitute an opener that acknowledges the other side first, then raises your concern.',
         examples: [
-          '**It appears that** sales are falling. (not "sales ARE falling")',
-          'Students **tend to** study less in summer.',
-          'The results **suggest** a connection.',
+          '**"I\'m not sure that would work."** ← for "That won\'t work."',
+          '**"I can see where you\'re coming from, but I\'m not sure it\'s the right fit."** ← for "No, bad idea."',
+          '**"That\'s not quite right, I think."** ← for "You\'re wrong."',
+          '**"With respect,"** = polite signal that pushback is coming.',
         ],
       },
       {
-        heading: 'Common hedging patterns',
-        body: 'Modals (may, might, could, would), reporting verbs (suggest, indicate, appear), and quantity softeners (some, several, many, a number of).',
+        heading: 'Softening a claim or opinion',
+        body: 'Instead of asserting a fact flat, hedge the strength with a reporting verb, a modal, or a stance-opener.',
         examples: [
-          'This **could** be the main reason.',
-          '**Some** people argue that…',
-          'There **may be** other factors involved.',
+          '**"It tends to be the case that…"** ← for "It is a fact that…"',
+          '**"I would say that a different approach might work better."** = my view, offered softly.',
+          '**"arguably"** = opens the claim to disagreement without retracting it.',
+          '**"in some sense,"** = adds qualification without walking the claim back.',
+        ],
+      },
+      {
+        heading: 'Soft suggestions and asking for the floor',
+        body: 'When you want someone to do something, or to speak up without interrupting, lead with a hedge.',
+        examples: [
+          '**"I wonder if we might look at this from a different angle."** = soft suggestion of change.',
+          '**"If I may,"** = polite request to take the floor before speaking.',
+        ],
+      },
+      {
+        heading: 'Hedging numbers',
+        body: 'Precise numbers can imply overconfidence. Add a softener in front of statistics.',
+        examples: [
+          'Sales are **roughly** down about ten percent.',
+          'Also works: **around** ten percent / **about** ten percent.',
         ],
         tip: 'Over-hedging sounds unsure. Mix hedges with confident statements so you don\'t sound like you believe nothing.',
       },
