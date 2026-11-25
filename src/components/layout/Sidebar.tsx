@@ -30,6 +30,7 @@ import {
   Trophy,
   ExternalLink,
   Smartphone,
+  Activity,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -84,6 +85,7 @@ const TEACHER_NAV: NavItem[] = [
   { type: 'link', href: '/dashboard/teacher/word-of-day',  icon: BookMarked,   label: 'Word of the Day',    iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/palabra-dia.png'  },
   { type: 'link', href: '/dashboard/teacher/placement',    icon: Ruler,        label: 'Placement Test',     iconBg: 'bg-amber-100',   iconColor: 'text-amber-600', iconImg: '/sidebar-icons/placement-test.png'  },
   { type: 'group', label: 'Administration' },
+  { type: 'link', href: '/dashboard/teacher/monitoring',   icon: Activity,     label: 'Monitoring',         iconBg: 'bg-rose-100',    iconColor: 'text-rose-600' },
   { type: 'link', href: '/dashboard/teacher/admin/leads',  icon: Mail,         label: 'Leads',              iconBg: 'bg-rose-100',    iconColor: 'text-rose-600',   iconImg: '/sidebar-icons/leads.png' },
   { type: 'link', href: '/dashboard/teacher/reminders',   icon: Bell,          label: 'Reminders',          iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/recordatorios.png' },
   { type: 'link', href: '/dashboard/teacher/billing',     icon: CreditCard,    label: 'Billing',            iconBg: 'bg-slate-100',   iconColor: 'text-slate-500',  iconImg: '/sidebar-icons/facturacion.png' },
