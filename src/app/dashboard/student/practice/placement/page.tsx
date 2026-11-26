@@ -85,7 +85,7 @@ export default function PlacementPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-grid p-3 sm:p-4 md:p-6">
+    <div className="min-h-dvh bg-grid p-3 sm:p-4 md:p-6">
       <div className="max-w-5xl mx-auto bg-white/85 backdrop-blur-sm rounded-3xl border border-[#e5d9f2] shadow-[0_18px_48px_-24px_rgba(90,61,122,0.35)] p-4 sm:p-5 md:p-8">
         <TopBar
           title="Placement Test"

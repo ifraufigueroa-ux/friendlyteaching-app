@@ -74,7 +74,7 @@ export default function PracticeLandingPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-grid p-3 sm:p-4 md:p-6">
+    <div className="min-h-dvh bg-grid p-3 sm:p-4 md:p-6">
       {/* Framed canvas — a soft white card so the content doesn't look
           like it's floating on the gradient. Outer padding keeps the
           gradient visible around the frame. On phones we drop inner

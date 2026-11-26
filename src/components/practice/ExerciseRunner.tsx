@@ -243,7 +243,7 @@ export function ExerciseRunner({ unit, onComplete, studentId }: Props) {
     : 'bg-white border-transparent';
 
   return (
-    <div className="min-h-screen flex flex-col bg-grid relative">
+    <div className="min-h-dvh flex flex-col bg-grid relative">
       {/* ── Top bar: close · progress · combo · counter · timer · mute · fullscreen ── */}
       <div className="px-4 pt-4 flex items-center gap-2 md:gap-3 flex-shrink-0">
         <Link
@@ -837,7 +837,7 @@ function SummaryCard({
   const timeLabel = `${mins}:${secs.toString().padStart(2, '0')}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-grid">
+    <div className="min-h-dvh flex items-center justify-center p-6 relative overflow-hidden bg-grid">
       {/* Confetti burst — auto-unmounts after ~1.6s */}
       <ConfettiBurst active count={48} />
 
