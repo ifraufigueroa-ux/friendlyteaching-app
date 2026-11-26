@@ -16,8 +16,10 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   BookOpen, Link2, ClipboardList, ArrowRight, Sparkles, X, UserPlus,
-  Inbox, History, ExternalLink, GraduationCap, FileText,
+  Inbox, History, ExternalLink, GraduationCap, FileText, FileCode, UploadCloud,
 } from 'lucide-react';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase/config';
 import TopBar from '@/components/layout/TopBar';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
@@ -29,7 +31,7 @@ import type {
 
 // ─── Hub ───────────────────────────────────────────────────────────────
 
-type Modal = 'custom' | 'external' | 'library' | null;
+type Modal = 'custom' | 'external' | 'library' | 'html' | null;
 
 export default function AssignHomeworkPage() {
   const { firebaseUser } = useAuthStore();
@@ -58,7 +60,7 @@ export default function AssignHomeworkPage() {
 
         <div className="max-w-5xl mx-auto mt-6 space-y-8">
           {/* ── Primary assign surfaces ───────────────────── */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <AssignCard
               Icon={ClipboardList}
               iconColor="text-amber-700"
@@ -76,6 +78,15 @@ export default function AssignHomeworkPage() {
               blurb="Off2Class, Ellii, Drive, YouTube... El alumno abre el link y marca como hecha."
               cta="Pegar link y asignar"
               onClick={() => setOpenModal('external')}
+            />
+            <AssignCard
+              Icon={FileCode}
+              iconColor="text-rose-700"
+              iconBg="bg-rose-100"
+              title="Archivo HTML"
+              blurb="Subí un .html propio. El alumno lo abre como una lección interactiva en pestaña nueva."
+              cta="Subir HTML y asignar"
+              onClick={() => setOpenModal('html')}
             />
             <AssignCard
               Icon={BookOpen}
@@ -126,6 +137,9 @@ export default function AssignHomeworkPage() {
       )}
       {openModal === 'external' && teacherId && (
         <ExternalHomeworkModal teacherId={teacherId} onClose={() => setOpenModal(null)} onSaved={(n) => showToast(`Link asignado como tarea a ${n} estudiante${n === 1 ? '' : 's'}.`)} />
+      )}
+      {openModal === 'html'     && teacherId && (
+        <HtmlHomeworkModal     teacherId={teacherId} onClose={() => setOpenModal(null)} onSaved={(n) => showToast(`HTML asignado como tarea a ${n} estudiante${n === 1 ? '' : 's'}.`)} />
       )}
       {openModal === 'library'  && teacherId && (
         <LibraryHomeworkModal  teacherId={teacherId} onClose={() => setOpenModal(null)} onSaved={(n) => showToast(`Lección asignada como tarea a ${n} estudiante${n === 1 ? '' : 's'}.`)} />
@@ -633,6 +647,184 @@ function ExternalHomeworkModal({
   );
 }
 
+// ─── HTML upload homework modal ──────────────────────────────────────
+//
+// The teacher uploads a standalone .html file (e.g. a Telling-the-Time
+// lesson built outside the platform). We push it to Firebase Storage
+// under homeworkHtmlAttachments/{teacherId}/{timestamp}-{name} with
+// explicit contentType text/html so the browser renders it instead of
+// downloading it. The download URL goes on the homework doc as
+// externalUrl + externalPlatform='html' — the student side already
+// knows how to open an externalUrl in a new tab and offer "Mark as
+// done", so no student-side code has to change.
+
+const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2MB — a chunky interactive lesson is <1MB
+
+function HtmlHomeworkModal({
+  teacherId, onClose, onSaved,
+}: {
+  teacherId: string;
+  onClose: () => void;
+  onSaved: (assignedCount: number) => void;
+}) {
+  const picker = useStudentPicker();
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState(() => defaultDueDate());
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    if (!f) { setFile(null); return; }
+    // Accept anything with .html / .htm extension OR text/html mime —
+    // some OS browsers report an empty mime for small .html files.
+    const okExt  = /\.html?$/i.test(f.name);
+    const okMime = f.type === 'text/html' || f.type === '' || f.type === 'application/xhtml+xml';
+    if (!okExt && !okMime) {
+      setError('Elegí un archivo .html o .htm.');
+      return;
+    }
+    if (f.size > MAX_HTML_BYTES) {
+      setError(`El archivo pesa ${(f.size / 1024 / 1024).toFixed(1)}MB. El límite es 2MB.`);
+      return;
+    }
+    setError(null);
+    setFile(f);
+    // Seed title from the file name if the teacher hasn't filled it yet.
+    if (!title.trim()) {
+      setTitle(f.name.replace(/\.html?$/i, '').replace(/[-_]+/g, ' ').trim());
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!file)                    { setError('Subí un archivo HTML.'); return; }
+    if (!title.trim())            { setError('Poné un título corto.'); return; }
+    if (picker.picked.size === 0) { setError('Elegí al menos un estudiante.'); return; }
+    const due = new Date(dueDate);
+    if (Number.isNaN(due.getTime())) { setError('Fecha inválida.'); return; }
+
+    setSaving(true);
+    setUploading(true);
+    try {
+      // One upload per assignment — every student gets a link to the
+      // same file. The path includes a timestamp so re-assigning the
+      // same filename does not overwrite prior uploads.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+      const path = `homeworkHtmlAttachments/${teacherId}/${Date.now()}-${safeName}`;
+      const ref  = storageRef(storage, path);
+      await uploadBytes(ref, file, {
+        contentType: 'text/html',
+        cacheControl: 'public, max-age=3600',
+      });
+      const downloadUrl = await getDownloadURL(ref);
+      setUploading(false);
+
+      let assignedCount = 0;
+      for (const studentId of picker.picked) {
+        try {
+          await createHomework(teacherId, {
+            assignedToStudentId: studentId,
+            title: title.trim(),
+            description: description.trim(),
+            dueDate: due,
+            externalUrl: downloadUrl,
+            externalPlatform: 'html',
+          });
+          assignedCount += 1;
+        } catch (err) {
+          console.warn('[assign-html-hw] failed for', studentId, err);
+        }
+      }
+      onSaved(assignedCount);
+      onClose();
+    } catch (err) {
+      console.error('[assign-html-hw] upload failed', err);
+      setError('No pudimos subir el archivo. Reintentá en un momento.');
+      setUploading(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const canSubmit = !saving && !!file && title.trim().length > 0 && picker.picked.size > 0;
+
+  return (
+    <HomeworkModalShell title="Tarea · archivo HTML" Icon={FileCode} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="p-5 space-y-5">
+        {error && <p className="text-red-500 text-xs bg-red-50 p-2 rounded-lg">{error}</p>}
+        <section className="space-y-3">
+          <p className="text-[10px] font-black text-[#5A3D7A] uppercase tracking-widest">1 · Archivo HTML</p>
+          <label className="block cursor-pointer">
+            <div className={`border-2 border-dashed rounded-2xl p-5 text-center transition-colors ${
+              file
+                ? 'border-[#5A3D7A] bg-[#F7EFFF]'
+                : 'border-[#E8D5F0] bg-white hover:border-[#C8A8DC] hover:bg-[#F7EFFF]'
+            }`}>
+              <UploadCloud className={`w-7 h-7 mx-auto mb-2 ${file ? 'text-[#5A3D7A]' : 'text-[#9B7CB8]'}`} strokeWidth={2.25} />
+              {file ? (
+                <>
+                  <p className="text-sm font-bold text-[#2D1B4E] truncate">{file.name}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    {(file.size / 1024).toFixed(1)}KB · tocá para cambiar
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-[#5A3D7A]">Elegir archivo .html</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Hasta 2MB. Se abre en pestaña nueva como una lección.
+                  </p>
+                </>
+              )}
+            </div>
+            <input
+              type="file"
+              accept=".html,.htm,text/html"
+              onChange={handleFile}
+              className="hidden"
+            />
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+            <div className="sm:col-span-4">
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Título *</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)}
+                placeholder="ej. Telling the Time · intro"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Entrega *</label>
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+              />
+            </div>
+            <div className="sm:col-span-6">
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Instrucciones (opcional)</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
+                placeholder="Qué tiene que hacer con la lección."
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C8A8DC] resize-none"
+              />
+            </div>
+          </div>
+        </section>
+        <StudentPickerSection picker={picker} />
+        <HomeworkFormActions
+          canSubmit={canSubmit}
+          saving={saving}
+          pickedCount={picker.picked.size}
+          onClose={onClose}
+          savingLabel={uploading ? 'Subiendo HTML…' : 'Guardando…'}
+        />
+      </form>
+    </HomeworkModalShell>
+  );
+}
+
 // ─── Library (FT lesson as homework) modal ───────────────────────────
 
 const LEVELS: LessonLevel[] = ['A0', 'A1', 'A2', 'B1', 'B1+', 'B2', 'B2+', 'C1'];
@@ -791,12 +983,16 @@ function HomeworkModalShell({
 }
 
 function HomeworkFormActions({
-  canSubmit, saving, pickedCount, onClose,
+  canSubmit, saving, pickedCount, onClose, savingLabel,
 }: {
   canSubmit: boolean;
   saving: boolean;
   pickedCount: number;
   onClose: () => void;
+  /** Optional override for the button label while saving — lets the
+   *  HTML modal say "Subiendo HTML…" during its upload-then-write
+   *  sequence. Defaults to the generic "Guardando…". */
+  savingLabel?: string;
 }) {
   return (
     <div className="flex gap-3 pt-1">
@@ -807,7 +1003,7 @@ function HomeworkFormActions({
       <button type="submit" disabled={!canSubmit}
         className="flex-1 py-2.5 bg-[#5A3D7A] hover:bg-[#4A2D6A] text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-1.5">
         <UserPlus className="w-4 h-4" strokeWidth={2.25} />
-        {saving ? 'Guardando…' : `Asignar${pickedCount > 0 ? ` (${pickedCount})` : ''}`}
+        {saving ? (savingLabel ?? 'Guardando…') : `Asignar${pickedCount > 0 ? ` (${pickedCount})` : ''}`}
       </button>
     </div>
   );

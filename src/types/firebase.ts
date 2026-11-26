@@ -702,7 +702,7 @@ export const XP_REWARDS = {
 
 // Plataforma externa donde vive el material de la tarea (link-only homework).
 // 'other' cubre material propio del profe (Drive, PDF hospedado, etc.).
-export type HomeworkExternalPlatform = 'off2class' | 'ellii' | 'other';
+export type HomeworkExternalPlatform = 'off2class' | 'ellii' | 'other' | 'html';
 
 export interface Homework {
   id: string;

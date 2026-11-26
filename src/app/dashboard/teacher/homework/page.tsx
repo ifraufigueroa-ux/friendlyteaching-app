@@ -35,7 +35,8 @@ import type { Homework, Slide, HomeworkExternalPlatform } from '@/types/firebase
 const EXTERNAL_PLATFORMS: Record<HomeworkExternalPlatform, { label: string; Icon: LucideIcon; badge: string }> = {
   off2class: { label: 'Off2Class',       Icon: GraduationCap, badge: 'bg-orange-100 text-orange-700' },
   ellii:     { label: 'Ellii',           Icon: BookOpen,      badge: 'bg-emerald-100 text-emerald-700' },
-  other:     { label: 'Own material', Icon: Link2,         badge: 'bg-purple-100 text-[#5A3D7A]' },
+  other:     { label: 'Own material',    Icon: Link2,         badge: 'bg-purple-100 text-[#5A3D7A]' },
+  html:      { label: 'HTML lesson',     Icon: Link2,         badge: 'bg-sky-100 text-sky-700' },
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
