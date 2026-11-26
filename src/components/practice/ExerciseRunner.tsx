@@ -631,6 +631,15 @@ function FillBlankBody({
   const blankCount = parts.length - 1;
   const [vals, setVals] = useState<string[]>(() => Array(blankCount).fill(''));
   const locked = verdict !== 'pending';
+  // Ref array so we can imperatively focus the first blank on mount
+  // (desktop UX: "apretar Enter y encontrar el cuadro activado al
+  // comenzar la pregunta nueva"). The component remounts per exercise
+  // (key={idx} upstream), so this effect runs on every question.
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => {
+    const first = inputRefs.current[0];
+    if (first) first.focus();
+  }, [ex.id]);
 
   function normalize(s: string): string {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -638,6 +647,7 @@ function FillBlankBody({
 
   function handleCheck() {
     if (locked) return;
+    if (vals.some(v => !v.trim())) return; // all blanks must be filled
     const allCorrect = ex.answers.every((expected, i) => {
       const got = normalize(vals[i] ?? '');
       if (got === normalize(expected)) return true;
@@ -649,6 +659,18 @@ function FillBlankBody({
     onGrade(allCorrect, picked);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>, i: number) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    // If there's a next empty blank, jump to it; otherwise check.
+    const nextEmpty = inputRefs.current.findIndex((el, j) => j > i && el && !vals[j]?.trim());
+    if (nextEmpty !== -1) {
+      inputRefs.current[nextEmpty]?.focus();
+      return;
+    }
+    handleCheck();
+  }
+
   return (
     <div className="space-y-5">
       <div className="text-center text-xl md:text-2xl text-[#2D1B4E] font-semibold leading-relaxed">
@@ -657,9 +679,11 @@ function FillBlankBody({
             {p}
             {i < blankCount && (
               <input
+                ref={el => { inputRefs.current[i] = el; }}
                 type="text"
                 value={vals[i]}
                 onChange={e => setVals(v => v.map((x, j) => j === i ? e.target.value : x))}
+                onKeyDown={e => handleKeyDown(e, i)}
                 disabled={locked}
                 autoFocus={i === 0}
                 className={`inline-block mx-1 min-w-[120px] px-2 py-0.5 text-center border-b-2 bg-transparent focus:outline-none ${
