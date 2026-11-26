@@ -77,6 +77,21 @@ service firebase.storage {
       allow delete: if isTeacher();
     }
 
+    // ── Homework HTML attachments ─────────────────────────────────────────────
+    // Teachers upload a standalone .html lesson that gets assigned as
+    // homework. Same shape as /presentations/: uid-namespaced write,
+    // 2MB cap, text/html only. Read is open because the download URL
+    // itself carries an access token — the student just follows the
+    // link in a new tab and the browser renders the file.
+    match /homeworkHtmlAttachments/{teacherId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated()
+        && request.auth.uid == teacherId
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType == 'text/html';
+      allow delete: if isAuthenticated() && request.auth.uid == teacherId;
+    }
+
     // ── Block everything else ─────────────────────────────────────────────────
     match /{allPaths=**} {
       allow read, write: if false;
