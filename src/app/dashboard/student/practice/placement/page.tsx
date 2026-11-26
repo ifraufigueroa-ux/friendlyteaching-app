@@ -14,12 +14,12 @@ import { useRouter } from 'next/navigation';
 import TopBar from '@/components/layout/TopBar';
 import FullscreenButton from '@/components/ui/FullscreenButton';
 import {
-  Trophy, ArrowRight, ArrowLeft, Pause, Target, Check, X, PartyPopper,
+  Trophy, ArrowRight, ArrowLeft, Pause, Play, Target, Check, X, PartyPopper,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useDailyPracticePlacement } from '@/hooks/useDailyPracticePlacement';
 import {
-  pickNextQuestion, shouldStop,
+  pickNextQuestion, shouldStop, determineFinalLevel,
 } from '@/lib/placement/adaptiveRunner';
 import { DPP_CONFIG } from '@/types/daily-practice-placement';
 import type { DPPQuestion } from '@/types/daily-practice-placement';
@@ -29,7 +29,7 @@ export default function PlacementPage() {
   const uid = firebaseUser?.uid ?? '';
   const {
     session, loading, isInProgress, isPaused, isCompleted,
-    startNew, submitAnswer, pause, complete, pool,
+    startNew, submitAnswer, pause, resume, complete, pool,
   } = useDailyPracticePlacement(uid);
 
   if (loading) {
@@ -52,12 +52,37 @@ export default function PlacementPage() {
   if (isCompleted) {
     return <Shell><ResultView session={session!} onRestart={() => startNew()} /></Shell>;
   }
-  if (isInProgress || isPaused) {
-    // Seed the question picker with uid + startedAt so every retake
-    // gets a different (but within-session stable) order. Without a
-    // seed the selector is deterministic and students can memorise
-    // the fixed trail across attempts.
+  // Paused: dedicated "resume vs start over" screen so clicking Pause
+  // inside the runner actually takes the student OUT of the test,
+  // not back into the same question. Earlier bug: condition was
+  // `isInProgress || isPaused`, which re-rendered the runner even
+  // after pause() wrote status='paused' to Firestore.
+  if (isPaused) {
+    return (
+      <Shell>
+        <PausedView
+          answered={session?.answers?.length ?? 0}
+          currentEstimate={session?.currentLevelEstimate}
+          onResume={resume}
+          onRestart={startNew}
+        />
+      </Shell>
+    );
+  }
+  if (isInProgress) {
+    // Seed the question picker with uid + clientStartedAt so every
+    // retake gets a different (but within-session stable) order.
+    // Earlier we used `startedAt` (the SERVER timestamp), which is
+    // null in Firestore's local cache for 100-500ms after startNew()
+    // — long enough that Q1 was picked with a seed of `uid:0` and
+    // the student saw the same Q1 on every retake. `clientStartedAt`
+    // is a plain number written synchronously by the hook, so the
+    // seed is unique AND stable from question one. Falls back to
+    // startedAt + 0 for older sessions written before this field
+    // existed.
     const startedAtMs = (() => {
+      const cs = (session as { clientStartedAt?: number } | undefined)?.clientStartedAt;
+      if (typeof cs === 'number' && cs > 0) return cs;
       const s = session?.startedAt as unknown;
       if (s && typeof s === 'object' && 'toMillis' in s && typeof (s as { toMillis: () => number }).toMillis === 'function') {
         return (s as { toMillis: () => number }).toMillis();
@@ -178,6 +203,93 @@ function StatTile({ icon, title, sub }: { icon: string; title: string; sub: stri
   );
 }
 
+// ── Paused view ────────────────────────────────────────────
+//
+// Shown whenever the stored session has status='paused'. The student
+// either hit the Pause button inside the runner (and the hook wrote
+// paused), or they left mid-session, closed the tab, and came back
+// — the Firestore doc persists so returning here picks up the exact
+// same session. From here they can Resume (flip status back to
+// in_progress) or Start Over (overwrites with a fresh session).
+
+function PausedView({
+  answered, currentEstimate, onResume, onRestart,
+}: {
+  answered: number;
+  currentEstimate: string | undefined;
+  onResume: () => Promise<void>;
+  onRestart: () => Promise<void>;
+}) {
+  const [resuming, setResuming] = useState(false);
+  const [restarting, setRestarting] = useState(false);
+
+  async function handleResume() {
+    setResuming(true);
+    try { await onResume(); } finally { setResuming(false); }
+  }
+  async function handleRestart() {
+    if (!window.confirm('Starting over will erase the answers you have so far. Continue?')) return;
+    setRestarting(true);
+    try { await onRestart(); } finally { setRestarting(false); }
+  }
+
+  const pct = Math.min(100, Math.round((answered / DPP_CONFIG.MAX_QUESTIONS) * 100));
+
+  return (
+    <div className="max-w-xl mx-auto text-center space-y-5">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-[#C8A8DC] to-[#845ec2] text-white shadow-lg">
+        <Pause className="w-8 h-8" strokeWidth={2.25} />
+      </div>
+      <h2 className="font-fun text-3xl md:text-4xl font-extrabold text-[#4b3869] tracking-tight">
+        Test paused
+      </h2>
+      <p className="text-sm text-slate-600 max-w-md mx-auto">
+        You answered <strong className="text-[#4b3869]">{answered}</strong> of{' '}
+        {DPP_CONFIG.MAX_QUESTIONS} questions.{' '}
+        {currentEstimate && (
+          <>Current estimate: <strong className="text-[#4b3869]">{currentEstimate}</strong>.</>
+        )}
+      </p>
+
+      <div className="max-w-md mx-auto">
+        <div className="h-2 bg-[#e5d9f2] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#845ec2] to-[#5A3D7A] transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1 font-semibold tabular-nums">
+          {pct}% of the test done
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2 pt-2 max-w-md mx-auto">
+        <button
+          onClick={handleResume}
+          disabled={resuming}
+          className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#845ec2] to-[#5A3D7A] text-white rounded-full font-bold text-base shadow-xl hover:shadow-2xl transition-shadow disabled:opacity-50"
+        >
+          <Play className="w-5 h-5 fill-current" strokeWidth={2.5} />
+          {resuming ? 'Resuming…' : 'Resume where you left off'}
+        </button>
+        <button
+          onClick={handleRestart}
+          disabled={restarting}
+          className="text-xs font-semibold text-[#9B7CB8] hover:text-[#5A3D7A] disabled:opacity-50 py-2"
+        >
+          {restarting ? 'Resetting…' : '↻ Start over (erases your progress)'}
+        </button>
+        <Link
+          href="/dashboard/student/practice"
+          className="text-xs font-semibold text-slate-500 hover:text-[#5A3D7A]"
+        >
+          ← Back to Daily Practice (your progress is saved)
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ── Runner view ────────────────────────────────────────────
 
 function RunnerView({ pool, seed, session, onAnswer, onPause, onFinish }: {
@@ -205,6 +317,21 @@ function RunnerView({ pool, seed, session, onAnswer, onPause, onFinish }: {
     }));
     return pickNextQuestion(normalisedAnswers, pool, seed);
   }, [session.answers, pool, seed]);
+
+  // Chip value — show the FINAL placement rule (bridge-up), not the
+  // aspirational `currentLevelEstimate` stored on the session. The
+  // stored estimate uses the PARTIAL threshold to drive the picker,
+  // but using it in the UI causes "exploring B2 → placed at B1"
+  // mid-test surprises. What the chip shows now IS what the student
+  // gets at the end for the same answers.
+  const projectedLevel = useMemo(() => {
+    const normalised = session.answers.map((a) => ({
+      ...a, level: a.level as 'A0'|'A1'|'A2'|'B1'|'B2'|'B2+'|'C1',
+    }));
+    return normalised.length === 0
+      ? session.currentLevelEstimate
+      : determineFinalLevel(normalised);
+  }, [session.answers, session.currentLevelEstimate]);
 
   // Reset local UI state for every new question.
   useEffect(() => {
@@ -267,7 +394,7 @@ function RunnerView({ pool, seed, session, onAnswer, onPause, onFinish }: {
             />
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Question {answered + 1} · estimate so far: <strong className="text-[#4b3869]">{session.currentLevelEstimate}</strong>
+            Question {answered + 1} · placement so far: <strong className="text-[#4b3869]">{projectedLevel}</strong>
           </p>
         </div>
         <button

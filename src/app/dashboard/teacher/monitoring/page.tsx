@@ -19,7 +19,7 @@
 
 import { useMemo, useState } from 'react';
 import {
-  Activity, X, Target, Flame, Zap, Clock, TrendingUp, TrendingDown, Minus, Search, GraduationCap, CheckCircle2, AlertCircle,
+  Activity, X, Target, Flame, Zap, Clock, TrendingUp, TrendingDown, Minus, Search, GraduationCap, CheckCircle2, AlertCircle, ChevronDown, FileText,
 } from 'lucide-react';
 import TopBar from '@/components/layout/TopBar';
 import { useStudents } from '@/hooks/useStudents';
@@ -28,6 +28,8 @@ import {
   recentAccuracy, accuracyTrend, daysSinceLastPractice,
   sessionsInWindow, accuracyByPracticeLevel, placementTopicSkills,
 } from '@/hooks/useStudentMonitoring';
+import { DPP_QUESTIONS } from '@/lib/data/practice/placement-questions';
+import type { DPPQuestion } from '@/types/daily-practice-placement';
 import type { FTUser } from '@/types/firebase';
 import type { PracticeLevel } from '@/types/practice';
 
@@ -297,6 +299,11 @@ function DetailDrawer({ student, onClose }: { student: FTUser; onClose: () => vo
             )}
           </section>
 
+          {/* Full answer-by-answer review */}
+          {placement && (placement.answers?.length ?? 0) > 0 && (
+            <PlacementAnswerReview placement={placement} />
+          )}
+
           {/* Lifetime accuracy by level */}
           <section className="bg-white rounded-2xl border border-[#E5D9F2] p-4">
             <h3 className="text-xs font-black uppercase tracking-widest text-[#5A3D7A] inline-flex items-center gap-1.5 mb-3">
@@ -352,6 +359,161 @@ function DetailDrawer({ student, onClose }: { student: FTUser; onClose: () => vo
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Placement answer-by-answer review ──────────────────────────
+//
+// For each answered question in the placement run: render the full
+// question text, the student's pick (red if wrong), and the correct
+// alternative (always shown green with a "+" chip). Looks up the
+// question text / options from the DPP pool by id. Collapsed by
+// default to avoid overwhelming the drawer; opens with filters for
+// "Wrong only" so the teacher can zero in on gaps.
+
+interface PlacementAnswerReviewProps {
+  placement: { answers?: { questionId: string; level: string; topic: string; pickedIndex: number; correct: boolean }[] };
+}
+
+function PlacementAnswerReview({ placement }: PlacementAnswerReviewProps) {
+  const [open, setOpen] = useState(false);
+  const [wrongOnly, setWrongOnly] = useState(false);
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const answers = placement.answers ?? [];
+  const correctCount = answers.filter((a) => a.correct).length;
+
+  // Build a stable lookup from questionId → question. The pool is
+  // small (~210 items) so a Map is both fast and memory-cheap. Memoised
+  // across renders.
+  const pool = useMemo(() => {
+    const m = new Map<string, DPPQuestion>();
+    for (const q of DPP_QUESTIONS) m.set(q.id, q);
+    return m;
+  }, []);
+
+  const filtered = useMemo(() => {
+    return answers.filter((a) => {
+      if (wrongOnly && a.correct) return false;
+      if (levelFilter !== 'all' && a.level !== levelFilter) return false;
+      return true;
+    });
+  }, [answers, wrongOnly, levelFilter]);
+
+  const levelsSeen = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of answers) set.add(a.level);
+    return CEFR_ORDER.filter((l) => set.has(l));
+  }, [answers]);
+
+  return (
+    <section className="bg-white rounded-2xl border border-[#E5D9F2] p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2"
+        aria-expanded={open}
+      >
+        <h3 className="text-xs font-black uppercase tracking-widest text-[#5A3D7A] inline-flex items-center gap-1.5">
+          <FileText className="w-3.5 h-3.5" strokeWidth={2.5} /> Placement — answer review
+          <span className="ml-2 px-2 py-0.5 rounded-full bg-[#F7EFFF] text-[#5A3D7A] text-[10px] font-black tabular-nums">
+            {correctCount}/{answers.length}
+          </span>
+        </h3>
+        <ChevronDown className={`w-4 h-4 text-[#5A3D7A] transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2.5} />
+      </button>
+
+      {open && (
+        <>
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setWrongOnly((v) => !v)}
+              className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border transition-colors ${
+                wrongOnly
+                  ? 'bg-rose-500 text-white border-rose-500'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300 hover:text-rose-600'
+              }`}
+            >
+              {wrongOnly ? '✓ Wrong only' : 'Wrong only'}
+            </button>
+            <div className="inline-flex items-center gap-1 ml-auto">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Level</span>
+              <select
+                value={levelFilter}
+                onChange={(e) => setLevelFilter(e.target.value)}
+                className="text-[11px] font-semibold text-[#5A3D7A] bg-white border border-[#E5D9F2] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#C8A8DC]"
+              >
+                <option value="all">All</option>
+                {levelsSeen.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <p className="mt-4 text-xs text-slate-500 text-center py-4">
+              {wrongOnly ? 'No wrong answers at this filter.' : 'No answers at this filter.'}
+            </p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {filtered.map((a, i) => {
+                const q = pool.get(a.questionId);
+                const pickedLabel = q?.options[a.pickedIndex] ?? `Option ${a.pickedIndex + 1}`;
+                const correctLabel = q?.options[q.correct] ?? '—';
+                return (
+                  <div key={`${a.questionId}-${i}`} className={`rounded-xl border p-3 text-xs ${a.correct ? 'border-emerald-100 bg-emerald-50/40' : 'border-rose-100 bg-rose-50/40'}`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full border ${LEVEL_PILL[a.level] ?? LEVEL_PILL.A0}`}>{a.level}</span>
+                      <span className="text-[10px] text-slate-500 flex-1 min-w-0 truncate">{a.topic}</span>
+                      {a.correct ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> Correct
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                          <AlertCircle className="w-3 h-3" strokeWidth={2.5} /> Wrong
+                        </span>
+                      )}
+                    </div>
+                    {q ? (
+                      <>
+                        <p className="text-[13px] text-[#2D1B4E] font-semibold leading-snug mb-2">{q.prompt}</p>
+                        <div className="space-y-1">
+                          <div className="flex items-start gap-2">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 flex-shrink-0 pt-0.5">Student</span>
+                            <span className={`flex-1 text-[12px] ${a.correct ? 'text-emerald-800 font-semibold' : 'text-rose-700 line-through decoration-rose-400/70 font-semibold'}`}>
+                              {pickedLabel}
+                            </span>
+                          </div>
+                          {!a.correct && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 w-16 flex-shrink-0 pt-0.5">Correct</span>
+                              <span className="flex-1 text-[12px] text-emerald-800 font-bold">
+                                {correctLabel}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {q.explain && (
+                          <p className="mt-2 text-[11px] text-[#5A3D7A] bg-[#F7EFFF] border border-[#E5D9F2] rounded-lg px-2.5 py-1.5 leading-snug">
+                            <strong className="font-bold">Why:</strong> {q.explain}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-slate-400 italic">
+                        Question <code className="text-[10px]">{a.questionId}</code> is no longer in the pool — showing picked index {a.pickedIndex} only.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 

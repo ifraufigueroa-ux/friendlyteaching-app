@@ -444,7 +444,7 @@ export const DPP_QUESTIONS: DPPQuestion[] = [
     correct: 2, explain: 'Future continuous for polite enquiries about plans — avoids sounding like a request.',
   },
   {
-    id: 'dpp-c1-09', level: 'C1', topic: 'had better + perfect',
+    id: 'dpp-c1-09', level: 'C1', topic: 'should have + past participle (regret)',
     prompt: 'We ___ left when we could — now the roads are shut.',
     options: ['had better', 'should\'ve', 'might better', 'ought'],
     correct: 1, explain: 'Past regret of missed opportunity: should\'ve (= should have) + past participle.',

@@ -48,6 +48,15 @@ export interface DPPSession {
   uid:          string;
   status:       DPPStatus;
   startedAt:    Timestamp | FieldValue | null;
+  /** Client-side millisecond timestamp captured at session start. Used
+   *  as the deterministic-but-unique seed for the question picker. The
+   *  server `startedAt` is a pending placeholder in Firestore's local
+   *  cache for the first 100-500 ms of a session; if the picker used
+   *  THAT, the seed would briefly fall to 0 and the first question
+   *  would be deterministic across every retake. This client value is
+   *  known synchronously, so the seed is stable + unique from question
+   *  one. Added 2026-11-26. */
+  clientStartedAt?: number;
   updatedAt:    Timestamp | FieldValue | null;
   pausedAt?:    Timestamp | FieldValue | null;
   completedAt?: Timestamp | FieldValue | null;

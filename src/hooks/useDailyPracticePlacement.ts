@@ -64,6 +64,13 @@ export function useDailyPracticePlacement(uid: string) {
     const fresh: DocumentData = {
       ...emptySession(uid),
       startedAt: serverTimestamp(),
+      // See DPPSession.clientStartedAt in daily-practice-placement.ts:
+      // the client-side timestamp is the SEED source. Using
+      // serverTimestamp() for the seed would start every retake with
+      // the same deterministic Q1 (pending field → seed falls to 0)
+      // because Firestore's local cache returns null for pending
+      // server timestamps for 100-500ms after the write.
+      clientStartedAt: Date.now(),
       updatedAt: serverTimestamp(),
     };
     await setDoc(doc(db, 'dailyPracticePlacement', uid), fresh);
