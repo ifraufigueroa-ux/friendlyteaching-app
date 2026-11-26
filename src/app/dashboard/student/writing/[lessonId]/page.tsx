@@ -850,7 +850,7 @@ function PracticeStep(
             value={draft}
             onChange={e => setDraft(e.target.value)}
             placeholder="Start writing here. Your draft auto-saves on this device."
-            className="w-full px-6 py-6 min-h-[380px] text-[15px] leading-[1.75] text-[#2E2A33] font-serif focus:outline-none resize-y bg-white"
+            className="w-full px-4 sm:px-6 py-4 sm:py-6 min-h-[220px] sm:min-h-[320px] md:min-h-[380px] text-[15px] leading-[1.75] text-[#2E2A33] font-serif focus:outline-none resize-y bg-white"
             spellCheck
           />
           <div className="px-5 py-3 border-t border-black/5 flex items-center justify-between">
