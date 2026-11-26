@@ -35,6 +35,23 @@ const PLANS = [
   },
 ];
 
+// ── BLACK FRIDAY — temporary pricing override (2026-11-26 → 2026-11-29) ──
+//
+// Flip `active` to false on Sunday night (~22:00 local) to instantly
+// restore every plan's normal price, hide the top banner and remove
+// the per-card BF chip. Nothing else on the landing depends on this.
+// The sale prices live next to the regular ones here so a future BF
+// run only needs to update the numbers and re-flip the flag.
+const BLACK_FRIDAY = {
+  active: true,
+  endsLabel: 'hasta el domingo',
+  prices: {
+    'Básico':    '$59.000',
+    'Premium':   '$105.000',
+    'Intensivo': '$145.000',
+  } as Record<string, string>,
+};
+
 const TESTIMONIALS = [
   { quote: 'Después de 6 meses con Friendly Teaching, logré el trabajo que tanto quería. Las clases personalizadas hicieron toda la diferencia. ¡Totalmente recomendado!', name: 'María José Contreras', role: 'Ingeniera Comercial', initials: 'MC' },
   { quote: 'Mi hijo de 8 años ama las clases. Los profesores son muy pacientes y usan juegos interactivos que lo mantienen motivado. Ha mejorado muchísimo.', name: 'Patricia Silva', role: 'Madre de estudiante', initials: 'PS' },
@@ -65,6 +82,23 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-hero)' }}>
+
+      {/* ── BLACK FRIDAY banner (temporary; controlled by BLACK_FRIDAY.active) ── */}
+      {BLACK_FRIDAY.active && (
+        <div className="w-full bg-gradient-to-r from-[#1A0B2E] via-[#4B2E7A] to-[#1A0B2E] text-white">
+          <button
+            onClick={() => scrollTo('planes')}
+            className="w-full px-4 py-2.5 text-center text-sm font-semibold hover:bg-white/5 transition-colors"
+          >
+            <span className="inline-flex items-center gap-2 flex-wrap justify-center">
+              <span className="text-lg">🔥</span>
+              <span className="uppercase tracking-[0.25em] text-[11px] font-black text-[#FFB8D9]">Black Friday</span>
+              <span className="opacity-95">Descuentos en todos los planes {BLACK_FRIDAY.endsLabel}</span>
+              <span className="text-[#FFB8D9] font-bold">Ver planes →</span>
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* ── NAV ── */}
       <nav className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-[#E8D5F5] shadow-sm">
@@ -184,11 +218,27 @@ export default function HomePage() {
 
       {/* ── PRICING ── */}
       <section id="planes" className="max-w-6xl mx-auto px-6 pb-24 w-full">
-        <h2 className="text-3xl font-extrabold text-center text-[#4B2E7A] mb-2 tracking-tight">Planes y Precios</h2>
-        <p className="text-center text-gray-400 mb-12">Elige el plan que mejor se adapte a tus necesidades</p>
+        <h2 className="text-3xl font-extrabold text-center text-[#4B2E7A] mb-2 tracking-tight">
+          Planes y Precios
+          {BLACK_FRIDAY.active && (
+            <span className="ml-3 align-middle inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-white bg-gradient-to-r from-[#1A0B2E] to-[#4B2E7A] px-3 py-1.5 rounded-full border border-[#FFB8D9]/40 shadow-sm">
+              🔥 Black Friday
+            </span>
+          )}
+        </h2>
+        <p className="text-center text-gray-400 mb-12">
+          {BLACK_FRIDAY.active
+            ? `Descuentos en todos los planes — oferta válida ${BLACK_FRIDAY.endsLabel}.`
+            : 'Elige el plan que mejor se adapte a tus necesidades'}
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-          {PLANS.map(plan => (
+          {PLANS.map(plan => {
+            // BF override: swap in the sale price for this plan if active.
+            // The crossed-out original stays visible as a value-anchor.
+            const bfPrice = BLACK_FRIDAY.active ? BLACK_FRIDAY.prices[plan.name] : null;
+            const displayPrice = bfPrice ?? plan.price;
+            return (
             <div key={plan.name} className={`relative rounded-3xl p-7 flex flex-col transition-all duration-200
               ${plan.featured
                 ? 'bg-gradient-to-br from-[#5A3D7A] to-[#9B7CB8] text-white md:scale-105 shadow-2xl shadow-[#C8A8DC]/40'
@@ -198,8 +248,18 @@ export default function HomePage() {
                   ✨ {plan.badge}
                 </div>
               )}
+              {bfPrice && (
+                <div className="absolute -top-3.5 right-5 bg-gradient-to-r from-rose-600 to-rose-700 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white whitespace-nowrap">
+                  🔥 Black Friday
+                </div>
+              )}
               <h3 className={`text-xl font-extrabold mb-1 ${plan.featured ? 'text-white' : 'text-[#5A3D7A]'}`}>{plan.name}</h3>
-              <div className={`text-4xl font-extrabold mb-0.5 tracking-tight ${plan.featured ? 'text-white' : 'text-[#4B2E7A]'}`}>{plan.price}</div>
+              {bfPrice && (
+                <p className={`text-sm font-semibold line-through mb-0 ${plan.featured ? 'text-white/55' : 'text-gray-400'}`}>
+                  Antes {plan.price}
+                </p>
+              )}
+              <div className={`text-4xl font-extrabold mb-0.5 tracking-tight ${plan.featured ? 'text-white' : 'text-[#4B2E7A]'}`}>{displayPrice}</div>
               <p className={`text-sm mb-6 ${plan.featured ? 'text-white/70' : 'text-gray-400'}`}>{plan.period}</p>
               <ul className="flex-1 space-y-2.5 mb-7">
                 {plan.features.map(f => (
@@ -216,7 +276,8 @@ export default function HomePage() {
                 Seleccionar Plan
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
