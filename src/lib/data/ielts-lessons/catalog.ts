@@ -48,7 +48,7 @@ export const IELTS_LESSON_VOICES = {
   student_female:    'jsCqWAovK2LkecY7zXl4', // Freya — young female US
   // Guide / adult female
   guide_female:      'XrExE9yKIg1WjnnlVkGX', // Matilda — warm female US
-  applicant_female:  '21m00Tcm4TlvDq8ikWAM', // Rachel — calm female US
+  applicant_female:  'cgSgspJ2msm6clMCkdW9', // Jessica — young expressive female US (teacher feedback 2026-11-26: Rachel sonaba robótica)
 } as const;
 
 export const IELTS_LESSONS: IeltsLesson[] = [
@@ -71,7 +71,10 @@ export const IELTS_LESSONS: IeltsLesson[] = [
       },
       {
         id:          'part-1',
-        storagePath: 'audio/ielts-lessons/listening-intro/part-1.mp3',
+        // v2: re-baked 2026-11-26 with Jessica as Nadia (teacher feedback:
+        // Rachel sonaba robótica). New filename busts the Storage
+        // immutable-1yr cache so students pick up the new MP3 immediately.
+        storagePath: 'audio/ielts-lessons/listening-intro/part-1-v2.mp3',
         roleVoices: {
           Coordinator: IELTS_LESSON_VOICES.coordinator_male,
           Nadia:       IELTS_LESSON_VOICES.applicant_female,

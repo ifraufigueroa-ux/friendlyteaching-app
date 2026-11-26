@@ -29,7 +29,23 @@ const MODEL_ID = 'eleven_multilingual_v2';
 const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
 const ALL   = args.includes('--all');
-const SLUG  = args.find(a => !a.startsWith('--'));
+// `--audio <id>` restricts the run to a single audio inside a lesson.
+// Without it, every audio in the lesson is (re)generated — which is what
+// you want on a fresh bake but wastes credits + risks subtly changing
+// voices the teacher already approved when you only need to fix one
+// clip. With it, the baker uploads just that MP3 and merges its URL
+// into the HTML's existing PREBAKED_AUDIOS map (the other URLs stay).
+const audioFlagIdx = args.indexOf('--audio');
+const AUDIO_ID     = audioFlagIdx >= 0 ? args[audioFlagIdx + 1] : null;
+const SLUG  = args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--audio');
+
+// Voice settings are tunable via env for one-off re-bakes. Defaults
+// mirror the original IELTS Introduction bake (stability 0.5,
+// similarity 0.75). A slight bump (0.55 / 0.8) keeps the cadence
+// steady and nudges away from the robotic-demo feel for the more
+// expressive voices like Jessica.
+const STABILITY  = parseFloat(process.env.ELEVEN_STABILITY  ?? '0.5');
+const SIMILARITY = parseFloat(process.env.ELEVEN_SIMILARITY ?? '0.75');
 
 function loadServiceAccount() {
   const raw = fs.readFileSync(path.join(__dirname, '..', '.env.local'), 'utf8');
@@ -91,7 +107,7 @@ async function ttsOne(voiceId, text) {
     body: JSON.stringify({
       text,
       model_id: MODEL_ID,
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      voice_settings: { stability: STABILITY, similarity_boost: SIMILARITY },
     }),
   });
   if (!res.ok) {
@@ -124,12 +140,31 @@ async function upload(buf, storagePath) {
 
 // ── HTML inject ───────────────────────────────────────────────
 
+/** Parse the current PREBAKED_AUDIOS block out of the HTML so a
+ *  partial re-bake can merge instead of wiping. Returns an object
+ *  (possibly empty) — never throws on a missing block. */
+function readExistingUrls(html) {
+  const regex = /const PREBAKED_AUDIOS = (\{[\s\S]*?\n\});/;
+  const m = html.match(regex);
+  if (!m) return {};
+  try {
+    // JSON.parse is strict about quoting; the baker only emits
+    // double-quoted JSON so this always round-trips for its own output.
+    return JSON.parse(m[1]);
+  } catch {
+    return {};
+  }
+}
+
 function injectIntoHtml(html, audioUrls) {
   // The IELTS HTML declares `const PREBAKED_AUDIOS = {};` at the top of
   // the audio-engine comment block. We replace that single-line stub
   // with the real URL map. Idempotent: re-runs replace the existing block.
+  // When only part of the lesson was baked (--audio <id>), merge with
+  // whatever URLs the HTML already had so the other audios keep working.
+  const merged = { ...readExistingUrls(html), ...audioUrls };
   const stubEmpty   = 'const PREBAKED_AUDIOS = {};';
-  const injection   = `const PREBAKED_AUDIOS = ${JSON.stringify(audioUrls, null, 2)};`;
+  const injection   = `const PREBAKED_AUDIOS = ${JSON.stringify(merged, null, 2)};`;
 
   if (html.includes(stubEmpty)) {
     return html.replace(stubEmpty, injection);
@@ -149,7 +184,19 @@ async function bakeOne(lesson) {
   console.log(`\n▶ ${lesson.id} · ${lesson.title}`);
   if (!lesson.audios?.length) { console.log('  (no audios declared — skip)'); return results; }
 
-  for (const audio of lesson.audios) {
+  // Filter to a single audio when --audio <id> was passed.
+  const audios = AUDIO_ID
+    ? lesson.audios.filter(a => a.id === AUDIO_ID)
+    : lesson.audios;
+  if (audios.length === 0) {
+    throw new Error(`No audio with id "${AUDIO_ID}" in lesson ${lesson.id}. Known: ${lesson.audios.map(a => a.id).join(', ')}`);
+  }
+  if (AUDIO_ID) {
+    console.log(`  (--audio ${AUDIO_ID} · skipping ${lesson.audios.length - 1} other clips)`);
+  }
+  console.log(`  voice_settings: stability=${STABILITY} similarity_boost=${SIMILARITY}`);
+
+  for (const audio of audios) {
     console.log(`  · ${audio.id} → ${audio.storagePath}`);
     let buf;
     if (audio.dialogue) {
