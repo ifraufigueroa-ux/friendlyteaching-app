@@ -19,6 +19,7 @@ import { lessonB1PlusTmsCutoverSlip } from './b1plus-tms-cutover-slip';
 import { lessonB1PlusAirplaneCargoHotSalmon } from './b1plus-airplane-cargo-hot-salmon';
 import { lessonB1OgmpIntroClass01 } from './b1-ogmp-intro-class-01';
 import { lessonB1OgmpMitigationClass02 } from './b1-ogmp-mitigation-class-02';
+import { lessonB1DatacenterTownMeeting } from './b1-datacenter-town-meeting';
 import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonB2AtcGoAround } from './b2-atc-go-around';
@@ -38,6 +39,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB1LogisticsConsultancySprintSlip,
   lessonB1OgmpIntroClass01,      // B1: OGMP 2.0 primer for engineers — what it is, levels, assets, baseline year (Class 1)
   lessonB1OgmpMitigationClass02, // B1: OGMP 2.0 methane mitigation for gas-transport engineers (Class 2)
+  lessonB1DatacenterTownMeeting, // B1: data centres vs. community · first exposure to present perfect, regular verbs only + "been"
   lessonB1WhichGymShouldIJoin,
   lessonB1PlusTmsCutoverSlip,
   lessonB1PlusAirplaneCargoHotSalmon, // B1+: air-cargo duty manager works a tight turnaround
