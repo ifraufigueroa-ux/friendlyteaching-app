@@ -264,8 +264,18 @@ export function toStars(masteryValue: number | undefined): number {
 /** A unit is unlocked when any of these is true:
  *   · it is the first unit in the ordered list (always open),
  *   · its predecessor has ≥ UNLOCK_MIN_STARS (normal progression),
- *   · it belongs to a level the student has already placed through
- *     (the in-app placement wrote their best grammar level). */
+ *   · it belongs to a level strictly BELOW the student's placed level
+ *     (grammar already proved — they can jump in for review).
+ *   · it is the FIRST unit of the student's placed level (their entry
+ *     point into Daily Practice after the placement test).
+ *
+ *  Policy change 2026-11-27 (teacher feedback): previously, the entire
+ *  placed level was unlocked at once. That lets a B1-placed student
+ *  skip around B1 units in any order and defeats the step-by-step
+ *  progression. Now the placed level acts like any other: only the
+ *  first unit is open, every subsequent unit of that level needs
+ *  ≥ 2★ on its predecessor. Levels ABOVE the placed level still
+ *  progress the normal way (prerequisite stars). */
 export function isUnitUnlocked(
   unitId: string,
   orderedUnitIds: string[],
@@ -277,11 +287,21 @@ export function isUnitUnlocked(
   placedLevel?: PracticeLevel | null,
 ): boolean {
   if (placedLevel && levelOf) {
-    const l = levelOf[unitId];
-    if (l && LEVEL_ORDER[l] <= LEVEL_ORDER[placedLevel]) return true;
+    const unitLevel = levelOf[unitId];
+    if (unitLevel) {
+      // Levels strictly BELOW the placed level → fully unlocked.
+      if (LEVEL_ORDER[unitLevel] < LEVEL_ORDER[placedLevel]) return true;
+      // The FIRST unit of the placed level → always the entry point.
+      if (LEVEL_ORDER[unitLevel] === LEVEL_ORDER[placedLevel]) {
+        const firstOfLevel = orderedUnitIds.find((id) => levelOf[id] === unitLevel);
+        if (firstOfLevel === unitId) return true;
+      }
+      // Fall through for: later units of placed level + every unit of
+      // any level ABOVE placed. Those all go through prerequisite gate.
+    }
   }
   const idx = orderedUnitIds.indexOf(unitId);
-  if (idx <= 0) return true; // first unit or unknown → open
+  if (idx <= 0) return true; // first unit overall or unknown → open
   const prevId = orderedUnitIds[idx - 1];
   return toStars(mastery[prevId]) >= UNLOCK_MIN_STARS;
 }
