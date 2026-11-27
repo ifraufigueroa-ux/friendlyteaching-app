@@ -105,12 +105,13 @@ export const lessonB2PlusVendorInvoiceFraud: FLLesson = {
     {
       kind:      'lead-in',
       title:     'Before we start',
-      intro:     'The highest-loss cybercrime category reported to the FBI every year through 2024 isn\'t ransomware or data breach — it\'s invoice fraud. Someone pretends to be a vendor you already trust and asks you to send the next payment to a new bank account. Today you\'ll hear a finance controller walking IT security through a near-miss from last night.',
+      intro:     'The highest-loss cybercrime category reported to the FBI every year through 2024 isn\'t ransomware or data breach — it\'s invoice fraud. Someone pretends to be a company you already trust and asks for the next payment to go to a new bank account. Today you\'ll hear a finance controller walking IT security through a near-miss from last night. Before we hit play, a quick warm-up — react from your own experience, no "right answer".',
       hookEmoji: '💸',
       openQuestions: [
-        { id: 'li1', prompt: 'In your organisation, how is a change of bank details for a vendor actually verified — is anyone required to pick up the phone?' },
-        { id: 'li2', prompt: 'How quickly would your team notice if an attacker had been quietly reading a vendor\'s inbox for three weeks? What would give them away?' },
-        { id: 'li3', prompt: 'If a wire has already gone to a fraudulent account, what do you think the realistic recovery percentage looks like — and why?', hint: 'The window to claw money back closes within hours once a border is crossed.' },
+        { id: 'li1', prompt: 'When was the last time something online looked almost real but one tiny detail gave it away — a weird email, a strange text, a website one letter off? What was the detail that caught your eye?', hint: 'Could be a fake courier tracking link, a scam WhatsApp, anything. The smaller the giveaway, the better the story.' },
+        { id: 'li2', prompt: 'If you suddenly had to send a large amount of money to someone you\'d only dealt with by email, what would you actually do to make sure they were who they said they were?', hint: 'Think of five minutes you\'d spend before pressing send. Phone call? Video? Ask something only they\'d know?' },
+        { id: 'li3', prompt: 'Imagine a bad guy quietly reads a company\'s emails for three weeks before doing anything. What do you think they\'re learning during that time — and what single thing would make their fake message believable enough to work?' },
+        { id: 'li4', prompt: 'Have you ever almost fallen for a scam and caught yourself at the last second? What made you stop — a gut feeling, a detail, someone next to you asking "wait, are you sure"?', hint: 'Near-misses are the best teachers. One good story here opens the whole topic.' },
       ],
     },
 
@@ -458,9 +459,9 @@ export const lessonB2PlusVendorInvoiceFraud: FLLesson = {
     {
       kind:         'production',
       title:        'Now you',
-      intro:        'You\'re either the finance lead who spotted a near-miss or the security contact being briefed on one. Record 90 seconds. Pick a realistic scenario (your own, or one you can construct): a changed IBAN, a convincing invoice at the wrong moment, a vendor contact you weren\'t sure was really them.',
+      intro:        'Step into the role of someone briefing a friend who runs a small business, or telling the story at a dinner table. You\'re describing an invoice-fraud near-miss — one from the news, one a friend told you, or one you make up that feels real.',
       mode:         'speaking',
-      prompt:       'Record 90 seconds. Cover: (1) what the request looked like and why it was convincing, (2) the one detail that didn\'t fit — what caught the attacker out, (3) your best guess at the attacker\'s dwell time and what they learned, (4) the containment step in the first hour (what you lock down, who you phone back on which number), (5) the control you want to roll out company-wide this week. Use at least 3 of: "walk me through", "that\'s the part that caught them out", "the one that keeps me up", "if X hadn\'t spotted Y, we\'d have…", "I\'d rather be having this call than writing an insurance claim".',
+      prompt:       'Record 90 seconds. Cover: (1) what the fake request looked like and why it was convincing, (2) the one detail that didn\'t fit — what caught the attacker out at the last moment, (3) your best guess at how long the attacker had been quietly inside, learning the rhythm, (4) the very first thing someone should do in the next hour (what gets locked down, who gets phoned on a known number), (5) the one new habit you\'d tell anyone to adopt after a story like this. Use at least 3 of: "walk me through", "that\'s the part that caught them out", "the one that keeps me up", "if X hadn\'t spotted Y, we\'d have…", "I\'d rather be having this call than writing an insurance claim".',
       targetChunks: ['c1', 'c2', 'c3', 'c4', 'c5'],
       minSeconds:   90,
     },

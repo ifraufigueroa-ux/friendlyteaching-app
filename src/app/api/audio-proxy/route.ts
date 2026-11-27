@@ -14,7 +14,17 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const ALLOWED_HOST = 'firebasestorage.googleapis.com';
+// Two hostnames serve the same buckets:
+//   · firebasestorage.googleapis.com — the token-signed URL getDownloadURL()
+//     returns from the firebase/storage SDK (what the UI generate flow uses).
+//   · storage.googleapis.com — the public URL served after `file.makePublic()`
+//     from the admin SDK (what scripts/bake-friendlistening-audio.js uses).
+// Both are legitimate Firebase Storage origins for our project. Allowing
+// only the first blocked script-baked audios with HTTP 403.
+const ALLOWED_HOSTS = new Set([
+  'firebasestorage.googleapis.com',
+  'storage.googleapis.com',
+]);
 
 export async function GET(req: NextRequest) {
   const target = req.nextUrl.searchParams.get('url');
@@ -28,7 +38,7 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'invalid url' }, { status: 400 });
   }
-  if (parsed.host !== ALLOWED_HOST) {
+  if (!ALLOWED_HOSTS.has(parsed.host)) {
     return NextResponse.json({ error: `host not allowed: ${parsed.host}` }, { status: 403 });
   }
 
