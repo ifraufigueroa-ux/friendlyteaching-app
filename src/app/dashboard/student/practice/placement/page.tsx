@@ -341,20 +341,45 @@ function RunnerView({ pool, seed, session, onAnswer, onPause, onFinish }: {
   }, [question?.id]);
 
   // When the engine decides we're done, flip the session to completed.
+  // Guard: NEVER call onFinish() with zero answers — that path exists
+  // only to close out a run that actually produced data. If a fresh
+  // session is somehow being told to stop (seen in production:
+  // pickNextQuestion returned null on an unresumed brand-new session,
+  // probably from a stale hydration-race on `pool`), completing it
+  // would write placedLevel='A0' to Firestore and lock the student
+  // out of the test. The "stuck on Wrapping up…" screen was that same
+  // null-path before the guard. Falling through lets the <Card> below
+  // render a proper recovery UI instead.
   useEffect(() => {
     const normalised = session.answers.map((a) => ({
       ...a, level: a.level as 'A0'|'A1'|'A2'|'B1'|'B2'|'B2+'|'C1',
     }));
-    if (shouldStop(normalised, pool, seed)) {
+    if (normalised.length > 0 && shouldStop(normalised, pool, seed)) {
       void onFinish();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.answers.length]);
 
   if (!question) {
+    // Degenerate case: the picker returned null on a session we can't
+    // close out cleanly. Offer a one-tap "start over" so the student is
+    // never trapped on this screen. Shown instead of the old silent
+    // "Wrapping up…" text that left a brand-new session hanging.
     return (
-      <Card className="max-w-lg mx-auto text-center">
-        <p className="text-sm text-slate-500">Wrapping up…</p>
+      <Card className="max-w-lg mx-auto text-center space-y-4">
+        <p className="text-sm font-bold text-[#4b3869]">
+          Something went wrong preparing your questions.
+        </p>
+        <p className="text-xs text-slate-500">
+          This usually clears on a retry. Tap below to start over — nothing
+          is lost (you hadn&apos;t answered anything yet).
+        </p>
+        <button
+          onClick={() => { window.location.reload(); }}
+          className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#845ec2] to-[#5A3D7A] text-white rounded-full font-bold text-sm shadow-xl hover:shadow-2xl transition-shadow"
+        >
+          Retry placement
+        </button>
       </Card>
     );
   }
