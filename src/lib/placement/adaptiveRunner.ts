@@ -214,7 +214,16 @@ export function pickNextQuestion(
       // on the same answers.length index don't collide to the same
       // pool slot.
       const levelOffset = hashSeed(lvl);
-      const idx = ((seedN ^ levelOffset) + answers.length * 1_000_003) % fresh.length;
+      // `^` in JS treats both operands as INT32 signed — if the high
+      // bit survives the XOR the intermediate goes negative, `+` keeps
+      // it negative, `%` in JS on a negative LHS returns negative, and
+      // `fresh[idx]` silently becomes `undefined`. That's what broke
+      // Sebastian's placement on Q2 (2026-11-27): seed hashed into the
+      // negative half, level A1 pushed idx to -N, Q2 came back null
+      // and the runner fell into the "Something went wrong" recovery
+      // card. `>>> 0` coerces the whole thing to a uint32 BEFORE the
+      // modulo, keeping idx in [0, fresh.length).
+      const idx = (((seedN ^ levelOffset) + answers.length * 1_000_003) >>> 0) % fresh.length;
       return fresh[idx];
     }
   }
