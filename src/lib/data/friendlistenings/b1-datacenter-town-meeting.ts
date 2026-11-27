@@ -76,19 +76,19 @@ export const lessonB1DatacenterTownMeeting: FLLesson = {
     durationSec: 215,
     speakers: [
       {
-        id: 'laura', displayName: 'Laura', accent: 'US', gender: 'f',
+        id: 'laura', displayName: 'Laura', accent: 'UK', gender: 'f',
         suggestedVoice: {
-          voiceId: 'oWAxZDx7w5VEj9dCyTzz',
-          name:    'Grace',
-          note:    'ElevenLabs · soft female US southern — warm, grounded council-member tone. First use in catalogue so it is not on the IELTS-saturated list.',
+          voiceId: 'Xb7hH8MSUJpSbSDYk0k2',
+          name:    'Alice',
+          note:    'ElevenLabs · UK professional female — proved natural on the BEC lesson. Teacher feedback 2026-11-27: swapped in after Grace/Antoni sounded synthetic on the first bake.',
         },
       },
       {
         id: 'marco', displayName: 'Marco', accent: 'US', gender: 'm',
         suggestedVoice: {
-          voiceId: 'ErXwobaYiN019PkySvjV',
-          name:    'Antoni',
-          note:    'ElevenLabs · warm male US — retired-teacher cadence, slower and clearer than Adam/Daniel. Avoids the flat demo-voice feel.',
+          voiceId: 'cjVigY5qzO86Huf0OWal',
+          name:    'Eric',
+          note:    'ElevenLabs · US male, warm incident-commander cadence — proved natural on the BEC lesson. Swapped in with Alice on the 2026-11-27 re-bake.',
         },
       },
     ],

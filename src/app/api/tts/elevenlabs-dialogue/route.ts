@@ -18,7 +18,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? '';
+// Accept both ELEVENLABS_API_KEY (the canonical Next convention) and
+// ELEVEN_KEY (what scripts/bake-ielts-lesson.js and the
+// bake-friendlistening-audio.js script already use in .env.local).
+// That way the teacher-side "Generate audio" button reuses the same
+// credential as the CLI bakers without a separate setup step.
+const ELEVENLABS_API_KEY =
+  process.env.ELEVENLABS_API_KEY ??
+  process.env.ELEVEN_KEY ??
+  '';
 const DEFAULT_MODEL = 'eleven_multilingual_v2';
 
 interface Segment {
@@ -44,7 +52,11 @@ async function generateOne(voiceId: string, text: string, modelId: string): Prom
       body: JSON.stringify({
         text,
         model_id: modelId,
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        // Nudged up on 2026-11-27: the old 0.5/0.75 pair sounded flat
+        // and demo-robotic (teacher feedback on the IELTS Jessica
+        // re-bake). 0.55/0.8 keeps the cadence steady while giving
+        // voices like Jessica and Grace room to feel natural.
+        voice_settings: { stability: 0.55, similarity_boost: 0.8 },
       }),
     },
   );
