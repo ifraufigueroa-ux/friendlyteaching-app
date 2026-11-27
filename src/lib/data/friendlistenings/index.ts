@@ -23,6 +23,7 @@ import { lessonB2OffTheBeatenPath } from './b2-off-the-beaten-path';
 import { lessonB2JobOfferDilemma } from './b2-job-offer-dilemma';
 import { lessonB2AtcGoAround } from './b2-atc-go-around';
 import { lessonB2PlusDevSupplyChainAttack } from './b2plus-dev-supply-chain-attack';
+import { lessonB2PlusVendorInvoiceFraud } from './b2plus-vendor-invoice-fraud';
 import { lessonC1LastPromotion } from './c1-last-promotion';
 import { lessonC1SalmonVaccineTrial } from './c1-salmon-vaccine-trial';
 
@@ -44,6 +45,7 @@ export const FRIENDLISTENINGS_LESSONS: FLLesson[] = [
   lessonB2JobOfferDilemma,
   lessonB2AtcGoAround,      // B2: ATC debrief after an aborted landing
   lessonB2PlusDevSupplyChainAttack,
+  lessonB2PlusVendorInvoiceFraud,      // B2+: BEC / vendor-email compromise · 5 phrasal verbs anchored in vocab
   lessonC1LastPromotion,
   lessonC1SalmonVaccineTrial,
 ];
