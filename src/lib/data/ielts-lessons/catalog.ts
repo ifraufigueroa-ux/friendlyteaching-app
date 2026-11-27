@@ -44,7 +44,7 @@ export const IELTS_LESSON_VOICES = {
   professor_male:    'nPczCjzI2devNBz1zQrb', // Brian — deep lecturing male US
   coordinator_male:  'IKne3meq5aSn9XLyUdCD', // Charlie — natural male AU (IELTS-flavoured)
   // Peer / student
-  student_male:      'pNInz6obpgDQGcFmaJgB', // Adam — mature male US
+  student_male:      'pNInz6obpgDQGcFmaJgB', // Adam — mature male US (TODO 2026-11-26: swap to Antoni ErXwobaYiN019PkySvjV — teacher feedback "plano/demo" — pending ElevenLabs quota refill + part-3 re-bake with storage path part-3-v2.mp3)
   student_female:    'jsCqWAovK2LkecY7zXl4', // Freya — young female US
   // Guide / adult female
   guide_female:      'XrExE9yKIg1WjnnlVkGX', // Matilda — warm female US
